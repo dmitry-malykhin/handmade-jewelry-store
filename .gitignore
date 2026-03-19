@@ -137,3 +137,19 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# Turborepo
+.turbo
+
+# NestJS build output
+apps/api/dist
+
+# Prisma generated client
+apps/api/src/prisma/generated
+
+# macOS
+.DS_Store
+
+# Lock files of other package managers (project uses pnpm)
+package-lock.json
+yarn.lock
