@@ -1,0 +1,20 @@
+# Dependencies
+node_modules
+
+# Build outputs
+.next
+dist
+out
+
+# Generated files
+apps/api/src/prisma/generated
+*.tsbuildinfo
+
+# Turborepo
+.turbo
+
+# Lock files
+pnpm-lock.yaml
+
+# Docs (binary or manually formatted)
+docs

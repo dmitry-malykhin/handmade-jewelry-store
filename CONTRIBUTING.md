@@ -8,11 +8,11 @@
 
 ## Prerequisites
 
-| Tool | Version | Install |
-|------|---------|---------|
-| Node.js | ≥ 20.x | [nodejs.org](https://nodejs.org) |
-| pnpm | ≥ 9.x | `npm i -g pnpm` |
-| Docker Desktop | latest | [docker.com](https://www.docker.com/products/docker-desktop) |
+| Tool           | Version | Install                                                      |
+| -------------- | ------- | ------------------------------------------------------------ |
+| Node.js        | ≥ 20.x  | [nodejs.org](https://nodejs.org)                             |
+| pnpm           | ≥ 9.x   | `npm i -g pnpm`                                              |
+| Docker Desktop | latest  | [docker.com](https://www.docker.com/products/docker-desktop) |
 
 ---
 
@@ -40,11 +40,11 @@ pnpm db:migrate
 pnpm dev
 ```
 
-| Service | URL |
-|---------|-----|
-| Web (Next.js) | http://localhost:3000 |
-| API (NestJS) | http://localhost:4000 |
-| Swagger | http://localhost:4000/api |
+| Service       | URL                       |
+| ------------- | ------------------------- |
+| Web (Next.js) | http://localhost:3000     |
+| API (NestJS)  | http://localhost:4000     |
+| Swagger       | http://localhost:4000/api |
 
 ---
 
@@ -68,6 +68,7 @@ docs/issue-{N}-{short-description}       # документация
 ```
 
 Examples:
+
 ```
 feature/issue-12-shadcn-setup
 fix/issue-34-cart-quantity-bug
@@ -88,16 +89,16 @@ git checkout -b feature/issue-{N}-{description}
 <type>: <short description in English> #<issue>
 ```
 
-| Type | When to use |
-|------|-------------|
-| `feat` | New feature |
-| `fix` | Bug fix |
-| `chore` | Config, dependencies, tooling |
-| `docs` | Documentation only |
-| `test` | Adding or updating tests |
+| Type       | When to use                                |
+| ---------- | ------------------------------------------ |
+| `feat`     | New feature                                |
+| `fix`      | Bug fix                                    |
+| `chore`    | Config, dependencies, tooling              |
+| `docs`     | Documentation only                         |
+| `test`     | Adding or updating tests                   |
 | `refactor` | Code change without new feature or bug fix |
-| `style` | Formatting, whitespace (no logic change) |
-| `perf` | Performance improvement |
+| `style`    | Formatting, whitespace (no logic change)   |
+| `perf`     | Performance improvement                    |
 
 ```bash
 # Good examples
@@ -147,14 +148,17 @@ fix: resolve cart item duplication (#34)
 
 ```markdown
 ## Summary
+
 Brief description of what was done and why.
 
 ## Changes
+
 - Added X
 - Updated Y
 - Removed Z
 
 ## How to test
+
 Steps to verify the change works correctly.
 
 Closes #N
@@ -210,13 +214,13 @@ pnpm --filter @jewelry/web add @jewelry/shared
 
 ## Scripts
 
-| Command | Description |
-|---------|-------------|
-| `pnpm dev` | Run all apps in development mode |
-| `pnpm build` | Build all apps |
-| `pnpm lint` | Lint all apps |
-| `pnpm test` | Run all tests |
-| `pnpm db:migrate` | Run Prisma migrations |
-| `pnpm db:studio` | Open Prisma Studio |
-| `docker-compose up -d` | Start PostgreSQL locally |
-| `docker-compose down` | Stop PostgreSQL |
+| Command                | Description                      |
+| ---------------------- | -------------------------------- |
+| `pnpm dev`             | Run all apps in development mode |
+| `pnpm build`           | Build all apps                   |
+| `pnpm lint`            | Lint all apps                    |
+| `pnpm test`            | Run all tests                    |
+| `pnpm db:migrate`      | Run Prisma migrations            |
+| `pnpm db:studio`       | Open Prisma Studio               |
+| `docker-compose up -d` | Start PostgreSQL locally         |
+| `docker-compose down`  | Stop PostgreSQL                  |

@@ -3,10 +3,10 @@ name: Auto Create PR
 on:
   push:
     branches:
-      - "feature/**"
-      - "fix/**"
-      - "chore/**"
-      - "docs/**"
+      - 'feature/**'
+      - 'fix/**'
+      - 'chore/**'
+      - 'docs/**'
 
 jobs:
   create-pr:

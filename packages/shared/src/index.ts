@@ -2,12 +2,12 @@
 // Add domain types here as the project grows (W3+)
 
 export type ApiResponse<T> = {
-  data: T;
-  message?: string;
-};
+  data: T
+  message?: string
+}
 
 export type PaginatedResponse<T> = ApiResponse<T[]> & {
-  total: number;
-  page: number;
-  limit: number;
-};
+  total: number
+  page: number
+  limit: number
+}
