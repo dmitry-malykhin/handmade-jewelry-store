@@ -15,56 +15,57 @@ jobs:
       pull-requests: write
       contents: read
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Create PR if not exists
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          set -euo pipefail
           BRANCH="${GITHUB_REF#refs/heads/}"
 
           # Check if PR already exists for this branch
-          EXISTING=$(gh pr list --head "$BRANCH" --json number --jq '.[0].number')
+          EXISTING=$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number // empty')
           if [ -n "$EXISTING" ]; then
-            echo "PR #$EXISTING already exists for branch $BRANCH, skipping."
+            echo "PR #$EXISTING already exists for branch $BRANCH — skipping."
             exit 0
           fi
 
-          # Extract issue number from branch name (e.g. feature/issue-2-repo-structure → #2)
-          ISSUE=$(echo "$BRANCH" | grep -oP '(?<=issue-)\d+' || echo "")
+          # Extract issue number from branch name (feature/issue-2-foo → 2)
+          ISSUE=$(echo "$BRANCH" | grep -oE 'issue-[0-9]+' | grep -oE '[0-9]+' || true)
           CLOSES=""
-          if [ -n "$ISSUE" ]; then
-            CLOSES="Closes #$ISSUE"
-          fi
+          [ -n "$ISSUE" ] && CLOSES="Closes #$ISSUE"
 
-          # Build PR title from branch name
-          TITLE=$(echo "$BRANCH" | sed 's|.*/||' | sed 's/-/ /g' | sed 's/issue [0-9]* //')
+          # Build PR title: "chore: ci checks" from "chore/issue-9-ci-checks"
           TYPE=$(echo "$BRANCH" | cut -d'/' -f1)
-          PR_TITLE="$TYPE: $TITLE"
+          SLUG=$(echo "$BRANCH" | sed 's|.*/||' | sed 's/issue-[0-9]*-//' | tr '-' ' ')
+          PR_TITLE="$TYPE: $SLUG"
+
+          PR_BODY="## Why
+
+$CLOSES
+
+## What changed
+
+-
+
+## How to test
+
+1.
+
+## Checklist
+
+- [ ] No \`any\` types in TypeScript
+- [ ] \`pnpm lint\` passes
+- [ ] \`pnpm build\` passes locally
+- [ ] Self-reviewed the diff before opening PR"
 
           gh pr create \
             --base main \
             --head "$BRANCH" \
             --title "$PR_TITLE" \
-            --body "$(cat <<EOF
-          ## Why
-
-          $CLOSES
-
-          ## What changed
-
-          -
-
-          ## How to test
-
-          1.
-
-          ## Checklist
-
-          - [ ] No \`any\` types in TypeScript
-          - [ ] \`pnpm lint\` passes
-          - [ ] \`pnpm build\` passes locally
-          - [ ] Self-reviewed the diff before opening PR
-          EOF
-          )" \
+            --body "$PR_BODY" \
             --draft
+
+          echo "Draft PR created for branch $BRANCH"

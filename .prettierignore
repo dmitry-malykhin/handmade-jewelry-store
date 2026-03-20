@@ -16,5 +16,8 @@ apps/api/src/prisma/generated
 # Lock files
 pnpm-lock.yaml
 
+# GitHub Actions — complex bash scripts break Prettier's YAML parser
+.github/workflows
+
 # Docs (binary or manually formatted)
 docs
