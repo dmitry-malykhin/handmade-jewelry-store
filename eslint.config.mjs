@@ -13,6 +13,7 @@ export default tseslint.config(
       '**/.turbo/**',
       '**/generated/**',
       '**/*.tsbuildinfo',
+      '**/next-env.d.ts',
       'pnpm-lock.yaml',
     ],
   },
