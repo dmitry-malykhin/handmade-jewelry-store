@@ -140,6 +140,63 @@ The project supports **3 languages: English (EN), Russian (RU), Spanish (ES)**.
 - Never return password or sensitive fields.
 - All protected routes: `@UseGuards(JwtAuthGuard)`.
 
+### Comments in code
+
+Write comments **only when the logic is non-obvious** and another developer could not understand it by reading the code.
+
+**Do NOT comment:**
+
+- What the code does (readable code speaks for itself)
+- Obvious operations: `// increment counter`, `// return null`
+- Component structure that is clear from JSX
+- Props or variables whose names already explain them
+
+**DO comment:**
+
+- Complex business logic that has a non-obvious reason: `// Zustand skipHydration prevents SSR/client mismatch`
+- Workarounds for framework quirks or known bugs
+- Magic numbers or constants that need context: `// 3600 = 1 hour ISR revalidation window`
+- Non-obvious accessibility decisions
+
+This rule applies equally to production code and test files.
+
+### Testing
+
+After implementing any new code, determine which tests to write before running anything:
+
+**Decision flow — for every new piece of code ask:**
+
+- Pure function / utility → unit test
+- Custom hook → `renderHook` unit test
+- React component → component test (RTL)
+- User flow across pages → E2E test (Playwright)
+- API endpoint → integration test with MSW
+
+**Test execution order (mandatory):**
+
+1. Write tests for the new code
+2. Run **new tests only** first → fix any failures
+3. Run **all tests** → confirm nothing regressed
+4. `pnpm lint` + `pnpm format:check`
+
+```bash
+# Run only new tests by pattern:
+pnpm --filter web test:run -- --testPathPattern="cart.store"
+
+# Run all unit/component tests:
+pnpm --filter web test:run
+
+# Run E2E (only when UI was touched):
+pnpm --filter web test:e2e
+```
+
+**Test code quality — same rules as production code:**
+
+- Functions, variables, and describe/it labels must be self-describing
+- `it('calls setTheme with "dark" when clicked in light mode')` — not `it('test 1')`
+- Variable names: `mockSetTheme`, `cartItemWithPrice`, `renderedButton` — not `mock`, `item`, `btn`
+- Comments only for non-obvious test setup (e.g. why a mock returns a specific value)
+
 ### Commits (Conventional Commits)
 
 ```
