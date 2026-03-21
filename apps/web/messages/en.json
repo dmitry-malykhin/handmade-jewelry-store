@@ -1,0 +1,50 @@
+{
+  "metadata": {
+    "title": "Handmade Jewelry Store",
+    "description": "Unique handmade jewelry crafted with love using ethically sourced materials."
+  },
+  "navigation": {
+    "shop": "Shop",
+    "collections": "Collections",
+    "about": "About",
+    "contact": "Contact"
+  },
+  "header": {
+    "logoLabel": "Handmade Jewelry Store — home",
+    "search": "Search",
+    "cart": "Shopping cart",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "skipToMain": "Skip to main content"
+  },
+  "footer": {
+    "tagline": "Unique handmade jewelry crafted with love using ethically sourced materials.",
+    "shopGroup": "Shop",
+    "companyGroup": "Company",
+    "supportGroup": "Support",
+    "allJewelry": "All Jewelry",
+    "rings": "Rings",
+    "necklaces": "Necklaces",
+    "earrings": "Earrings",
+    "aboutUs": "About Us",
+    "ourStory": "Our Story",
+    "contact": "Contact",
+    "faq": "FAQ",
+    "shipping": "Shipping & Returns",
+    "careGuide": "Care Guide",
+    "sizeGuide": "Size Guide",
+    "copyright": "Handmade Jewelry Store. All rights reserved.",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service"
+  },
+  "home": {
+    "badge": "Coming Soon",
+    "title": "Handmade Jewelry Store",
+    "description": "Unique handmade jewelry crafted with love",
+    "statusTitle": "Design System Ready",
+    "statusDescription": "Shadcn/ui + Tailwind CSS v4 configured",
+    "statusBody": "The design system is set up. Full pages with product catalog and checkout will be built in upcoming issues.",
+    "shopNow": "Shop Now",
+    "learnMore": "Learn More"
+  }
+}

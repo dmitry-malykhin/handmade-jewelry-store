@@ -1,0 +1,50 @@
+{
+  "metadata": {
+    "title": "Tienda de Joyería Artesanal",
+    "description": "Joyería artesanal única creada con amor usando materiales de origen ético."
+  },
+  "navigation": {
+    "shop": "Tienda",
+    "collections": "Colecciones",
+    "about": "Nosotros",
+    "contact": "Contacto"
+  },
+  "header": {
+    "logoLabel": "Tienda de Joyería Artesanal — inicio",
+    "search": "Buscar",
+    "cart": "Carrito de compras",
+    "openMenu": "Abrir menú",
+    "closeMenu": "Cerrar menú",
+    "skipToMain": "Saltar al contenido principal"
+  },
+  "footer": {
+    "tagline": "Joyería artesanal única creada con amor usando materiales de origen ético.",
+    "shopGroup": "Tienda",
+    "companyGroup": "Empresa",
+    "supportGroup": "Soporte",
+    "allJewelry": "Toda la joyería",
+    "rings": "Anillos",
+    "necklaces": "Collares",
+    "earrings": "Pendientes",
+    "aboutUs": "Sobre nosotros",
+    "ourStory": "Nuestra historia",
+    "contact": "Contacto",
+    "faq": "Preguntas frecuentes",
+    "shipping": "Envío y devoluciones",
+    "careGuide": "Guía de cuidado",
+    "sizeGuide": "Guía de tallas",
+    "copyright": "Tienda de Joyería Artesanal. Todos los derechos reservados.",
+    "privacy": "Política de privacidad",
+    "terms": "Términos de servicio"
+  },
+  "home": {
+    "badge": "Próximamente",
+    "title": "Tienda de Joyería Artesanal",
+    "description": "Joyería artesanal única creada con amor",
+    "statusTitle": "Sistema de diseño listo",
+    "statusDescription": "Shadcn/ui + Tailwind CSS v4 configurado",
+    "statusBody": "El sistema de diseño está listo. Las páginas completas con catálogo de productos y pago se crearán en los próximos issues.",
+    "shopNow": "Comprar ahora",
+    "learnMore": "Más información"
+  }
+}
