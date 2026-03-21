@@ -1,6 +1,14 @@
 @import "tailwindcss";
 
 /*
+ * Class-based dark mode for Tailwind v4.
+ * By default, v4 uses @media (prefers-color-scheme). This override makes
+ * dark: utilities activate whenever an ancestor has class="dark" — which is
+ * what next-themes sets on <html>.
+ */
+@variant dark (&:where(.dark, .dark *));
+
+/*
  * @theme inline — bridge between Shadcn CSS vars and Tailwind v4 utility classes.
  * Without this, classes like bg-background, text-foreground, border-border don't exist.
  * "inline" means values are inlined at build time, not emitted as separate CSS vars.
@@ -123,5 +131,10 @@
     @apply bg-background text-foreground;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* Smooth color transition when switching light ↔ dark theme */
+    transition:
+      background-color 0.35s ease,
+      color 0.2s ease,
+      border-color 0.2s ease;
   }
 }

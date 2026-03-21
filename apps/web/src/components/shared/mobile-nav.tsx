@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useTransition } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
-import { Menu, X, ChevronDown, Check } from 'lucide-react'
+import { useTheme } from 'next-themes'
+import { Menu, X, ChevronDown, Check, Sun, Moon } from 'lucide-react'
 import { Link, usePathname, useRouter } from '@/i18n/navigation'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -32,6 +33,7 @@ export function MobileNav() {
   const router = useRouter()
   const pathname = usePathname()
   const [isPending, startTransition] = useTransition()
+  const { resolvedTheme, setTheme } = useTheme()
 
   const current = LOCALES[locale] ?? (LOCALES['en'] as NonNullable<(typeof LOCALES)[string]>)
 
@@ -130,8 +132,21 @@ export function MobileNav() {
           </ul>
         </nav>
 
-        {/* ── Language accordion (bottom, always visible) ────────────────── */}
+        {/* ── Bottom controls (theme + language) ────────────────────────── */}
         <div className="shrink-0 border-t px-3 py-4">
+          {/* Theme toggle row */}
+          <button
+            type="button"
+            onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
+            className="mb-1 flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+          >
+            <span className="relative size-4 shrink-0" aria-hidden="true">
+              <Sun className="absolute size-4 transition-all duration-300 rotate-0 scale-100 dark:-rotate-90 dark:scale-0" />
+              <Moon className="absolute size-4 transition-all duration-300 rotate-90 scale-0 dark:rotate-0 dark:scale-100" />
+            </span>
+            <span className="dark:hidden">{t('header.switchToDark')}</span>
+            <span className="hidden dark:inline">{t('header.switchToLight')}</span>
+          </button>
           {/* Accordion trigger */}
           <button
             type="button"

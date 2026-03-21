@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { headers } from 'next/headers'
 import { Inter } from 'next/font/google'
+import { ThemeProvider } from '@/components/shared/theme-provider'
 import './globals.css'
 
 const inter = Inter({
@@ -24,7 +25,11 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
 
   return (
     <html lang={locale} suppressHydrationWarning className={inter.variable}>
-      <body className="flex min-h-screen flex-col font-sans antialiased">{children}</body>
+      <body className="flex min-h-screen flex-col font-sans antialiased">
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          {children}
+        </ThemeProvider>
+      </body>
     </html>
   )
 }

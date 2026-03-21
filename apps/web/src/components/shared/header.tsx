@@ -4,6 +4,7 @@ import { Link } from '@/i18n/navigation'
 import { NavLinks } from './nav-links'
 import { MobileNav } from './mobile-nav'
 import { LanguageSwitcher } from './language-switcher'
+import { ThemeToggle } from './theme-toggle'
 import { Button } from '@/components/ui/button'
 
 /**
@@ -39,6 +40,9 @@ export function Header() {
               <ShoppingCart className="size-5" />
             </Link>
           </Button>
+
+          {/* Theme toggle — visible on both desktop and mobile */}
+          <ThemeToggle />
 
           {/* Desktop language switcher — hidden on mobile (MobileNav handles it) */}
           <div className="hidden md:flex">
