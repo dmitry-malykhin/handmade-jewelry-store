@@ -49,6 +49,35 @@ User does all git write operations manually.
 - `'use client'` only when strictly necessary (state, events, browser APIs).
   Default: Server Component.
 
+### Theming — mandatory on every component
+
+The project has **two themes: light and dark** (via `next-themes` + Tailwind class strategy).
+
+- **Never use raw colors** (`text-gray-900`, `bg-white`, `border-gray-200`, etc.).
+  Always use semantic CSS-variable tokens: `text-foreground`, `bg-background`, `bg-card`,
+  `text-muted-foreground`, `border-border`, `bg-accent`, `text-primary`, etc.
+- These tokens automatically resolve to the correct value in both light and dark mode.
+- If a color has no semantic token equivalent, define a new CSS variable in `globals.css`
+  with values for both `:root` (light) and `.dark` — never hardcode a color for one theme only.
+- Interactive states: use `hover:bg-accent hover:text-accent-foreground` (not `hover:bg-gray-100`).
+- Shadows: `shadow-sm`, `shadow-md` are fine — they adapt automatically.
+
+### i18n — mandatory on every component
+
+The project supports **3 languages: English (EN), Russian (RU), Spanish (ES)**.
+
+- **Never hardcode user-visible text** in a component.
+  Every string must come from `useTranslations()` (Client) or `getTranslations()` (Server).
+- When adding any new text to a component, immediately add translations for all 3 languages
+  to the corresponding JSON files:
+  - `apps/web/messages/en.json`
+  - `apps/web/messages/ru.json`
+  - `apps/web/messages/es.json`
+- Use the closest existing namespace (`header`, `footer`, `navigation`, `home`, etc.).
+  Create a new namespace only if the text clearly belongs to a new domain.
+- `aria-label`, `placeholder`, `title` attributes are user-visible — translate them too.
+- Translation keys use camelCase: `shopNow`, `addToCart`, `switchToDark`.
+
 ### Semantic HTML (mandatory on every component)
 
 - `<article>` — product card
@@ -183,4 +212,6 @@ model Category {
 [ ] Product pages have JSON-LD
 [ ] URLs use slug, not id
 [ ] New page is a Server Component (no unnecessary 'use client')
+[ ] No raw colors — only semantic tokens (bg-background, text-foreground, etc.)
+[ ] All new text strings added to en.json + ru.json + es.json
 ```
