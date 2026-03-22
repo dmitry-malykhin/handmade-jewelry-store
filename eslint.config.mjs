@@ -50,4 +50,15 @@ export default tseslint.config(
       '@typescript-eslint/no-non-null-assertion': 'warn',
     },
   },
+
+  // ── NestJS (apps/api) — DI tokens must be value imports, not type-only ────────
+  // NestJS constructor injection uses class references as reflect-metadata tokens
+  // at runtime. `import type` removes the import from JS output, breaking DI.
+  // This override must come AFTER the global rules to take precedence.
+  {
+    files: ['apps/api/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': 'off',
+    },
+  },
 )
