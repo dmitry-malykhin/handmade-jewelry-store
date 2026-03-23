@@ -38,13 +38,15 @@ enum PaymentStatus {
 // ─── Models ──────────────────────────────────────────────────────────────────
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
+  id        String     @id @default(cuid())
+  email     String     @unique
   password  String
-  role      Role     @default(USER)
+  role      Role       @default(USER)
   orders    Order[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  reviews   Review[]
+  wishlist  Wishlist?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
 }
 
 model Category {
@@ -55,23 +57,25 @@ model Category {
 }
 
 model Product {
-  id          String   @id @default(cuid())
+  id          String     @id @default(cuid())
   title       String
   description String
-  price       Decimal  @db.Decimal(10, 2)
-  stock       Int      @default(0)
-  images      String[] // S3 URLs, uploaded in Issue #21
-  slug        String   @unique // mandatory for SEO URLs: /products/silver-ring
-  sku         String?           // for Google Shopping feed
-  weight      Float?            // grams, for shipping cost calculation
-  material    String?           // "Sterling Silver 925"
-  avgRating   Float    @default(0)
-  reviewCount Int      @default(0)
+  price       Decimal    @db.Decimal(10, 2)
+  stock       Int        @default(0)
+  images      String[]   // S3 URLs, uploaded in Issue #21
+  slug        String     @unique // mandatory for SEO URLs: /products/silver-ring
+  sku         String?             // for Google Shopping feed
+  weight      Float?              // grams, for shipping cost calculation
+  material    String?             // "Sterling Silver 925"
+  avgRating   Float      @default(0)
+  reviewCount Int        @default(0)
   categoryId  String
-  category    Category    @relation(fields: [categoryId], references: [id])
+  category    Category   @relation(fields: [categoryId], references: [id])
   orderItems  OrderItem[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  reviews     Review[]
+  wishlists   Wishlist[] @relation("WishlistProducts")
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 }
 
 model Order {
@@ -104,4 +108,24 @@ model Payment {
   status    PaymentStatus @default(PENDING)
   amount    Decimal       @db.Decimal(10, 2)
   createdAt DateTime      @default(now())
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  rating    Int      // 1–5 stars
+  comment   String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId]) // one review per user per product
+}
+
+model Wishlist {
+  id       String    @id @default(cuid())
+  userId   String    @unique // one wishlist per user
+  user     User      @relation(fields: [userId], references: [id])
+  products Product[] @relation("WishlistProducts")
 }
