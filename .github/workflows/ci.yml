@@ -36,8 +36,8 @@ jobs:
       - name: Check formatting
         run: pnpm format:check
 
-  unit-tests:
-    name: Unit & Component Tests
+  unit-tests-web:
+    name: Unit & Component Tests (web)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -57,6 +57,28 @@ jobs:
 
       - name: Run Vitest
         run: pnpm --filter web test:run
+
+  unit-tests-api:
+    name: Unit Tests (api)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: HUSKY=0 pnpm install --frozen-lockfile
+
+      - name: Run Jest
+        run: pnpm --filter api test
 
   e2e-tests:
     name: E2E Tests (Playwright)
