@@ -2,6 +2,8 @@
 // Prisma schema — Handmade Jewelry Store
 // Issue #62: User, Product, Category, Order, OrderItem, Payment
 // Issue #63: Review, Wishlist + seed script
+// Issue #116: OrderStatus (PROCESSING, REFUNDED), StockType, CancelReason,
+//             OrderStatusHistory, extended Order + OrderItem fields
 // ─────────────────────────────────────────────────────────────────────────────
 
 generator client {
@@ -21,11 +23,14 @@ enum Role {
 }
 
 enum OrderStatus {
-  PENDING
-  PAID
-  SHIPPED
-  DELIVERED
-  CANCELLED
+  PENDING            // Order created, awaiting payment confirmation
+  PAID               // Payment confirmed via Stripe webhook
+  PROCESSING         // Item being packed or manufactured
+  SHIPPED            // Tracking number added, parcel dispatched
+  DELIVERED          // Confirmed by customer or auto after 14 days
+  CANCELLED          // Order cancelled (allowed before SHIPPED)
+  REFUNDED           // Full refund executed via Stripe
+  PARTIALLY_REFUNDED // Partial refund — e.g. MADE_TO_ORDER cancelled mid-production
 }
 
 enum PaymentStatus {
@@ -33,6 +38,24 @@ enum PaymentStatus {
   SUCCEEDED
   FAILED
   REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+enum StockType {
+  IN_STOCK      // Ready item on shelf — ships in 1-2 days
+  MADE_TO_ORDER // Made after payment — productionDays applies
+  ONE_OF_A_KIND // Unique piece, 1 unit, ships like IN_STOCK
+}
+
+enum CancelReason {
+  CUSTOMER_REQUEST // Customer changed their mind
+  DUPLICATE_ORDER  // Customer placed the same order twice
+  OUT_OF_STOCK     // Materials unavailable (force majeure)
+  PAYMENT_FAILED   // Technical payment failure
+  SHIPPING_ISSUE   // Delivery problem
+  ITEM_DAMAGED     // Defect found before shipment (handmade-specific)
+  FRAUD_SUSPECTED  // Fraud signal
+  OTHER
 }
 
 // ─── Models ──────────────────────────────────────────────────────────────────
@@ -57,47 +80,91 @@ model Category {
 }
 
 model Product {
-  id          String     @id @default(cuid())
-  title       String
-  description String
-  price       Decimal    @db.Decimal(10, 2)
-  stock       Int        @default(0)
-  images      String[]   // S3 URLs, uploaded in Issue #21
-  slug        String     @unique // mandatory for SEO URLs: /products/silver-ring
-  sku         String?             // for Google Shopping feed
-  weight      Float?              // grams, for shipping cost calculation
-  material    String?             // "Sterling Silver 925"
-  avgRating   Float      @default(0)
-  reviewCount Int        @default(0)
-  categoryId  String
-  category    Category   @relation(fields: [categoryId], references: [id])
-  orderItems  OrderItem[]
-  reviews     Review[]
-  wishlists   Wishlist[] @relation("WishlistProducts")
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  id             String     @id @default(cuid())
+  title          String
+  description    String
+  price          Decimal    @db.Decimal(10, 2)
+  stock          Int        @default(0)
+  images         String[]   // S3 URLs, uploaded in Issue #21
+  slug           String     @unique // mandatory for SEO URLs: /products/silver-ring
+  sku            String?             // for Google Shopping feed
+  weight         Float?              // grams, for shipping cost calculation
+  material       String?             // "Sterling Silver 925"
+  avgRating      Float      @default(0)
+  reviewCount    Int        @default(0)
+  stockType      StockType  @default(IN_STOCK)
+  productionDays Int        @default(0) // 0 = in stock; 3-7 = made to order
+  categoryId     String
+  category       Category   @relation(fields: [categoryId], references: [id])
+  orderItems     OrderItem[]
+  reviews        Review[]
+  wishlists      Wishlist[] @relation("WishlistProducts")
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
 }
 
 model Order {
-  id        String      @id @default(cuid())
-  userId    String
-  user      User        @relation(fields: [userId], references: [id])
-  status    OrderStatus @default(PENDING)
-  total     Decimal     @db.Decimal(10, 2)
-  items     OrderItem[]
-  payment   Payment?
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
+  id              String        @id @default(cuid())
+  userId          String?       // nullable: guest checkout supported
+  user            User?         @relation(fields: [userId], references: [id])
+  status          OrderStatus   @default(PENDING)
+  total           Decimal       @db.Decimal(10, 2)
+  subtotal        Decimal       @db.Decimal(10, 2) // before discounts/shipping
+  shippingCost    Decimal       @db.Decimal(10, 2) @default(0)
+
+  // Shipping address — JSON snapshot at checkout time (not FK; address may change later)
+  shippingAddress Json
+
+  // Shipping tracking
+  shippingCarrier     String?
+  trackingNumber      String?
+  shippedAt           DateTime?
+  estimatedDeliveryAt DateTime?
+  deliveredAt         DateTime?
+
+  // Cancellation
+  cancelledAt  DateTime?
+  cancelReason CancelReason?
+  cancelNote   String?       // human-readable note shown to customer
+
+  // Refund
+  refundedAt   DateTime?
+  refundAmount Decimal?  @db.Decimal(10, 2) // may be less than total (partial refund)
+
+  // Loyalty points — Post-MVP; schema added now to avoid future migration
+  loyaltyPointsUsed   Int @default(0) // 1 point = $0.01
+  loyaltyPointsEarned Int @default(0) // credited only at DELIVERED
+
+  // Analytics
+  source String? // "web" | "admin"
+
+  items         OrderItem[]
+  payment       Payment?
+  statusHistory OrderStatusHistory[]
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+}
+
+model OrderStatusHistory {
+  id         String       @id @default(cuid())
+  orderId    String
+  order      Order        @relation(fields: [orderId], references: [id])
+  fromStatus OrderStatus? // null for the initial PENDING entry
+  toStatus   OrderStatus
+  note       String?      // admin comment
+  createdBy  String?      // userId or "system" for automatic transitions
+  createdAt  DateTime     @default(now())
 }
 
 model OrderItem {
-  id        String  @id @default(cuid())
-  orderId   String
-  order     Order   @relation(fields: [orderId], references: [id])
-  productId String
-  product   Product @relation(fields: [productId], references: [id])
-  quantity  Int
-  price     Decimal @db.Decimal(10, 2) // snapshot of price at purchase time
+  id              String   @id @default(cuid())
+  orderId         String
+  order           Order    @relation(fields: [orderId], references: [id])
+  productId       String?  // nullable: product may be deleted after order
+  product         Product? @relation(fields: [productId], references: [id])
+  productSnapshot Json     // { title, slug, sku, image } — snapshot at purchase time
+  quantity        Int
+  price           Decimal  @db.Decimal(10, 2) // snapshot of price at purchase time
 }
 
 model Payment {
