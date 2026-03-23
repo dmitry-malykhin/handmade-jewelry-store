@@ -46,6 +46,9 @@ export async function seedProducts(
       sku: 'RING-001',
       weight: 4.2,
       material: 'Sterling Silver 925, Natural Moonstone',
+      widthCm: 0.6, // 6mm band width
+      heightCm: 1.2, // 12mm cabochon height
+      weightGrams: 4.2,
       categorySlug: 'rings',
     },
     {
@@ -59,6 +62,9 @@ export async function seedProducts(
       sku: 'BRAC-001',
       weight: 8.5,
       material: 'Natural Amazonite, Sterling Silver 925',
+      lengthCm: 17.8, // 7 inches — standard bracelet length
+      weightGrams: 8.5,
+      beadSizeMm: 6.0, // as described in product text
       categorySlug: 'bracelets',
     },
     {
@@ -72,6 +78,8 @@ export async function seedProducts(
       sku: 'NECK-001',
       weight: 12.0,
       material: 'Natural Turquoise, 14k Gold-Filled Chain',
+      lengthCm: 45.72, // 18 inches (maximum of the 16–18" adjustable range)
+      weightGrams: 12.0,
       categorySlug: 'necklaces',
     },
     {
@@ -85,6 +93,9 @@ export async function seedProducts(
       sku: 'EARR-001',
       weight: 3.8,
       material: 'Natural Labradorite, Sterling Silver 925',
+      lengthCm: 4.5, // 1.75 inch drop length
+      widthCm: 1.5, // 15mm cabochon width
+      weightGrams: 3.8,
       categorySlug: 'earrings',
     },
     {
@@ -98,6 +109,9 @@ export async function seedProducts(
       sku: 'SET-001',
       weight: 28.0,
       material: 'Natural Rose Quartz, Sterling Silver 925',
+      lengthCm: 45.72, // 18 inch necklace (primary piece of the set)
+      weightGrams: 28.0,
+      beadSizeMm: 8.0, // 8mm rose quartz beads
       categorySlug: 'sets',
     },
   ]

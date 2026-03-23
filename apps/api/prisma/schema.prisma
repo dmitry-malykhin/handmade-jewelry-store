@@ -94,6 +94,15 @@ model Product {
   reviewCount    Int        @default(0)
   stockType      StockType  @default(IN_STOCK)
   productionDays Int        @default(0) // 0 = in stock; 3-7 = made to order
+
+  // Dimensions — stored in metric, converted to imperial at display time (docs/10)
+  lengthCm    Float? // primary length: necklace, bracelet, lariat
+  widthCm     Float? // item width or band width
+  heightCm    Float? // pendant/cabochon height
+  diameterCm  Float? // bangle-style bracelet inner diameter
+  weightGrams Float? // display weight in grams (universal in jewelry — never convert)
+  beadSizeMm  Float? // bead diameter in mm (industry standard — never convert)
+
   categoryId     String
   category       Category   @relation(fields: [categoryId], references: [id])
   orderItems     OrderItem[]

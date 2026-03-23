@@ -105,6 +105,38 @@ describe('seedProducts', () => {
     expect(Object.keys(productMap)).toEqual(expect.arrayContaining(expectedSlugs))
   })
 
+  it('includes dimension fields for products that have them', async () => {
+    const mockPrismaClient = buildMockPrismaClient()
+    const categoryMap = {
+      rings: { id: 'cat-rings' },
+      necklaces: { id: 'cat-necklaces' },
+      bracelets: { id: 'cat-bracelets' },
+      earrings: { id: 'cat-earrings' },
+      sets: { id: 'cat-sets' },
+    }
+
+    mockPrismaClient.product.upsert.mockResolvedValue({ id: 'prod-id', slug: 'any' })
+
+    await seedProducts(mockPrismaClient as unknown as PrismaClient, categoryMap)
+
+    const braceletCall = mockPrismaClient.product.upsert.mock.calls.find(
+      (productUpsertCall) => productUpsertCall[0].where.slug === 'beaded-amazonite-bracelet',
+    )
+    expect(braceletCall?.[0].create.beadSizeMm).toBe(6.0)
+    expect(braceletCall?.[0].create.lengthCm).toBe(17.8)
+
+    const necklaceCall = mockPrismaClient.product.upsert.mock.calls.find(
+      (productUpsertCall) => productUpsertCall[0].where.slug === 'turquoise-layered-necklace',
+    )
+    expect(necklaceCall?.[0].create.lengthCm).toBe(45.72)
+
+    const ringCall = mockPrismaClient.product.upsert.mock.calls.find(
+      (productUpsertCall) => productUpsertCall[0].where.slug === 'sterling-silver-moonstone-ring',
+    )
+    expect(ringCall?.[0].create.weightGrams).toBe(4.2)
+    expect(ringCall?.[0].create.heightCm).toBe(1.2)
+  })
+
   it('connects each product to the correct category', async () => {
     const mockPrismaClient = buildMockPrismaClient()
     const categoryMap = {
