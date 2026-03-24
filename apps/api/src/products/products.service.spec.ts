@@ -2,7 +2,7 @@ import { NotFoundException } from '@nestjs/common'
 import { Test, TestingModule } from '@nestjs/testing'
 import { PrismaService } from '../prisma/prisma.service'
 import { CreateProductDto } from './dto/create-product.dto'
-import { ProductQueryDto } from './dto/product-query.dto'
+import { ProductQueryDto, ProductSortField, SortOrder } from './dto/product-query.dto'
 import { UpdateProductDto } from './dto/update-product.dto'
 import { ProductsService } from './products.service'
 
@@ -112,6 +112,62 @@ describe('ProductsService', () => {
       const findManyCall = mockPrismaService.product.findMany.mock.calls[0][0]
       expect(findManyCall.skip).toBe(20) // (3 - 1) * 10
       expect(findManyCall.take).toBe(10)
+    })
+
+    it('filters by price range when minPrice and maxPrice are provided', async () => {
+      mockPrismaService.product.findMany.mockResolvedValue([])
+      mockPrismaService.product.count.mockResolvedValue(0)
+
+      await productsService.findAll({ minPrice: 20, maxPrice: 80, page: 1, limit: 20 })
+
+      const findManyCall = mockPrismaService.product.findMany.mock.calls[0][0]
+      expect(findManyCall.where.price).toEqual({ gte: 20, lte: 80 })
+    })
+
+    it('filters by minPrice only when maxPrice is omitted', async () => {
+      mockPrismaService.product.findMany.mockResolvedValue([])
+      mockPrismaService.product.count.mockResolvedValue(0)
+
+      await productsService.findAll({ minPrice: 50, page: 1, limit: 20 })
+
+      const findManyCall = mockPrismaService.product.findMany.mock.calls[0][0]
+      expect(findManyCall.where.price).toEqual({ gte: 50 })
+      expect(findManyCall.where.price.lte).toBeUndefined()
+    })
+
+    it('filters by material case-insensitively', async () => {
+      mockPrismaService.product.findMany.mockResolvedValue([])
+      mockPrismaService.product.count.mockResolvedValue(0)
+
+      await productsService.findAll({ material: 'silver', page: 1, limit: 20 })
+
+      const findManyCall = mockPrismaService.product.findMany.mock.calls[0][0]
+      expect(findManyCall.where.material).toEqual({ contains: 'silver', mode: 'insensitive' })
+    })
+
+    it('sorts by price ascending when sortBy and sortOrder are specified', async () => {
+      mockPrismaService.product.findMany.mockResolvedValue([])
+      mockPrismaService.product.count.mockResolvedValue(0)
+
+      await productsService.findAll({
+        sortBy: ProductSortField.PRICE,
+        sortOrder: SortOrder.ASC,
+        page: 1,
+        limit: 20,
+      })
+
+      const findManyCall = mockPrismaService.product.findMany.mock.calls[0][0]
+      expect(findManyCall.orderBy).toEqual({ price: 'asc' })
+    })
+
+    it('defaults to sorting by createdAt descending', async () => {
+      mockPrismaService.product.findMany.mockResolvedValue([])
+      mockPrismaService.product.count.mockResolvedValue(0)
+
+      await productsService.findAll({ page: 1, limit: 20 })
+
+      const findManyCall = mockPrismaService.product.findMany.mock.calls[0][0]
+      expect(findManyCall.orderBy).toEqual({ createdAt: 'desc' })
     })
   })
 

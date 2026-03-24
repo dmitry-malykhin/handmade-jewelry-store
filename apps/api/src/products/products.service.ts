@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { PrismaService } from '../prisma/prisma.service'
 import { CreateProductDto } from './dto/create-product.dto'
-import { ProductQueryDto } from './dto/product-query.dto'
+import { ProductQueryDto, ProductSortField, SortOrder } from './dto/product-query.dto'
 import { UpdateProductDto } from './dto/update-product.dto'
 
 @Injectable()
@@ -9,7 +9,17 @@ export class ProductsService {
   constructor(private readonly prismaService: PrismaService) {}
 
   async findAll(productQueryDto: ProductQueryDto) {
-    const { page = 1, limit = 20, categorySlug, search } = productQueryDto
+    const {
+      page = 1,
+      limit = 20,
+      categorySlug,
+      search,
+      minPrice,
+      maxPrice,
+      material,
+      sortBy = ProductSortField.CREATED_AT,
+      sortOrder = SortOrder.DESC,
+    } = productQueryDto
     const skip = (page - 1) * limit
 
     const whereClause = {
@@ -20,6 +30,13 @@ export class ProductsService {
           { description: { contains: search, mode: 'insensitive' as const } },
         ],
       }),
+      ...((minPrice !== undefined || maxPrice !== undefined) && {
+        price: {
+          ...(minPrice !== undefined && { gte: minPrice }),
+          ...(maxPrice !== undefined && { lte: maxPrice }),
+        },
+      }),
+      ...(material && { material: { contains: material, mode: 'insensitive' as const } }),
     }
 
     const [products, totalCount] = await Promise.all([
@@ -28,7 +45,7 @@ export class ProductsService {
         skip,
         take: limit,
         include: { category: { select: { name: true, slug: true } } },
-        orderBy: { createdAt: 'desc' },
+        orderBy: { [sortBy]: sortOrder },
       }),
       this.prismaService.product.count({ where: whereClause }),
     ])
