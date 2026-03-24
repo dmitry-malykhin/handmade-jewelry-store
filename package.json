@@ -22,7 +22,9 @@
     "db:logs": "docker compose logs -f postgres",
     "db:generate": "turbo run db:generate",
     "db:migrate": "turbo run db:migrate",
+    "db:migrate:deploy": "pnpm --filter api exec prisma migrate deploy",
     "db:studio": "turbo run db:studio",
+    "dev:full": "docker compose up -d && pnpm --filter api exec prisma migrate deploy && turbo run dev",
     "prepare": "husky"
   },
   "devDependencies": {

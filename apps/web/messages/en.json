@@ -39,6 +39,23 @@
     "privacy": "Privacy Policy",
     "terms": "Terms of Service"
   },
+  "catalog": {
+    "metaTitle": "All Jewelry",
+    "metaDescription": "Browse our full collection of handmade jewelry — necklaces, bracelets, earrings and more.",
+    "title": "All Jewelry",
+    "breadcrumbHome": "Home",
+    "breadcrumbShop": "Shop",
+    "breadcrumbLabel": "Page location",
+    "productsCount": "{count} products",
+    "productListLabel": "Product list",
+    "emptyTitle": "No products found",
+    "emptyDescription": "Try adjusting your filters or check back later.",
+    "imageAlt": "handmade jewelry",
+    "outOfStock": "Out of stock",
+    "madeToOrder": "Made to order",
+    "oneOfAKind": "One of a kind",
+    "ratingLabel": "{rating} out of 5 stars, {count} reviews"
+  },
   "home": {
     "badge": "Coming Soon",
     "title": "Handmade Jewelry Store",

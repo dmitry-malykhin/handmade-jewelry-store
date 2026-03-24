@@ -39,6 +39,23 @@
     "privacy": "Política de privacidad",
     "terms": "Términos de servicio"
   },
+  "catalog": {
+    "metaTitle": "Toda la joyería",
+    "metaDescription": "Explora nuestra colección completa de joyería artesanal — collares, pulseras, pendientes y más.",
+    "title": "Toda la joyería",
+    "breadcrumbHome": "Inicio",
+    "breadcrumbShop": "Tienda",
+    "breadcrumbLabel": "Ubicación en la página",
+    "productsCount": "{count} productos",
+    "productListLabel": "Lista de productos",
+    "emptyTitle": "No se encontraron productos",
+    "emptyDescription": "Prueba a ajustar los filtros o vuelve más tarde.",
+    "imageAlt": "joya artesanal",
+    "outOfStock": "Sin existencias",
+    "madeToOrder": "Bajo pedido",
+    "oneOfAKind": "Pieza única",
+    "ratingLabel": "{rating} de 5 estrellas, {count} reseñas"
+  },
   "home": {
     "badge": "Próximamente",
     "title": "Tienda de Joyería Artesanal",

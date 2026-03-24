@@ -1,5 +1,52 @@
 // Shared TypeScript types used across apps/web and apps/api
 
+// ── Products ──────────────────────────────────────────────────────────────────
+
+export type StockType = 'IN_STOCK' | 'MADE_TO_ORDER' | 'ONE_OF_A_KIND'
+
+export interface Category {
+  id: string
+  name: string
+  slug: string
+}
+
+export interface Product {
+  id: string
+  title: string
+  description: string
+  price: string // Prisma Decimal serialises to string in JSON
+  stock: number
+  images: string[]
+  slug: string
+  sku: string | null
+  weight: number | null
+  material: string | null
+  avgRating: number
+  reviewCount: number
+  stockType: StockType
+  productionDays: number
+  lengthCm: number | null
+  widthCm: number | null
+  heightCm: number | null
+  diameterCm: number | null
+  weightGrams: number | null
+  beadSizeMm: number | null
+  categoryId: string
+  category: Pick<Category, 'name' | 'slug'>
+  createdAt: string
+  updatedAt: string
+}
+
+export interface ProductsResponse {
+  data: Product[]
+  meta: {
+    totalCount: number
+    page: number
+    limit: number
+    totalPages: number
+  }
+}
+
 // ── API wrappers ──────────────────────────────────────────────────────────────
 
 export type ApiResponse<T> = {
