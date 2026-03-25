@@ -1,10 +1,11 @@
 import { useTranslations } from 'next-intl'
-import { Search, ShoppingCart } from 'lucide-react'
+import { Search } from 'lucide-react'
 import { Link } from '@/i18n/navigation'
 import { NavLinks } from './nav-links'
 import { MobileNav } from './mobile-nav'
 import { LanguageSwitcher } from './language-switcher'
 import { ThemeToggle } from './theme-toggle'
+import { CartIconButton } from './cart-icon-button'
 import { Button } from '@/components/ui/button'
 
 /**
@@ -35,11 +36,7 @@ export function Header() {
             </Link>
           </Button>
 
-          <Button variant="ghost" size="icon" aria-label={t('cart')} asChild>
-            <Link href="/cart">
-              <ShoppingCart className="size-5" />
-            </Link>
-          </Button>
+          <CartIconButton />
 
           {/* Theme toggle — visible on both desktop and mobile */}
           <ThemeToggle />

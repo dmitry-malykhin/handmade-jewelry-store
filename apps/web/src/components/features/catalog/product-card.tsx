@@ -3,6 +3,7 @@ import { getTranslations } from 'next-intl/server'
 import type { Product } from '@jewelry/shared'
 import { Link } from '@/i18n/navigation'
 import { Badge } from '@/components/ui/badge'
+import { AddToCartButton } from '@/components/features/cart/add-to-cart-button'
 
 interface ProductCardProps {
   product: Product
@@ -60,9 +61,12 @@ export async function ProductCard({ product, isPriority = false }: ProductCardPr
           </p>
         )}
 
-        <p className="mt-auto pt-2 text-base font-semibold text-foreground">
-          <data value={formattedPrice}>${formattedPrice}</data>
-        </p>
+        <div className="mt-auto flex items-center justify-between pt-2">
+          <p className="text-base font-semibold text-foreground">
+            <data value={formattedPrice}>${formattedPrice}</data>
+          </p>
+          <AddToCartButton product={product} />
+        </div>
       </div>
     </article>
   )
