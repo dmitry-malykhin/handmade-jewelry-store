@@ -156,3 +156,4 @@ apps/api/src/prisma/generated
 # Lock files of other package managers (project uses pnpm)
 package-lock.json
 yarn.lock
+.claude/settings.json
