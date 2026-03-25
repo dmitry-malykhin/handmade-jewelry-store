@@ -30,6 +30,7 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
       aria-label={isDark ? t('switchToLight') : t('switchToDark')}
       onClick={() => setTheme(isDark ? 'light' : 'dark')}
       className={className}
+      suppressHydrationWarning
     >
       {/* Sun — visible in light mode */}
       <Sun
