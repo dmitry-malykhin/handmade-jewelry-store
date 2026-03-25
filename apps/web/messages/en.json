@@ -17,7 +17,14 @@
     "closeMenu": "Close menu",
     "skipToMain": "Skip to main content",
     "switchToDark": "Dark mode",
-    "switchToLight": "Light mode"
+    "switchToLight": "Light mode",
+    "cartItemCount": "{count, plural, =0 {Shopping cart} one {Shopping cart — # item} other {Shopping cart — # items}}"
+  },
+  "cart": {
+    "addToCart": "Add to cart",
+    "added": "Added",
+    "addMore": "Add one more to cart",
+    "outOfStock": "Out of stock"
   },
   "footer": {
     "tagline": "Unique handmade jewelry crafted with love using ethically sourced materials.",

@@ -17,7 +17,14 @@
     "closeMenu": "Cerrar menú",
     "skipToMain": "Saltar al contenido principal",
     "switchToDark": "Modo oscuro",
-    "switchToLight": "Modo claro"
+    "switchToLight": "Modo claro",
+    "cartItemCount": "{count, plural, =0 {Carrito de compras} one {Carrito — # artículo} other {Carrito — # artículos}}"
+  },
+  "cart": {
+    "addToCart": "Añadir al carrito",
+    "added": "Añadido",
+    "addMore": "Añadir uno más al carrito",
+    "outOfStock": "Sin existencias"
   },
   "footer": {
     "tagline": "Joyería artesanal única creada con amor usando materiales de origen ético.",
