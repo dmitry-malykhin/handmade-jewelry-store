@@ -116,6 +116,7 @@ model Order {
   id              String        @id @default(cuid())
   userId          String?       // nullable: guest checkout supported
   user            User?         @relation(fields: [userId], references: [id])
+  guestEmail      String?       // email for guest orders — used for confirmation emails
   status          OrderStatus   @default(PENDING)
   total           Decimal       @db.Decimal(10, 2)
   subtotal        Decimal       @db.Decimal(10, 2) // before discounts/shipping

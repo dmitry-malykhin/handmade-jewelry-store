@@ -12,11 +12,13 @@ export class OrdersService {
   constructor(private readonly prismaService: PrismaService) {}
 
   async create(createOrderDto: CreateOrderDto) {
-    const { items, shippingAddress, userId, subtotal, shippingCost, total, source } = createOrderDto
+    const { items, shippingAddress, userId, guestEmail, subtotal, shippingCost, total, source } =
+      createOrderDto
 
     const order = await this.prismaService.order.create({
       data: {
         userId: userId ?? null,
+        guestEmail: guestEmail ?? null,
         subtotal,
         shippingCost,
         total,
@@ -36,7 +38,7 @@ export class OrdersService {
           create: {
             fromStatus: null,
             toStatus: OrderStatus.PENDING,
-            createdBy: userId ?? 'guest',
+            createdBy: userId ?? guestEmail ?? 'guest',
           },
         },
       },

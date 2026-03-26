@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
-import { CheckoutAddressForm } from './_components/checkout-address-form'
+import { CheckoutEntry } from './_components/checkout-entry'
 
 interface CheckoutPageProps {
   params: Promise<{ locale: string }>
@@ -23,7 +23,7 @@ export default async function CheckoutPage({ params }: CheckoutPageProps) {
 
   return (
     <main className="container mx-auto px-4 py-8">
-      <CheckoutAddressForm />
+      <CheckoutEntry />
     </main>
   )
 }

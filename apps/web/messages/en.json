@@ -137,6 +137,14 @@
     "subtotal": "Subtotal",
     "shipping": "Shipping",
     "total": "Total",
-    "submitError": "Something went wrong. Please try again."
+    "submitError": "Something went wrong. Please try again.",
+    "entryTitle": "How would you like to checkout?",
+    "entrySubtitle": "Choose how you want to complete your order.",
+    "guestTitle": "Continue as Guest",
+    "guestDescription": "No account needed. Enter your email and shipping address to place your order.",
+    "continueAsGuest": "Continue as Guest",
+    "authTitle": "Sign In / Create Account",
+    "authDescription": "Access your saved addresses and order history.",
+    "signIn": "Sign In"
   }
 }

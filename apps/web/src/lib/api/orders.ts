@@ -25,6 +25,7 @@ export interface OrderItemPayload {
 
 export interface CreateOrderPayload {
   userId?: string
+  guestEmail?: string
   items: OrderItemPayload[]
   shippingAddress: ShippingAddress
   subtotal: number

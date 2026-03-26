@@ -51,6 +51,12 @@ describe('buildOrderPayload()', () => {
     expect(payload.shippingAddress.fullName).toBe('Jane Doe')
   })
 
+  it('sets guestEmail from the form email field', () => {
+    const payload = buildOrderPayload(mockCartItems, mockFormValues)
+
+    expect(payload.guestEmail).toBe('jane@example.com')
+  })
+
   it('calculates subtotal as sum of price × quantity across all items', () => {
     // 49.99 × 2 = 99.98, 129.99 × 1 = 129.99 → subtotal = 229.97
     const payload = buildOrderPayload(mockCartItems, mockFormValues)

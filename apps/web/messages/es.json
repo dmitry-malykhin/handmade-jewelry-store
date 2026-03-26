@@ -137,6 +137,14 @@
     "subtotal": "Subtotal",
     "shipping": "Envío",
     "total": "Total",
-    "submitError": "Algo salió mal. Por favor, inténtalo de nuevo."
+    "submitError": "Algo salió mal. Por favor, inténtalo de nuevo.",
+    "entryTitle": "¿Cómo deseas realizar el pedido?",
+    "entrySubtitle": "Elige cómo completar tu pedido.",
+    "guestTitle": "Continuar como invitado",
+    "guestDescription": "Sin cuenta. Introduce tu email y dirección de envío.",
+    "continueAsGuest": "Continuar como invitado",
+    "authTitle": "Iniciar sesión / Crear cuenta",
+    "authDescription": "Accede a tus direcciones guardadas e historial de pedidos.",
+    "signIn": "Iniciar sesión"
   }
 }

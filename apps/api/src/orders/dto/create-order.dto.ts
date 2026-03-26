@@ -1,6 +1,7 @@
 import { Type } from 'class-transformer'
 import {
   IsArray,
+  IsEmail,
   IsInt,
   IsNotEmpty,
   IsNumber,
@@ -76,6 +77,10 @@ export class CreateOrderDto {
   @IsString()
   @IsOptional()
   userId?: string
+
+  @IsEmail()
+  @IsOptional()
+  guestEmail?: string
 
   @IsArray()
   @ValidateNested({ each: true })

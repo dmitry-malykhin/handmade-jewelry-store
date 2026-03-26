@@ -15,11 +15,12 @@ export function buildOrderPayload(
   formValues: CheckoutAddressFormValues,
   shippingCost: number = CHECKOUT_SHIPPING_COST,
 ): CreateOrderPayload {
-  const { email: _email, ...shippingAddress } = formValues
+  const { email, ...shippingAddress } = formValues
 
   const subtotal = cartItems.reduce((sum, cartItem) => sum + cartItem.price * cartItem.quantity, 0)
 
   return {
+    guestEmail: email,
     items: cartItems.map((cartItem) => ({
       productId: cartItem.productId,
       quantity: cartItem.quantity,

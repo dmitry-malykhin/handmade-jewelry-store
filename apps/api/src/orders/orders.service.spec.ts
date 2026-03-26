@@ -103,6 +103,31 @@ describe('OrdersService', () => {
         }),
       )
     })
+
+    it('saves guestEmail when provided', async () => {
+      mockPrismaService.order.create.mockResolvedValue({
+        ...mockCreatedOrder,
+        userId: null,
+        guestEmail: 'guest@example.com',
+      })
+
+      const createOrderDto: CreateOrderDto = {
+        items: [mockOrderItem],
+        shippingAddress: mockShippingAddress,
+        subtotal: 99.98,
+        shippingCost: 5.0,
+        total: 104.98,
+        guestEmail: 'guest@example.com',
+      }
+
+      await ordersService.create(createOrderDto)
+
+      expect(mockPrismaService.order.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ guestEmail: 'guest@example.com' }),
+        }),
+      )
+    })
   })
 
   // ── findAll ───────────────────────────────────────────────────────────────
