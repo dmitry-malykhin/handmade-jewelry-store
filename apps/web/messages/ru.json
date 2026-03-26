@@ -110,5 +110,33 @@
     "statusBody": "Система дизайна настроена. Полные страницы с каталогом товаров и оформлением заказа будут реализованы в следующих задачах.",
     "shopNow": "В магазин",
     "learnMore": "Узнать больше"
+  },
+  "checkoutPage": {
+    "metaTitle": "Оформление заказа",
+    "metaDescription": "Введите адрес доставки и контактные данные для завершения заказа.",
+    "stepsLabel": "Шаги оформления",
+    "stepShipping": "Доставка",
+    "stepShippingMethod": "Способ доставки",
+    "stepPayment": "Оплата",
+    "sectionContact": "Контактные данные",
+    "sectionShipping": "Адрес доставки",
+    "fieldEmail": "Email",
+    "fieldFullName": "Полное имя",
+    "fieldAddressLine1": "Адрес",
+    "fieldAddressLine2": "Квартира, офис и т.д.",
+    "fieldCity": "Город",
+    "fieldState": "Штат / Регион",
+    "fieldPostalCode": "Почтовый индекс",
+    "fieldCountry": "Страна",
+    "fieldPhone": "Телефон",
+    "optional": "необязательно",
+    "continueToShipping": "Продолжить",
+    "submitting": "Оформляем заказ…",
+    "orderSummaryLabel": "Состав заказа",
+    "orderSummary": "Состав заказа",
+    "subtotal": "Подытог",
+    "shipping": "Доставка",
+    "total": "Итого",
+    "submitError": "Что-то пошло не так. Пожалуйста, попробуйте снова."
   }
 }

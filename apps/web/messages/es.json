@@ -110,5 +110,33 @@
     "statusBody": "El sistema de diseño está listo. Las páginas completas con catálogo de productos y pago se crearán en los próximos issues.",
     "shopNow": "Comprar ahora",
     "learnMore": "Más información"
+  },
+  "checkoutPage": {
+    "metaTitle": "Finalizar pedido",
+    "metaDescription": "Introduce tu dirección de envío y datos de contacto para completar el pedido.",
+    "stepsLabel": "Pasos del pago",
+    "stepShipping": "Envío",
+    "stepShippingMethod": "Método de envío",
+    "stepPayment": "Pago",
+    "sectionContact": "Información de contacto",
+    "sectionShipping": "Dirección de envío",
+    "fieldEmail": "Correo electrónico",
+    "fieldFullName": "Nombre completo",
+    "fieldAddressLine1": "Dirección",
+    "fieldAddressLine2": "Apartamento, suite, etc.",
+    "fieldCity": "Ciudad",
+    "fieldState": "Estado / Provincia",
+    "fieldPostalCode": "Código postal",
+    "fieldCountry": "País",
+    "fieldPhone": "Teléfono",
+    "optional": "opcional",
+    "continueToShipping": "Continuar con el envío",
+    "submitting": "Realizando pedido…",
+    "orderSummaryLabel": "Resumen del pedido",
+    "orderSummary": "Resumen del pedido",
+    "subtotal": "Subtotal",
+    "shipping": "Envío",
+    "total": "Total",
+    "submitError": "Algo salió mal. Por favor, inténtalo de nuevo."
   }
 }

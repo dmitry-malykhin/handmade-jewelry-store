@@ -110,5 +110,33 @@
     "statusBody": "The design system is set up. Full pages with product catalog and checkout will be built in upcoming issues.",
     "shopNow": "Shop Now",
     "learnMore": "Learn More"
+  },
+  "checkoutPage": {
+    "metaTitle": "Checkout",
+    "metaDescription": "Enter your shipping address and contact details to complete your order.",
+    "stepsLabel": "Checkout steps",
+    "stepShipping": "Shipping",
+    "stepShippingMethod": "Delivery",
+    "stepPayment": "Payment",
+    "sectionContact": "Contact information",
+    "sectionShipping": "Shipping address",
+    "fieldEmail": "Email",
+    "fieldFullName": "Full name",
+    "fieldAddressLine1": "Address",
+    "fieldAddressLine2": "Apartment, suite, etc.",
+    "fieldCity": "City",
+    "fieldState": "State / Province",
+    "fieldPostalCode": "ZIP / Postal code",
+    "fieldCountry": "Country",
+    "fieldPhone": "Phone",
+    "optional": "optional",
+    "continueToShipping": "Continue to delivery",
+    "submitting": "Placing order…",
+    "orderSummaryLabel": "Order summary",
+    "orderSummary": "Order Summary",
+    "subtotal": "Subtotal",
+    "shipping": "Shipping",
+    "total": "Total",
+    "submitError": "Something went wrong. Please try again."
   }
 }
