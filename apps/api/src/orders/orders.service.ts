@@ -1,6 +1,6 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common'
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common'
+import { OrderStatus, Prisma } from '@prisma/client'
 import { InputJsonValue } from '@prisma/client/runtime/library'
-import { OrderStatus } from '@prisma/client'
 import { PrismaService } from '../prisma/prisma.service'
 import { CreateOrderDto } from './dto/create-order.dto'
 import { OrderQueryDto } from './dto/order-query.dto'
@@ -9,46 +9,66 @@ import { isValidOrderStatusTransition } from './order-status.transitions'
 
 @Injectable()
 export class OrdersService {
+  private readonly logger = new Logger(OrdersService.name)
+
   constructor(private readonly prismaService: PrismaService) {}
 
   async create(createOrderDto: CreateOrderDto) {
     const { items, shippingAddress, userId, guestEmail, subtotal, shippingCost, total, source } =
       createOrderDto
 
-    const order = await this.prismaService.order.create({
-      data: {
-        userId: userId ?? null,
-        guestEmail: guestEmail ?? null,
-        subtotal,
-        shippingCost,
-        total,
-        shippingAddress: shippingAddress as unknown as InputJsonValue,
-        source: source ?? 'web',
-        status: OrderStatus.PENDING,
-        items: {
-          create: items.map((orderItem) => ({
-            productId: orderItem.productId,
-            quantity: orderItem.quantity,
-            price: orderItem.price,
-            productSnapshot: orderItem.productSnapshot,
-          })),
-        },
-        // Record initial PENDING status in history for full audit trail
-        statusHistory: {
-          create: {
-            fromStatus: null,
-            toStatus: OrderStatus.PENDING,
-            createdBy: userId ?? guestEmail ?? 'guest',
+    try {
+      const order = await this.prismaService.order.create({
+        data: {
+          userId: userId ?? null,
+          guestEmail: guestEmail ?? null,
+          subtotal,
+          shippingCost,
+          total,
+          shippingAddress: shippingAddress as unknown as InputJsonValue,
+          source: source ?? 'web',
+          status: OrderStatus.PENDING,
+          items: {
+            create: items.map((orderItem) => ({
+              productId: orderItem.productId,
+              quantity: orderItem.quantity,
+              price: orderItem.price,
+              productSnapshot: orderItem.productSnapshot,
+            })),
+          },
+          // Record initial PENDING status in history for full audit trail
+          statusHistory: {
+            create: {
+              fromStatus: null,
+              toStatus: OrderStatus.PENDING,
+              createdBy: userId ?? guestEmail ?? 'guest',
+            },
           },
         },
-      },
-      include: {
-        items: true,
-        statusHistory: true,
-      },
-    })
+        include: {
+          items: true,
+          statusHistory: true,
+        },
+      })
 
-    return order
+      return order
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        // P2003 = Foreign key constraint failed (e.g. productId does not exist)
+        if (error.code === 'P2003') {
+          const field = error.meta?.field_name ?? 'unknown field'
+          this.logger.warn(`Order creation failed — foreign key constraint on ${field}`)
+          throw new BadRequestException(
+            `One or more items reference a product that does not exist (${field})`,
+          )
+        }
+        // P2025 = Record not found
+        if (error.code === 'P2025') {
+          throw new BadRequestException('One or more referenced records do not exist')
+        }
+      }
+      throw error
+    }
   }
 
   async findAll(orderQueryDto: OrderQueryDto) {

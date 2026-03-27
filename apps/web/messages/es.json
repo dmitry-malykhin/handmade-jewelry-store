@@ -172,5 +172,30 @@
     "payNow": "Pagar {amount}",
     "paymentLoading": "Preparando el formulario de pago…",
     "initiateCheckoutError": "No se pudo inicializar el pago. Vuelve atrás e inténtalo de nuevo."
+  },
+  "confirmationPage": {
+    "metaTitle": "Pedido confirmado",
+    "metaDescription": "Tu pedido se ha realizado correctamente.",
+    "title": "¡Gracias por tu compra!",
+    "subtitle": "El pago se realizó con éxito y tu pedido está confirmado.",
+    "emailNote": "Te hemos enviado un correo de confirmación.",
+    "orderIdLabel": "Pedido",
+    "nextStepsTitle": "¿Qué pasa ahora?",
+    "step1Title": "Pedido confirmado",
+    "step1Description": "Hemos recibido tu pedido y el pago.",
+    "step2Title": "Elaboración artesanal",
+    "step2Description": "Tu pieza está siendo hecha a mano con cuidado.",
+    "step3Title": "Control de calidad",
+    "step3Description": "Cada artículo se inspecciona antes de empaquetar.",
+    "step4Title": "En camino",
+    "step4Description": "Enviado con amor y número de seguimiento por correo.",
+    "orderSummaryTitle": "Resumen del pedido",
+    "subtotal": "Subtotal",
+    "shipping": "Envío",
+    "shippingFree": "GRATIS",
+    "total": "Total",
+    "shippingAddressTitle": "Dirección de envío",
+    "itemQuantity": "Cant.: {quantity}",
+    "continueShopping": "Seguir comprando"
   }
 }

@@ -172,5 +172,30 @@
     "payNow": "Оплатить {amount}",
     "paymentLoading": "Подготовка формы оплаты…",
     "initiateCheckoutError": "Не удалось инициализировать оплату. Вернитесь и попробуйте снова."
+  },
+  "confirmationPage": {
+    "metaTitle": "Заказ подтверждён",
+    "metaDescription": "Ваш заказ успешно оформлен.",
+    "title": "Спасибо за покупку!",
+    "subtitle": "Оплата прошла успешно, ваш заказ подтверждён.",
+    "emailNote": "Письмо с подтверждением уже летит к вам.",
+    "orderIdLabel": "Заказ",
+    "nextStepsTitle": "Что будет дальше",
+    "step1Title": "Заказ подтверждён",
+    "step1Description": "Мы получили ваш заказ и оплату.",
+    "step2Title": "Изготовление вручную",
+    "step2Description": "Ваше украшение аккуратно создаётся вручную.",
+    "step3Title": "Контроль качества",
+    "step3Description": "Каждое изделие проверяется перед упаковкой.",
+    "step4Title": "В пути",
+    "step4Description": "Отправлено с любовью, трекинг придёт на email.",
+    "orderSummaryTitle": "Состав заказа",
+    "subtotal": "Подитог",
+    "shipping": "Доставка",
+    "shippingFree": "БЕСПЛАТНО",
+    "total": "Итого",
+    "shippingAddressTitle": "Адрес доставки",
+    "itemQuantity": "Кол-во: {quantity}",
+    "continueShopping": "Продолжить покупки"
   }
 }
