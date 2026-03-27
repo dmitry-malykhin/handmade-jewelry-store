@@ -172,5 +172,30 @@
     "payNow": "Pay {amount}",
     "paymentLoading": "Preparing payment form…",
     "initiateCheckoutError": "Could not initialize payment. Please go back and try again."
+  },
+  "confirmationPage": {
+    "metaTitle": "Order Confirmed",
+    "metaDescription": "Your order has been placed successfully.",
+    "title": "Thank you for your order!",
+    "subtitle": "Your payment was successful and your order is confirmed.",
+    "emailNote": "A confirmation email is on its way to you.",
+    "orderIdLabel": "Order",
+    "nextStepsTitle": "What happens next",
+    "step1Title": "Order Confirmed",
+    "step1Description": "We've received your order and payment.",
+    "step2Title": "Being Handcrafted",
+    "step2Description": "Your piece is being carefully made by hand.",
+    "step3Title": "Quality Check",
+    "step3Description": "Each item is inspected before packing.",
+    "step4Title": "On Its Way",
+    "step4Description": "Shipped with love and tracking details by email.",
+    "orderSummaryTitle": "Order Summary",
+    "subtotal": "Subtotal",
+    "shipping": "Shipping",
+    "shippingFree": "FREE",
+    "total": "Total",
+    "shippingAddressTitle": "Shipping To",
+    "itemQuantity": "Qty: {quantity}",
+    "continueShopping": "Continue Shopping"
   }
 }

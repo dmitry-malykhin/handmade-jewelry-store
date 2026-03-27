@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { loadStripe } from '@stripe/stripe-js'
 import { Elements } from '@stripe/react-stripe-js'
-import { useTranslations } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import { useCartTotalPrice } from '@/store/cart.store'
 import { CheckoutOrderSummary } from './checkout-order-summary'
 import { CheckoutSteps } from './checkout-steps'
@@ -29,6 +29,7 @@ export function CheckoutPaymentForm({
   onBack,
 }: CheckoutPaymentFormProps) {
   const t = useTranslations('checkoutPage')
+  const locale = useLocale()
   const cartTotalPrice = useCartTotalPrice()
   const totalInCents = Math.round((cartTotalPrice + shippingCost) * 100)
 
@@ -41,7 +42,7 @@ export function CheckoutPaymentForm({
 
   const returnUrl =
     typeof window !== 'undefined' && orderId
-      ? `${window.location.origin}/checkout/confirmation/${orderId}`
+      ? `${window.location.origin}/${locale}/checkout/confirmation/${orderId}`
       : ''
 
   return (

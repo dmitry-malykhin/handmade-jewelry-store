@@ -40,6 +40,35 @@ export interface CreatedOrder {
   total: number
 }
 
+export interface OrderItem {
+  id: string
+  productId: string
+  quantity: number
+  price: number
+  productSnapshot: {
+    title: string
+    slug: string
+    sku?: string
+    image?: string
+  }
+}
+
+export interface OrderDetails {
+  id: string
+  status: string
+  subtotal: number
+  shippingCost: number
+  total: number
+  guestEmail: string | null
+  shippingAddress: ShippingAddress
+  items: OrderItem[]
+  createdAt: string
+}
+
+export async function fetchOrderById(orderId: string): Promise<OrderDetails> {
+  return apiClient<OrderDetails>(`/api/orders/${orderId}`)
+}
+
 export async function createOrder(payload: CreateOrderPayload): Promise<CreatedOrder> {
   return apiClient<CreatedOrder>('/api/orders', {
     method: 'POST',
