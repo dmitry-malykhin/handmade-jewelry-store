@@ -4,7 +4,9 @@ import { AppModule } from './app.module'
 import { HttpExceptionFilter } from './common/filters/http-exception.filter'
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule)
+  // rawBody: true — required for Stripe webhook signature verification.
+  // stripe.webhooks.constructEvent() needs the raw Buffer, not parsed JSON.
+  const app = await NestFactory.create(AppModule, { rawBody: true })
 
   app.setGlobalPrefix('api')
 

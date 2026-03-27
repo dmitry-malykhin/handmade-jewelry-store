@@ -24,6 +24,7 @@
     "db:migrate": "turbo run db:migrate",
     "db:migrate:deploy": "pnpm --filter api exec prisma migrate deploy",
     "db:studio": "turbo run db:studio",
+    "stripe:listen": "stripe listen --forward-to localhost:4000/api/webhooks/stripe",
     "dev:full": "docker compose up -d && pnpm --filter api exec prisma migrate deploy && turbo run dev",
     "prepare": "husky"
   },
