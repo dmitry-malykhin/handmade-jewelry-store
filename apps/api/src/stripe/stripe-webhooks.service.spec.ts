@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing'
 import { OrderStatus, PaymentStatus } from '@prisma/client'
 import { Decimal } from '@prisma/client/runtime/library'
 import type Stripe from 'stripe'
+import { EmailService } from '../email/email.service'
 import { PrismaService } from '../prisma/prisma.service'
 import { StripeWebhooksService } from './stripe-webhooks.service'
 
@@ -19,8 +20,32 @@ const buildMockPayment = (overrides: Record<string, unknown> = {}) => ({
   order: {
     id: ORDER_ID,
     status: OrderStatus.PENDING,
+    guestEmail: 'guest@example.com',
   },
   ...overrides,
+})
+
+const buildMockFullOrder = () => ({
+  id: ORDER_ID,
+  guestEmail: 'guest@example.com',
+  subtotal: new Decimal('99.98'),
+  shippingCost: new Decimal('5.00'),
+  total: new Decimal('104.98'),
+  shippingAddress: {
+    fullName: 'Jane Doe',
+    addressLine1: '123 Main St',
+    city: 'New York',
+    postalCode: '10001',
+    country: 'US',
+  },
+  items: [
+    {
+      id: 'item-1',
+      quantity: 2,
+      price: new Decimal('49.99'),
+      productSnapshot: { title: 'Silver Ring' },
+    },
+  ],
 })
 
 const buildMockPaymentIntent = (overrides: Partial<Stripe.PaymentIntent> = {}) =>
@@ -38,20 +63,29 @@ describe('StripeWebhooksService', () => {
   let stripeWebhooksService: StripeWebhooksService
   let mockPrismaService: {
     payment: { findUnique: jest.Mock; update: jest.Mock }
-    order: { update: jest.Mock }
+    order: { findUnique: jest.Mock; update: jest.Mock }
     $transaction: jest.Mock
   }
+  let mockEmailService: { sendOrderConfirmation: jest.Mock; sendRefundProcessed: jest.Mock }
 
   beforeEach(async () => {
     mockPrismaService = {
       payment: { findUnique: jest.fn(), update: jest.fn() },
-      order: { update: jest.fn() },
+      order: { findUnique: jest.fn(), update: jest.fn() },
       // Execute the callback directly so we can assert individual prisma calls
       $transaction: jest.fn((callback) => callback(mockPrismaService)),
     }
+    mockEmailService = {
+      sendOrderConfirmation: jest.fn(),
+      sendRefundProcessed: jest.fn(),
+    }
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [StripeWebhooksService, { provide: PrismaService, useValue: mockPrismaService }],
+      providers: [
+        StripeWebhooksService,
+        { provide: PrismaService, useValue: mockPrismaService },
+        { provide: EmailService, useValue: mockEmailService },
+      ],
     }).compile()
 
     stripeWebhooksService = module.get<StripeWebhooksService>(StripeWebhooksService)
@@ -89,6 +123,20 @@ describe('StripeWebhooksService', () => {
       await stripeWebhooksService.handlePaymentIntentSucceeded(buildMockPaymentIntent())
 
       expect(mockPrismaService.$transaction).not.toHaveBeenCalled()
+    })
+
+    it('sends order confirmation email to guest after successful payment', async () => {
+      mockPrismaService.payment.findUnique.mockResolvedValueOnce(buildMockPayment())
+      mockPrismaService.order.findUnique.mockResolvedValueOnce(buildMockFullOrder())
+
+      await stripeWebhooksService.handlePaymentIntentSucceeded(buildMockPaymentIntent())
+
+      expect(mockEmailService.sendOrderConfirmation).toHaveBeenCalledWith(
+        expect.objectContaining({
+          recipientEmail: 'guest@example.com',
+          orderId: ORDER_ID,
+        }),
+      )
     })
   })
 
@@ -158,6 +206,22 @@ describe('StripeWebhooksService', () => {
       await stripeWebhooksService.handleChargeRefunded(buildMockCharge())
 
       expect(mockPrismaService.$transaction).not.toHaveBeenCalled()
+    })
+
+    it('sends refund processed email to guest after charge is refunded', async () => {
+      mockPrismaService.payment.findUnique.mockResolvedValueOnce(
+        buildMockPayment({
+          order: { id: ORDER_ID, status: OrderStatus.DELIVERED, guestEmail: 'guest@example.com' },
+        }),
+      )
+
+      await stripeWebhooksService.handleChargeRefunded(buildMockCharge())
+
+      expect(mockEmailService.sendRefundProcessed).toHaveBeenCalledWith({
+        recipientEmail: 'guest@example.com',
+        orderId: ORDER_ID,
+        refundAmount: 49.98,
+      })
     })
   })
 

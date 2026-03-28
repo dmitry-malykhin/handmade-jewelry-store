@@ -8,4 +8,8 @@ export class UpdateOrderStatusDto {
   @IsString()
   @IsOptional()
   note?: string
+
+  @IsString()
+  @IsOptional()
+  trackingNumber?: string
 }

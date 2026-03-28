@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { OrderStatus, PaymentStatus } from '@prisma/client'
 import type Stripe from 'stripe'
+import { EmailService } from '../email/email.service'
 import { PrismaService } from '../prisma/prisma.service'
 import { isValidOrderStatusTransition } from '../orders/order-status.transitions'
 
@@ -8,7 +9,10 @@ import { isValidOrderStatusTransition } from '../orders/order-status.transitions
 export class StripeWebhooksService {
   private readonly logger = new Logger(StripeWebhooksService.name)
 
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly emailService: EmailService,
+  ) {}
 
   async handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent): Promise<void> {
     const payment = await this.prismaService.payment.findUnique({
@@ -56,6 +60,8 @@ export class StripeWebhooksService {
     })
 
     this.logger.log(`Order ${payment.orderId} transitioned to PAID`)
+
+    await this.sendOrderConfirmationEmail(payment.orderId)
   }
 
   async handlePaymentIntentFailed(paymentIntent: Stripe.PaymentIntent): Promise<void> {
@@ -156,6 +162,15 @@ export class StripeWebhooksService {
     })
 
     this.logger.log(`Order ${payment.orderId} refunded — $${refundAmountInDollars}`)
+
+    const recipientEmail = payment.order.guestEmail ?? null
+    if (recipientEmail) {
+      await this.emailService.sendRefundProcessed({
+        recipientEmail,
+        orderId: payment.orderId,
+        refundAmount: refundAmountInDollars,
+      })
+    }
   }
 
   handleChargeDisputeCreated(dispute: Stripe.Dispute): void {
@@ -163,5 +178,44 @@ export class StripeWebhooksService {
     this.logger.error(
       `DISPUTE CREATED — dispute ID: ${dispute.id}, charge: ${dispute.charge}, amount: $${dispute.amount / 100}`,
     )
+  }
+
+  private async sendOrderConfirmationEmail(orderId: string): Promise<void> {
+    const order = await this.prismaService.order.findUnique({
+      where: { id: orderId },
+      include: { items: true },
+    })
+
+    if (!order) return
+
+    const recipientEmail = order.guestEmail
+    if (!recipientEmail) return
+
+    const shippingAddress = order.shippingAddress as {
+      fullName: string
+      addressLine1: string
+      addressLine2?: string
+      city: string
+      state?: string
+      postalCode: string
+      country: string
+    }
+
+    await this.emailService.sendOrderConfirmation({
+      recipientEmail,
+      orderId: order.id,
+      items: order.items.map((orderItem) => {
+        const snapshot = orderItem.productSnapshot as { title?: string } | null
+        return {
+          title: snapshot?.title ?? 'Jewelry piece',
+          quantity: orderItem.quantity,
+          price: orderItem.price.toNumber(),
+        }
+      }),
+      subtotal: order.subtotal.toNumber(),
+      shippingCost: order.shippingCost.toNumber(),
+      total: order.total.toNumber(),
+      shippingAddress,
+    })
   }
 }

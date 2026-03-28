@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common'
 import { OrderStatus, Prisma } from '@prisma/client'
 import { InputJsonValue } from '@prisma/client/runtime/library'
+import { EmailService } from '../email/email.service'
 import { PrismaService } from '../prisma/prisma.service'
 import { CreateOrderDto } from './dto/create-order.dto'
 import { OrderQueryDto } from './dto/order-query.dto'
@@ -11,7 +12,10 @@ import { isValidOrderStatusTransition } from './order-status.transitions'
 export class OrdersService {
   private readonly logger = new Logger(OrdersService.name)
 
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly emailService: EmailService,
+  ) {}
 
   async create(createOrderDto: CreateOrderDto) {
     const { items, shippingAddress, userId, guestEmail, subtotal, shippingCost, total, source } =
@@ -146,6 +150,17 @@ export class OrdersService {
         statusHistory: { orderBy: { createdAt: 'asc' } },
       },
     })
+
+    if (updateOrderStatusDto.status === OrderStatus.SHIPPED) {
+      const recipientEmail = updatedOrder.guestEmail
+      if (recipientEmail) {
+        await this.emailService.sendShippingNotification({
+          recipientEmail,
+          orderId: updatedOrder.id,
+          trackingNumber: updateOrderStatusDto.trackingNumber,
+        })
+      }
+    }
 
     return updatedOrder
   }

@@ -1,6 +1,7 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common'
 import { Test, TestingModule } from '@nestjs/testing'
 import { OrderStatus } from '@prisma/client'
+import { EmailService } from '../email/email.service'
 import { PrismaService } from '../prisma/prisma.service'
 import { CreateOrderDto } from './dto/create-order.dto'
 import { OrdersService } from './orders.service'
@@ -47,12 +48,20 @@ const mockPrismaService = {
   },
 }
 
+const mockEmailService = {
+  sendShippingNotification: jest.fn(),
+}
+
 describe('OrdersService', () => {
   let ordersService: OrdersService
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [OrdersService, { provide: PrismaService, useValue: mockPrismaService }],
+      providers: [
+        OrdersService,
+        { provide: PrismaService, useValue: mockPrismaService },
+        { provide: EmailService, useValue: mockEmailService },
+      ],
     }).compile()
 
     ordersService = module.get<OrdersService>(OrdersService)
@@ -215,6 +224,44 @@ describe('OrdersService', () => {
       }
 
       expect(mockPrismaService.order.update).not.toHaveBeenCalled()
+    })
+
+    it('sends shipping notification email when transitioning to SHIPPED with guest email', async () => {
+      // Valid path: PROCESSING → SHIPPED
+      const processingOrder = {
+        ...mockCreatedOrder,
+        status: OrderStatus.PROCESSING,
+        guestEmail: 'guest@example.com',
+      }
+      const shippedOrder = { ...processingOrder, status: OrderStatus.SHIPPED }
+      mockPrismaService.order.findUnique.mockResolvedValue(processingOrder)
+      mockPrismaService.order.update.mockResolvedValue(shippedOrder)
+
+      await ordersService.updateStatus('order-1', {
+        status: OrderStatus.SHIPPED,
+        trackingNumber: 'TRK123456',
+      })
+
+      expect(mockEmailService.sendShippingNotification).toHaveBeenCalledWith({
+        recipientEmail: 'guest@example.com',
+        orderId: 'order-1',
+        trackingNumber: 'TRK123456',
+      })
+    })
+
+    it('does not send shipping notification when guestEmail is absent', async () => {
+      const processingOrder = {
+        ...mockCreatedOrder,
+        status: OrderStatus.PROCESSING,
+        guestEmail: null,
+      }
+      const shippedOrder = { ...processingOrder, status: OrderStatus.SHIPPED }
+      mockPrismaService.order.findUnique.mockResolvedValue(processingOrder)
+      mockPrismaService.order.update.mockResolvedValue(shippedOrder)
+
+      await ordersService.updateStatus('order-1', { status: OrderStatus.SHIPPED })
+
+      expect(mockEmailService.sendShippingNotification).not.toHaveBeenCalled()
     })
   })
 })
