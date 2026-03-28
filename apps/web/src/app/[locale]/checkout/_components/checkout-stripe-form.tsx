@@ -2,12 +2,15 @@
 
 import { useState } from 'react'
 import { useStripe, useElements, PaymentElement } from '@stripe/react-stripe-js'
-import { useTranslations } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
+import { CheckoutPaymentRequestButton } from './checkout-payment-request-button'
+import { usePaymentRequest } from './hooks/use-payment-request'
 
 interface CheckoutStripeFormProps {
   orderId: string
   totalAmount: number
+  clientSecret: string
   returnUrl: string
   isSubmitting: boolean
   onSubmittingChange: (isSubmitting: boolean) => void
@@ -17,15 +20,24 @@ interface CheckoutStripeFormProps {
 export function CheckoutStripeForm({
   orderId,
   totalAmount,
+  clientSecret,
   returnUrl,
   isSubmitting,
   onSubmittingChange,
   onBack,
 }: CheckoutStripeFormProps) {
   const t = useTranslations('checkoutPage')
+  const locale = useLocale()
   const stripe = useStripe()
   const elements = useElements()
   const [stripeError, setStripeError] = useState<string | null>(null)
+
+  const { paymentRequest, canMakePayment, paymentRequestError } = usePaymentRequest({
+    totalAmountInCents: totalAmount,
+    clientSecret,
+    orderId,
+    locale,
+  })
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -59,7 +71,32 @@ export function CheckoutStripeForm({
   return (
     <form onSubmit={handleSubmit} noValidate>
       <div className="space-y-6">
-        {/* Stripe PaymentElement renders card fields + Apple/Google Pay when available */}
+        {/* Apple Pay / Google Pay — shown above card form when browser supports it */}
+        {canMakePayment && paymentRequest && (
+          <>
+            <CheckoutPaymentRequestButton paymentRequest={paymentRequest} />
+
+            {paymentRequestError && (
+              <p role="alert" className="text-sm text-destructive">
+                {paymentRequestError}
+              </p>
+            )}
+
+            {/* Divider between native pay button and card form */}
+            <div className="relative my-2">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-border" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-3 text-muted-foreground">
+                  {t('orPayWithCard')}
+                </span>
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* Card form — always shown as fallback */}
         <PaymentElement id={`payment-element-${orderId}`} options={{ layout: 'tabs' }} />
 
         {stripeError && (

@@ -153,6 +153,201 @@ Issue: #128 [POST-MVP].
 
 ---
 
+## Чеклист после деплоя на продакшн
+
+> Это не разработка — это операционные шаги которые надо сделать ВРУЧНУЮ после первого деплоя.
+> Без них часть функционала работать не будет несмотря на то что код написан правильно.
+
+---
+
+### 🔴 КРИТИЧНО — без этого платежи не работают
+
+#### 1. Stripe: переключить на LIVE ключи
+
+```
+Stripe Dashboard → Developers → API keys → переключить "Test mode" → выключить
+```
+
+Скопировать LIVE ключи в переменные окружения продакшн сервера:
+```
+STRIPE_SECRET_KEY=sk_live_...          (НЕ в .env файл, только в secrets CI/CD или хостинга)
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_...
+```
+
+⚠️ `sk_live_` — никогда не в git, никогда не в .env.example. Только в Fly.io secrets / Vercel env / AWS Secrets Manager.
+
+---
+
+#### 2. Stripe: зарегистрировать продакшн webhook endpoint
+
+В тест-режиме работает Stripe CLI (локально). В продакшне нужен реальный endpoint:
+
+```
+Stripe Dashboard → Developers → Webhooks → Add endpoint
+URL: https://your-domain.com/api/webhooks/stripe
+Events: payment_intent.succeeded
+        payment_intent.payment_failed
+        charge.refunded
+        charge.dispute.created
+```
+
+После создания → нажать "Reveal" в поле "Signing secret" → скопировать `whsec_...` → добавить в env сервера:
+```
+STRIPE_WEBHOOK_SECRET=whsec_...
+```
+
+**Проверить:** сделать тестовую покупку с real card → в Stripe Dashboard → Webhooks → Events должно быть событие с зелёным статусом 200.
+
+---
+
+#### 3. Apple Pay: зарегистрировать домен
+
+Apple Pay на продакшн домене не работает без верификации. Stripe делает это за тебя, но нужно один раз нажать:
+
+```
+Stripe Dashboard → Settings → Payment methods → Apple Pay → Add new domain
+Ввести: your-domain.com (и www.your-domain.com отдельно)
+```
+
+Stripe скажет: "Download this file and host it at `/.well-known/apple-developer-merchantid-domain-association`"
+
+Скачать файл и положить в репозиторий:
+```
+apps/web/public/.well-known/apple-developer-merchantid-domain-association
+```
+
+Задеплоить → снова нажать "Verify" в Stripe Dashboard.
+
+**Без этого:** Apple Pay кнопка не появится на iOS Safari у покупателей. Google Pay работает без этого шага.
+
+**Проверить:** открыть checkout на iPhone в Safari → должна быть чёрная кнопка Apple Pay.
+
+---
+
+#### 4. Stripe Radar: включить anti-fraud правила
+
+```
+Stripe Dashboard → Radar → Rules
+```
+
+Включить встроенные правила (бесплатно):
+- Block if CVC check fails
+- Block if postal code check fails
+- Review if charge amount > $150 (настроить под свои цены)
+
+Radar работает из коробки но стандартные правила мягкие. Для jewelry store (высокая цена, ручная работа) лучше ужесточить.
+
+---
+
+### 🟡 ВАЖНО — без этого теряешь деньги и данные
+
+#### 5. Resend: верифицировать домен для email
+
+На free-плане Resend отправляет письма только с `onboarding@resend.dev`. Покупатели видят чужой адрес.
+
+```
+Resend Dashboard → Domains → Add Domain
+Ввести: your-domain.com
+Добавить 3 DNS записи которые покажет Resend (SPF, DKIM, DMARC)
+Подождать 5-60 минут → статус "Verified"
+```
+
+После верификации обновить `FROM_ADDRESS` в `apps/api/src/email/email.service.ts`:
+```ts
+const FROM_ADDRESS = 'orders@your-domain.com'   // вместо orders@jewelry.com
+```
+
+**Также добавить в env:**
+```
+FRONTEND_URL=https://your-domain.com
+```
+Используется в Welcome email для CTA кнопки "Explore the collection".
+
+**Проверить:** сделать тестовый заказ → письмо должно прийти с `orders@your-domain.com`.
+
+---
+
+#### 6. Переключить Stripe с тестовых карт на реальные
+
+После смены на LIVE ключи: тестовые карты `4242 4242 4242 4242` перестают работать.
+Сделать тестовый платёж реальной картой на небольшую сумму (например товар за $1) → проверить что письмо пришло, заказ создался, статус в Stripe = Succeeded.
+
+---
+
+#### 7. Проверить CORS и allowed origins на API
+
+В продакшне API должен принимать запросы только с продакшн домена:
+
+```
+FRONTEND_URL=https://your-domain.com   → проверить что NestJS CORS настроен на этот URL
+```
+
+---
+
+### 🟢 ЖЕЛАТЕЛЬНО — перед первыми реальными покупателями
+
+#### 8. UptimeRobot: мониторинг
+
+```
+UptimeRobot → Add New Monitor
+URL: https://your-domain.com/health   (NestJS health endpoint — issue #122)
+URL: https://your-domain.com          (фронт)
+Check interval: 5 min
+Alert: email + Telegram
+```
+
+Бесплатно для 50 мониторов. Узнаешь о падении через 5 минут, не от покупателя.
+
+---
+
+#### 9. Stripe: включить email receipts покупателям (опционально)
+
+```
+Stripe Dashboard → Settings → Emails → Customer emails → Receipt → Enable
+```
+
+Страховка: если наш email упал (Resend недоступен) — Stripe сам отправит чек. Не заменяет наш Order Confirmation, но покупатель не останется без подтверждения.
+
+---
+
+#### 10. Проверить все переменные окружения
+
+Финальный список env vars которые должны быть на продакшн сервере (API):
+```
+NODE_ENV=production
+DATABASE_URL=postgresql://...          (Neon prod / RDS)
+STRIPE_SECRET_KEY=sk_live_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+RESEND_API_KEY=re_...
+FRONTEND_URL=https://your-domain.com
+JWT_SECRET=<64+ random chars>
+```
+
+Финальный список env vars на фронте (Vercel / Next.js):
+```
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_...
+NEXT_PUBLIC_API_URL=https://api.your-domain.com
+```
+
+---
+
+### Порядок выполнения в день деплоя
+
+```
+1. Деплой кода (API + Web)
+2. Добавить LIVE Stripe ключи в env
+3. Зарегистрировать webhook endpoint в Stripe
+4. Зарегистрировать домен Apple Pay в Stripe → скачать файл → задеплоить
+5. Верифицировать домен в Resend → добавить DNS записи
+6. Обновить FROM_ADDRESS в коде → задеплоить ещё раз
+7. Сделать тестовый заказ с реальной картой
+8. Проверить: письмо пришло, Apple Pay показывается, webhook в Stripe = 200
+9. Включить Stripe Radar правила
+10. Настроить UptimeRobot
+```
+
+---
+
 ## Главные риски которые надо не забыть
 
 ### 1. EU VAT при масштабировании
