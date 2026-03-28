@@ -84,6 +84,7 @@ export function CheckoutPaymentForm({
               <CheckoutStripeForm
                 orderId={orderId}
                 totalAmount={totalInCents}
+                clientSecret={clientSecret}
                 returnUrl={returnUrl}
                 isSubmitting={isSubmitting}
                 onSubmittingChange={setIsSubmitting}
