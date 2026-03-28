@@ -105,7 +105,7 @@ jobs:
         run: HUSKY=0 pnpm install --frozen-lockfile
 
       - name: Install Playwright browsers
-        run: pnpm --filter web exec playwright install --with-deps chromium
+        run: pnpm --filter web exec playwright install --with-deps chromium webkit
 
       - name: Run Playwright E2E tests
         run: pnpm --filter web test:e2e
