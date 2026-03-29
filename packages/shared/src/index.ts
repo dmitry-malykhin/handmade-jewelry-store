@@ -91,3 +91,12 @@ export interface UserProfile {
   role: UserRole
   avatarUrl: string | null
 }
+
+// ── Admin ─────────────────────────────────────────────────────────────────────
+
+export interface AdminStats {
+  productCount: number
+  orderCount: number
+  /** Total revenue in USD cents. Returns 0 until Orders API (#27) is implemented. */
+  totalRevenueCents: number
+}

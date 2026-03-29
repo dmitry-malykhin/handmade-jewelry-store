@@ -258,5 +258,16 @@
     "beadSize": "Bead size",
     "ratingLabel": "{rating} out of 5 stars, {count} reviews",
     "productionTime": "Handcrafted to order — ready in {days} business days"
+  },
+  "admin": {
+    "panelTitle": "Admin Panel",
+    "sidebarNav": "Admin navigation",
+    "navDashboard": "Dashboard",
+    "navProducts": "Products",
+    "navOrders": "Orders",
+    "dashboardTitle": "Dashboard",
+    "statsTotalProducts": "Total products",
+    "statsTotalOrders": "Total orders",
+    "statsTotalRevenue": "Total revenue"
   }
 }

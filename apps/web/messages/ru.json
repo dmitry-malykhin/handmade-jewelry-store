@@ -258,5 +258,16 @@
     "beadSize": "Размер бусины",
     "ratingLabel": "{rating} из 5 звёзд, {count} отзывов",
     "productionTime": "Изготавливается на заказ — готово через {days} рабочих дней"
+  },
+  "admin": {
+    "panelTitle": "Панель администратора",
+    "sidebarNav": "Навигация администратора",
+    "navDashboard": "Дашборд",
+    "navProducts": "Товары",
+    "navOrders": "Заказы",
+    "dashboardTitle": "Дашборд",
+    "statsTotalProducts": "Всего товаров",
+    "statsTotalOrders": "Всего заказов",
+    "statsTotalRevenue": "Общая выручка"
   }
 }

@@ -258,5 +258,16 @@
     "beadSize": "Tamaño de cuentas",
     "ratingLabel": "{rating} de 5 estrellas, {count} reseñas",
     "productionTime": "Hecho a mano bajo pedido — listo en {days} días hábiles"
+  },
+  "admin": {
+    "panelTitle": "Panel de administración",
+    "sidebarNav": "Navegación de administrador",
+    "navDashboard": "Panel",
+    "navProducts": "Productos",
+    "navOrders": "Pedidos",
+    "dashboardTitle": "Panel",
+    "statsTotalProducts": "Total de productos",
+    "statsTotalOrders": "Total de pedidos",
+    "statsTotalRevenue": "Ingresos totales"
   }
 }
