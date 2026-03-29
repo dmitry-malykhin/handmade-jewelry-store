@@ -61,15 +61,17 @@ enum CancelReason {
 // ─── Models ──────────────────────────────────────────────────────────────────
 
 model User {
-  id        String     @id @default(cuid())
-  email     String     @unique
-  password  String
-  role      Role       @default(USER)
-  orders    Order[]
-  reviews   Review[]
-  wishlist  Wishlist?
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  id           String     @id @default(cuid())
+  email        String     @unique
+  password     String
+  role         Role       @default(USER)
+  // Hashed refresh token — null when logged out. One active session per user.
+  refreshToken String?
+  orders       Order[]
+  reviews      Review[]
+  wishlist     Wishlist?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
 }
 
 model Category {

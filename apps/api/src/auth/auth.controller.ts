@@ -5,7 +5,9 @@ import { AuthService } from './auth.service'
 import { LoginDto } from './dto/login.dto'
 import { RegisterDto } from './dto/register.dto'
 import { JwtAuthGuard } from './guards/jwt-auth.guard'
+import { JwtRefreshGuard } from './guards/jwt-refresh.guard'
 import { LocalAuthGuard } from './guards/local-auth.guard'
+import type { JwtRefreshPayload } from './strategies/jwt-refresh.strategy'
 
 @Controller('auth')
 export class AuthController {
@@ -26,6 +28,20 @@ export class AuthController {
     @Body() _loginDto: LoginDto,
   ) {
     return this.authService.login(user)
+  }
+
+  @Post('refresh')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtRefreshGuard)
+  refresh(@CurrentUser() payload: JwtRefreshPayload) {
+    return this.authService.refreshTokens(payload.sub, payload.refreshToken)
+  }
+
+  @Post('logout')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UseGuards(JwtAuthGuard)
+  logout(@CurrentUser() user: User) {
+    return this.authService.logout(user.id)
   }
 
   @Get('me')

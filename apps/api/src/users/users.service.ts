@@ -27,4 +27,18 @@ export class UsersService {
   async verifyPassword(plainPassword: string, hashedPassword: string): Promise<boolean> {
     return bcrypt.compare(plainPassword, hashedPassword)
   }
+
+  async saveRefreshToken(userId: string, hashedRefreshToken: string): Promise<void> {
+    await this.prismaService.user.update({
+      where: { id: userId },
+      data: { refreshToken: hashedRefreshToken },
+    })
+  }
+
+  async clearRefreshToken(userId: string): Promise<void> {
+    await this.prismaService.user.update({
+      where: { id: userId },
+      data: { refreshToken: null },
+    })
+  }
 }
