@@ -7,6 +7,15 @@ const API_BASE = 'http://localhost:4000'
  * Individual tests can override with server.use() for specific scenarios.
  */
 export const handlers = [
+  // Auth
+  http.post(`${API_BASE}/api/auth/register`, () => {
+    return HttpResponse.json({ accessToken: 'access-token', refreshToken: 'refresh-token' })
+  }),
+
+  http.post(`${API_BASE}/api/auth/login`, () => {
+    return HttpResponse.json({ accessToken: 'access-token', refreshToken: 'refresh-token' })
+  }),
+
   // Products — placeholder for W4
   http.get(`${API_BASE}/products`, () => {
     return HttpResponse.json([

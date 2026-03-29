@@ -24,7 +24,8 @@ export class AuthService {
   ) {}
 
   async validateUserCredentials(email: string, plainPassword: string): Promise<User | null> {
-    const user = await this.usersService.findByEmail(email)
+    const normalizedEmail = email.trim().toLowerCase()
+    const user = await this.usersService.findByEmail(normalizedEmail)
     if (!user) return null
 
     const passwordMatches = await this.usersService.verifyPassword(plainPassword, user.password)
@@ -34,12 +35,14 @@ export class AuthService {
   }
 
   async register(email: string, plainPassword: string): Promise<AuthTokens> {
-    const existingUser = await this.usersService.findByEmail(email)
+    const normalizedEmail = email.trim().toLowerCase()
+
+    const existingUser = await this.usersService.findByEmail(normalizedEmail)
     if (existingUser) {
       throw new ConflictException('An account with this email already exists')
     }
 
-    const newUser = await this.usersService.createUser(email, plainPassword)
+    const newUser = await this.usersService.createUser(normalizedEmail, plainPassword)
     return this.generateTokens(newUser)
   }
 

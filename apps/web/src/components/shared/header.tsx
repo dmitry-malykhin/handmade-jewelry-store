@@ -1,12 +1,13 @@
 import { useTranslations } from 'next-intl'
 import { Search } from 'lucide-react'
 import { Link } from '@/i18n/navigation'
+import { Button } from '@/components/ui/button'
 import { NavLinks } from './nav-links'
 import { MobileNav } from './mobile-nav'
 import { LanguageSwitcher } from './language-switcher'
 import { ThemeToggle } from './theme-toggle'
 import { CartIconButton } from './cart-icon-button'
-import { Button } from '@/components/ui/button'
+import { AccountIconButton } from './account-icon-button'
 
 /**
  * Site header — Server Component.
@@ -35,6 +36,8 @@ export function Header() {
               <Search className="size-5" />
             </Link>
           </Button>
+
+          <AccountIconButton />
 
           <CartIconButton />
 
