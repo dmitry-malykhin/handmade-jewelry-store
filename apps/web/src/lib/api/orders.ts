@@ -65,6 +65,39 @@ export interface OrderDetails {
   createdAt: string
 }
 
+export type OrderStatus =
+  | 'PENDING'
+  | 'PAID'
+  | 'PROCESSING'
+  | 'SHIPPED'
+  | 'DELIVERED'
+  | 'CANCELLED'
+  | 'REFUNDED'
+  | 'PARTIALLY_REFUNDED'
+
+export interface AdminOrdersQueryParams {
+  page?: number
+  limit?: number
+  status?: OrderStatus
+  userId?: string
+}
+
+export interface AdminOrdersResponse {
+  data: OrderDetails[]
+  meta: {
+    totalCount: number
+    page: number
+    limit: number
+    totalPages: number
+  }
+}
+
+export interface UpdateOrderStatusPayload {
+  status: OrderStatus
+  note?: string
+  trackingNumber?: string
+}
+
 export async function fetchOrderById(orderId: string): Promise<OrderDetails> {
   return apiClient<OrderDetails>(`/api/orders/${orderId}`)
 }
@@ -72,6 +105,35 @@ export async function fetchOrderById(orderId: string): Promise<OrderDetails> {
 export async function createOrder(payload: CreateOrderPayload): Promise<CreatedOrder> {
   return apiClient<CreatedOrder>('/api/orders', {
     method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function fetchAdminOrders(
+  params: AdminOrdersQueryParams,
+  accessToken: string,
+): Promise<AdminOrdersResponse> {
+  const searchParams = new URLSearchParams()
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      searchParams.set(key, String(value))
+    }
+  })
+  const queryString = searchParams.toString()
+  return apiClient<AdminOrdersResponse>(
+    `/api/admin/orders${queryString ? `?${queryString}` : ''}`,
+    { headers: { Authorization: `Bearer ${accessToken}` } },
+  )
+}
+
+export async function updateAdminOrderStatus(
+  orderId: string,
+  payload: UpdateOrderStatusPayload,
+  accessToken: string,
+): Promise<OrderDetails> {
+  return apiClient<OrderDetails>(`/api/admin/orders/${orderId}/status`, {
+    method: 'PATCH',
+    headers: { Authorization: `Bearer ${accessToken}` },
     body: JSON.stringify(payload),
   })
 }

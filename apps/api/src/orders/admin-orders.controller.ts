@@ -6,7 +6,6 @@ import {
   HttpStatus,
   Param,
   Patch,
-  Post,
   Query,
   UseGuards,
 } from '@nestjs/common'
@@ -14,24 +13,17 @@ import { Role } from '@prisma/client'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
 import { RolesGuard } from '../auth/guards/roles.guard'
 import { Roles } from '../common/decorators/roles.decorator'
-import { CreateOrderDto } from './dto/create-order.dto'
 import { OrderQueryDto } from './dto/order-query.dto'
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto'
 import { OrdersService } from './orders.service'
 
-@Controller('orders')
-export class OrdersController {
+@Controller('admin/orders')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(Role.ADMIN)
+export class AdminOrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
-  @Post()
-  @HttpCode(HttpStatus.CREATED)
-  create(@Body() createOrderDto: CreateOrderDto) {
-    return this.ordersService.create(createOrderDto)
-  }
-
   @Get()
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.ADMIN)
   findAll(@Query() orderQueryDto: OrderQueryDto) {
     return this.ordersService.findAll(orderQueryDto)
   }
@@ -42,8 +34,7 @@ export class OrdersController {
   }
 
   @Patch(':id/status')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.ADMIN)
+  @HttpCode(HttpStatus.OK)
   updateStatus(@Param('id') orderId: string, @Body() updateOrderStatusDto: UpdateOrderStatusDto) {
     return this.ordersService.updateStatus(orderId, updateOrderStatusDto)
   }
