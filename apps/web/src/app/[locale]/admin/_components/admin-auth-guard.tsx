@@ -22,20 +22,13 @@ export function AdminAuthGuard({ children }: AdminAuthGuardProps) {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
   const role = useAuthStore((state) => state.role)
   const router = useRouter()
+  // Start as hydrated=false to block redirect until client useEffect runs
   const [isHydrated, setIsHydrated] = useState(false)
 
   useEffect(() => {
-    // Wait for Zustand rehydration from localStorage before checking auth
-    const unsubscribe = useAuthStore.persist.onFinishHydration(() => {
-      setIsHydrated(true)
-    })
-
-    // If already hydrated (rehydrate() was called before this component mounted)
-    if (useAuthStore.persist.hasHydrated()) {
-      setIsHydrated(true)
-    }
-
-    return unsubscribe
+    // Mark hydrated after first client render — by this point StoreHydration's
+    // useEffect has already called rehydrate(), so auth state is populated
+    setIsHydrated(true)
   }, [])
 
   useEffect(() => {
