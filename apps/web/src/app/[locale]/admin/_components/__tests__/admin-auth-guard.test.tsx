@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { act, render, screen } from '@testing-library/react'
 import { useAuthStore } from '@/store/auth.store'
 import { AdminAuthGuard } from '../admin-auth-guard'
 
@@ -26,74 +26,88 @@ describe('AdminAuthGuard', () => {
     vi.clearAllMocks()
   })
 
-  it('renders children when user is authenticated and has ADMIN role', () => {
+  it('renders children when user is authenticated and has ADMIN role', async () => {
     mockAuthState(true, 'ADMIN')
 
-    render(
-      <AdminAuthGuard>
-        <div>Admin content</div>
-      </AdminAuthGuard>,
-    )
+    await act(async () => {
+      render(
+        <AdminAuthGuard>
+          <div>Admin content</div>
+        </AdminAuthGuard>,
+      )
+    })
 
     expect(screen.getByText('Admin content')).toBeInTheDocument()
   })
 
-  it('renders nothing when user is not authenticated', () => {
+  it('renders nothing when user is not authenticated', async () => {
     mockAuthState(false, null)
 
-    const { container } = render(
-      <AdminAuthGuard>
-        <div>Admin content</div>
-      </AdminAuthGuard>,
-    )
+    let container!: HTMLElement
+    await act(async () => {
+      ;({ container } = render(
+        <AdminAuthGuard>
+          <div>Admin content</div>
+        </AdminAuthGuard>,
+      ))
+    })
 
     expect(container).toBeEmptyDOMElement()
   })
 
-  it('renders nothing when user has USER role', () => {
+  it('renders nothing when user has USER role', async () => {
     mockAuthState(true, 'USER')
 
-    const { container } = render(
-      <AdminAuthGuard>
-        <div>Admin content</div>
-      </AdminAuthGuard>,
-    )
+    let container!: HTMLElement
+    await act(async () => {
+      ;({ container } = render(
+        <AdminAuthGuard>
+          <div>Admin content</div>
+        </AdminAuthGuard>,
+      ))
+    })
 
     expect(container).toBeEmptyDOMElement()
   })
 
-  it('redirects to / when user is not authenticated', () => {
+  it('redirects to / when user is not authenticated', async () => {
     mockAuthState(false, null)
 
-    render(
-      <AdminAuthGuard>
-        <div>Admin content</div>
-      </AdminAuthGuard>,
-    )
+    await act(async () => {
+      render(
+        <AdminAuthGuard>
+          <div>Admin content</div>
+        </AdminAuthGuard>,
+      )
+    })
 
     expect(mockRouterReplace).toHaveBeenCalledWith('/')
   })
 
-  it('redirects to / when user has USER role', () => {
+  it('redirects to / when user has USER role', async () => {
     mockAuthState(true, 'USER')
 
-    render(
-      <AdminAuthGuard>
-        <div>Admin content</div>
-      </AdminAuthGuard>,
-    )
+    await act(async () => {
+      render(
+        <AdminAuthGuard>
+          <div>Admin content</div>
+        </AdminAuthGuard>,
+      )
+    })
 
     expect(mockRouterReplace).toHaveBeenCalledWith('/')
   })
 
-  it('does not redirect when user is ADMIN', () => {
+  it('does not redirect when user is ADMIN', async () => {
     mockAuthState(true, 'ADMIN')
 
-    render(
-      <AdminAuthGuard>
-        <div>Admin content</div>
-      </AdminAuthGuard>,
-    )
+    await act(async () => {
+      render(
+        <AdminAuthGuard>
+          <div>Admin content</div>
+        </AdminAuthGuard>,
+      )
+    })
 
     expect(mockRouterReplace).not.toHaveBeenCalled()
   })

@@ -4,6 +4,8 @@
 
 export type StockType = 'IN_STOCK' | 'MADE_TO_ORDER' | 'ONE_OF_A_KIND'
 
+export type ProductStatus = 'ACTIVE' | 'DRAFT' | 'ARCHIVED'
+
 export interface Category {
   id: string
   name: string
@@ -27,6 +29,7 @@ export interface Product {
   material: string | null
   avgRating: number
   reviewCount: number
+  status: ProductStatus
   stockType: StockType
   productionDays: number
   lengthCm: number | null

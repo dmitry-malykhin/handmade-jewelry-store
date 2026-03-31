@@ -1,6 +1,8 @@
 import { NotFoundException } from '@nestjs/common'
 import { Test, TestingModule } from '@nestjs/testing'
+import { ProductStatus } from '@prisma/client'
 import { PrismaService } from '../prisma/prisma.service'
+import { AdminProductQueryDto } from './dto/admin-product-query.dto'
 import { CreateProductDto } from './dto/create-product.dto'
 import { ProductQueryDto, ProductSortField, SortOrder } from './dto/product-query.dto'
 import { UpdateProductDto } from './dto/update-product.dto'
@@ -256,6 +258,77 @@ describe('ProductsService', () => {
       mockPrismaService.product.findUnique.mockResolvedValue(null)
 
       await expect(productsService.remove('unknown-slug')).rejects.toThrow(NotFoundException)
+    })
+  })
+
+  describe('findAllAdmin', () => {
+    it('returns paginated products without status filter when status is omitted', async () => {
+      mockPrismaService.product.findMany.mockResolvedValue([mockProduct])
+      mockPrismaService.product.count.mockResolvedValue(1)
+
+      const adminQueryDto: AdminProductQueryDto = { page: 1, limit: 20 }
+      const result = await productsService.findAllAdmin(adminQueryDto)
+
+      expect(result.data).toHaveLength(1)
+      expect(result.meta.totalCount).toBe(1)
+      const findManyCall = mockPrismaService.product.findMany.mock.calls[0][0]
+      expect(findManyCall.where.status).toBeUndefined()
+    })
+
+    it('filters by status when status is provided', async () => {
+      mockPrismaService.product.findMany.mockResolvedValue([])
+      mockPrismaService.product.count.mockResolvedValue(0)
+
+      await productsService.findAllAdmin({ status: ProductStatus.DRAFT, page: 1, limit: 20 })
+
+      const findManyCall = mockPrismaService.product.findMany.mock.calls[0][0]
+      expect(findManyCall.where.status).toBe(ProductStatus.DRAFT)
+    })
+
+    it('searches by title and SKU case-insensitively', async () => {
+      mockPrismaService.product.findMany.mockResolvedValue([])
+      mockPrismaService.product.count.mockResolvedValue(0)
+
+      await productsService.findAllAdmin({ search: 'ring', page: 1, limit: 20 })
+
+      const findManyCall = mockPrismaService.product.findMany.mock.calls[0][0]
+      expect(findManyCall.where.OR).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ title: { contains: 'ring', mode: 'insensitive' } }),
+          expect.objectContaining({ sku: { contains: 'ring', mode: 'insensitive' } }),
+        ]),
+      )
+    })
+  })
+
+  describe('updateStatus', () => {
+    it('updates product status when product exists', async () => {
+      const updatedProduct = {
+        id: 'prod-1',
+        slug: 'silver-ring',
+        title: 'Silver Ring',
+        status: ProductStatus.ARCHIVED,
+      }
+      mockPrismaService.product.findUnique.mockResolvedValue(mockProduct)
+      mockPrismaService.product.update.mockResolvedValue(updatedProduct)
+
+      const result = await productsService.updateStatus('prod-1', ProductStatus.ARCHIVED)
+
+      expect(result.status).toBe(ProductStatus.ARCHIVED)
+      expect(mockPrismaService.product.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'prod-1' },
+          data: { status: ProductStatus.ARCHIVED },
+        }),
+      )
+    })
+
+    it('throws NotFoundException when product id does not exist', async () => {
+      mockPrismaService.product.findUnique.mockResolvedValue(null)
+
+      await expect(
+        productsService.updateStatus('nonexistent-id', ProductStatus.ACTIVE),
+      ).rejects.toThrow(NotFoundException)
     })
   })
 })

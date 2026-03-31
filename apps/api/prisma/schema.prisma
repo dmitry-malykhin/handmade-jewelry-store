@@ -4,6 +4,7 @@
 // Issue #63: Review, Wishlist + seed script
 // Issue #116: OrderStatus (PROCESSING, REFUNDED), StockType, CancelReason,
 //             OrderStatusHistory, extended Order + OrderItem fields
+// Issue #75:  ProductStatus enum (ACTIVE/DRAFT/ARCHIVED) + status field on Product
 // ─────────────────────────────────────────────────────────────────────────────
 
 generator client {
@@ -39,6 +40,12 @@ enum PaymentStatus {
   FAILED
   REFUNDED
   PARTIALLY_REFUNDED
+}
+
+enum ProductStatus {
+  ACTIVE   // Visible in catalog and search
+  DRAFT    // Hidden from public catalog, editable by admin
+  ARCHIVED // Discontinued, hidden from catalog, read-only
 }
 
 enum StockType {
@@ -94,8 +101,9 @@ model Product {
   material       String?             // "Sterling Silver 925"
   avgRating      Float      @default(0)
   reviewCount    Int        @default(0)
-  stockType      StockType  @default(IN_STOCK)
-  productionDays Int        @default(0) // 0 = in stock; 3-7 = made to order
+  status         ProductStatus @default(ACTIVE)
+  stockType      StockType     @default(IN_STOCK)
+  productionDays Int           @default(0) // 0 = in stock; 3-7 = made to order
 
   // Dimensions — stored in metric, converted to imperial at display time (docs/10)
   lengthCm    Float? // primary length: necklace, bracelet, lariat
