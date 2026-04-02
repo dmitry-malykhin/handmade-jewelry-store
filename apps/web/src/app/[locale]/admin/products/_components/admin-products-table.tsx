@@ -3,7 +3,8 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslations } from 'next-intl'
-import { ChevronDown, ChevronUp, ChevronsUpDown, Search } from 'lucide-react'
+import { ChevronDown, ChevronUp, ChevronsUpDown, Plus, Search } from 'lucide-react'
+import { Link } from '@/i18n/navigation'
 import { toast } from 'sonner'
 import type { ProductStatus } from '@jewelry/shared'
 import { Badge } from '@/components/ui/badge'
@@ -135,6 +136,12 @@ export function AdminProductsTable() {
         <h1 id="products-heading" className="text-2xl font-semibold text-foreground">
           {t('productsTitle')}
         </h1>
+        <Button asChild size="sm">
+          <Link href="/admin/products/new">
+            <Plus className="mr-2 size-4" aria-hidden="true" />
+            {t('productsNewButton')}
+          </Link>
+        </Button>
       </div>
 
       <div className="mb-4 flex flex-wrap items-center gap-3">

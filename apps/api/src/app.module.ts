@@ -10,6 +10,7 @@ import { PaymentsModule } from './payments/payments.module'
 import { PrismaModule } from './prisma/prisma.module'
 import { ProductsModule } from './products/products.module'
 import { StripeModule } from './stripe/stripe.module'
+import { UploadModule } from './upload/upload.module'
 import { UsersModule } from './users/users.module'
 
 @Module({
@@ -26,6 +27,7 @@ import { UsersModule } from './users/users.module'
     OrdersModule,
     StripeModule,
     PaymentsModule,
+    UploadModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -64,6 +64,39 @@ export async function fetchAdminProducts(
   })
 }
 
+export type StockType = 'IN_STOCK' | 'MADE_TO_ORDER' | 'ONE_OF_A_KIND'
+
+export interface CreateProductPayload {
+  title: string
+  description: string
+  price: number
+  stock: number
+  images: string[]
+  slug: string
+  categoryId: string
+  sku?: string
+  material?: string
+  stockType?: StockType
+  productionDays?: number
+  lengthCm?: number
+  widthCm?: number
+  heightCm?: number
+  diameterCm?: number
+  weightGrams?: number
+  beadSizeMm?: number
+}
+
+export async function createAdminProduct(
+  payload: CreateProductPayload,
+  accessToken: string,
+): Promise<Product> {
+  return apiClient<Product>('/api/products', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${accessToken}` },
+    body: JSON.stringify(payload),
+  })
+}
+
 export async function updateProductStatus(
   productId: string,
   newStatus: ProductStatus,
