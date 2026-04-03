@@ -97,6 +97,45 @@ export async function createAdminProduct(
   })
 }
 
+export interface UpdateProductPayload {
+  title?: string
+  description?: string
+  price?: number
+  stock?: number
+  images?: string[]
+  slug?: string
+  categoryId?: string
+  sku?: string
+  material?: string
+  stockType?: StockType
+  productionDays?: number
+  lengthCm?: number
+  widthCm?: number
+  heightCm?: number
+  diameterCm?: number
+  weightGrams?: number
+  beadSizeMm?: number
+}
+
+export async function updateAdminProduct(
+  productSlug: string,
+  payload: UpdateProductPayload,
+  accessToken: string,
+): Promise<Product> {
+  return apiClient<Product>(`/api/products/${productSlug}`, {
+    method: 'PATCH',
+    headers: { Authorization: `Bearer ${accessToken}` },
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function deleteAdminProduct(productSlug: string, accessToken: string): Promise<void> {
+  return apiClient<void>(`/api/products/${productSlug}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${accessToken}` },
+  })
+}
+
 export async function updateProductStatus(
   productId: string,
   newStatus: ProductStatus,
