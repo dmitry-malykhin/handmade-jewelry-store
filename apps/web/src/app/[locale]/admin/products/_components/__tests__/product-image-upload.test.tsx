@@ -57,6 +57,24 @@ describe('ProductImageUpload — rendering', () => {
 
     expect(screen.getByRole('alert')).toHaveTextContent('At least one image is required')
   })
+
+  it('renders existing product image passed as initial value', async () => {
+    const mockOnImagesChange = vi.fn()
+    render(
+      <ProductImageUpload
+        onImagesChange={mockOnImagesChange}
+        initialImageUrls={['https://cdn.example.com/products/existing-ring.jpg']}
+      />,
+    )
+
+    expect(
+      await screen.findByRole('img', { name: /preview of existing-ring\.jpg/i }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: /remove image existing-ring\.jpg/i }),
+    ).toBeInTheDocument()
+    expect(mockOnImagesChange).not.toHaveBeenCalled()
+  })
 })
 
 describe('ProductImageUpload — file validation', () => {

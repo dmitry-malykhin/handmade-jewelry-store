@@ -20,23 +20,51 @@ type ImageUploadStatus = 'pending' | 'uploading' | 'done' | 'error'
 
 interface ImageUploadItem {
   id: string
-  file: File
+  file?: File
+  fileName: string
   previewUrl: string
   publicUrl?: string
   progress: number
   status: ImageUploadStatus
   errorMessage?: string
+  isExisting: boolean
 }
 
 interface ProductImageUploadProps {
   onImagesChange: (publicUrls: string[]) => void
   errorMessage?: string
+  initialImageUrls?: string[]
 }
 
-export function ProductImageUpload({ onImagesChange, errorMessage }: ProductImageUploadProps) {
+function getFileNameFromUrl(imageUrl: string): string {
+  try {
+    const pathname = new URL(imageUrl).pathname
+    const fileName = pathname.split('/').pop()
+
+    return fileName ? decodeURIComponent(fileName) : 'image'
+  } catch {
+    return 'image'
+  }
+}
+
+export function ProductImageUpload({
+  onImagesChange,
+  errorMessage,
+  initialImageUrls = [],
+}: ProductImageUploadProps) {
   const t = useTranslations('admin')
   const accessToken = useAuthStore((state) => state.accessToken)
-  const [uploadItems, setUploadItems] = useState<ImageUploadItem[]>([])
+  const [uploadItems, setUploadItems] = useState<ImageUploadItem[]>(() =>
+    initialImageUrls.map((imageUrl, imageIndex) => ({
+      id: `existing-${imageIndex}-${imageUrl}`,
+      fileName: getFileNameFromUrl(imageUrl),
+      previewUrl: imageUrl,
+      publicUrl: imageUrl,
+      progress: 100,
+      status: 'done',
+      isExisting: true,
+    })),
+  )
   const [isDragOver, setIsDragOver] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -61,7 +89,7 @@ export function ProductImageUpload({ onImagesChange, errorMessage }: ProductImag
 
   const uploadFile = useCallback(
     async (item: ImageUploadItem) => {
-      if (!accessToken) return
+      if (!accessToken || !item.file) return
 
       updateItem(item.id, { status: 'uploading', progress: 0 })
 
@@ -108,11 +136,13 @@ export function ProductImageUpload({ onImagesChange, errorMessage }: ProductImag
 
       const newItems: ImageUploadItem[] = validatedFiles.map(({ file, error }) => ({
         id: `${Date.now()}-${Math.random()}`,
+        fileName: file.name,
         file,
         previewUrl: URL.createObjectURL(file),
         progress: 0,
         status: error ? 'error' : 'pending',
         errorMessage: error,
+        isExisting: false,
       }))
 
       setUploadItems((previousItems) => [...previousItems, ...newItems])
@@ -158,7 +188,7 @@ export function ProductImageUpload({ onImagesChange, errorMessage }: ProductImag
     (itemId: string) => {
       setUploadItems((previousItems) => {
         const removedItem = previousItems.find((uploadItem) => uploadItem.id === itemId)
-        if (removedItem) URL.revokeObjectURL(removedItem.previewUrl)
+        if (removedItem && !removedItem.isExisting) URL.revokeObjectURL(removedItem.previewUrl)
 
         const remainingItems = previousItems.filter((uploadItem) => uploadItem.id !== itemId)
         const completedPublicUrls = remainingItems
@@ -238,7 +268,7 @@ export function ProductImageUpload({ onImagesChange, errorMessage }: ProductImag
               <figure className="relative aspect-square overflow-hidden rounded-md border border-border bg-muted">
                 <Image
                   src={uploadItem.previewUrl}
-                  alt={t('uploadImagePreviewAlt', { name: uploadItem.file.name })}
+                  alt={t('uploadImagePreviewAlt', { name: uploadItem.fileName })}
                   fill
                   className={[
                     'object-cover transition-opacity',
@@ -274,7 +304,7 @@ export function ProductImageUpload({ onImagesChange, errorMessage }: ProductImag
                 variant="destructive"
                 size="icon"
                 className="absolute -right-2 -top-2 size-6 rounded-full"
-                aria-label={t('uploadRemoveAriaLabel', { name: uploadItem.file.name })}
+                aria-label={t('uploadRemoveAriaLabel', { name: uploadItem.fileName })}
                 onClick={() => handleRemoveImage(uploadItem.id)}
               >
                 <X className="size-3" aria-hidden="true" />

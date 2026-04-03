@@ -3,10 +3,10 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslations } from 'next-intl'
-import { ChevronDown, ChevronUp, ChevronsUpDown, Plus, Search } from 'lucide-react'
+import { ChevronDown, ChevronUp, ChevronsUpDown, Pencil, Plus, Search, Trash2 } from 'lucide-react'
 import { Link } from '@/i18n/navigation'
 import { toast } from 'sonner'
-import type { ProductStatus } from '@jewelry/shared'
+import type { Product, ProductsResponse, ProductStatus } from '@jewelry/shared'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -32,15 +32,23 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { useAuthStore } from '@/store/auth.store'
-import { fetchAdminProducts, updateProductStatus } from '@/lib/api/products'
+import {
+  deleteAdminProduct,
+  fetchAdminProducts,
+  updateProductStatus,
+  type AdminProductsQueryParams,
+} from '@/lib/api/products'
 import { ApiError } from '@/lib/api/client'
-import type { AdminProductsQueryParams } from '@/lib/api/products'
+import { DeleteProductDialog } from './delete-product-dialog'
 
 const PRODUCT_STATUSES: ProductStatus[] = ['ACTIVE', 'DRAFT', 'ARCHIVED']
 const PAGE_LIMIT = 20
 
 type SortField = 'createdAt' | 'title' | 'price' | 'stock'
 type SortOrder = 'asc' | 'desc'
+type ProductTableRow = Pick<Product, 'id' | 'slug' | 'title' | 'status'>
+
+type ProductsQuerySnapshot = Array<[ReadonlyArray<unknown>, ProductsResponse | undefined]>
 
 function ProductStatusBadge({ status }: { status: ProductStatus }) {
   const variantMap: Record<ProductStatus, 'default' | 'secondary' | 'outline'> = {
@@ -79,6 +87,22 @@ export function AdminProductsTable() {
   const [sortBy, setSortBy] = useState<SortField>('createdAt')
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc')
   const [currentPage, setCurrentPage] = useState(1)
+  const [productToDelete, setProductToDelete] = useState<ProductTableRow | null>(null)
+
+  const updateAdminProductsQueries = (
+    updater: (currentData: ProductsResponse) => ProductsResponse,
+  ): void => {
+    queryClient.setQueriesData<ProductsResponse>(
+      { queryKey: ['admin', 'products'] },
+      (currentData) => (currentData ? updater(currentData) : currentData),
+    )
+  }
+
+  const restoreProductsQueries = (querySnapshots: ProductsQuerySnapshot | undefined): void => {
+    querySnapshots?.forEach(([queryKey, queryData]) => {
+      queryClient.setQueryData(queryKey, queryData)
+    })
+  }
 
   // Debounce search to avoid excessive API calls
   const handleSearchChange = (value: string) => {
@@ -108,13 +132,77 @@ export function AdminProductsTable() {
   const statusMutation = useMutation({
     mutationFn: ({ productId, newStatus }: { productId: string; newStatus: ProductStatus }) =>
       updateProductStatus(productId, newStatus, accessToken ?? ''),
+    onMutate: async ({ productId, newStatus }) => {
+      await queryClient.cancelQueries({ queryKey: ['admin', 'products'] })
+      const previousProductsQueries = queryClient.getQueriesData<ProductsResponse>({
+        queryKey: ['admin', 'products'],
+      })
+
+      updateAdminProductsQueries((currentData) => ({
+        ...currentData,
+        data: currentData.data.map((product) =>
+          product.id === productId ? { ...product, status: newStatus } : product,
+        ),
+      }))
+
+      return { previousProductsQueries }
+    },
     onSuccess: (updatedProduct) => {
-      void queryClient.invalidateQueries({ queryKey: ['admin', 'products'] })
       toast.success(t('productsStatusUpdateSuccess', { title: updatedProduct.title }))
     },
-    onError: (error) => {
+    onError: (error, _variables, context) => {
+      restoreProductsQueries(context?.previousProductsQueries)
       const message = error instanceof ApiError ? error.message : t('productsStatusUpdateError')
       toast.error(message)
+    },
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'products'] })
+    },
+  })
+
+  const deleteMutation = useMutation({
+    mutationFn: (product: ProductTableRow) => deleteAdminProduct(product.slug, accessToken ?? ''),
+    onMutate: async (product) => {
+      await queryClient.cancelQueries({ queryKey: ['admin', 'products'] })
+      const previousProductsQueries = queryClient.getQueriesData<ProductsResponse>({
+        queryKey: ['admin', 'products'],
+      })
+
+      updateAdminProductsQueries((currentData) => {
+        const updatedRows = currentData.data.filter(
+          (currentProduct) => currentProduct.id !== product.id,
+        )
+
+        if (updatedRows.length === currentData.data.length) {
+          return currentData
+        }
+
+        const nextTotalCount = Math.max(0, currentData.meta.totalCount - 1)
+
+        return {
+          ...currentData,
+          data: updatedRows,
+          meta: {
+            ...currentData.meta,
+            totalCount: nextTotalCount,
+            totalPages: Math.ceil(nextTotalCount / currentData.meta.limit),
+          },
+        }
+      })
+
+      return { previousProductsQueries }
+    },
+    onSuccess: () => {
+      toast.success(t('productsDeleteSuccess'))
+      setProductToDelete(null)
+    },
+    onError: (error, _variables, context) => {
+      restoreProductsQueries(context?.previousProductsQueries)
+      const message = error instanceof ApiError ? error.message : t('productsDeleteError')
+      toast.error(message)
+    },
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'products'] })
     },
   })
 
@@ -230,13 +318,14 @@ export function AdminProductsTable() {
                       <SortIcon field="createdAt" currentField={sortBy} currentOrder={sortOrder} />
                     </button>
                   </TableHead>
+                  <TableHead className="w-24 text-right">{t('productsColActions')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {data?.data.length === 0 && (
                   <TableRow>
                     <TableCell
-                      colSpan={6}
+                      colSpan={7}
                       className="py-8 text-center text-sm text-muted-foreground"
                     >
                       {t('productsEmpty')}
@@ -301,6 +390,34 @@ export function AdminProductsTable() {
                     <TableCell className="text-sm text-muted-foreground">
                       {new Date(product.createdAt).toLocaleDateString()}
                     </TableCell>
+                    <TableCell>
+                      <div className="flex items-center justify-end gap-1">
+                        <Button variant="ghost" size="icon" asChild>
+                          <Link
+                            href={`/admin/products/${product.slug}/edit`}
+                            aria-label={t('productsEditAriaLabel', { title: product.title })}
+                          >
+                            <Pencil className="size-4" aria-hidden="true" />
+                          </Link>
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() =>
+                            setProductToDelete({
+                              id: product.id,
+                              slug: product.slug,
+                              title: product.title,
+                              status: product.status,
+                            })
+                          }
+                          aria-label={t('productsDeleteAriaLabel', { title: product.title })}
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="size-4" aria-hidden="true" />
+                        </Button>
+                      </div>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -338,6 +455,17 @@ export function AdminProductsTable() {
           )}
         </>
       )}
+
+      <DeleteProductDialog
+        product={productToDelete}
+        onClose={() => setProductToDelete(null)}
+        onConfirm={() => {
+          if (productToDelete) {
+            deleteMutation.mutate(productToDelete)
+          }
+        }}
+        isPending={deleteMutation.isPending}
+      />
     </section>
   )
 }
