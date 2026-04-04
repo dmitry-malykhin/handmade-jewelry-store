@@ -171,7 +171,7 @@ export function EditProductForm({ categories, product }: EditProductFormProps) {
                 stock: formValues.stock,
                 sku: formValues.sku || null,
                 material: formValues.material || null,
-                stockType: formValues.stockType,
+                stockType: formValues.stockType ?? 'IN_STOCK',
                 productionDays: formValues.productionDays ?? 0,
                 lengthCm: formValues.lengthCm ?? null,
                 widthCm: formValues.widthCm ?? null,

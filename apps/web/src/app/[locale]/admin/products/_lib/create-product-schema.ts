@@ -6,11 +6,11 @@ export const createProductSchema = z.object({
   title: z.string().min(2, 'Title must be at least 2 characters').max(200),
   description: z.string().min(10, 'Description must be at least 10 characters').max(5000),
   price: z
-    .number({ invalid_type_error: 'Price must be a number' })
+    .number({ message: 'Price must be a number' })
     .positive('Price must be positive')
     .multipleOf(0.01, 'Price can have at most 2 decimal places'),
   stock: z
-    .number({ invalid_type_error: 'Stock must be a number' })
+    .number({ message: 'Stock must be a number' })
     .int('Stock must be a whole number')
     .min(0, 'Stock cannot be negative'),
   images: z
@@ -37,4 +37,4 @@ export const createProductSchema = z.object({
   beadSizeMm: z.number().positive().max(100).optional(),
 })
 
-export type CreateProductFormValues = z.infer<typeof createProductSchema>
+export type CreateProductFormValues = z.input<typeof createProductSchema>
