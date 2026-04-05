@@ -15,6 +15,7 @@ import { RolesGuard } from '../auth/guards/roles.guard'
 import { Roles } from '../common/decorators/roles.decorator'
 import { OrderQueryDto } from './dto/order-query.dto'
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto'
+import { UpdateOrderTrackingDto } from './dto/update-order-tracking.dto'
 import { OrdersService } from './orders.service'
 
 @Controller('admin/orders')
@@ -37,5 +38,14 @@ export class AdminOrdersController {
   @HttpCode(HttpStatus.OK)
   updateStatus(@Param('id') orderId: string, @Body() updateOrderStatusDto: UpdateOrderStatusDto) {
     return this.ordersService.updateStatus(orderId, updateOrderStatusDto)
+  }
+
+  @Patch(':id/tracking')
+  @HttpCode(HttpStatus.OK)
+  updateTracking(
+    @Param('id') orderId: string,
+    @Body() updateOrderTrackingDto: UpdateOrderTrackingDto,
+  ) {
+    return this.ordersService.updateTracking(orderId, updateOrderTrackingDto)
   }
 }

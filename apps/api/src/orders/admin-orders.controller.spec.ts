@@ -20,6 +20,7 @@ const mockOrdersService = {
   findAll: jest.fn(),
   findOneById: jest.fn(),
   updateStatus: jest.fn(),
+  updateTracking: jest.fn(),
 }
 
 describe('AdminOrdersController', () => {
@@ -113,6 +114,39 @@ describe('AdminOrdersController', () => {
       await expect(
         adminOrdersController.updateStatus('order-uuid-1', { status: OrderStatus.PENDING }),
       ).rejects.toThrow('Invalid status transition')
+    })
+  })
+
+  describe('updateTracking', () => {
+    it('saves tracking number and carrier and returns updated order', async () => {
+      const updatedOrder = {
+        ...mockOrderSummary,
+        trackingNumber: '9400111899223481750000',
+        shippingCarrier: 'USPS',
+      }
+      mockOrdersService.updateTracking.mockResolvedValue(updatedOrder)
+
+      const result = await adminOrdersController.updateTracking('order-uuid-1', {
+        trackingNumber: '9400111899223481750000',
+        shippingCarrier: 'USPS',
+      })
+
+      expect(result).toEqual(updatedOrder)
+      expect(mockOrdersService.updateTracking).toHaveBeenCalledWith('order-uuid-1', {
+        trackingNumber: '9400111899223481750000',
+        shippingCarrier: 'USPS',
+      })
+    })
+
+    it('propagates error when order does not exist', async () => {
+      mockOrdersService.updateTracking.mockRejectedValue(new Error('Order not found'))
+
+      await expect(
+        adminOrdersController.updateTracking('nonexistent-id', {
+          trackingNumber: 'ABC123',
+          shippingCarrier: 'FedEx',
+        }),
+      ).rejects.toThrow('Order not found')
     })
   })
 })

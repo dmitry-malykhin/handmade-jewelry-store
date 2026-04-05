@@ -6,6 +6,7 @@ import { PrismaService } from '../prisma/prisma.service'
 import { CreateOrderDto } from './dto/create-order.dto'
 import { OrderQueryDto } from './dto/order-query.dto'
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto'
+import { UpdateOrderTrackingDto } from './dto/update-order-tracking.dto'
 import { isValidOrderStatusTransition } from './order-status.transitions'
 
 @Injectable()
@@ -163,5 +164,24 @@ export class OrdersService {
     }
 
     return updatedOrder
+  }
+
+  async updateTracking(orderId: string, updateOrderTrackingDto: UpdateOrderTrackingDto) {
+    await this.findOneById(orderId)
+
+    return this.prismaService.order.update({
+      where: { id: orderId },
+      data: {
+        trackingNumber: updateOrderTrackingDto.trackingNumber,
+        shippingCarrier: updateOrderTrackingDto.shippingCarrier,
+        // Record exact time admin added tracking — used for delivery estimate display
+        shippedAt: new Date(),
+      },
+      include: {
+        items: true,
+        payment: true,
+        statusHistory: { orderBy: { createdAt: 'asc' } },
+      },
+    })
   }
 }

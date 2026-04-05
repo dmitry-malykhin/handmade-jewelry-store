@@ -37,21 +37,21 @@ afterEach(() => {
 })
 
 describe('hashPasswordForSeed', () => {
-  it('returns a 64-character hex string for a given input', () => {
-    const hashedPassword = hashPasswordForSeed('admin123')
-    expect(hashedPassword).toHaveLength(64)
-    expect(hashedPassword).toMatch(/^[a-f0-9]+$/)
+  it('returns a bcrypt hash string starting with $2b$', async () => {
+    const hashedPassword = await hashPasswordForSeed('admin123')
+    expect(hashedPassword).toMatch(/^\$2b\$/)
   })
 
-  it('produces the same hash for the same input (deterministic)', () => {
-    const firstHash = hashPasswordForSeed('test123')
-    const secondHash = hashPasswordForSeed('test123')
-    expect(firstHash).toBe(secondHash)
+  it('produces different hashes for the same input (bcrypt uses random salt)', async () => {
+    const firstHash = await hashPasswordForSeed('test123')
+    const secondHash = await hashPasswordForSeed('test123')
+    // bcrypt salts are random — two hashes of the same password must differ
+    expect(firstHash).not.toBe(secondHash)
   })
 
-  it('produces different hashes for different inputs', () => {
-    const adminHash = hashPasswordForSeed('admin123')
-    const testHash = hashPasswordForSeed('test123')
+  it('produces different hashes for different inputs', async () => {
+    const adminHash = await hashPasswordForSeed('admin123')
+    const testHash = await hashPasswordForSeed('test123')
     expect(adminHash).not.toBe(testHash)
   })
 })
@@ -201,8 +201,9 @@ describe('seedUsers', () => {
 
     expect(adminUpsertCall.create.password).not.toBe('admin123')
     expect(testUpsertCall.create.password).not.toBe('test123')
-    expect(adminUpsertCall.create.password).toHaveLength(64)
-    expect(testUpsertCall.create.password).toHaveLength(64)
+    // bcrypt hashes start with $2b$ and are 60 characters long
+    expect(adminUpsertCall.create.password).toMatch(/^\$2b\$/)
+    expect(testUpsertCall.create.password).toMatch(/^\$2b\$/)
   })
 })
 

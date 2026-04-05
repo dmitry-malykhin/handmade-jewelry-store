@@ -11,6 +11,26 @@ window.HTMLElement.prototype.setPointerCapture = vi.fn()
 window.HTMLElement.prototype.releasePointerCapture = vi.fn()
 window.HTMLElement.prototype.scrollIntoView = vi.fn()
 
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: vi.fn() }),
+}))
+
+vi.mock('@/i18n/navigation', () => ({
+  Link: ({
+    href,
+    children,
+    ...props
+  }: {
+    href: string
+    children: React.ReactNode
+    [key: string]: unknown
+  }) => (
+    <a href={href} {...props}>
+      {children}
+    </a>
+  ),
+}))
+
 vi.mock('@/lib/api/orders', () => ({
   fetchAdminOrders: vi.fn(),
   updateAdminOrderStatus: vi.fn(),

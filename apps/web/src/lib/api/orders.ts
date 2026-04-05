@@ -53,9 +53,26 @@ export interface OrderItem {
   }
 }
 
-export interface OrderDetails {
+export interface OrderStatusHistoryEntry {
+  id: string
+  fromStatus: OrderStatus | null
+  toStatus: OrderStatus
+  note: string | null
+  createdBy: string | null
+  createdAt: string
+}
+
+export interface OrderPaymentInfo {
   id: string
   status: string
+  amount: number
+  currency: string
+  stripePaymentIntentId: string | null
+}
+
+export interface OrderDetails {
+  id: string
+  status: OrderStatus
   subtotal: number
   shippingCost: number
   total: number
@@ -63,6 +80,28 @@ export interface OrderDetails {
   shippingAddress: ShippingAddress
   items: OrderItem[]
   createdAt: string
+  updatedAt: string
+}
+
+export interface AdminOrderDetail extends OrderDetails {
+  shippingCarrier: string | null
+  trackingNumber: string | null
+  shippedAt: string | null
+  estimatedDeliveryAt: string | null
+  deliveredAt: string | null
+  cancelReason: string | null
+  cancelNote: string | null
+  refundedAt: string | null
+  refundAmount: number | null
+  source: string | null
+  statusHistory: OrderStatusHistoryEntry[]
+  payment: OrderPaymentInfo | null
+}
+
+export interface UpdateOrderTrackingPayload {
+  trackingNumber: string
+  shippingCarrier: string
+  note?: string
 }
 
 export type OrderStatus =
@@ -126,12 +165,33 @@ export async function fetchAdminOrders(
   )
 }
 
+export async function fetchAdminOrderById(
+  orderId: string,
+  accessToken: string,
+): Promise<AdminOrderDetail> {
+  return apiClient<AdminOrderDetail>(`/api/admin/orders/${orderId}`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  })
+}
+
 export async function updateAdminOrderStatus(
   orderId: string,
   payload: UpdateOrderStatusPayload,
   accessToken: string,
-): Promise<OrderDetails> {
-  return apiClient<OrderDetails>(`/api/admin/orders/${orderId}/status`, {
+): Promise<AdminOrderDetail> {
+  return apiClient<AdminOrderDetail>(`/api/admin/orders/${orderId}/status`, {
+    method: 'PATCH',
+    headers: { Authorization: `Bearer ${accessToken}` },
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function updateAdminOrderTracking(
+  orderId: string,
+  payload: UpdateOrderTrackingPayload,
+  accessToken: string,
+): Promise<AdminOrderDetail> {
+  return apiClient<AdminOrderDetail>(`/api/admin/orders/${orderId}/tracking`, {
     method: 'PATCH',
     headers: { Authorization: `Bearer ${accessToken}` },
     body: JSON.stringify(payload),
