@@ -27,6 +27,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { Link } from '@/i18n/navigation'
 import { useAuthStore } from '@/store/auth.store'
 import { fetchAdminOrders, updateAdminOrderStatus, type OrderStatus } from '@/lib/api/orders'
 import { ApiError } from '@/lib/api/client'
@@ -151,6 +152,7 @@ export function AdminOrdersTable() {
                   <TableHead>{t('ordersColItems')}</TableHead>
                   <TableHead>{t('ordersColTotal')}</TableHead>
                   <TableHead>{t('ordersColDate')}</TableHead>
+                  <TableHead className="sr-only">{t('ordersColActions')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -220,6 +222,15 @@ export function AdminOrdersTable() {
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
                         {new Date(order.createdAt).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell>
+                        <Link
+                          href={`/admin/orders/${order.id}`}
+                          className="text-sm text-primary hover:underline"
+                          aria-label={t('ordersViewAriaLabel', { id: order.id.slice(-8) })}
+                        >
+                          {t('ordersViewLink')}
+                        </Link>
                       </TableCell>
                     </TableRow>
                   )

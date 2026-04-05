@@ -1,11 +1,10 @@
 import { PrismaClient } from '@prisma/client'
-import * as crypto from 'crypto'
+import * as bcrypt from 'bcrypt'
 
-// bcrypt is a runtime dependency — for seeding we use a deterministic hash
-// so developers can log in without installing bcrypt in devDependencies.
-// NEVER use this approach outside of seed/test data.
-export function hashPasswordForSeed(plainText: string): string {
-  return crypto.createHash('sha256').update(plainText).digest('hex')
+const SEED_BCRYPT_ROUNDS = 10
+
+export async function hashPasswordForSeed(plainText: string): Promise<string> {
+  return bcrypt.hash(plainText, SEED_BCRYPT_ROUNDS)
 }
 
 export async function seedCategories(prisma: PrismaClient) {
@@ -139,7 +138,7 @@ export async function seedUsers(prisma: PrismaClient) {
     update: {},
     create: {
       email: 'admin@jewelry.dev',
-      password: hashPasswordForSeed('admin123'),
+      password: await hashPasswordForSeed('admin123'),
       role: 'ADMIN',
     },
   })
@@ -149,7 +148,7 @@ export async function seedUsers(prisma: PrismaClient) {
     update: {},
     create: {
       email: 'test@jewelry.dev',
-      password: hashPasswordForSeed('test123'),
+      password: await hashPasswordForSeed('test123'),
       role: 'USER',
     },
   })
