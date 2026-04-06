@@ -73,7 +73,10 @@ model User {
   password     String
   role         Role       @default(USER)
   // Hashed refresh token — null when logged out. One active session per user.
-  refreshToken String?
+  refreshToken        String?
+  // Hashed password reset token — cleared after use or expiry (1h window)
+  passwordResetToken   String?
+  passwordResetTokenAt DateTime?
   orders       Order[]
   reviews      Review[]
   wishlist     Wishlist?
