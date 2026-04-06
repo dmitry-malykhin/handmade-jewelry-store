@@ -9,6 +9,8 @@ const mockUser = {
   password: 'hashed_password',
   role: Role.USER,
   refreshToken: null,
+  passwordResetToken: null,
+  passwordResetTokenAt: null,
   createdAt: new Date(),
   updatedAt: new Date(),
 }

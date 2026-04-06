@@ -13,9 +13,14 @@ import {
   buildShippingNotificationEmail,
   type ShippingNotificationData,
 } from './templates/shipping-notification.template'
+import {
+  buildPasswordResetEmail,
+  type PasswordResetEmailData,
+} from './templates/password-reset.template'
 import { buildWelcomeEmail, type WelcomeEmailData } from './templates/welcome.template'
 
-const FROM_ADDRESS = 'orders@jewelry.com'
+// TODO: replace with verified domain address after DNS setup (e.g. orders@yourdomain.com)
+const FROM_ADDRESS = 'onboarding@resend.dev'
 
 @Injectable()
 export class EmailService {
@@ -41,6 +46,11 @@ export class EmailService {
 
   async sendShippingNotification(data: ShippingNotificationData): Promise<void> {
     const { subject, html } = buildShippingNotificationEmail(data)
+    await this.send({ to: data.recipientEmail, subject, html })
+  }
+
+  async sendPasswordReset(data: PasswordResetEmailData): Promise<void> {
+    const { subject, html } = buildPasswordResetEmail(data)
     await this.send({ to: data.recipientEmail, subject, html })
   }
 

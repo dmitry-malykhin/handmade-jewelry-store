@@ -11,6 +11,22 @@ vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: mockRouterPush }),
 }))
 
+vi.mock('@/i18n/navigation', () => ({
+  Link: ({
+    href,
+    children,
+    ...props
+  }: {
+    href: string
+    children: React.ReactNode
+    [key: string]: unknown
+  }) => (
+    <a href={href} {...props}>
+      {children}
+    </a>
+  ),
+}))
+
 vi.mock('@/store/auth.store', () => {
   const mockSetTokens = vi.fn()
   return {
