@@ -104,6 +104,19 @@ export interface UserProfile {
 export interface AdminStats {
   productCount: number
   orderCount: number
-  /** Total revenue in USD cents. Returns 0 until Orders API (#27) is implemented. */
   totalRevenueCents: number
+}
+
+export type RevenueChartPeriod = '7d' | '30d' | '90d' | '1y'
+
+export interface RevenueChartDataPoint {
+  date: string // ISO date string YYYY-MM-DD
+  revenueCents: number
+}
+
+export interface RevenueStats {
+  totalRevenueCents: number
+  orderCount: number
+  avgOrderValueCents: number
+  chartData: RevenueChartDataPoint[]
 }
