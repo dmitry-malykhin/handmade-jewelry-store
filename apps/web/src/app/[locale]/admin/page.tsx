@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
+import { RevenueChart } from './_components/revenue-chart'
 import { StatsCards } from './_components/stats-cards'
 
 interface AdminDashboardPageProps {
@@ -28,6 +29,9 @@ export default async function AdminDashboardPage({ params }: AdminDashboardPageP
         {t('dashboardTitle')}
       </h1>
       <StatsCards />
+      <div className="mt-6">
+        <RevenueChart />
+      </div>
     </section>
   )
 }

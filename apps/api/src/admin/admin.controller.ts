@@ -1,9 +1,10 @@
-import { Controller, Get, HttpCode, HttpStatus, UseGuards } from '@nestjs/common'
+import { Controller, Get, HttpCode, HttpStatus, Query, UseGuards } from '@nestjs/common'
 import { Role } from '@prisma/client'
 import { Roles } from '../common/decorators/roles.decorator'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
 import { RolesGuard } from '../auth/guards/roles.guard'
 import { AdminService } from './admin.service'
+import { RevenueQueryDto } from './dto/revenue-query.dto'
 
 @Controller('admin')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -15,5 +16,11 @@ export class AdminController {
   @HttpCode(HttpStatus.OK)
   getStats() {
     return this.adminService.getStats()
+  }
+
+  @Get('stats/revenue')
+  @HttpCode(HttpStatus.OK)
+  getRevenueStats(@Query() revenueQueryDto: RevenueQueryDto) {
+    return this.adminService.getRevenueStats(revenueQueryDto.period ?? '30d')
   }
 }
