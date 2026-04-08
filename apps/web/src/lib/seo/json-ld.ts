@@ -1,5 +1,17 @@
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
 
+export function generateOrganizationJsonLd() {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'Handmade Jewelry Store',
+    url: SITE_URL,
+    logo: `${SITE_URL}/logo.png`,
+    // sameAs lists verified social profiles — update once accounts are created
+    sameAs: [] as string[],
+  }
+}
+
 export interface BreadcrumbItem {
   name: string
   href: string

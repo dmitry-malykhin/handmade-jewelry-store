@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest'
-import { generateProductJsonLd, generateBreadcrumbJsonLd } from '../json-ld'
+import {
+  generateProductJsonLd,
+  generateBreadcrumbJsonLd,
+  generateOrganizationJsonLd,
+} from '../json-ld'
 
 const baseProduct = {
   title: 'Sterling Silver Moonstone Ring',
@@ -106,5 +110,31 @@ describe('generateBreadcrumbJsonLd', () => {
     const result = generateBreadcrumbJsonLd([{ name: 'Shop', href: '/en/shop' }])
 
     expect(result.itemListElement[0].item).toContain('/en/shop')
+  })
+})
+
+describe('generateOrganizationJsonLd', () => {
+  it('sets correct @context and @type for Organization', () => {
+    const result = generateOrganizationJsonLd()
+
+    expect(result['@context']).toBe('https://schema.org')
+    expect(result['@type']).toBe('Organization')
+  })
+
+  it('sets organization name to Handmade Jewelry Store', () => {
+    const result = generateOrganizationJsonLd()
+    expect(result.name).toBe('Handmade Jewelry Store')
+  })
+
+  it('includes url and logo fields', () => {
+    const result = generateOrganizationJsonLd()
+    expect(result.url).toBeDefined()
+    expect(result.logo).toBeDefined()
+    expect(result.logo).toContain('/logo.png')
+  })
+
+  it('includes sameAs array', () => {
+    const result = generateOrganizationJsonLd()
+    expect(Array.isArray(result.sameAs)).toBe(true)
   })
 })
