@@ -17,6 +17,14 @@ describe('ProductCardSkeleton', () => {
     const animatedBlocks = container.querySelectorAll('.animate-pulse')
     expect(animatedBlocks.length).toBeGreaterThan(0)
   })
+
+  it('renders button placeholder to prevent layout shift when real card loads', () => {
+    const { container } = render(<ProductCardSkeleton />)
+
+    // Real ProductCard has Button.size-sm (h-9) in the price row — skeleton must match
+    const buttonPlaceholder = container.querySelector('.h-9')
+    expect(buttonPlaceholder).toBeInTheDocument()
+  })
 })
 
 describe('ProductGridSkeleton', () => {

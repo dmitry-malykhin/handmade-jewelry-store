@@ -491,5 +491,15 @@
     "orderDetailItemColUnitPrice": "Цена за шт.",
     "orderDetailItemColLineTotal": "Сумма",
     "orderDetailTimelineBy": "кем: {by}"
+  },
+  "errors": {
+    "somethingWentWrong": "Что-то пошло не так",
+    "tryAgain": "Попробовать снова",
+    "errorDetails": "Детали ошибки",
+    "catalogLoadError": "Не удалось загрузить товары. Пожалуйста, попробуйте снова.",
+    "productLoadError": "Не удалось загрузить этот товар. Пожалуйста, попробуйте снова.",
+    "pageLoadError": "Что-то пошло не так при загрузке страницы.",
+    "goHome": "На главную",
+    "goBack": "Назад"
   }
 }

@@ -50,9 +50,29 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  /* Skeleton loader tokens — change here to repaint every skeleton in the app */
+  --color-skeleton-base: var(--skeleton-base);
+  --color-skeleton-shine: var(--skeleton-shine);
 }
 
 /* ── Actual color values ──────────────────────────────────────────────────── */
+/*
+ * Skeleton loader palette.
+ * --skeleton-base   — fill for most skeleton blocks (image, title, button placeholders)
+ * --skeleton-shine  — slightly darker layer for depth (nested bars, progress bars)
+ * Both must have visible contrast against --background and --card.
+ * To repaint every skeleton in the app: edit only these four lines.
+ */
+:root {
+  --skeleton-base: oklch(0.91 0 0);   /* light theme — medium-light gray, clearly visible on white */
+  --skeleton-shine: oklch(0.84 0 0);  /* slightly darker for depth */
+}
+
+.dark {
+  --skeleton-base: oklch(0.28 0 0);   /* dark theme — slightly lighter than card (0.205), visible on bg (0.145) */
+  --skeleton-shine: oklch(0.33 0 0);  /* slightly lighter for depth */
+}
+
 :root {
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
