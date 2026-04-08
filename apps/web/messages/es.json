@@ -491,5 +491,15 @@
     "orderDetailItemColUnitPrice": "Precio unitario",
     "orderDetailItemColLineTotal": "Total",
     "orderDetailTimelineBy": "por {by}"
+  },
+  "errors": {
+    "somethingWentWrong": "Algo salió mal",
+    "tryAgain": "Intentar de nuevo",
+    "errorDetails": "Detalles del error",
+    "catalogLoadError": "No se pudieron cargar los productos. Por favor, inténtalo de nuevo.",
+    "productLoadError": "No se pudo cargar este producto. Por favor, inténtalo de nuevo.",
+    "pageLoadError": "Algo salió mal al cargar esta página.",
+    "goHome": "Ir a la página principal",
+    "goBack": "Volver"
   }
 }

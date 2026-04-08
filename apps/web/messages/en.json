@@ -491,5 +491,15 @@
     "orderDetailItemColUnitPrice": "Unit price",
     "orderDetailItemColLineTotal": "Total",
     "orderDetailTimelineBy": "by {by}"
+  },
+  "errors": {
+    "somethingWentWrong": "Something went wrong",
+    "tryAgain": "Try again",
+    "errorDetails": "Error details",
+    "catalogLoadError": "Could not load products. Please try again.",
+    "productLoadError": "Could not load this product. Please try again.",
+    "pageLoadError": "Something went wrong while loading this page.",
+    "goHome": "Go to homepage",
+    "goBack": "Go back"
   }
 }
