@@ -8,6 +8,7 @@ import { Header } from '@/components/shared/header'
 import { Footer } from '@/components/shared/footer'
 import { StoreHydration } from '@/components/shared/store-hydration'
 import { QueryProvider } from '@/components/shared/query-provider'
+import { generateOrganizationJsonLd } from '@/lib/seo/json-ld'
 
 interface LocaleLayoutProps {
   children: ReactNode
@@ -34,9 +35,16 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
 
   const messages = await getMessages()
 
+  const organizationJsonLd = generateOrganizationJsonLd()
+
   return (
     <NextIntlClientProvider messages={messages}>
       <QueryProvider>
+        {/* Organization structured data — rendered once per locale layout for Google */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+        />
         <StoreHydration />
         <a
           href="#main-content"
