@@ -21,6 +21,7 @@ export async function generateMetadata({ params }: ConfirmationPageProps): Promi
   return {
     title: t('metaTitle'),
     description: t('metaDescription'),
+    robots: { index: false, follow: false },
   }
 }
 

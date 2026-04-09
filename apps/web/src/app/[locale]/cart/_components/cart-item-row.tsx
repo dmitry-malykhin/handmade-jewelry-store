@@ -55,7 +55,7 @@ export function CartItemRow({ cartItem }: CartItemRowProps) {
           <Button
             variant="ghost"
             size="icon"
-            className="size-8 shrink-0 text-muted-foreground hover:text-destructive"
+            className="size-11 shrink-0 text-muted-foreground hover:text-destructive"
             aria-label={t('removeItem', { title: cartItem.title })}
             onClick={handleRemove}
           >
@@ -68,7 +68,7 @@ export function CartItemRow({ cartItem }: CartItemRowProps) {
             <Button
               variant="outline"
               size="icon"
-              className="size-8"
+              className="size-11"
               aria-label={t('decreaseQuantity')}
               onClick={handleDecrement}
               disabled={cartItem.quantity <= 1}
@@ -81,7 +81,7 @@ export function CartItemRow({ cartItem }: CartItemRowProps) {
             <Button
               variant="outline"
               size="icon"
-              className="size-8"
+              className="size-11"
               aria-label={t('increaseQuantity')}
               onClick={handleIncrement}
             >

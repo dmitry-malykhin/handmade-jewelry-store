@@ -29,14 +29,14 @@ export default function CartLoading() {
                   {/* Top: title h2.text-sm + trash Button.size-8 */}
                   <div className="flex items-start justify-between gap-2">
                     <div className="h-4 w-1/2 animate-pulse rounded bg-skeleton-base" />
-                    <div className="size-8 shrink-0 animate-pulse rounded bg-skeleton-base" />
+                    <div className="size-11 shrink-0 animate-pulse rounded bg-skeleton-base" />
                   </div>
                   {/* Bottom (mt-auto): quantity controls (3×size-8) + price text-sm */}
                   <div className="mt-auto flex items-center justify-between">
                     <div className="flex items-center gap-1">
-                      <div className="size-8 animate-pulse rounded bg-skeleton-base" />
+                      <div className="size-11 animate-pulse rounded bg-skeleton-base" />
                       <div className="h-4 w-8 animate-pulse rounded bg-skeleton-base" />
-                      <div className="size-8 animate-pulse rounded bg-skeleton-base" />
+                      <div className="size-11 animate-pulse rounded bg-skeleton-base" />
                     </div>
                     <div className="h-4 w-16 animate-pulse rounded bg-skeleton-base" />
                   </div>
