@@ -86,6 +86,16 @@ describe('CartItemRow — quantity controls', () => {
   })
 })
 
+describe('CartItemRow — accessibility', () => {
+  it('renders quantity and remove buttons with 44px touch target (size-11) for Lighthouse compliance', () => {
+    const { container } = render(<CartItemRow cartItem={ringCartItem} />)
+
+    const iconButtons = container.querySelectorAll('.size-11')
+    // Trash button + decrease + increase = 3 buttons with 44px touch target
+    expect(iconButtons.length).toBe(3)
+  })
+})
+
 describe('CartItemRow — remove', () => {
   it('removes the item from cart when the remove button is clicked', async () => {
     render(<CartItemRow cartItem={ringCartItem} />)

@@ -1,9 +1,22 @@
-import type { ReactNode } from 'react'
+import type { Metadata, Viewport, ReactNode } from 'next'
 import { headers } from 'next/headers'
 import { Inter } from 'next/font/google'
 import { Toaster } from '@/components/ui/sonner'
 import { ThemeProvider } from '@/components/shared/theme-provider'
 import './globals.css'
+
+export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://example.com'),
+}
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
+    { media: '(prefers-color-scheme: dark)', color: '#0a0a0a' },
+  ],
+}
 
 const inter = Inter({
   subsets: ['latin'],
@@ -26,6 +39,10 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
 
   return (
     <html lang={locale} suppressHydrationWarning className={inter.variable}>
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+      </head>
       <body className="flex min-h-screen flex-col font-sans antialiased">
         <ThemeProvider
           attribute="class"
