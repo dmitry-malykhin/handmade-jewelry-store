@@ -279,6 +279,9 @@
     "diameter": "Диаметр",
     "weight": "Вес",
     "beadSize": "Размер бусины",
+    "measurementToggleLabel": "Переключить систему измерений",
+    "measurementImperial": "дюймы",
+    "measurementMetric": "см",
     "ratingLabel": "{rating} из 5 звёзд, {count} отзывов",
     "productionTime": "Изготавливается на заказ — готово через {days} рабочих дней"
   },

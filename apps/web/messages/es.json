@@ -279,6 +279,9 @@
     "diameter": "Diámetro",
     "weight": "Peso",
     "beadSize": "Tamaño de cuentas",
+    "measurementToggleLabel": "Cambiar sistema de medidas",
+    "measurementImperial": "pulg.",
+    "measurementMetric": "cm",
     "ratingLabel": "{rating} de 5 estrellas, {count} reseñas",
     "productionTime": "Hecho a mano bajo pedido — listo en {days} días hábiles"
   },

@@ -1,5 +1,8 @@
 // Shared TypeScript types used across apps/web and apps/api
 
+export type { MeasurementSystem, ConvertedLength } from './measurementConverter'
+export { convertLength, convertDimensions } from './measurementConverter'
+
 // ── Products ──────────────────────────────────────────────────────────────────
 
 export type StockType = 'IN_STOCK' | 'MADE_TO_ORDER' | 'ONE_OF_A_KIND'
