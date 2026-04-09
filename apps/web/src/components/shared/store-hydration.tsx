@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { useCartStore } from '@/store'
 import { useAuthStore } from '@/store/auth.store'
+import { useMeasurementStore } from '@/store/measurement.store'
 
 /**
  * Triggers Zustand persist rehydration on the client after first render.
@@ -17,6 +18,7 @@ export function StoreHydration() {
   useEffect(() => {
     useCartStore.persist.rehydrate()
     useAuthStore.persist.rehydrate()
+    useMeasurementStore.persist.rehydrate()
   }, [])
 
   return null

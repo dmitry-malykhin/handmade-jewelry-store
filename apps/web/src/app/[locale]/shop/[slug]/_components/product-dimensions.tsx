@@ -1,4 +1,8 @@
-import { getTranslations } from 'next-intl/server'
+'use client'
+
+import { useTranslations } from 'next-intl'
+import { convertLength } from '@jewelry/shared'
+import { useMeasurementStore } from '@/store/measurement.store'
 import type { Product } from '@jewelry/shared'
 
 interface ProductDimensionsProps {
@@ -8,15 +12,10 @@ interface ProductDimensionsProps {
   >
 }
 
-// Dimensions are stored in metric (docs/10_MEASUREMENT_SYSTEMS.md).
-// Display in imperial for US market: cm → inches, except weightGrams and beadSizeMm
-// which are universal jewelry standards and are never converted.
-function cmToInches(cm: number): string {
-  return (cm / 2.54).toFixed(2)
-}
-
-export async function ProductDimensions({ product }: ProductDimensionsProps) {
-  const t = await getTranslations('productDetail')
+export function ProductDimensions({ product }: ProductDimensionsProps) {
+  const t = useTranslations('productDetail')
+  const measurementSystem = useMeasurementStore((state) => state.measurementSystem)
+  const setMeasurementSystem = useMeasurementStore((state) => state.setMeasurementSystem)
 
   const hasDimensions =
     product.lengthCm !== null ||
@@ -28,17 +27,52 @@ export async function ProductDimensions({ product }: ProductDimensionsProps) {
 
   if (!hasDimensions) return null
 
+  function handleToggleMeasurement() {
+    setMeasurementSystem(measurementSystem === 'imperial' ? 'metric' : 'imperial')
+  }
+
   return (
     <section aria-label={t('dimensionsLabel')}>
-      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-        {t('dimensionsTitle')}
-      </h2>
+      <div className="mb-3 flex items-center justify-between">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          {t('dimensionsTitle')}
+        </h2>
+        {/* Toggle shown only when there is at least one length/width/height/diameter field */}
+        {(product.lengthCm !== null ||
+          product.widthCm !== null ||
+          product.heightCm !== null ||
+          product.diameterCm !== null) && (
+          <div
+            role="group"
+            aria-label={t('measurementToggleLabel')}
+            className="flex overflow-hidden rounded-md border border-border text-xs font-medium"
+          >
+            <button
+              onClick={handleToggleMeasurement}
+              disabled={measurementSystem === 'imperial'}
+              aria-pressed={measurementSystem === 'imperial'}
+              className="px-2.5 py-1 transition-colors disabled:cursor-default disabled:bg-foreground disabled:text-background enabled:hover:bg-accent enabled:text-muted-foreground"
+            >
+              {t('measurementImperial')}
+            </button>
+            <button
+              onClick={handleToggleMeasurement}
+              disabled={measurementSystem === 'metric'}
+              aria-pressed={measurementSystem === 'metric'}
+              className="px-2.5 py-1 transition-colors disabled:cursor-default disabled:bg-foreground disabled:text-background enabled:hover:bg-accent enabled:text-muted-foreground"
+            >
+              {t('measurementMetric')}
+            </button>
+          </div>
+        )}
+      </div>
+
       <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
         {product.lengthCm !== null && (
           <>
             <dt className="text-muted-foreground">{t('length')}</dt>
             <dd className="font-medium text-foreground">
-              {cmToInches(product.lengthCm)}&Prime; / {product.lengthCm} cm
+              {convertLength(product.lengthCm, measurementSystem).formatted}
             </dd>
           </>
         )}
@@ -46,7 +80,7 @@ export async function ProductDimensions({ product }: ProductDimensionsProps) {
           <>
             <dt className="text-muted-foreground">{t('width')}</dt>
             <dd className="font-medium text-foreground">
-              {cmToInches(product.widthCm)}&Prime; / {product.widthCm} cm
+              {convertLength(product.widthCm, measurementSystem).formatted}
             </dd>
           </>
         )}
@@ -54,7 +88,7 @@ export async function ProductDimensions({ product }: ProductDimensionsProps) {
           <>
             <dt className="text-muted-foreground">{t('height')}</dt>
             <dd className="font-medium text-foreground">
-              {cmToInches(product.heightCm)}&Prime; / {product.heightCm} cm
+              {convertLength(product.heightCm, measurementSystem).formatted}
             </dd>
           </>
         )}
@@ -62,7 +96,7 @@ export async function ProductDimensions({ product }: ProductDimensionsProps) {
           <>
             <dt className="text-muted-foreground">{t('diameter')}</dt>
             <dd className="font-medium text-foreground">
-              {cmToInches(product.diameterCm)}&Prime; / {product.diameterCm} cm
+              {convertLength(product.diameterCm, measurementSystem).formatted}
             </dd>
           </>
         )}

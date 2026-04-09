@@ -279,6 +279,9 @@
     "diameter": "Diameter",
     "weight": "Weight",
     "beadSize": "Bead size",
+    "measurementToggleLabel": "Switch measurement system",
+    "measurementImperial": "in",
+    "measurementMetric": "cm",
     "ratingLabel": "{rating} out of 5 stars, {count} reviews",
     "productionTime": "Handcrafted to order — ready in {days} business days"
   },
