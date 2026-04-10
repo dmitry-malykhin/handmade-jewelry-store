@@ -233,6 +233,7 @@
     "errorInvalidCredentials": "Correo electrónico o contraseña incorrectos.",
     "errorEmailTaken": "Ya existe una cuenta con este correo electrónico.",
     "errorGeneric": "Algo salió mal. Por favor, inténtalo de nuevo.",
+    "errorPasswordWeak": "La contraseña debe tener al menos 8 caracteres e incluir una letra mayúscula, una minúscula y un número.",
     "forgotPasswordMetaTitle": "¿Olvidaste tu contraseña?",
     "forgotPasswordMetaDescription": "Restablece tu contraseña mediante un enlace por correo.",
     "forgotPasswordTitle": "¿Olvidaste tu contraseña?",

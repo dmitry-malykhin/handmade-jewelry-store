@@ -38,9 +38,21 @@ export function ResetPasswordForm() {
     )
   }
 
+  function validatePasswordStrength(value: string): string | null {
+    if (value.length < 8) return t('errorPasswordWeak')
+    if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(value)) return t('errorPasswordWeak')
+    return null
+  }
+
   async function handleSubmit(event: React.SyntheticEvent<HTMLFormElement>) {
     event.preventDefault()
     setValidationError(null)
+
+    const strengthError = validatePasswordStrength(newPassword)
+    if (strengthError !== null) {
+      setValidationError(strengthError)
+      return
+    }
 
     if (newPassword !== confirmPassword) {
       setValidationError(t('resetPasswordMismatch'))
