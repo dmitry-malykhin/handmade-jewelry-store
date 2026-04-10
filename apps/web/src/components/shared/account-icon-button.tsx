@@ -20,14 +20,14 @@ export function AccountIconButton() {
   const locale = useLocale()
   const router = useRouter()
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
-  const accessToken = useAuthStore((state) => state.accessToken)
+  const refreshToken = useAuthStore((state) => state.refreshToken)
   const clearTokens = useAuthStore((state) => state.clearTokens)
 
   async function handleSignOut() {
-    if (accessToken) {
-      // Best-effort server-side logout — clears the hashed refresh token in DB.
+    if (refreshToken) {
+      // Best-effort server-side logout — deletes this session's RefreshToken row in DB.
       // We clear local tokens regardless of the API response so UX is never stuck.
-      logoutUser(accessToken).catch(() => undefined)
+      logoutUser(refreshToken).catch(() => undefined)
     }
     clearTokens()
     router.push(`/${locale}`)

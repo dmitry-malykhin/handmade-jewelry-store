@@ -6,7 +6,7 @@ import { UsersService } from '../../users/users.service'
 import type { JwtPayload } from './jwt.strategy'
 
 export interface JwtRefreshPayload extends JwtPayload {
-  refreshToken: string
+  refreshToken: string // raw token extracted from Authorization header for bcrypt.compare
 }
 
 @Injectable()
@@ -31,8 +31,9 @@ export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh'
   ): Promise<JwtRefreshPayload> {
     const rawRefreshToken = request.headers.authorization?.replace('Bearer ', '') ?? ''
 
-    const user = await this.usersService.findById(payload.sub)
-    if (!user || !user.refreshToken) {
+    // Lightweight guard: reject tokens that pre-date the RefreshToken table (no tokenId).
+    // Full validation (hash comparison, expiry) happens in AuthService.refreshTokens.
+    if (!payload.tokenId) {
       throw new UnauthorizedException('Refresh token invalid or revoked')
     }
 

@@ -16,16 +16,25 @@ jest.mock('bcrypt', () => ({
   compare: (...args: unknown[]) => mockBcryptCompare(...args),
 }))
 
+const MOCK_TOKEN_ID = 'mock-token-id-uuid'
+
 const mockUser = {
   id: 'user_test_1',
   email: 'test@example.com',
   password: 'hashed_password',
   role: Role.USER,
-  refreshToken: 'hashed_refresh_token',
   passwordResetToken: null,
   passwordResetTokenAt: null,
   createdAt: new Date(),
   updatedAt: new Date(),
+}
+
+const mockStoredRefreshToken = {
+  id: MOCK_TOKEN_ID,
+  tokenHash: 'hashed_refresh_token',
+  userId: mockUser.id,
+  createdAt: new Date(),
+  expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
 }
 
 const mockUsersService = {
@@ -33,8 +42,6 @@ const mockUsersService = {
   findById: jest.fn(),
   createUser: jest.fn(),
   verifyPassword: jest.fn(),
-  saveRefreshToken: jest.fn(),
-  clearRefreshToken: jest.fn(),
 }
 
 const mockJwtService = {
@@ -60,6 +67,12 @@ const mockPrismaService = {
     update: jest.fn(),
     findMany: jest.fn(),
   },
+  refreshToken: {
+    create: jest.fn().mockResolvedValue(mockStoredRefreshToken),
+    findUnique: jest.fn(),
+    delete: jest.fn(),
+    deleteMany: jest.fn(),
+  },
   $transaction: jest.fn(),
 }
 
@@ -70,8 +83,9 @@ describe('AuthService', () => {
     jest.clearAllMocks()
     jest
       .spyOn(crypto, 'randomUUID')
-      .mockReturnValue('plain-uuid-token' as ReturnType<typeof crypto.randomUUID>)
+      .mockReturnValue(MOCK_TOKEN_ID as ReturnType<typeof crypto.randomUUID>)
     mockJwtService.signAsync.mockResolvedValue('mock_jwt_token')
+    mockPrismaService.refreshToken.create.mockResolvedValue(mockStoredRefreshToken)
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -116,25 +130,27 @@ describe('AuthService', () => {
   })
 
   describe('register', () => {
-    it('creates user and returns accessToken and refreshToken', async () => {
+    it('creates user, creates RefreshToken record, and returns token pair', async () => {
       mockUsersService.findByEmail.mockResolvedValueOnce(null)
       mockUsersService.createUser.mockResolvedValueOnce(mockUser)
-      mockUsersService.saveRefreshToken.mockResolvedValueOnce(undefined)
 
       const result = await authService.register('new@example.com', 'password123')
 
       expect(mockUsersService.createUser).toHaveBeenCalledWith('new@example.com', 'password123')
+      expect(mockPrismaService.refreshToken.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ id: MOCK_TOKEN_ID, userId: mockUser.id }),
+        }),
+      )
       expect(result).toEqual({ accessToken: 'mock_jwt_token', refreshToken: 'mock_jwt_token' })
     })
 
     it('sends welcome email after creating a new user', async () => {
       mockUsersService.findByEmail.mockResolvedValueOnce(null)
       mockUsersService.createUser.mockResolvedValueOnce(mockUser)
-      mockUsersService.saveRefreshToken.mockResolvedValueOnce(undefined)
 
       await authService.register('new@example.com', 'password123')
 
-      // Allow async fire-and-forget to settle
       await new Promise((resolve) => setImmediate(resolve))
       expect(mockEmailService.sendWelcome).toHaveBeenCalledWith({
         recipientEmail: mockUser.email,
@@ -151,11 +167,10 @@ describe('AuthService', () => {
   })
 
   describe('login', () => {
-    it('returns accessToken and refreshToken for a valid user', async () => {
-      mockUsersService.saveRefreshToken.mockResolvedValueOnce(undefined)
-
+    it('returns token pair and creates a RefreshToken record', async () => {
       const result = await authService.login(mockUser)
 
+      expect(mockPrismaService.refreshToken.create).toHaveBeenCalled()
       expect(result).toHaveProperty('accessToken')
       expect(result).toHaveProperty('refreshToken')
     })
@@ -163,43 +178,72 @@ describe('AuthService', () => {
 
   describe('refreshTokens', () => {
     it('returns new token pair when refresh token is valid', async () => {
-      mockUsersService.findById.mockResolvedValueOnce(mockUser)
+      mockPrismaService.refreshToken.findUnique.mockResolvedValueOnce(mockStoredRefreshToken)
       mockBcryptCompare.mockResolvedValueOnce(true)
-      mockUsersService.saveRefreshToken.mockResolvedValueOnce(undefined)
+      mockUsersService.findById.mockResolvedValueOnce(mockUser)
 
-      const result = await authService.refreshTokens(mockUser.id, 'valid_refresh_token')
+      const result = await authService.refreshTokens(mockUser.id, MOCK_TOKEN_ID, 'valid_raw_token')
 
+      expect(mockPrismaService.refreshToken.delete).toHaveBeenCalledWith({
+        where: { id: MOCK_TOKEN_ID },
+      })
       expect(result).toHaveProperty('accessToken')
       expect(result).toHaveProperty('refreshToken')
     })
 
-    it('throws UnauthorizedException when user has no stored refresh token', async () => {
-      mockUsersService.findById.mockResolvedValueOnce({ ...mockUser, refreshToken: null })
+    it('throws UnauthorizedException when the token record does not exist', async () => {
+      mockPrismaService.refreshToken.findUnique.mockResolvedValueOnce(null)
 
-      await expect(authService.refreshTokens(mockUser.id, 'any_token')).rejects.toThrow(
-        UnauthorizedException,
-      )
+      await expect(
+        authService.refreshTokens(mockUser.id, 'nonexistent-id', 'any_token'),
+      ).rejects.toThrow(UnauthorizedException)
     })
 
-    it('clears token and throws UnauthorizedException on token reuse', async () => {
-      mockUsersService.findById.mockResolvedValueOnce(mockUser)
-      mockBcryptCompare.mockResolvedValueOnce(false)
-      mockUsersService.clearRefreshToken.mockResolvedValueOnce(undefined)
+    it('throws UnauthorizedException when the token belongs to a different user', async () => {
+      mockPrismaService.refreshToken.findUnique.mockResolvedValueOnce({
+        ...mockStoredRefreshToken,
+        userId: 'different-user-id',
+      })
 
-      await expect(authService.refreshTokens(mockUser.id, 'stolen_old_token')).rejects.toThrow(
-        UnauthorizedException,
-      )
-      expect(mockUsersService.clearRefreshToken).toHaveBeenCalledWith(mockUser.id)
+      await expect(
+        authService.refreshTokens(mockUser.id, MOCK_TOKEN_ID, 'any_token'),
+      ).rejects.toThrow(UnauthorizedException)
+    })
+
+    it('deletes the expired token and throws UnauthorizedException when token is expired', async () => {
+      mockPrismaService.refreshToken.findUnique.mockResolvedValueOnce({
+        ...mockStoredRefreshToken,
+        expiresAt: new Date(Date.now() - 1000), // expired 1 second ago
+      })
+
+      await expect(
+        authService.refreshTokens(mockUser.id, MOCK_TOKEN_ID, 'any_token'),
+      ).rejects.toThrow(UnauthorizedException)
+      expect(mockPrismaService.refreshToken.delete).toHaveBeenCalledWith({
+        where: { id: MOCK_TOKEN_ID },
+      })
+    })
+
+    it('revokes ALL sessions and throws UnauthorizedException on token reuse', async () => {
+      mockPrismaService.refreshToken.findUnique.mockResolvedValueOnce(mockStoredRefreshToken)
+      mockBcryptCompare.mockResolvedValueOnce(false)
+
+      await expect(
+        authService.refreshTokens(mockUser.id, MOCK_TOKEN_ID, 'stolen_old_token'),
+      ).rejects.toThrow(UnauthorizedException)
+      expect(mockPrismaService.refreshToken.deleteMany).toHaveBeenCalledWith({
+        where: { userId: mockUser.id },
+      })
     })
   })
 
   describe('logout', () => {
-    it('clears the stored refresh token for the user', async () => {
-      mockUsersService.clearRefreshToken.mockResolvedValueOnce(undefined)
+    it('deletes only the specific session token, leaving other sessions intact', async () => {
+      await authService.logout(mockUser.id, MOCK_TOKEN_ID)
 
-      await authService.logout(mockUser.id)
-
-      expect(mockUsersService.clearRefreshToken).toHaveBeenCalledWith(mockUser.id)
+      expect(mockPrismaService.refreshToken.deleteMany).toHaveBeenCalledWith({
+        where: { id: MOCK_TOKEN_ID, userId: mockUser.id },
+      })
     })
   })
 
@@ -223,7 +267,7 @@ describe('AuthService', () => {
       expect(mockEmailService.sendPasswordReset).toHaveBeenCalledWith(
         expect.objectContaining({
           recipientEmail: 'test@example.com',
-          resetToken: 'plain-uuid-token',
+          resetToken: MOCK_TOKEN_ID,
         }),
       )
     })
@@ -237,7 +281,7 @@ describe('AuthService', () => {
   })
 
   describe('resetPassword', () => {
-    it('updates password and clears tokens when token matches a valid candidate', async () => {
+    it('updates password, clears reset token, and revokes all sessions', async () => {
       const userWithResetToken = {
         ...mockUser,
         passwordResetToken: 'hashed_reset_token',
@@ -249,7 +293,17 @@ describe('AuthService', () => {
 
       await authService.resetPassword('plain-uuid-token', 'new_secure_password')
 
-      expect(mockPrismaService.$transaction).toHaveBeenCalled()
+      expect(mockPrismaService.$transaction).toHaveBeenCalledTimes(1)
+      // Verify both operations were issued (password update + all-sessions revocation)
+      expect(mockPrismaService.user.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: mockUser.id },
+          data: expect.objectContaining({ passwordResetToken: null }),
+        }),
+      )
+      expect(mockPrismaService.refreshToken.deleteMany).toHaveBeenCalledWith({
+        where: { userId: mockUser.id },
+      })
     })
 
     it('throws BadRequestException when no candidate matches the token', async () => {

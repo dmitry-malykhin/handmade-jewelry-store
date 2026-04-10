@@ -9,6 +9,9 @@ export interface JwtPayload {
   sub: string
   email: string
   role: Role
+  // Session identifier — matches RefreshToken.id in DB.
+  // Embedded in both access and refresh JWTs so logout can target a specific session.
+  tokenId: string
 }
 
 @Injectable()
@@ -29,6 +32,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     if (!user) {
       throw new UnauthorizedException('User not found')
     }
-    return user
+    // Attach tokenId so JwtAuthGuard-protected endpoints can perform session-scoped operations
+    // (e.g. logout targets the specific RefreshToken row, not all sessions).
+    return { ...user, tokenId: payload.tokenId }
   }
 }

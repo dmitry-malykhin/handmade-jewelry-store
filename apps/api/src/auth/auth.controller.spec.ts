@@ -8,7 +8,7 @@ const mockUser = {
   email: 'test@example.com',
   password: 'hashed_password',
   role: Role.USER,
-  refreshToken: null,
+  tokenId: 'mock-token-id',
   passwordResetToken: null,
   passwordResetTokenAt: null,
   createdAt: new Date(),
@@ -67,29 +67,34 @@ describe('AuthController', () => {
   })
 
   describe('refresh', () => {
-    it('calls authService.refreshTokens with userId and refresh token from payload', async () => {
+    it('calls authService.refreshTokens with userId, tokenId, and raw refresh token', async () => {
       mockAuthService.refreshTokens.mockResolvedValueOnce(mockTokens)
 
       const refreshPayload = {
         sub: mockUser.id,
         email: mockUser.email,
         role: Role.USER,
-        refreshToken: 'old_refresh_token',
+        tokenId: 'mock-token-id',
+        refreshToken: 'old_raw_refresh_token',
       }
       const result = await authController.refresh(refreshPayload)
 
-      expect(mockAuthService.refreshTokens).toHaveBeenCalledWith(mockUser.id, 'old_refresh_token')
+      expect(mockAuthService.refreshTokens).toHaveBeenCalledWith(
+        mockUser.id,
+        'mock-token-id',
+        'old_raw_refresh_token',
+      )
       expect(result).toEqual(mockTokens)
     })
   })
 
   describe('logout', () => {
-    it('calls authService.logout with the authenticated user id', async () => {
+    it('calls authService.logout with userId and tokenId from the access token payload', async () => {
       mockAuthService.logout.mockResolvedValueOnce(undefined)
 
       await authController.logout(mockUser)
 
-      expect(mockAuthService.logout).toHaveBeenCalledWith(mockUser.id)
+      expect(mockAuthService.logout).toHaveBeenCalledWith(mockUser.id, mockUser.tokenId)
     })
   })
 

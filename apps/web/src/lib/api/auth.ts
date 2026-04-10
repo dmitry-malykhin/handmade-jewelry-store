@@ -33,9 +33,11 @@ export async function resetPassword(token: string, newPassword: string): Promise
   })
 }
 
-export async function logoutUser(accessToken: string): Promise<void> {
+// Logout sends the refresh token (not access token) to identify which session to
+// revoke. The access token expiry handles short-term invalidation automatically.
+export async function logoutUser(refreshToken: string): Promise<void> {
   await apiClient<void>('/api/auth/logout', {
     method: 'POST',
-    headers: { Authorization: `Bearer ${accessToken}` },
+    headers: { Authorization: `Bearer ${refreshToken}` },
   })
 }

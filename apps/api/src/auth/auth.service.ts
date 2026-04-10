@@ -64,18 +64,38 @@ export class AuthService {
     return this.generateTokens(user)
   }
 
-  async refreshTokens(userId: string, incomingRefreshToken: string): Promise<AuthTokens> {
-    const user = await this.usersService.findById(userId)
-    if (!user || !user.refreshToken) {
+  async refreshTokens(
+    userId: string,
+    tokenId: string,
+    incomingRefreshToken: string,
+  ): Promise<AuthTokens> {
+    const storedToken = await this.prismaService.refreshToken.findUnique({
+      where: { id: tokenId },
+    })
+
+    // Reject if token doesn't exist or belongs to a different user
+    if (!storedToken || storedToken.userId !== userId) {
       throw new UnauthorizedException('Refresh token invalid or revoked')
     }
 
-    const refreshTokenMatches = await bcrypt.compare(incomingRefreshToken, user.refreshToken)
-    if (!refreshTokenMatches) {
-      // Token reuse detected — revoke all sessions for this user
-      await this.usersService.clearRefreshToken(userId)
+    if (storedToken.expiresAt < new Date()) {
+      await this.prismaService.refreshToken.delete({ where: { id: tokenId } })
+      throw new UnauthorizedException('Refresh token expired')
+    }
+
+    const tokenMatches = await bcrypt.compare(incomingRefreshToken, storedToken.tokenHash)
+    if (!tokenMatches) {
+      // Token reuse detected — someone presented a valid-looking but stale token.
+      // Revoke ALL sessions for this user as a precaution.
+      await this.revokeAllRefreshTokens(userId)
       throw new UnauthorizedException('Refresh token reuse detected — please log in again')
     }
+
+    // Rotate: delete current session, issue a new one
+    await this.prismaService.refreshToken.delete({ where: { id: tokenId } })
+
+    const user = await this.usersService.findById(userId)
+    if (!user) throw new UnauthorizedException('User not found')
 
     return this.generateTokens(user)
   }
@@ -131,37 +151,50 @@ export class AuthService {
 
     const hashedPassword = await bcrypt.hash(newPassword, PASSWORD_RESET_TOKEN_HASH_ROUNDS)
 
-    // Atomic: update password + clear reset token + invalidate all sessions
+    // Atomic: update password + clear reset token + revoke all active sessions
     await this.prismaService.$transaction([
       this.prismaService.user.update({
         where: { id: matchedUserId },
-        data: {
-          password: hashedPassword,
-          passwordResetToken: null,
-          passwordResetTokenAt: null,
-          refreshToken: null,
-        },
+        data: { password: hashedPassword, passwordResetToken: null, passwordResetTokenAt: null },
       }),
+      this.prismaService.refreshToken.deleteMany({ where: { userId: matchedUserId } }),
     ])
   }
 
-  async logout(userId: string): Promise<void> {
-    await this.usersService.clearRefreshToken(userId)
+  async logout(userId: string, tokenId: string): Promise<void> {
+    // Delete only this session — other devices remain logged in
+    await this.prismaService.refreshToken.deleteMany({
+      where: { id: tokenId, userId },
+    })
+  }
+
+  private async revokeAllRefreshTokens(userId: string): Promise<void> {
+    await this.prismaService.refreshToken.deleteMany({ where: { userId } })
   }
 
   private async generateTokens(user: User): Promise<AuthTokens> {
-    const payload: JwtPayload = { sub: user.id, email: user.email, role: user.role }
+    const refreshSecret = this.configService.getOrThrow<string>('JWT_REFRESH_SECRET')
+    const expiresAt = new Date(Date.now() + REFRESH_TOKEN_EXPIRES_IN_SECONDS * 1000)
+
+    // Pre-generate tokenId so it can be embedded in both tokens simultaneously.
+    // The same ID is stored as RefreshToken.id — enables O(1) session lookup.
+    const tokenId = crypto.randomUUID()
+
+    const basePayload: JwtPayload = { sub: user.id, email: user.email, role: user.role, tokenId }
 
     const [accessToken, refreshToken] = await Promise.all([
-      this.jwtService.signAsync(payload),
-      this.jwtService.signAsync(payload, {
-        secret: this.configService.getOrThrow<string>('JWT_REFRESH_SECRET'),
+      this.jwtService.signAsync(basePayload),
+      this.jwtService.signAsync(basePayload, {
+        secret: refreshSecret,
         expiresIn: REFRESH_TOKEN_EXPIRES_IN_SECONDS,
       }),
     ])
 
-    const hashedRefreshToken = await bcrypt.hash(refreshToken, REFRESH_TOKEN_HASH_ROUNDS)
-    await this.usersService.saveRefreshToken(user.id, hashedRefreshToken)
+    const tokenHash = await bcrypt.hash(refreshToken, REFRESH_TOKEN_HASH_ROUNDS)
+
+    await this.prismaService.refreshToken.create({
+      data: { id: tokenId, tokenHash, userId: user.id, expiresAt },
+    })
 
     return { accessToken, refreshToken }
   }
