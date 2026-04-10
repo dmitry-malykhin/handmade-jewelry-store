@@ -19,12 +19,37 @@ export function RegisterForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isPasswordVisible, setIsPasswordVisible] = useState(false)
+  const [passwordError, setPasswordError] = useState<string | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  function validatePasswordStrength(value: string): string | null {
+    if (value.length < 8) return t('errorPasswordWeak')
+    if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(value)) return t('errorPasswordWeak')
+    return null
+  }
+
+  function handlePasswordChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const value = event.target.value
+    setPassword(value)
+    // Clear inline error while user is typing so it doesn't distract mid-input
+    if (passwordError !== null) setPasswordError(null)
+  }
+
+  function handlePasswordBlur() {
+    setPasswordError(validatePasswordStrength(password))
+  }
 
   async function handleSubmit(event: React.SyntheticEvent<HTMLFormElement>) {
     event.preventDefault()
     setErrorMessage(null)
+
+    const strengthError = validatePasswordStrength(password)
+    if (strengthError !== null) {
+      setPasswordError(strengthError)
+      return
+    }
+
     setIsSubmitting(true)
 
     try {
@@ -70,9 +95,12 @@ export function RegisterForm() {
               autoComplete="new-password"
               placeholder={t('fieldPasswordPlaceholder')}
               value={password}
-              onChange={(event) => setPassword(event.target.value)}
+              onChange={handlePasswordChange}
+              onBlur={handlePasswordBlur}
               required
               aria-required="true"
+              aria-describedby={passwordError !== null ? 'register-password-error' : undefined}
+              aria-invalid={passwordError !== null}
               className="pr-10"
             />
             <button
@@ -88,6 +116,11 @@ export function RegisterForm() {
               )}
             </button>
           </div>
+          {passwordError !== null && (
+            <p id="register-password-error" role="alert" className="mt-1 text-sm text-destructive">
+              {passwordError}
+            </p>
+          )}
         </div>
 
         {errorMessage !== null && (

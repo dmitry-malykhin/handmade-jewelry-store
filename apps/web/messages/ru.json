@@ -233,6 +233,7 @@
     "errorInvalidCredentials": "Неверный email или пароль.",
     "errorEmailTaken": "Аккаунт с таким email уже существует.",
     "errorGeneric": "Что-то пошло не так. Попробуйте ещё раз.",
+    "errorPasswordWeak": "Пароль должен содержать не менее 8 символов, включая заглавную букву, строчную букву и цифру.",
     "forgotPasswordMetaTitle": "Восстановление пароля",
     "forgotPasswordMetaDescription": "Сбросьте пароль по ссылке из письма.",
     "forgotPasswordTitle": "Забыли пароль?",

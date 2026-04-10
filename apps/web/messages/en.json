@@ -233,6 +233,7 @@
     "errorInvalidCredentials": "Invalid email or password.",
     "errorEmailTaken": "An account with this email already exists.",
     "errorGeneric": "Something went wrong. Please try again.",
+    "errorPasswordWeak": "Password must be at least 8 characters and include an uppercase letter, a lowercase letter, and a number.",
     "forgotPasswordMetaTitle": "Forgot Password",
     "forgotPasswordMetaDescription": "Reset your password via email link.",
     "forgotPasswordTitle": "Forgot your password?",

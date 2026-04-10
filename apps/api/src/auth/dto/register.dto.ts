@@ -1,5 +1,5 @@
 import { Transform } from 'class-transformer'
-import { IsEmail, IsString, MaxLength, MinLength } from 'class-validator'
+import { IsEmail, IsString, Matches, MaxLength, MinLength } from 'class-validator'
 
 export class RegisterDto {
   @IsEmail()
@@ -15,5 +15,10 @@ export class RegisterDto {
   @MinLength(8)
   // bcrypt silently truncates passwords longer than 72 characters
   @MaxLength(72)
+  // Require at least one lowercase letter, one uppercase letter, and one digit
+  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).*$/, {
+    message:
+      'Password must contain at least one uppercase letter, one lowercase letter, and one number',
+  })
   password: string
 }

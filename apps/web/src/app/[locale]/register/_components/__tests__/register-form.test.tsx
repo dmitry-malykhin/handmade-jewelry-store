@@ -98,7 +98,7 @@ describe('RegisterForm — successful registration', () => {
     render(<RegisterForm />)
 
     await userEvent.type(screen.getByLabelText('Email'), 'user@example.com')
-    await userEvent.type(screen.getByLabelText('Password'), 'password123')
+    await userEvent.type(screen.getByLabelText('Password'), 'Password123')
     await userEvent.click(screen.getByRole('button', { name: 'Create Account' }))
 
     await waitFor(() => {
@@ -120,7 +120,7 @@ describe('RegisterForm — successful registration', () => {
     render(<RegisterForm />)
 
     await userEvent.type(screen.getByLabelText('Email'), 'user@example.com')
-    await userEvent.type(screen.getByLabelText('Password'), 'password123')
+    await userEvent.type(screen.getByLabelText('Password'), 'Password123')
     userEvent.click(screen.getByRole('button', { name: 'Create Account' }))
 
     await waitFor(() => {
@@ -140,7 +140,7 @@ describe('RegisterForm — error handling', () => {
     render(<RegisterForm />)
 
     await userEvent.type(screen.getByLabelText('Email'), 'taken@example.com')
-    await userEvent.type(screen.getByLabelText('Password'), 'password123')
+    await userEvent.type(screen.getByLabelText('Password'), 'Password123')
     await userEvent.click(screen.getByRole('button', { name: 'Create Account' }))
 
     await waitFor(() => {
@@ -160,7 +160,7 @@ describe('RegisterForm — error handling', () => {
     render(<RegisterForm />)
 
     await userEvent.type(screen.getByLabelText('Email'), 'user@example.com')
-    await userEvent.type(screen.getByLabelText('Password'), 'password123')
+    await userEvent.type(screen.getByLabelText('Password'), 'Password123')
     await userEvent.click(screen.getByRole('button', { name: 'Create Account' }))
 
     await waitFor(() => {
@@ -178,11 +178,54 @@ describe('RegisterForm — error handling', () => {
     render(<RegisterForm />)
 
     await userEvent.type(screen.getByLabelText('Email'), 'taken@example.com')
-    await userEvent.type(screen.getByLabelText('Password'), 'password123')
+    await userEvent.type(screen.getByLabelText('Password'), 'Password123')
     await userEvent.click(screen.getByRole('button', { name: 'Create Account' }))
 
     await waitFor(() => {
       expect(screen.getByRole('button', { name: 'Create Account' })).not.toBeDisabled()
     })
+  })
+})
+
+describe('RegisterForm — password strength validation', () => {
+  it('shows strength error and does not call API when password has no uppercase letter', async () => {
+    render(<RegisterForm />)
+
+    await userEvent.type(screen.getByLabelText('Email'), 'user@example.com')
+    await userEvent.type(screen.getByLabelText('Password'), 'nouppercase1')
+    await userEvent.click(screen.getByRole('button', { name: 'Create Account' }))
+
+    expect(screen.getByRole('alert')).toBeInTheDocument()
+  })
+
+  it('shows strength error when password has no digit', async () => {
+    render(<RegisterForm />)
+
+    await userEvent.type(screen.getByLabelText('Email'), 'user@example.com')
+    await userEvent.type(screen.getByLabelText('Password'), 'NoDigitHere')
+    await userEvent.click(screen.getByRole('button', { name: 'Create Account' }))
+
+    expect(screen.getByRole('alert')).toBeInTheDocument()
+  })
+
+  it('shows inline strength error after blurring the password field with a weak password', async () => {
+    render(<RegisterForm />)
+
+    await userEvent.type(screen.getByLabelText('Password'), 'weakpassword')
+    await userEvent.tab()
+
+    expect(screen.getByRole('alert')).toBeInTheDocument()
+  })
+
+  it('clears inline strength error as soon as user starts typing after a blur error', async () => {
+    render(<RegisterForm />)
+
+    await userEvent.type(screen.getByLabelText('Password'), 'weakpassword')
+    await userEvent.tab()
+    expect(screen.getByRole('alert')).toBeInTheDocument()
+
+    await userEvent.type(screen.getByLabelText('Password'), 'X')
+
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
 })

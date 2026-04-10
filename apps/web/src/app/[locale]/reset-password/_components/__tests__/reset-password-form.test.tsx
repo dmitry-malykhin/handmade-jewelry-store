@@ -88,8 +88,8 @@ describe('ResetPasswordForm — validation', () => {
     const user = userEvent.setup()
     render(<ResetPasswordForm />)
 
-    await user.type(screen.getByLabelText('New password'), 'password123')
-    await user.type(screen.getByLabelText('Confirm new password'), 'differentpassword')
+    await user.type(screen.getByLabelText('New password'), 'StrongPass1')
+    await user.type(screen.getByLabelText('Confirm new password'), 'StrongPass2')
     await user.click(screen.getByRole('button', { name: /reset password/i }))
 
     expect(await screen.findByRole('alert')).toHaveTextContent(/passwords do not match/i)
@@ -108,12 +108,12 @@ describe('ResetPasswordForm — submission', () => {
 
     render(<ResetPasswordForm />)
 
-    await user.type(screen.getByLabelText('New password'), 'newsecurepassword')
-    await user.type(screen.getByLabelText('Confirm new password'), 'newsecurepassword')
+    await user.type(screen.getByLabelText('New password'), 'NewSecure123')
+    await user.type(screen.getByLabelText('Confirm new password'), 'NewSecure123')
     await user.click(screen.getByRole('button', { name: /reset password/i }))
 
     await waitFor(() => {
-      expect(mockResetPassword).toHaveBeenCalledWith('valid-reset-token', 'newsecurepassword')
+      expect(mockResetPassword).toHaveBeenCalledWith('valid-reset-token', 'NewSecure123')
     })
   })
 
@@ -123,8 +123,8 @@ describe('ResetPasswordForm — submission', () => {
 
     render(<ResetPasswordForm />)
 
-    await user.type(screen.getByLabelText('New password'), 'newsecurepassword')
-    await user.type(screen.getByLabelText('Confirm new password'), 'newsecurepassword')
+    await user.type(screen.getByLabelText('New password'), 'NewSecure123')
+    await user.type(screen.getByLabelText('Confirm new password'), 'NewSecure123')
     await user.click(screen.getByRole('button', { name: /reset password/i }))
 
     await waitFor(() => {
@@ -140,10 +140,40 @@ describe('ResetPasswordForm — submission', () => {
 
     render(<ResetPasswordForm />)
 
-    await user.type(screen.getByLabelText('New password'), 'newsecurepassword')
-    await user.type(screen.getByLabelText('Confirm new password'), 'newsecurepassword')
+    await user.type(screen.getByLabelText('New password'), 'NewSecure123')
+    await user.type(screen.getByLabelText('Confirm new password'), 'NewSecure123')
     await user.click(screen.getByRole('button', { name: /reset password/i }))
 
     expect(await screen.findByRole('alert')).toHaveTextContent(/invalid or expired/i)
+  })
+})
+
+describe('ResetPasswordForm — password strength validation', () => {
+  beforeEach(() => {
+    setupSearchParamsWith('valid-reset-token')
+  })
+
+  it('shows strength error and does not call API when new password has no uppercase letter', async () => {
+    const user = userEvent.setup()
+    render(<ResetPasswordForm />)
+
+    await user.type(screen.getByLabelText('New password'), 'nouppercase1')
+    await user.type(screen.getByLabelText('Confirm new password'), 'nouppercase1')
+    await user.click(screen.getByRole('button', { name: /reset password/i }))
+
+    expect(await screen.findByRole('alert')).toBeInTheDocument()
+    expect(mockResetPassword).not.toHaveBeenCalled()
+  })
+
+  it('shows strength error when new password has no digit', async () => {
+    const user = userEvent.setup()
+    render(<ResetPasswordForm />)
+
+    await user.type(screen.getByLabelText('New password'), 'NoDigitPassword')
+    await user.type(screen.getByLabelText('Confirm new password'), 'NoDigitPassword')
+    await user.click(screen.getByRole('button', { name: /reset password/i }))
+
+    expect(await screen.findByRole('alert')).toBeInTheDocument()
+    expect(mockResetPassword).not.toHaveBeenCalled()
   })
 })
