@@ -9,14 +9,40 @@ import { ConfirmationNextSteps } from './_components/confirmation-next-steps'
 import { ConfirmationOrderItems } from './_components/confirmation-order-items'
 import { ConfirmationOrderSummary } from './_components/confirmation-order-summary'
 import { ConfirmationSuccessHeader } from './_components/confirmation-success-header'
+import { PaymentFailedContent } from './_components/payment-failed-content'
 
 interface ConfirmationPageProps {
   params: Promise<{ locale: string; orderId: string }>
+  searchParams: Promise<{ redirect_status?: string }>
 }
 
-export async function generateMetadata({ params }: ConfirmationPageProps): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+  searchParams,
+}: ConfirmationPageProps): Promise<Metadata> {
   const { locale } = await params
+  const { redirect_status } = await searchParams
   const t = await getTranslations({ locale, namespace: 'confirmationPage' })
+
+  const isPaymentFailed =
+    redirect_status === 'failed' || redirect_status === 'requires_payment_method'
+  const isPaymentCancelled = redirect_status === 'canceled'
+
+  if (isPaymentFailed) {
+    return {
+      title: t('paymentFailedMetaTitle'),
+      description: t('paymentFailedMetaDescription'),
+      robots: { index: false, follow: false },
+    }
+  }
+
+  if (isPaymentCancelled) {
+    return {
+      title: t('paymentCancelledTitle'),
+      description: t('paymentFailedMetaDescription'),
+      robots: { index: false, follow: false },
+    }
+  }
 
   return {
     title: t('metaTitle'),
@@ -25,8 +51,23 @@ export async function generateMetadata({ params }: ConfirmationPageProps): Promi
   }
 }
 
-export default async function ConfirmationPage({ params }: ConfirmationPageProps) {
+export default async function ConfirmationPage({ params, searchParams }: ConfirmationPageProps) {
   const { orderId } = await params
+  const { redirect_status } = await searchParams
+
+  // Stripe appends redirect_status to return_url after 3DS or redirect-based payment flows.
+  // "requires_payment_method" means the PaymentIntent was reset after a failed attempt.
+  const isPaymentFailed =
+    redirect_status === 'failed' || redirect_status === 'requires_payment_method'
+  const isPaymentCancelled = redirect_status === 'canceled'
+
+  if (isPaymentFailed || isPaymentCancelled) {
+    return (
+      <main className="mx-auto max-w-2xl px-4 py-12 sm:px-6">
+        <PaymentFailedContent orderId={orderId} wasCancelled={isPaymentCancelled} />
+      </main>
+    )
+  }
 
   let order
   try {

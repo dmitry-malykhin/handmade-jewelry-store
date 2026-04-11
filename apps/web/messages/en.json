@@ -202,7 +202,15 @@
     "total": "Total",
     "shippingAddressTitle": "Shipping To",
     "itemQuantity": "Qty: {quantity}",
-    "continueShopping": "Continue Shopping"
+    "continueShopping": "Continue Shopping",
+    "paymentFailedMetaTitle": "Payment Failed",
+    "paymentFailedMetaDescription": "Your payment could not be processed. Please try again.",
+    "paymentFailedTitle": "Payment failed",
+    "paymentFailedSubtitle": "We couldn't process your payment. Your card was not charged.",
+    "paymentFailedTryAgain": "Try Again",
+    "paymentFailedBackToCart": "Back to Cart",
+    "paymentCancelledTitle": "Payment cancelled",
+    "paymentCancelledSubtitle": "You cancelled the payment. Your cart is still saved."
   },
   "auth": {
     "registerMetaTitle": "Create Account",
