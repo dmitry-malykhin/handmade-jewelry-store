@@ -202,7 +202,15 @@
     "total": "Итого",
     "shippingAddressTitle": "Адрес доставки",
     "itemQuantity": "Кол-во: {quantity}",
-    "continueShopping": "Продолжить покупки"
+    "continueShopping": "Продолжить покупки",
+    "paymentFailedMetaTitle": "Ошибка оплаты",
+    "paymentFailedMetaDescription": "Оплата не прошла. Пожалуйста, попробуйте снова.",
+    "paymentFailedTitle": "Оплата не прошла",
+    "paymentFailedSubtitle": "Не удалось обработать платёж. Карта не была списана.",
+    "paymentFailedTryAgain": "Попробовать снова",
+    "paymentFailedBackToCart": "Вернуться в корзину",
+    "paymentCancelledTitle": "Оплата отменена",
+    "paymentCancelledSubtitle": "Вы отменили оплату. Корзина сохранена."
   },
   "auth": {
     "registerMetaTitle": "Создать аккаунт",
