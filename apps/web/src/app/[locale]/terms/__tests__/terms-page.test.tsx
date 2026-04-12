@@ -73,9 +73,10 @@ describe('TermsPage — returns and refund policy', () => {
     expect(screen.getByText(/14 days/)).toBeInTheDocument()
   })
 
-  it('states that custom/personalized pieces are non-refundable', async () => {
+  it('states that custom/personalized pieces are exempt from the standard return policy', async () => {
     await renderTermsPage()
-    expect(screen.getByText(/non-refundable/)).toBeInTheDocument()
+    // "non-refundable" is inside a <strong> tag — check the containing li text instead
+    expect(screen.getByText(/custom or personalized pieces.*are exempt/i)).toBeInTheDocument()
   })
 
   it('renders the support email link for returns', async () => {
@@ -115,6 +116,36 @@ describe('TermsPage — cross-links', () => {
     await renderTermsPage()
     const privacyLink = screen.getByRole('link', { name: 'Privacy Policy' })
     expect(privacyLink).toHaveAttribute('href', '/privacy')
+  })
+})
+
+describe('TermsPage — EU consumer protection carve-outs', () => {
+  it('states that EU consumers retain statutory rights on custom/personalized items', async () => {
+    await renderTermsPage()
+    expect(screen.getByText(/EU consumers retain statutory rights/i)).toBeInTheDocument()
+  })
+
+  it('acknowledges the 2-year EU legal guarantee on physical goods in the warranties section', async () => {
+    await renderTermsPage()
+    expect(screen.getByText(/EU Sale of Goods Directive/i)).toBeInTheDocument()
+    expect(screen.getByText(/2-year legal guarantee/i)).toBeInTheDocument()
+  })
+
+  it('excludes personal injury and negligence from liability limitations', async () => {
+    await renderTermsPage()
+    expect(
+      screen.getByText(/death or personal injury caused by our negligence/i),
+    ).toBeInTheDocument()
+  })
+
+  it('preserves EU consumer right to rely on laws of their country of residence', async () => {
+    await renderTermsPage()
+    expect(screen.getByText(/European Union.*mandatory protective provisions/i)).toBeInTheDocument()
+  })
+
+  it('states that lost-in-transit packages are resolved by the seller, not abandoned to the carrier', async () => {
+    await renderTermsPage()
+    expect(screen.getByText(/lost in transit.*we will work with the carrier/i)).toBeInTheDocument()
   })
 })
 

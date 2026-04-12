@@ -246,12 +246,18 @@ export default async function TermsPage({ params }: TermsPageProps) {
             <h2 id="terms-liability" className="mb-4 text-xl font-semibold text-foreground">
               9. Limitation of Liability
             </h2>
+            <p className="mb-4 text-muted-foreground">
+              To the fullest extent permitted by applicable law, Handmade Jewelry Store shall not be
+              liable for any indirect, incidental, special, consequential, or punitive damages
+              arising from your use of the Site or purchase of products. Our total liability for any
+              claim arising from a purchase shall not exceed the amount you paid for the specific
+              order giving rise to the claim.
+            </p>
             <p className="text-muted-foreground">
-              To the fullest extent permitted by law, Handmade Jewelry Store shall not be liable for
-              any indirect, incidental, special, consequential, or punitive damages arising from
-              your use of the Site or purchase of products. Our total liability for any claim
-              arising from a purchase shall not exceed the amount you paid for the specific order
-              giving rise to the claim.
+              Nothing in this section limits our liability for death or personal injury caused by
+              our negligence, fraud or fraudulent misrepresentation, or any other liability that
+              cannot be excluded or limited under applicable law. Mandatory consumer protection
+              rights under the laws of your country of residence are not affected by these Terms.
             </p>
           </section>
 
@@ -260,11 +266,17 @@ export default async function TermsPage({ params }: TermsPageProps) {
             <h2 id="terms-law" className="mb-4 text-xl font-semibold text-foreground">
               10. Governing Law
             </h2>
-            <p className="text-muted-foreground">
+            <p className="mb-4 text-muted-foreground">
               These Terms are governed by and construed in accordance with the laws of the United
               States and the state in which our business is registered, without regard to conflict
               of law principles. Any disputes arising from these Terms or your use of the Site shall
               be resolved in the courts of that jurisdiction.
+            </p>
+            <p className="text-muted-foreground">
+              If you are a consumer resident in the European Union, you also benefit from the
+              mandatory protective provisions of the law of the country in which you reside, and
+              nothing in these Terms affects your right to rely on those provisions or to bring
+              proceedings in the courts of your country of residence.
             </p>
           </section>
 
