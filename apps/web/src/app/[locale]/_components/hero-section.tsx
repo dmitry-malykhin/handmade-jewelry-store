@@ -14,8 +14,10 @@ export function HeroSection() {
       <Badge variant="secondary" className="mb-4">
         {t('badge')}
       </Badge>
-      <h1 className="text-4xl font-bold tracking-tight text-foreground">{t('title')}</h1>
-      <p className="mt-3 text-lg text-muted-foreground">{t('description')}</p>
+      <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+        {t('title')}
+      </h1>
+      <p className="mt-3 text-base text-muted-foreground sm:text-lg">{t('description')}</p>
     </div>
   )
 }

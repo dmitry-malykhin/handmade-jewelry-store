@@ -170,7 +170,10 @@
     "paginationLabel": "Навигация по каталогу",
     "paginationPrevious": "Предыдущая страница",
     "paginationNext": "Следующая страница",
-    "paginationInfo": "Страница {current} из {total}"
+    "paginationInfo": "Страница {current} из {total}",
+    "mobileFiltersButton": "Фильтры",
+    "mobileFiltersTitle": "Фильтровать товары",
+    "mobileFiltersClose": "Закрыть фильтры"
   },
   "cartPage": {
     "metaTitle": "Ваша корзина",
