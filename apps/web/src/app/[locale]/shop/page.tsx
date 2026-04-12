@@ -7,6 +7,7 @@ import { ProductGrid } from '@/components/features/catalog/product-grid'
 import { ProductGridSkeleton } from '@/components/features/catalog/product-grid-skeleton'
 import { CatalogHeader } from './_components/catalog-header'
 import { CatalogFilters } from './_components/catalog-filters'
+import { CatalogFiltersMobile } from './_components/catalog-filters-mobile'
 import { CatalogPagination } from './_components/catalog-pagination'
 
 // ISR — revalidate catalog every hour so new products appear without full redeploy
@@ -126,6 +127,14 @@ export default async function CatalogPage({ params, searchParams }: CatalogPageP
   if (resolvedSearchParams.sortBy) activeSearchParams.sortBy = resolvedSearchParams.sortBy
   if (resolvedSearchParams.sortOrder) activeSearchParams.sortOrder = resolvedSearchParams.sortOrder
 
+  // Count active filter selections for the mobile badge indicator
+  const activeFiltersCount = [
+    resolvedSearchParams.categorySlug,
+    resolvedSearchParams.minPrice,
+    resolvedSearchParams.maxPrice,
+    resolvedSearchParams.sortBy,
+  ].filter(Boolean).length
+
   return (
     <>
       <script
@@ -142,6 +151,13 @@ export default async function CatalogPage({ params, searchParams }: CatalogPageP
           title={t('title')}
           productsCount={t('productsCount', { count: meta.totalCount })}
         />
+
+        {/* Mobile filters trigger — visible below lg breakpoint */}
+        <div className="mb-4 lg:hidden">
+          <Suspense fallback={null}>
+            <CatalogFiltersMobile categories={categories} activeFiltersCount={activeFiltersCount} />
+          </Suspense>
+        </div>
 
         <div className="flex gap-8">
           <div className="hidden w-64 shrink-0 lg:block">

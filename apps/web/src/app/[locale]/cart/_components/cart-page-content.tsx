@@ -25,7 +25,10 @@ export function CartPageContent() {
         </ul>
       </div>
 
-      <CartSummary />
+      {/* On mobile: full-width below items. On lg+: sticky sidebar column */}
+      <div className="lg:sticky lg:top-24 lg:self-start">
+        <CartSummary />
+      </div>
     </div>
   )
 }

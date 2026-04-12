@@ -170,7 +170,10 @@
     "paginationLabel": "Paginación del catálogo",
     "paginationPrevious": "Página anterior",
     "paginationNext": "Página siguiente",
-    "paginationInfo": "Página {current} de {total}"
+    "paginationInfo": "Página {current} de {total}",
+    "mobileFiltersButton": "Filtros",
+    "mobileFiltersTitle": "Filtrar productos",
+    "mobileFiltersClose": "Cerrar filtros"
   },
   "cartPage": {
     "metaTitle": "Tu carrito",
