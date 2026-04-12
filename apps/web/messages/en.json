@@ -90,6 +90,22 @@
     "addMore": "Add one more to cart",
     "outOfStock": "Out of stock"
   },
+  "cookieBanner": {
+    "title": "We use cookies",
+    "description": "We use strictly necessary cookies to keep the site working and optional cookies for analytics and marketing. You can accept all, reject optional cookies, or customise your preferences.",
+    "acceptAll": "Accept all",
+    "rejectAll": "Reject optional",
+    "customise": "Customise",
+    "savePreferences": "Save preferences",
+    "analyticsLabel": "Analytics cookies",
+    "analyticsDescription": "Help us understand how visitors use the site (Google Analytics, PostHog, Microsoft Clarity). Activated only with your consent.",
+    "marketingLabel": "Marketing cookies",
+    "marketingDescription": "Used for advertising and remarketing (Facebook Pixel, Google Ads). Activated only with your consent.",
+    "necessaryLabel": "Strictly necessary",
+    "necessaryDescription": "Required for the site to work: shopping cart, login session, security. Cannot be disabled.",
+    "learnMore": "Privacy Policy",
+    "changePreferences": "Cookie preferences"
+  },
   "termsPage": {
     "metaTitle": "Terms of Service — Handmade Jewelry Store",
     "metaDescription": "Read our Terms of Service to understand your rights and responsibilities when shopping at Handmade Jewelry Store.",

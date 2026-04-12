@@ -1,5 +1,6 @@
 import { useTranslations } from 'next-intl'
 import { Link } from '@/i18n/navigation'
+import { CookiePreferencesButton } from '@/components/shared/cookie-preferences-button'
 
 /**
  * Site footer — Server Component.
@@ -76,6 +77,7 @@ export function Footer() {
             <Link href="/terms" className="text-sm text-muted-foreground hover:text-foreground">
               {t('terms')}
             </Link>
+            <CookiePreferencesButton />
           </div>
         </div>
       </div>

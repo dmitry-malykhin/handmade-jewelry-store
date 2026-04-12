@@ -90,6 +90,22 @@
     "addMore": "Añadir uno más al carrito",
     "outOfStock": "Sin existencias"
   },
+  "cookieBanner": {
+    "title": "Usamos cookies",
+    "description": "Usamos cookies estrictamente necesarias para el funcionamiento del sitio y cookies opcionales para análisis y marketing. Puedes aceptar todas, rechazar las opcionales o personalizar tus preferencias.",
+    "acceptAll": "Aceptar todas",
+    "rejectAll": "Rechazar opcionales",
+    "customise": "Personalizar",
+    "savePreferences": "Guardar preferencias",
+    "analyticsLabel": "Cookies analíticas",
+    "analyticsDescription": "Nos ayudan a entender cómo los visitantes usan el sitio (Google Analytics, PostHog, Microsoft Clarity). Se activan solo con tu consentimiento.",
+    "marketingLabel": "Cookies de marketing",
+    "marketingDescription": "Se usan para publicidad y remarketing (Facebook Pixel, Google Ads). Se activan solo con tu consentimiento.",
+    "necessaryLabel": "Estrictamente necesarias",
+    "necessaryDescription": "Necesarias para el funcionamiento del sitio: carrito, sesión, seguridad. No se pueden desactivar.",
+    "learnMore": "Política de Privacidad",
+    "changePreferences": "Preferencias de cookies"
+  },
   "termsPage": {
     "metaTitle": "Términos de Servicio — Tienda de Joyería Artesanal",
     "metaDescription": "Lee nuestros términos de servicio para entender tus derechos y responsabilidades al comprar en nuestra tienda de joyería artesanal.",
