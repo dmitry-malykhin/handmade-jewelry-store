@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "dev": "turbo run dev",
+    "dev": "lsof -ti:4000,3100 | xargs kill -9 2>/dev/null; turbo run dev",
     "build": "turbo run build",
     "lint": "eslint . && turbo run lint",
     "lint:fix": "eslint . --fix",
@@ -25,7 +25,7 @@
     "db:migrate:deploy": "pnpm --filter api exec prisma migrate deploy",
     "db:studio": "turbo run db:studio",
     "stripe:listen": "stripe listen --forward-to localhost:4000/api/webhooks/stripe",
-    "dev:full": "docker compose up -d && pnpm --filter api exec prisma migrate deploy && turbo run dev",
+    "dev:full": "lsof -ti:4000,3100 | xargs kill -9 2>/dev/null; docker compose up -d && pnpm --filter api exec prisma migrate deploy && turbo run dev",
     "prepare": "husky"
   },
   "devDependencies": {
