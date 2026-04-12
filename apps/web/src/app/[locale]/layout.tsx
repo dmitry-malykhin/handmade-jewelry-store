@@ -9,6 +9,7 @@ import { Footer } from '@/components/shared/footer'
 import { StoreHydration } from '@/components/shared/store-hydration'
 import { QueryProvider } from '@/components/shared/query-provider'
 import { generateOrganizationJsonLd } from '@/lib/seo/json-ld'
+import { CookieBanner } from '@/components/shared/cookie-banner'
 
 interface LocaleLayoutProps {
   children: ReactNode
@@ -58,6 +59,7 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
           {children}
         </main>
         <Footer />
+        <CookieBanner />
       </QueryProvider>
     </NextIntlClientProvider>
   )
