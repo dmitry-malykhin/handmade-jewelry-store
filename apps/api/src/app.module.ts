@@ -10,6 +10,7 @@ import { PaymentsModule } from './payments/payments.module'
 import { PrismaModule } from './prisma/prisma.module'
 import { ProductsModule } from './products/products.module'
 import { StripeModule } from './stripe/stripe.module'
+import { ContactModule } from './contact/contact.module'
 import { UploadModule } from './upload/upload.module'
 import { UsersModule } from './users/users.module'
 
@@ -28,6 +29,7 @@ import { UsersModule } from './users/users.module'
     StripeModule,
     PaymentsModule,
     UploadModule,
+    ContactModule,
   ],
   controllers: [AppController],
   providers: [AppService],

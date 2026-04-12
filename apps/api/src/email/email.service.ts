@@ -18,6 +18,10 @@ import {
   type PasswordResetEmailData,
 } from './templates/password-reset.template'
 import { buildWelcomeEmail, type WelcomeEmailData } from './templates/welcome.template'
+import {
+  buildContactMessageEmail,
+  type ContactMessageEmailData,
+} from './templates/contact-message.template'
 
 // TODO: replace with verified domain address after DNS setup (e.g. orders@yourdomain.com)
 const FROM_ADDRESS = 'onboarding@resend.dev'
@@ -59,13 +63,26 @@ export class EmailService {
     await this.send({ to: data.recipientEmail, subject, html })
   }
 
-  private async send(params: { to: string; subject: string; html: string }): Promise<void> {
+  async sendContactMessage(data: ContactMessageEmailData): Promise<void> {
+    const { subject, html } = buildContactMessageEmail(data)
+    // Reply-To set to the sender so the store owner can reply directly from their inbox
+    const ownerEmail = this.configService.get<string>('STORE_OWNER_EMAIL') ?? 'owner@example.com'
+    await this.send({ to: ownerEmail, subject, html, replyTo: data.senderEmail })
+  }
+
+  private async send(params: {
+    to: string
+    subject: string
+    html: string
+    replyTo?: string
+  }): Promise<void> {
     try {
       const { error } = await this.resend.emails.send({
         from: FROM_ADDRESS,
         to: params.to,
         subject: params.subject,
         html: params.html,
+        ...(params.replyTo ? { reply_to: params.replyTo } : {}),
       })
 
       if (error) {

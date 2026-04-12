@@ -38,6 +38,11 @@ export const handlers = [
     ])
   }),
 
+  // Contact form — 204 No Content on success
+  http.post(`${API_BASE}/api/contact`, () => {
+    return new HttpResponse(null, { status: 204 })
+  }),
+
   // Single product
   http.get(`${API_BASE}/products/:slug`, ({ params }) => {
     return HttpResponse.json({
