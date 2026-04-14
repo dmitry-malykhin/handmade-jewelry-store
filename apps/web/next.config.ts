@@ -15,6 +15,10 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  // standalone output: bundles a minimal self-contained server.
+  // Required for Docker — eliminates the need to copy all node_modules into the image.
+  // Produces .next/standalone/server.js that can run without next start.
+  output: 'standalone',
   async headers() {
     return [{ source: '/(.*)', headers: securityHeaders }]
   },

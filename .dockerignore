@@ -1,0 +1,47 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# .dockerignore — applied when running docker build from the monorepo root.
+# Excludes files that must never enter the build context:
+#   - Large directories that would bloat the context (node_modules, .next, dist)
+#   - Secrets (.env files)
+#   - Dev tooling and CI artifacts
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Dependencies — reinstalled inside Docker from lockfile
+**/node_modules
+
+# Build outputs — rebuilt inside Docker
+**/.next
+**/dist
+**/.turbo
+
+# Environment files — secrets must be injected at runtime via orchestrator env vars,
+# never baked into the image
+**/.env
+**/.env.*
+!**/.env.example
+
+# Test artifacts
+**/coverage
+**/__tests__
+**/*.spec.ts
+**/*.test.ts
+**/*.spec.tsx
+**/*.test.tsx
+
+# Development tooling
+**/.git
+**/.github
+**/.husky
+**/docs
+**/*.md
+!apps/web/public/**/*.md
+
+# Editor and OS
+**/.DS_Store
+**/.vscode
+**/.idea
+**/Thumbs.db
+
+# Docker files themselves (no need to copy into image)
+**/Dockerfile
+**/.dockerignore
