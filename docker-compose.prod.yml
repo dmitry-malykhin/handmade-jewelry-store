@@ -1,0 +1,76 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# docker-compose.prod.yml — production-like local smoke test.
+#
+# Purpose: verify the production Docker images work correctly before deploying
+# to Fly.io or AWS ECS. Not used in production itself (ECS manages containers).
+#
+# Usage:
+#   docker compose -f docker-compose.prod.yml --env-file .env.prod.local up --build
+#
+# Required .env.prod.local vars:
+#   DATABASE_URL, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET,
+#   RESEND_API_KEY, JWT_SECRET, FRONTEND_URL,
+#   NEXT_PUBLIC_API_URL, NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY, NEXT_PUBLIC_SITE_URL
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: jewelry_postgres_prod
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-jewelry_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-jewelry_pass}
+      POSTGRES_DB: ${POSTGRES_DB:-jewelry_db}
+    ports:
+      - '5433:5432'
+    volumes:
+      - postgres_prod_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-jewelry_user} -d ${POSTGRES_DB:-jewelry_db}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: jewelry_api_prod
+    restart: unless-stopped
+    ports:
+      - '4000:4000'
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: ${DATABASE_URL}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+      RESEND_API_KEY: ${RESEND_API_KEY}
+      JWT_SECRET: ${JWT_SECRET}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+      API_PORT: 4000
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4000}
+        NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY}
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
+    container_name: jewelry_web_prod
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+    environment:
+      NODE_ENV: production
+    depends_on:
+      - api
+
+volumes:
+  postgres_prod_data:
+    driver: local

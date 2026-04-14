@@ -1,0 +1,13 @@
+# Hadolint configuration — Dockerfile linter
+# Run: hadolint apps/api/Dockerfile apps/web/Dockerfile
+# In CI: docker run --rm -i hadolint/hadolint < apps/api/Dockerfile
+
+ignore:
+  # DL3018: pin apk versions — acceptable for our base alpine images (we pin node version instead)
+  - DL3018
+  # DL3008: pin apt versions — not using apt in our Dockerfiles
+  - DL3008
+
+trustedRegistries:
+  - docker.io
+  - node
