@@ -1,7 +1,13 @@
+// instrument.ts MUST be the first import — Sentry hooks into Node.js internals
+// and must run before any other module is loaded.
+import './instrument'
+
 import { ValidationPipe } from '@nestjs/common'
 import { NestFactory } from '@nestjs/core'
 import { AppModule } from './app.module'
+import { HttpAdapterHost } from '@nestjs/core'
 import { HttpExceptionFilter } from './common/filters/http-exception.filter'
+import { SentryGlobalFilter } from '@sentry/nestjs/setup'
 
 async function bootstrap() {
   // rawBody: true — required for Stripe webhook signature verification.
@@ -27,7 +33,10 @@ async function bootstrap() {
     }),
   )
 
-  app.useGlobalFilters(new HttpExceptionFilter())
+  const httpAdapterHost = app.get(HttpAdapterHost)
+  // SentryGlobalFilter catches all unhandled exceptions and reports 5xx errors to Sentry.
+  // Must be registered BEFORE HttpExceptionFilter so Sentry sees the raw exception.
+  app.useGlobalFilters(new SentryGlobalFilter(httpAdapterHost), new HttpExceptionFilter())
 
   const port = process.env.API_PORT ?? 4000
   await app.listen(port)
