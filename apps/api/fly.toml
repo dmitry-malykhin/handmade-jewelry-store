@@ -1,0 +1,40 @@
+# Fly.io staging configuration for NestJS API
+# Deploy: fly deploy --app handmade-jewelry-api-staging
+# Docs: docs/17_STAGING_ENVIRONMENTS.md
+
+app = "handmade-jewelry-api-staging"
+primary_region = "iad"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  NODE_ENV = "staging"
+  PORT = "4000"
+
+[http_service]
+  internal_port = 4000
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [http_service.concurrency]
+    type = "connections"
+    hard_limit = 25
+    soft_limit = 20
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 256
+
+[checks]
+  [checks.health]
+    grace_period = "10s"
+    interval = "30s"
+    method = "get"
+    path = "/api/health"
+    port = 4000
+    timeout = "5s"
+    type = "http"
