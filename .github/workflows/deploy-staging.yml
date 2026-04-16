@@ -1,0 +1,28 @@
+# Auto-deploy NestJS API to Fly.io staging on merge to main.
+# Requires FLY_API_TOKEN secret in GitHub repo settings.
+# Docs: docs/17_STAGING_ENVIRONMENTS.md
+
+name: Deploy API to staging
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/api/**'
+      - 'packages/shared/**'
+      - 'pnpm-lock.yaml'
+
+jobs:
+  deploy-api-staging:
+    name: Deploy API → Fly.io staging
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Fly CLI
+        uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Deploy to staging
+        run: fly deploy --config apps/api/fly.toml --dockerfile apps/api/Dockerfile
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
