@@ -3,9 +3,9 @@
 import './instrument'
 
 import { ValidationPipe } from '@nestjs/common'
-import { NestFactory } from '@nestjs/core'
+import { HttpAdapterHost, NestFactory } from '@nestjs/core'
+import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston'
 import { AppModule } from './app.module'
-import { HttpAdapterHost } from '@nestjs/core'
 import { HttpExceptionFilter } from './common/filters/http-exception.filter'
 import { SentryGlobalFilter } from '@sentry/nestjs/setup'
 
@@ -13,6 +13,10 @@ async function bootstrap() {
   // rawBody: true — required for Stripe webhook signature verification.
   // stripe.webhooks.constructEvent() needs the raw Buffer, not parsed JSON.
   const app = await NestFactory.create(AppModule, { rawBody: true })
+
+  // Replace NestJS default logger with Winston so all internal NestJS logs
+  // (module init, route mapping, etc.) go through the same structured pipeline.
+  app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER))
 
   app.setGlobalPrefix('api')
 
@@ -33,10 +37,10 @@ async function bootstrap() {
     }),
   )
 
-  const httpAdapterHost = app.get(HttpAdapterHost)
+  const { httpAdapter } = app.get(HttpAdapterHost)
   // SentryGlobalFilter catches all unhandled exceptions and reports 5xx errors to Sentry.
   // Must be registered BEFORE HttpExceptionFilter so Sentry sees the raw exception.
-  app.useGlobalFilters(new SentryGlobalFilter(httpAdapterHost), new HttpExceptionFilter())
+  app.useGlobalFilters(new SentryGlobalFilter(httpAdapter), new HttpExceptionFilter())
 
   const port = process.env.API_PORT ?? 4000
   await app.listen(port)
