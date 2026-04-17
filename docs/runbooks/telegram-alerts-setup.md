@@ -55,6 +55,14 @@ https://api.telegram.org/bot<ТОКЕН>/sendMessage?chat_id=<CHAT_ID>&text=Jewe
 
 ---
 
+## ⏳ Шаги 2–4 выполнить перед MVP launch
+
+> Шаг 1 (создание бота) выполнен.  
+> Credentials сохранены в `.env.telegram` (корень проекта, в gitignore).  
+> Шаги 2–4 требуют production URL и настроенные Sentry проекты — выполнить при деплое MVP.
+
+---
+
 ## Шаг 2 — Подключить Sentry через Make.com
 
 Make.com (бывший Integromat) — бесплатный tier: 1000 операций/месяц.  
