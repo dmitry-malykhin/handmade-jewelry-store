@@ -4,9 +4,9 @@ export function generateOrganizationJsonLd() {
   return {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    name: 'Handmade Jewelry Store',
+    name: 'Senichka — Handmade Beaded Jewelry',
     url: SITE_URL,
-    logo: `${SITE_URL}/logo.png`,
+    logo: `${SITE_URL}/icon-512.png`,
     // sameAs lists verified social profiles — update once accounts are created
     sameAs: [] as string[],
   }

@@ -31,66 +31,81 @@ export default async function LocaleOgImage({ params }: OgImageProps) {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        background: 'linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0f0f0f 100%)',
-        fontFamily: 'serif',
+        background: 'linear-gradient(135deg, #FAF7F6 0%, #F4E7E3 50%, #FAF7F6 100%)',
+        fontFamily: 'Georgia, serif',
         position: 'relative',
         padding: '60px',
       }}
     >
-      {/* Corner accents */}
+      {/* Decorative border */}
       <div
         style={{
           position: 'absolute',
-          top: '40px',
-          left: '40px',
-          width: '60px',
-          height: '60px',
-          borderTop: '2px solid rgba(255,255,255,0.2)',
-          borderLeft: '2px solid rgba(255,255,255,0.2)',
-        }}
-      />
-      <div
-        style={{
-          position: 'absolute',
-          top: '40px',
-          right: '40px',
-          width: '60px',
-          height: '60px',
-          borderTop: '2px solid rgba(255,255,255,0.2)',
-          borderRight: '2px solid rgba(255,255,255,0.2)',
-        }}
-      />
-      <div
-        style={{
-          position: 'absolute',
-          bottom: '40px',
-          left: '40px',
-          width: '60px',
-          height: '60px',
-          borderBottom: '2px solid rgba(255,255,255,0.2)',
-          borderLeft: '2px solid rgba(255,255,255,0.2)',
-        }}
-      />
-      <div
-        style={{
-          position: 'absolute',
-          bottom: '40px',
-          right: '40px',
-          width: '60px',
-          height: '60px',
-          borderBottom: '2px solid rgba(255,255,255,0.2)',
-          borderRight: '2px solid rgba(255,255,255,0.2)',
+          top: '28px',
+          left: '28px',
+          right: '28px',
+          bottom: '28px',
+          border: '1px solid rgba(232,183,177,0.3)',
+          borderRadius: '8px',
         }}
       />
 
-      {/* Sparkle + brand */}
-      <div style={{ fontSize: '64px', color: '#ffffff', marginBottom: '20px' }}>✦</div>
-
+      {/* Corner beads */}
       <div
         style={{
-          fontSize: '56px',
-          fontWeight: 700,
-          color: '#ffffff',
+          position: 'absolute',
+          top: '36px',
+          left: '36px',
+          width: '10px',
+          height: '10px',
+          borderRadius: '50%',
+          background: '#E8B7B1',
+          opacity: 0.4,
+        }}
+      />
+      <div
+        style={{
+          position: 'absolute',
+          top: '36px',
+          right: '36px',
+          width: '10px',
+          height: '10px',
+          borderRadius: '50%',
+          background: '#D99B95',
+          opacity: 0.4,
+        }}
+      />
+      <div
+        style={{
+          position: 'absolute',
+          bottom: '36px',
+          left: '36px',
+          width: '10px',
+          height: '10px',
+          borderRadius: '50%',
+          background: '#D99B95',
+          opacity: 0.4,
+        }}
+      />
+      <div
+        style={{
+          position: 'absolute',
+          bottom: '36px',
+          right: '36px',
+          width: '10px',
+          height: '10px',
+          borderRadius: '50%',
+          background: '#E8B7B1',
+          opacity: 0.4,
+        }}
+      />
+
+      {/* Locale-specific title */}
+      <div
+        style={{
+          fontSize: '52px',
+          fontWeight: 300,
+          color: '#2B2B2B',
           letterSpacing: '2px',
           textAlign: 'center',
           marginBottom: '16px',
@@ -100,19 +115,22 @@ export default async function LocaleOgImage({ params }: OgImageProps) {
         {siteTitle}
       </div>
 
-      <div
-        style={{
-          width: '80px',
-          height: '1px',
-          background: 'rgba(255,255,255,0.35)',
-          marginBottom: '20px',
-        }}
-      />
+      {/* Bead divider */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+        <div
+          style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#E8B7B1' }}
+        />
+        <div style={{ width: '100px', height: '1px', background: '#E8B7B1' }} />
+        <div
+          style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#E8B7B1' }}
+        />
+      </div>
 
+      {/* Locale-specific description */}
       <div
         style={{
           fontSize: '20px',
-          color: 'rgba(255,255,255,0.6)',
+          color: '#9A8A86',
           textAlign: 'center',
           maxWidth: '800px',
           lineHeight: 1.5,

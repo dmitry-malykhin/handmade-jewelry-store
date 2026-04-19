@@ -1,145 +1,78 @@
+/* 1. Brand tokens — must load before Tailwind */
+@import '../styles/senichka-tokens.css';
+
+/* 2. Tailwind */
 @import "tailwindcss";
 
 /*
  * Class-based dark mode for Tailwind v4.
- * By default, v4 uses @media (prefers-color-scheme). This override makes
- * dark: utilities activate whenever an ancestor has class="dark" — which is
- * what next-themes sets on <html>.
+ * next-themes sets class="dark" on <html>.
  */
 @variant dark (&:where(.dark, .dark *));
 
 /*
- * @theme inline — bridge between Shadcn CSS vars and Tailwind v4 utility classes.
- * Without this, classes like bg-background, text-foreground, border-border don't exist.
- * "inline" means values are inlined at build time, not emitted as separate CSS vars.
+ * @theme inline — bridge between CSS vars and Tailwind v4 utility classes.
  */
 @theme inline {
-  --font-sans: var(--font-inter);
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
+  /* Fonts */
+  --font-display: 'Cormorant Garamond', Georgia, serif;
+  --font-sans: var(--font-jost);
+
+  /* Shadcn ↔ Senichka mapping */
+  --color-background: var(--color-bg-primary);
+  --color-foreground: var(--color-text-primary);
+  --color-card: var(--card-bg);
+  --color-card-foreground: var(--card-name);
+  --color-popover: var(--color-bg-surface);
+  --color-popover-foreground: var(--color-text-primary);
+  --color-primary: var(--color-accent-secondary);
+  --color-primary-foreground: var(--color-text-on-accent);
+  --color-secondary: var(--color-bg-secondary);
+  --color-secondary-foreground: var(--color-text-primary);
+  --color-muted: var(--color-bg-secondary);
+  --color-muted-foreground: var(--color-text-tertiary);
+  --color-accent: var(--color-bg-accent);
+  --color-accent-foreground: var(--color-text-primary);
+  --color-destructive: var(--color-error);
+  --color-border: var(--color-border-default);
+  --color-input: var(--input-border);
+  --color-ring: var(--color-accent-secondary);
+
+  /* Chart colors — brand palette */
+  --color-chart-1: var(--brand-rose-gold);
+  --color-chart-2: var(--jewel-emerald);
+  --color-chart-3: var(--brand-blush);
+  --color-chart-4: var(--jewel-sky);
+  --color-chart-5: var(--jewel-garnet);
+
+  /* Sidebar */
+  --color-sidebar: var(--color-bg-secondary);
+  --color-sidebar-foreground: var(--color-text-primary);
+  --color-sidebar-primary: var(--color-accent-secondary);
+  --color-sidebar-primary-foreground: var(--color-text-on-accent);
+  --color-sidebar-accent: var(--color-bg-accent);
+  --color-sidebar-accent-foreground: var(--color-text-primary);
+  --color-sidebar-border: var(--color-border-default);
+  --color-sidebar-ring: var(--color-accent-secondary);
+
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
-  /* Skeleton loader tokens — change here to repaint every skeleton in the app */
+
+  /* Skeleton loader tokens */
   --color-skeleton-base: var(--skeleton-base);
   --color-skeleton-shine: var(--skeleton-shine);
 }
 
-/* ── Actual color values ──────────────────────────────────────────────────── */
-/*
- * Skeleton loader palette.
- * --skeleton-base   — fill for most skeleton blocks (image, title, button placeholders)
- * --skeleton-shine  — slightly darker layer for depth (nested bars, progress bars)
- * Both must have visible contrast against --background and --card.
- * To repaint every skeleton in the app: edit only these four lines.
- */
-:root {
-  --skeleton-base: oklch(0.91 0 0);   /* light theme — medium-light gray, clearly visible on white */
-  --skeleton-shine: oklch(0.84 0 0);  /* slightly darker for depth */
-}
-
-.dark {
-  --skeleton-base: oklch(0.28 0 0);   /* dark theme — slightly lighter than card (0.205), visible on bg (0.145) */
-  --skeleton-shine: oklch(0.33 0 0);  /* slightly lighter for depth */
-}
+/* ── Root-level values ──────────────────────────────────────────────────── */
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --radius: 0.625rem;
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
-}
+  --radius: 0.75rem;
 
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  /* Skeleton — warm tones matching brand */
+  --skeleton-base: oklch(0.92 0.01 30);
+  --skeleton-shine: oklch(0.86 0.01 30);
 }
 
 @layer base {
@@ -149,6 +82,7 @@
 
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     /* Smooth color transition when switching light ↔ dark theme */

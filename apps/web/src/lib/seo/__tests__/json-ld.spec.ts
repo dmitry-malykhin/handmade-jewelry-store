@@ -121,16 +121,16 @@ describe('generateOrganizationJsonLd', () => {
     expect(result['@type']).toBe('Organization')
   })
 
-  it('sets organization name to Handmade Jewelry Store', () => {
+  it('sets organization name to Senichka', () => {
     const result = generateOrganizationJsonLd()
-    expect(result.name).toBe('Handmade Jewelry Store')
+    expect(result.name).toBe('Senichka — Handmade Beaded Jewelry')
   })
 
   it('includes url and logo fields', () => {
     const result = generateOrganizationJsonLd()
     expect(result.url).toBeDefined()
     expect(result.logo).toBeDefined()
-    expect(result.logo).toContain('/logo.png')
+    expect(result.logo).toContain('/icon-512.png')
   })
 
   it('includes sameAs array', () => {

@@ -67,7 +67,7 @@ describe('ConfirmationOrderItems', () => {
   it('renders a placeholder when the snapshot has no image', () => {
     renderWithIntl(<ConfirmationOrderItems items={[mockOrderItems[0]]} />)
     expect(screen.queryByAltText('Beaded Amazonite Bracelet')).not.toBeInTheDocument()
-    // placeholder decorative symbol is rendered
-    expect(screen.getByText('✦')).toBeInTheDocument()
+    // placeholder monogram is rendered
+    expect(screen.getByAltText('Senichka')).toBeInTheDocument()
   })
 })
