@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import { useTranslations } from 'next-intl'
 import { Search } from 'lucide-react'
 import { Link } from '@/i18n/navigation'
@@ -20,12 +21,25 @@ export function Header() {
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur-sm">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        <Link
-          href="/"
-          className="text-lg font-semibold tracking-tight text-foreground transition-opacity hover:opacity-80"
-          aria-label={t('logoLabel')}
-        >
-          ✦ Jewelry
+        <Link href="/" className="transition-opacity hover:opacity-80" aria-label={t('logoLabel')}>
+          {/* Light theme logo — hidden in dark mode */}
+          <Image
+            src="/logo-light.svg"
+            alt="Senichka — Handmade Beaded Jewelry"
+            width={160}
+            height={37}
+            className="h-9 w-auto dark:hidden"
+            priority
+          />
+          {/* Dark theme logo — visible only in dark mode */}
+          <Image
+            src="/logo-dark.svg"
+            alt="Senichka — Handmade Beaded Jewelry"
+            width={160}
+            height={37}
+            className="hidden h-9 w-auto dark:block"
+            priority
+          />
         </Link>
 
         <NavLinks />

@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import { useTranslations } from 'next-intl'
 import { Link } from '@/i18n/navigation'
 import { CookiePreferencesButton } from '@/components/shared/cookie-preferences-button'
@@ -43,7 +44,20 @@ export function Footer() {
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-2 gap-6 sm:gap-8 md:grid-cols-4">
           <div className="col-span-2 md:col-span-1">
-            <p className="text-lg font-semibold">✦ Jewelry</p>
+            <Image
+              src="/logo-light.svg"
+              alt="Senichka — Handmade Beaded Jewelry"
+              width={140}
+              height={33}
+              className="h-8 w-auto dark:hidden"
+            />
+            <Image
+              src="/logo-dark.svg"
+              alt="Senichka — Handmade Beaded Jewelry"
+              width={140}
+              height={33}
+              className="hidden h-8 w-auto dark:block"
+            />
             <p className="mt-2 max-w-xs text-sm text-muted-foreground">{t('tagline')}</p>
           </div>
 

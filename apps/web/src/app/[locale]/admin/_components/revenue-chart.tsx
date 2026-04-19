@@ -42,13 +42,14 @@ interface CustomTooltipProps {
 }
 
 function CustomTooltip({ active, payload, label, periodLabel }: CustomTooltipProps) {
-  if (!active || !payload?.length || !label) return null
+  const firstPayload = payload?.[0]
+  if (!active || !firstPayload || !label) return null
 
   return (
     <div className="rounded-md border border-border bg-popover px-3 py-2 shadow-md">
       <p className="mb-1 text-xs text-muted-foreground">{label}</p>
       <p className="text-sm font-semibold text-foreground">
-        {periodLabel}: {formatRevenue(payload[0].value)}
+        {periodLabel}: {formatRevenue(firstPayload.value)}
       </p>
     </div>
   )

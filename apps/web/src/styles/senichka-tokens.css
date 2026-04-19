@@ -1,0 +1,383 @@
+/**
+ * ═══════════════════════════════════════════════════════════
+ *  SENICHKA — BRAND COLOR SYSTEM  v1.0
+ *  Handmade Beaded Jewelry
+ *
+ *  Import: @import '../styles/senichka-tokens.css' — first in globals.css
+ *
+ *  Structure:
+ *  1. SHADE SCALES      — full 50–900 for blush, rose-gold, nude, charcoal
+ *  2. BRAND BASE        — 7 base brand tokens
+ *  3. JEWEL COLLECTION  — jewelry collection colors
+ *  4. LIGHT THEME       — backgrounds, text, accents, borders, semantics, shadows
+ *  5. DARK THEME        — warm dark theme
+ *  6. GRADIENTS         — brand + collection + dark
+ *  7. TYPOGRAPHY        — typography colors
+ *  8. COLLECTION TAGS   — catalog tags for each collection
+ *  9. UI STATES         — buttons, forms, focus states
+ * ═══════════════════════════════════════════════════════════
+ */
+
+
+/* ═══════════════════════════════════════════════════════════
+   1. SHADE SCALES
+   ═══════════════════════════════════════════════════════════ */
+
+:root {
+
+  /* Blush Pink scale ----------------------------------------- */
+  --blush-50:  #FDF5F4;
+  --blush-100: #FAE9E7;
+  --blush-200: #F3CFCB;
+  --blush-300: #ECC0BB;
+  --blush-400: #E8B7B1;   /* BASE */
+  --blush-500: #D99B95;
+  --blush-600: #C47E78;
+  --blush-700: #A85E59;
+  --blush-800: #7D3B37;
+  --blush-900: #4F2220;
+
+  /* Rose Gold scale ------------------------------------------ */
+  --rose-gold-50:  #F8EFF1;
+  --rose-gold-100: #F0D8DC;
+  --rose-gold-200: #DEB4BB;
+  --rose-gold-300: #CC909A;
+  --rose-gold-400: #B76E79;   /* BASE */
+  --rose-gold-500: #A25A64;
+  --rose-gold-600: #8A4450;
+  --rose-gold-700: #6E2F3B;
+  --rose-gold-800: #4E1E27;
+  --rose-gold-900: #300F15;
+
+  /* Nude Beige scale ----------------------------------------- */
+  --nude-50:  #FDFAF9;
+  --nude-100: #FAF7F6;   /* ivory */
+  --nude-200: #F4E7E3;   /* BASE */
+  --nude-300: #E8D4CF;
+  --nude-400: #D4B9B3;
+  --nude-500: #B89B94;
+  --nude-600: #9A8A86;   /* warm-gray */
+  --nude-700: #6E5F5B;
+  --nude-800: #3D2E2B;
+  --nude-900: #1A100E;
+
+  /* Charcoal scale ------------------------------------------- */
+  --charcoal-50:  #F5F4F4;
+  --charcoal-100: #E8E6E5;
+  --charcoal-200: #C8C4C3;
+  --charcoal-300: #A09A99;
+  --charcoal-400: #6E6866;
+  --charcoal-500: #4A4543;
+  --charcoal-600: #363130;
+  --charcoal-700: #2B2B2B;   /* BASE */
+  --charcoal-800: #1A1817;
+  --charcoal-900: #0D0B0A;
+
+
+  /* ═══════════════════════════════════════════════════════════
+     2. BRAND BASE
+     ═══════════════════════════════════════════════════════════ */
+
+  --brand-ivory:      #FAF7F6;
+  --brand-nude:       #F4E7E3;
+  --brand-blush:      #E8B7B1;
+  --brand-rose-gold:  #B76E79;
+  --brand-burgundy:   #7D3B44;
+  --brand-charcoal:   #2B2B2B;
+  --brand-warm-gray:  #9A8A86;
+
+
+  /* ═══════════════════════════════════════════════════════════
+     3. JEWEL COLLECTION COLORS
+     ═══════════════════════════════════════════════════════════ */
+
+  --jewel-pearl:    #F5F0EC;
+  --jewel-crystal:  #E8EEF4;
+  --jewel-sky:      #8EC4D8;
+  --jewel-emerald:  #4A8C72;
+  --jewel-garnet:   #8B2020;
+  --jewel-onyx:     #1A1614;
+  --jewel-silver:   #C4BFBC;
+  --jewel-yin-yang: #2C2420;
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   4. LIGHT THEME
+   ═══════════════════════════════════════════════════════════ */
+
+:root {
+
+  /* Backgrounds */
+  --color-bg-primary:    #FAF7F6;
+  --color-bg-secondary:  #F4E7E3;
+  --color-bg-tertiary:   #FDF5F4;
+  --color-bg-accent:     #FAE9E7;
+  --color-bg-inverse:    #2B2B2B;
+  --color-bg-surface:    #FFFFFF;
+
+  /* Text */
+  --color-text-primary:     #2B2B2B;
+  --color-text-secondary:   #6E5F5B;
+  --color-text-tertiary:    #9A8A86;
+  --color-text-accent:      #B76E79;
+  --color-text-on-dark:     #F4E7E3;
+  --color-text-on-blush:    #7D3B44;
+  --color-text-on-accent:   #F4E7E3;
+  --color-text-disabled:    #D4B9B3;
+  --color-text-placeholder: #B89B94;
+
+  /* Accents */
+  --color-accent-primary:   #E8B7B1;
+  --color-accent-hover:     #D99B95;
+  --color-accent-active:    #C47E78;
+  --color-accent-secondary: #B76E79;
+  --color-accent-sec-hover: #A25A64;
+  --color-accent-deep:      #7D3B44;
+  --color-accent-subtle:    #FAE9E7;
+
+  /* Borders */
+  --color-border-subtle:   #F3CFCB;
+  --color-border-default:  #E8D4CF;
+  --color-border-medium:   #D4B9B3;
+  --color-border-emphasis: #D99B95;
+  --color-border-accent:   #B76E79;
+
+  /* Semantics */
+  --color-success:       #4A8C72;
+  --color-success-bg:    #E8F4EE;
+  --color-success-text:  #2A5E45;
+  --color-warning:       #B76E79;
+  --color-warning-bg:    #F8EFF1;
+  --color-warning-text:  #6E2F3B;
+  --color-error:         #8B2020;
+  --color-error-bg:      #F8EAEA;
+  --color-error-text:    #6B1515;
+  --color-info:          #5A9AB8;
+  --color-info-bg:       #EAF4F8;
+  --color-info-text:     #2D6E85;
+
+  /* Shadows — rose-gold undertone */
+  --shadow-xs:   0 1px 2px rgba(183, 110, 121, 0.06);
+  --shadow-sm:   0 1px 4px rgba(183, 110, 121, 0.08),
+                 0 0 0 1px rgba(232, 183, 177, 0.12);
+  --shadow-md:   0 4px 12px rgba(183, 110, 121, 0.12),
+                 0 1px 3px rgba(43, 43, 43, 0.04);
+  --shadow-lg:   0 8px 24px rgba(183, 110, 121, 0.16),
+                 0 2px 6px rgba(43, 43, 43, 0.06);
+  --shadow-card: 0 2px 8px rgba(43, 43, 43, 0.06),
+                 0 0 0 1px rgba(232, 183, 177, 0.18);
+  --shadow-hover:0 10px 32px rgba(183, 110, 121, 0.20),
+                 0 2px 8px rgba(43, 43, 43, 0.06);
+
+  /* Gradients */
+  --gradient-hero: linear-gradient(135deg, #FAF7F6 0%, #F4E7E3 50%, #FAF7F6 100%);
+  --gradient-blush-pearl: linear-gradient(160deg, #FDF5F4 0%, #F4E7E3 40%, #E8B7B1 100%);
+  --gradient-rose-gold: linear-gradient(135deg, #E8B7B1 0%, #B76E79 50%, #7D3B44 100%);
+  --gradient-ivory: linear-gradient(180deg, #FFFFFF 0%, #FAF7F6 40%, #F4E7E3 100%);
+  --gradient-deep-rose: linear-gradient(135deg, #B76E79 0%, #7D3B44 100%);
+  --gradient-soft: linear-gradient(135deg, #FAF7F6 0%, #F4E7E3 100%);
+  --gradient-blush: linear-gradient(135deg, #E8B7B1 0%, #F4E7E3 100%);
+
+  /* Collection gradients */
+  --gradient-crystal: linear-gradient(135deg, #E8EEF4 0%, #C4BFBC 50%, #FAF7F6 100%);
+  --gradient-emerald: linear-gradient(135deg, #6BAF93 0%, #4A8C72 50%, #2E5E4A 100%);
+  --gradient-garnet:  linear-gradient(135deg, #C45050 0%, #8B2020 50%, #4F0F0F 100%);
+  --gradient-sky:     linear-gradient(135deg, #C2DCE8 0%, #8EC4D8 50%, #5A9AB8 100%);
+  --gradient-pearl:   linear-gradient(135deg, #FFFFFF 0%, #F5F0EC 50%, #E8D4CF 100%);
+  --gradient-onyx:    linear-gradient(135deg, #3A312E 0%, #1A1614 50%, #0D0A09 100%);
+
+  /* Dark theme gradients */
+  --gradient-dark-base:   linear-gradient(135deg, #1E1A19 0%, #2A2220 100%);
+  --gradient-dark-rose:   linear-gradient(135deg, #2A2220 0%, #B76E79 100%);
+  --gradient-dark-accent: linear-gradient(135deg, #E8B7B1 0%, #B76E79 100%);
+
+  /* Collection tags */
+  --tag-pearl-bg:     #F5F0EC;
+  --tag-pearl-text:   #4E3B38;
+  --tag-pearl-border: #DDD5CE;
+
+  --tag-crystal-bg:     #EAF2F7;
+  --tag-crystal-text:   #2D5E70;
+  --tag-crystal-border: #A8D0E0;
+
+  --tag-sky-bg:     #EAF4F8;
+  --tag-sky-text:   #2D6E85;
+  --tag-sky-border: #A8D5E5;
+
+  --tag-emerald-bg:     #E8F4EE;
+  --tag-emerald-text:   #2A5E45;
+  --tag-emerald-border: #88C4A8;
+
+  --tag-garnet-bg:     #F8EAEA;
+  --tag-garnet-text:   #6B1515;
+  --tag-garnet-border: #C88888;
+
+  --tag-onyx-bg:     #2C2420;
+  --tag-onyx-text:   #D8CEC8;
+  --tag-onyx-border: #4A403C;
+
+  --tag-blush-bg:     #FAE9E7;
+  --tag-blush-text:   #7D3B44;
+  --tag-blush-border: #E8B7B1;
+
+  --tag-rose-gold-bg:     #F8EFF1;
+  --tag-rose-gold-text:   #6E2F3B;
+  --tag-rose-gold-border: #CC909A;
+
+  --tag-silver-bg:     #F2EFED;
+  --tag-silver-text:   #5A5250;
+  --tag-silver-border: #C4BFBC;
+
+  /* UI States — Buttons */
+  --btn-primary-bg:       #E8B7B1;
+  --btn-primary-text:     #7D3B44;
+  --btn-primary-border:   #D99B95;
+  --btn-primary-hover-bg: #D99B95;
+  --btn-primary-active:   #C47E78;
+  --btn-primary-disabled: #F3CFCB;
+  --btn-primary-dis-text: #BFA8A5;
+
+  --btn-secondary-bg:       transparent;
+  --btn-secondary-text:     #B76E79;
+  --btn-secondary-border:   #B76E79;
+  --btn-secondary-hover-bg: #F8EFF1;
+  --btn-secondary-active:   #F0D8DC;
+
+  --btn-cta-bg:       #B76E79;
+  --btn-cta-text:     #F4E7E3;
+  --btn-cta-border:   transparent;
+  --btn-cta-hover-bg: #A25A64;
+  --btn-cta-active:   #8A4450;
+
+  --btn-ghost-bg:       transparent;
+  --btn-ghost-text:     #6E5F5B;
+  --btn-ghost-border:   #E8D4CF;
+  --btn-ghost-hover-bg: #FAF7F6;
+  --btn-ghost-active:   #F4E7E3;
+
+  /* Inputs */
+  --input-bg:           #FFFFFF;
+  --input-bg-focus:     #FFFFFF;
+  --input-border:       #E8D4CF;
+  --input-border-focus: #B76E79;
+  --input-border-error: #8B2020;
+  --input-text:         #2B2B2B;
+  --input-placeholder:  #B89B94;
+  --input-shadow-focus: 0 0 0 3px rgba(183, 110, 121, 0.15);
+
+  /* Cards */
+  --card-bg:           #FFFFFF;
+  --card-border:       #E8D4CF;
+  --card-shadow:       var(--shadow-card);
+  --card-hover-shadow: var(--shadow-hover);
+  --card-price:        #B76E79;
+  --card-name:         #2B2B2B;
+
+  /* Focus */
+  --focus-ring: 0 0 0 3px rgba(183, 110, 121, 0.30);
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   5. DARK THEME — warm, not gray
+   ═══════════════════════════════════════════════════════════ */
+
+.dark {
+
+  /* Backgrounds */
+  --color-bg-primary:   #1E1A19;
+  --color-bg-secondary: #2A2220;
+  --color-bg-tertiary:  #332B29;
+  --color-bg-accent:    #3D2E2C;
+  --color-bg-inverse:   #FAF7F6;
+  --color-bg-surface:   #2A2220;
+
+  /* Text */
+  --color-text-primary:     #F4E7E3;
+  --color-text-secondary:   #C8B8B4;
+  --color-text-tertiary:    #9A8A86;
+  --color-text-accent:      #E8B7B1;
+  --color-text-on-dark:     #F4E7E3;
+  --color-text-on-blush:    #2B2B2B;
+  --color-text-on-accent:   #F4E7E3;
+  --color-text-disabled:    #4E3B38;
+  --color-text-placeholder: #6E5F5B;
+
+  /* Accents */
+  --color-accent-primary:   #B76E79;
+  --color-accent-hover:     #C47E78;
+  --color-accent-active:    #A25A64;
+  --color-accent-secondary: #E8B7B1;
+  --color-accent-sec-hover: #D99B95;
+  --color-accent-deep:      #DDB0AA;
+  --color-accent-subtle:    #3D2E2C;
+
+  /* Borders */
+  --color-border-subtle:   #3D2E2C;
+  --color-border-default:  #4E3B38;
+  --color-border-medium:   #5E4845;
+  --color-border-emphasis: #7D5560;
+  --color-border-accent:   #B76E79;
+
+  /* Semantics */
+  --color-success:       #6BAF93;
+  --color-success-bg:    #1E3530;
+  --color-success-text:  #6BAF93;
+  --color-warning:       #E8B7B1;
+  --color-warning-bg:    #3A2020;
+  --color-warning-text:  #E8B7B1;
+  --color-error:         #C45050;
+  --color-error-bg:      #3A1515;
+  --color-error-text:    #C45050;
+  --color-info:          #8EC4D8;
+  --color-info-bg:       #1A2E38;
+  --color-info-text:     #8EC4D8;
+
+  /* Shadows */
+  --shadow-xs:   0 1px 2px rgba(0, 0, 0, 0.25);
+  --shadow-sm:   0 1px 4px rgba(0, 0, 0, 0.30),
+                 0 0 0 1px rgba(183, 110, 121, 0.12);
+  --shadow-md:   0 4px 12px rgba(0, 0, 0, 0.40);
+  --shadow-lg:   0 8px 24px rgba(0, 0, 0, 0.50);
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.35),
+                 0 0 0 1px rgba(183, 110, 121, 0.12);
+  --shadow-hover:0 10px 32px rgba(0, 0, 0, 0.50),
+                 0 0 0 1px rgba(183, 110, 121, 0.20);
+
+  /* UI States — Dark */
+  --btn-primary-bg:       #B76E79;
+  --btn-primary-text:     #F4E7E3;
+  --btn-primary-border:   #A25A64;
+  --btn-primary-hover-bg: #C47E78;
+  --btn-primary-active:   #A25A64;
+
+  --btn-secondary-bg:       transparent;
+  --btn-secondary-text:     #E8B7B1;
+  --btn-secondary-border:   #E8B7B1;
+  --btn-secondary-hover-bg: #3D2E2C;
+  --btn-secondary-active:   #4E3B38;
+
+  --btn-cta-bg:       #E8B7B1;
+  --btn-cta-text:     #2B2B2B;
+  --btn-cta-hover-bg: #D99B95;
+
+  --input-bg:           #332B29;
+  --input-bg-focus:     #3D2E2C;
+  --input-border:       #4E3B38;
+  --input-border-focus: #E8B7B1;
+  --input-text:         #F4E7E3;
+  --input-placeholder:  #6E5F5B;
+  --input-shadow-focus: 0 0 0 3px rgba(232, 183, 177, 0.20);
+
+  --card-bg:       #2A2220;
+  --card-border:   #4E3B38;
+  --card-price:    #E8B7B1;
+  --card-name:     #F4E7E3;
+
+  --focus-ring: 0 0 0 3px rgba(232, 183, 177, 0.25);
+
+  /* Skeleton (dark) */
+  --skeleton-base: oklch(0.22 0.01 30);
+  --skeleton-shine: oklch(0.27 0.01 30);
+}

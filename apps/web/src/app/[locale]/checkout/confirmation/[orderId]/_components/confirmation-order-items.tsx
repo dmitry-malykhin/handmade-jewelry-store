@@ -23,8 +23,8 @@ export function ConfirmationOrderItems({ items }: ConfirmationOrderItemsProps) {
                 sizes="64px"
               />
             ) : (
-              <div className="flex h-full w-full items-center justify-center text-xs text-muted-foreground">
-                ✦
+              <div className="flex h-full w-full items-center justify-center">
+                <img src="/monogram.svg" alt="Senichka" className="size-8 opacity-50" />
               </div>
             )}
           </div>

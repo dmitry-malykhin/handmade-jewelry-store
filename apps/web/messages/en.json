@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "title": "Handmade Jewelry Store",
+    "title": "Senichka",
     "description": "Unique handmade jewelry crafted with love using ethically sourced materials."
   },
   "navigation": {
@@ -68,7 +68,7 @@
     "imageAlt": "Handcrafted jewelry being made in a small studio"
   },
   "header": {
-    "logoLabel": "Handmade Jewelry Store — home",
+    "logoLabel": "Senichka — Handmade Beaded Jewelry — home",
     "search": "Search",
     "cart": "Shopping cart",
     "openMenu": "Open menu",
@@ -107,14 +107,14 @@
     "changePreferences": "Cookie preferences"
   },
   "termsPage": {
-    "metaTitle": "Terms of Service — Handmade Jewelry Store",
-    "metaDescription": "Read our Terms of Service to understand your rights and responsibilities when shopping at Handmade Jewelry Store.",
+    "metaTitle": "Terms of Service — Senichka",
+    "metaDescription": "Read our Terms of Service to understand your rights and responsibilities when shopping at Senichka.",
     "title": "Terms of Service",
     "lastUpdated": "Last updated: April 13, 2026"
   },
   "privacyPage": {
-    "metaTitle": "Privacy Policy — Handmade Jewelry Store",
-    "metaDescription": "Learn how we collect, use, and protect your personal information at Handmade Jewelry Store.",
+    "metaTitle": "Privacy Policy — Senichka",
+    "metaDescription": "Learn how we collect, use, and protect your personal information at Senichka.",
     "title": "Privacy Policy",
     "lastUpdated": "Last updated: April 12, 2026"
   },
@@ -134,7 +134,7 @@
     "shipping": "Shipping & Returns",
     "careGuide": "Care Guide",
     "sizeGuide": "Size Guide",
-    "copyright": "Handmade Jewelry Store. All rights reserved.",
+    "copyright": "Senichka. All rights reserved.",
     "privacy": "Privacy Policy",
     "terms": "Terms of Service"
   },
@@ -202,7 +202,7 @@
   },
   "home": {
     "badge": "Coming Soon",
-    "title": "Handmade Jewelry Store",
+    "title": "Senichka",
     "description": "Unique handmade jewelry crafted with love",
     "statusTitle": "Design System Ready",
     "statusDescription": "Shadcn/ui + Tailwind CSS v4 configured",

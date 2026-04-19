@@ -47,7 +47,7 @@ export function usePaymentRequest({
       country: 'US',
       currency: 'usd',
       total: {
-        label: '✦ Jewelry',
+        label: 'Senichka',
         amount: totalAmountInCents,
       },
       // Request shipping contact so guest email is auto-filled from Apple/Google wallet

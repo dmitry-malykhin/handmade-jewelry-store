@@ -2,7 +2,7 @@ import { ImageResponse } from 'next/og'
 
 // Next.js static OG image — generated once at build time
 export const runtime = 'edge'
-export const alt = 'Handmade Jewelry Store — Unique handmade jewelry crafted with love'
+export const alt = 'Senichka — Handmade Beaded Jewelry'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
@@ -16,21 +16,22 @@ export default function OgImage() {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        background: 'linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0f0f0f 100%)',
-        fontFamily: 'serif',
+        background: 'linear-gradient(135deg, #FAF7F6 0%, #F4E7E3 50%, #FAF7F6 100%)',
+        fontFamily: 'Georgia, serif',
         position: 'relative',
       }}
     >
-      {/* Decorative corner accents */}
+      {/* Decorative corner beads */}
       <div
         style={{
           position: 'absolute',
           top: '40px',
           left: '40px',
-          width: '60px',
-          height: '60px',
-          borderTop: '2px solid rgba(255,255,255,0.2)',
-          borderLeft: '2px solid rgba(255,255,255,0.2)',
+          width: '12px',
+          height: '12px',
+          borderRadius: '50%',
+          background: '#E8B7B1',
+          opacity: 0.4,
         }}
       />
       <div
@@ -38,10 +39,11 @@ export default function OgImage() {
           position: 'absolute',
           top: '40px',
           right: '40px',
-          width: '60px',
-          height: '60px',
-          borderTop: '2px solid rgba(255,255,255,0.2)',
-          borderRight: '2px solid rgba(255,255,255,0.2)',
+          width: '12px',
+          height: '12px',
+          borderRadius: '50%',
+          background: '#D99B95',
+          opacity: 0.4,
         }}
       />
       <div
@@ -49,10 +51,11 @@ export default function OgImage() {
           position: 'absolute',
           bottom: '40px',
           left: '40px',
-          width: '60px',
-          height: '60px',
-          borderBottom: '2px solid rgba(255,255,255,0.2)',
-          borderLeft: '2px solid rgba(255,255,255,0.2)',
+          width: '12px',
+          height: '12px',
+          borderRadius: '50%',
+          background: '#D99B95',
+          opacity: 0.4,
         }}
       />
       <div
@@ -60,60 +63,63 @@ export default function OgImage() {
           position: 'absolute',
           bottom: '40px',
           right: '40px',
-          width: '60px',
-          height: '60px',
-          borderBottom: '2px solid rgba(255,255,255,0.2)',
-          borderRight: '2px solid rgba(255,255,255,0.2)',
+          width: '12px',
+          height: '12px',
+          borderRadius: '50%',
+          background: '#E8B7B1',
+          opacity: 0.4,
         }}
       />
 
-      {/* Sparkle symbol */}
+      {/* Decorative border */}
       <div
         style={{
-          fontSize: '72px',
-          color: '#ffffff',
-          marginBottom: '24px',
-          letterSpacing: '-2px',
+          position: 'absolute',
+          top: '28px',
+          left: '28px',
+          right: '28px',
+          bottom: '28px',
+          border: '1px solid rgba(232,183,177,0.3)',
+          borderRadius: '8px',
         }}
-      >
-        ✦
-      </div>
+      />
 
       {/* Brand name */}
       <div
         style={{
-          fontSize: '64px',
-          fontWeight: 700,
-          color: '#ffffff',
-          letterSpacing: '4px',
-          textTransform: 'uppercase',
+          fontSize: '72px',
+          fontWeight: 300,
+          color: '#2B2B2B',
+          letterSpacing: '6px',
           marginBottom: '16px',
         }}
       >
-        Jewelry
+        Senichka
       </div>
 
-      {/* Divider */}
-      <div
-        style={{
-          width: '80px',
-          height: '1px',
-          background: 'rgba(255,255,255,0.4)',
-          marginBottom: '24px',
-        }}
-      />
+      {/* Divider with bead endpoints */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+        <div
+          style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#E8B7B1' }}
+        />
+        <div style={{ width: '120px', height: '1px', background: '#E8B7B1' }} />
+        <div
+          style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#E8B7B1' }}
+        />
+      </div>
 
       {/* Tagline */}
       <div
         style={{
-          fontSize: '22px',
-          color: 'rgba(255,255,255,0.65)',
-          letterSpacing: '3px',
+          fontSize: '18px',
+          color: '#9A8A86',
+          letterSpacing: '6px',
           textTransform: 'uppercase',
           fontWeight: 300,
+          fontFamily: 'system-ui, sans-serif',
         }}
       >
-        Handmade with love
+        HANDMADE BEADED JEWELRY
       </div>
     </div>,
     { ...size },
