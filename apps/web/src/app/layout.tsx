@@ -6,6 +6,7 @@ import { Suspense } from 'react'
 import { Toaster } from '@/components/ui/sonner'
 import { ThemeProvider } from '@/components/shared/theme-provider'
 import { GoogleAnalytics } from '@/components/analytics/google-analytics'
+import { FacebookPixel } from '@/components/analytics/facebook-pixel'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -90,6 +91,9 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
             <Suspense fallback={null}>
               <GoogleAnalytics measurementId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} />
             </Suspense>
+          )}
+          {process.env.NEXT_PUBLIC_FB_PIXEL_ID && (
+            <FacebookPixel pixelId={process.env.NEXT_PUBLIC_FB_PIXEL_ID} />
           )}
         </ThemeProvider>
       </body>
