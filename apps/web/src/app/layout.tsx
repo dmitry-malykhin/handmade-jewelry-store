@@ -2,8 +2,10 @@ import type { Metadata, Viewport } from 'next'
 import type { ReactNode } from 'react'
 import { headers } from 'next/headers'
 import { Cormorant_Garamond, Jost } from 'next/font/google'
+import { Suspense } from 'react'
 import { Toaster } from '@/components/ui/sonner'
 import { ThemeProvider } from '@/components/shared/theme-provider'
+import { GoogleAnalytics } from '@/components/analytics/google-analytics'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -84,6 +86,11 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         >
           {children}
           <Toaster richColors position="top-right" />
+          {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
+            <Suspense fallback={null}>
+              <GoogleAnalytics measurementId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} />
+            </Suspense>
+          )}
         </ThemeProvider>
       </body>
     </html>
