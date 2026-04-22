@@ -32,6 +32,12 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     images: ['/og-image.png'],
   },
+  // Google Search Console verification — set env var after adding property in GSC
+  ...(process.env.NEXT_PUBLIC_GSC_VERIFICATION_ID && {
+    verification: {
+      google: process.env.NEXT_PUBLIC_GSC_VERIFICATION_ID,
+    },
+  }),
 }
 
 export const viewport: Viewport = {
