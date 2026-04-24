@@ -7,6 +7,7 @@ import { Toaster } from '@/components/ui/sonner'
 import { ThemeProvider } from '@/components/shared/theme-provider'
 import { GoogleAnalytics } from '@/components/analytics/google-analytics'
 import { FacebookPixel } from '@/components/analytics/facebook-pixel'
+import { PinterestTag } from '@/components/analytics/pinterest-tag'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -33,9 +34,15 @@ export const metadata: Metadata = {
     images: ['/og-image.png'],
   },
   // Google Search Console verification — set env var after adding property in GSC
-  ...(process.env.NEXT_PUBLIC_GSC_VERIFICATION_ID && {
+  ...((process.env.NEXT_PUBLIC_GSC_VERIFICATION_ID ||
+    process.env.NEXT_PUBLIC_PINTEREST_VERIFICATION_ID) && {
     verification: {
-      google: process.env.NEXT_PUBLIC_GSC_VERIFICATION_ID,
+      ...(process.env.NEXT_PUBLIC_GSC_VERIFICATION_ID && {
+        google: process.env.NEXT_PUBLIC_GSC_VERIFICATION_ID,
+      }),
+      ...(process.env.NEXT_PUBLIC_PINTEREST_VERIFICATION_ID && {
+        other: { 'p:domain_verify': process.env.NEXT_PUBLIC_PINTEREST_VERIFICATION_ID },
+      }),
     },
   }),
 }
@@ -100,6 +107,9 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           )}
           {process.env.NEXT_PUBLIC_FB_PIXEL_ID && (
             <FacebookPixel pixelId={process.env.NEXT_PUBLIC_FB_PIXEL_ID} />
+          )}
+          {process.env.NEXT_PUBLIC_PINTEREST_TAG_ID && (
+            <PinterestTag tagId={process.env.NEXT_PUBLIC_PINTEREST_TAG_ID} />
           )}
         </ThemeProvider>
       </body>
