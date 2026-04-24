@@ -24,6 +24,8 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
 
   const description = product.description.slice(0, 160)
   const primaryImage = product.images[0]
+  const price = parseFloat(product.price).toFixed(2)
+  const availability = product.stock > 0 ? 'in stock' : 'out of stock'
 
   return {
     // layout template appends "| Handmade Jewelry Store" automatically
@@ -32,10 +34,22 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
     openGraph: {
       title: product.title,
       description,
+      // 'website' keeps Next.js OpenGraph types happy; product-specific fields below via `other`
       type: 'website',
       ...(primaryImage && {
         images: [{ url: primaryImage, width: 800, height: 800, alt: product.title }],
       }),
+    },
+    // Pinterest Rich Pins + Facebook product metadata.
+    // Pinterest reads og:type=product via OpenGraph Product meta tags for Rich Pins.
+    other: {
+      'og:type': 'product',
+      'product:price:amount': price,
+      'product:price:currency': 'USD',
+      'product:availability': availability,
+      'product:condition': 'new',
+      'product:brand': 'Senichka',
+      ...(product.sku && { 'product:retailer_item_id': product.sku }),
     },
     // canonical prevents duplicate content across locales and filter combinations
     alternates: {
