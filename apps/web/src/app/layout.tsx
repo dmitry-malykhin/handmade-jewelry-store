@@ -8,6 +8,7 @@ import { ThemeProvider } from '@/components/shared/theme-provider'
 import { GoogleAnalytics } from '@/components/analytics/google-analytics'
 import { FacebookPixel } from '@/components/analytics/facebook-pixel'
 import { PinterestTag } from '@/components/analytics/pinterest-tag'
+import { Klaviyo } from '@/components/analytics/klaviyo'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -110,6 +111,9 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           )}
           {process.env.NEXT_PUBLIC_PINTEREST_TAG_ID && (
             <PinterestTag tagId={process.env.NEXT_PUBLIC_PINTEREST_TAG_ID} />
+          )}
+          {process.env.NEXT_PUBLIC_KLAVIYO_COMPANY_ID && (
+            <Klaviyo companyId={process.env.NEXT_PUBLIC_KLAVIYO_COMPANY_ID} />
           )}
         </ThemeProvider>
       </body>
