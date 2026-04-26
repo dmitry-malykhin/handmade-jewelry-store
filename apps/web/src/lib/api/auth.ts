@@ -41,3 +41,28 @@ export async function logoutUser(refreshToken: string): Promise<void> {
     headers: { Authorization: `Bearer ${refreshToken}` },
   })
 }
+
+export async function changePassword(
+  accessToken: string,
+  currentPassword: string,
+  newPassword: string,
+): Promise<void> {
+  await apiClient<void>('/api/auth/change-password', {
+    method: 'PATCH',
+    headers: { Authorization: `Bearer ${accessToken}` },
+    body: JSON.stringify({ currentPassword, newPassword }),
+  })
+}
+
+export interface AuthenticatedUser {
+  id: string
+  email: string
+  role: 'USER' | 'ADMIN'
+  createdAt: string
+}
+
+export async function fetchCurrentUser(accessToken: string): Promise<AuthenticatedUser> {
+  return apiClient<AuthenticatedUser>('/api/auth/me', {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  })
+}

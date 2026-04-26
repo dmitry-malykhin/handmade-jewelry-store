@@ -602,5 +602,60 @@
     "pageLoadError": "Something went wrong while loading this page.",
     "goHome": "Go to homepage",
     "goBack": "Go back"
+  },
+  "account": {
+    "title": "My Account",
+    "nav": {
+      "label": "Account navigation",
+      "overview": "Overview",
+      "orders": "Orders",
+      "addresses": "Addresses",
+      "loyalty": "Loyalty",
+      "settings": "Settings"
+    },
+    "overview": {
+      "metaTitle": "My Account",
+      "metaDescription": "Manage your orders, addresses, and account settings.",
+      "welcome": "Welcome back, {email}",
+      "welcomeFallback": "Welcome to your account",
+      "description": "Manage your orders, saved addresses, loyalty rewards, and account settings.",
+      "sections": {
+        "orders": {
+          "title": "Order history",
+          "description": "View past orders and track current shipments."
+        },
+        "addresses": {
+          "title": "Saved addresses",
+          "description": "Add or edit shipping addresses for faster checkout."
+        },
+        "loyalty": {
+          "title": "Loyalty rewards",
+          "description": "Earn points on every purchase and redeem at checkout."
+        },
+        "settings": {
+          "title": "Account settings",
+          "description": "Change your password and email preferences."
+        }
+      }
+    },
+    "settings": {
+      "metaTitle": "Account Settings",
+      "metaDescription": "Change your password and manage account preferences.",
+      "title": "Account Settings",
+      "description": "Update your password and account preferences.",
+      "changePassword": {
+        "title": "Change password",
+        "currentPasswordLabel": "Current password",
+        "newPasswordLabel": "New password",
+        "confirmPasswordLabel": "Confirm new password",
+        "submit": "Update password",
+        "submitting": "Updating...",
+        "successMessage": "Password updated successfully. Other devices have been signed out.",
+        "errorWeak": "Password must be at least 8 characters with uppercase, lowercase, and a number.",
+        "errorMismatch": "New passwords do not match.",
+        "errorUnauthorized": "You must be signed in to change your password.",
+        "errorGeneric": "Could not update password. Please try again."
+      }
+    }
   }
 }

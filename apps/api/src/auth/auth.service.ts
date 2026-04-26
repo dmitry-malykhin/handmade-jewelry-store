@@ -161,6 +161,33 @@ export class AuthService {
     ])
   }
 
+  async changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string,
+  ): Promise<void> {
+    const user = await this.usersService.findById(userId)
+    if (!user) throw new UnauthorizedException('User not found')
+
+    const passwordMatches = await this.usersService.verifyPassword(currentPassword, user.password)
+    if (!passwordMatches) {
+      throw new UnauthorizedException('Current password is incorrect')
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, PASSWORD_RESET_TOKEN_HASH_ROUNDS)
+
+    // Atomic: update password + revoke all sessions on other devices.
+    // User stays logged in on the current device because the access token is still valid
+    // until it expires (~15 min) — they get a fresh refresh token next request.
+    await this.prismaService.$transaction([
+      this.prismaService.user.update({
+        where: { id: userId },
+        data: { password: hashedPassword },
+      }),
+      this.prismaService.refreshToken.deleteMany({ where: { userId } }),
+    ])
+  }
+
   async logout(userId: string, tokenId: string): Promise<void> {
     // Delete only this session — other devices remain logged in
     await this.prismaService.refreshToken.deleteMany({
