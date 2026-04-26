@@ -602,5 +602,60 @@
     "pageLoadError": "Algo salió mal al cargar esta página.",
     "goHome": "Ir a la página principal",
     "goBack": "Volver"
+  },
+  "account": {
+    "title": "Mi Cuenta",
+    "nav": {
+      "label": "Navegación de cuenta",
+      "overview": "Resumen",
+      "orders": "Pedidos",
+      "addresses": "Direcciones",
+      "loyalty": "Recompensas",
+      "settings": "Configuración"
+    },
+    "overview": {
+      "metaTitle": "Mi Cuenta",
+      "metaDescription": "Gestiona tus pedidos, direcciones y configuración de cuenta.",
+      "welcome": "Bienvenido de nuevo, {email}",
+      "welcomeFallback": "Bienvenido a tu cuenta",
+      "description": "Gestiona pedidos, direcciones guardadas, recompensas de fidelidad y configuración.",
+      "sections": {
+        "orders": {
+          "title": "Historial de pedidos",
+          "description": "Consulta pedidos anteriores y rastrea envíos actuales."
+        },
+        "addresses": {
+          "title": "Direcciones guardadas",
+          "description": "Añade o edita direcciones de envío para un pago más rápido."
+        },
+        "loyalty": {
+          "title": "Recompensas de fidelidad",
+          "description": "Gana puntos en cada compra y canjéalos al pagar."
+        },
+        "settings": {
+          "title": "Configuración de cuenta",
+          "description": "Cambia tu contraseña y preferencias de correo."
+        }
+      }
+    },
+    "settings": {
+      "metaTitle": "Configuración de Cuenta",
+      "metaDescription": "Cambia tu contraseña y gestiona las preferencias de cuenta.",
+      "title": "Configuración de Cuenta",
+      "description": "Actualiza tu contraseña y preferencias de cuenta.",
+      "changePassword": {
+        "title": "Cambiar contraseña",
+        "currentPasswordLabel": "Contraseña actual",
+        "newPasswordLabel": "Nueva contraseña",
+        "confirmPasswordLabel": "Confirmar nueva contraseña",
+        "submit": "Actualizar contraseña",
+        "submitting": "Actualizando...",
+        "successMessage": "Contraseña actualizada correctamente. Otras sesiones han sido cerradas.",
+        "errorWeak": "La contraseña debe tener al menos 8 caracteres con mayúscula, minúscula y un número.",
+        "errorMismatch": "Las nuevas contraseñas no coinciden.",
+        "errorUnauthorized": "Debes iniciar sesión para cambiar tu contraseña.",
+        "errorGeneric": "No se pudo actualizar la contraseña. Inténtalo de nuevo."
+      }
+    }
   }
 }

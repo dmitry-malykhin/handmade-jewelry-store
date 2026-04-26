@@ -325,4 +325,45 @@ describe('AuthService', () => {
       )
     })
   })
+
+  describe('changePassword', () => {
+    it('updates password and revokes all sessions when current password is correct', async () => {
+      mockUsersService.findById.mockResolvedValueOnce(mockUser)
+      mockUsersService.verifyPassword.mockResolvedValueOnce(true)
+      mockPrismaService.$transaction.mockResolvedValueOnce(undefined)
+
+      await authService.changePassword(mockUser.id, 'current_password', 'NewStrong123')
+
+      expect(mockUsersService.verifyPassword).toHaveBeenCalledWith(
+        'current_password',
+        mockUser.password,
+      )
+      expect(mockPrismaService.$transaction).toHaveBeenCalledTimes(1)
+      expect(mockPrismaService.user.update).toHaveBeenCalledWith({
+        where: { id: mockUser.id },
+        data: { password: 'hashed_value' },
+      })
+      expect(mockPrismaService.refreshToken.deleteMany).toHaveBeenCalledWith({
+        where: { userId: mockUser.id },
+      })
+    })
+
+    it('throws UnauthorizedException when current password is incorrect', async () => {
+      mockUsersService.findById.mockResolvedValueOnce(mockUser)
+      mockUsersService.verifyPassword.mockResolvedValueOnce(false)
+
+      await expect(
+        authService.changePassword(mockUser.id, 'wrong_password', 'NewStrong123'),
+      ).rejects.toThrow(UnauthorizedException)
+      expect(mockPrismaService.$transaction).not.toHaveBeenCalled()
+    })
+
+    it('throws UnauthorizedException when user is not found', async () => {
+      mockUsersService.findById.mockResolvedValueOnce(null)
+
+      await expect(
+        authService.changePassword('non-existent-id', 'pwd', 'NewStrong123'),
+      ).rejects.toThrow(UnauthorizedException)
+    })
+  })
 })
