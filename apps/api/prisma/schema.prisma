@@ -79,8 +79,32 @@ model User {
   orders               Order[]
   reviews              Review[]
   wishlist             Wishlist?
+  addresses            Address[]
   createdAt            DateTime       @default(now())
   updatedAt            DateTime       @updatedAt
+}
+
+// Saved shipping addresses for returning customers.
+// Field names match the ShippingAddress JSON snapshot stored on Order so the same
+// frontend types can be reused. isDefault marks the address pre-selected at checkout —
+// service ensures only one address per user has isDefault=true.
+model Address {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fullName     String
+  addressLine1 String
+  addressLine2 String?
+  city         String
+  state        String?
+  postalCode   String
+  country      String   @default("US")
+  phone        String?
+  isDefault    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([userId])
 }
 
 // One row per active session — replaces the single refreshToken field on User.

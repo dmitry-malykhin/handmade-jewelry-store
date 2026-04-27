@@ -1,6 +1,7 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { SentryModule } from '@sentry/nestjs/setup'
+import { AddressesModule } from './addresses/addresses.module'
 import { AdminModule } from './admin/admin.module'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
@@ -32,6 +33,7 @@ import { UsersModule } from './users/users.module'
     UsersModule,
     AuthModule,
     AdminModule,
+    AddressesModule,
     ProductsModule,
     CategoriesModule,
     OrdersModule,
