@@ -10,9 +10,10 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common'
-import { Role } from '@prisma/client'
+import { Role, type User } from '@prisma/client'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
 import { RolesGuard } from '../auth/guards/roles.guard'
+import { CurrentUser } from '../common/decorators/current-user.decorator'
 import { Roles } from '../common/decorators/roles.decorator'
 import { CreateOrderDto } from './dto/create-order.dto'
 import { OrderQueryDto } from './dto/order-query.dto'
@@ -34,6 +35,12 @@ export class OrdersController {
   @Roles(Role.ADMIN)
   findAll(@Query() orderQueryDto: OrderQueryDto) {
     return this.ordersService.findAll(orderQueryDto)
+  }
+
+  @Get('my')
+  @UseGuards(JwtAuthGuard)
+  findMyOrders(@CurrentUser() user: User) {
+    return this.ordersService.findUserOrders(user.id)
   }
 
   @Get(':id')

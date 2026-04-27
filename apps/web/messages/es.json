@@ -638,6 +638,29 @@
         }
       }
     },
+    "orders": {
+      "metaTitle": "Historial de Pedidos",
+      "metaDescription": "Consulta tus pedidos anteriores y rastrea envíos actuales.",
+      "title": "Historial de Pedidos",
+      "description": "Consulta pedidos anteriores y rastrea envíos actuales.",
+      "loading": "Cargando pedidos",
+      "loadError": "No se pudieron cargar los pedidos. Por favor, inténtalo de nuevo.",
+      "emptyTitle": "Aún no hay pedidos",
+      "emptyDescription": "Cuando hagas un pedido, aparecerá aquí.",
+      "emptyAction": "Ver joyería",
+      "orderNumber": "Pedido",
+      "itemCount": "{count, plural, one {# artículo} other {# artículos}}",
+      "status": {
+        "PENDING": "Pendiente",
+        "PAID": "Pagado",
+        "PROCESSING": "Procesando",
+        "SHIPPED": "Enviado",
+        "DELIVERED": "Entregado",
+        "CANCELLED": "Cancelado",
+        "REFUNDED": "Reembolsado",
+        "PARTIALLY_REFUNDED": "Reembolsado parcialmente"
+      }
+    },
     "settings": {
       "metaTitle": "Configuración de Cuenta",
       "metaDescription": "Cambia tu contraseña y gestiona las preferencias de cuenta.",

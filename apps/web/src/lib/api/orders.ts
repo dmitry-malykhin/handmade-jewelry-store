@@ -141,6 +141,12 @@ export async function fetchOrderById(orderId: string): Promise<OrderDetails> {
   return apiClient<OrderDetails>(`/api/orders/${orderId}`)
 }
 
+export async function fetchMyOrders(accessToken: string): Promise<OrderDetails[]> {
+  return apiClient<OrderDetails[]>('/api/orders/my', {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  })
+}
+
 export async function createOrder(payload: CreateOrderPayload): Promise<CreatedOrder> {
   return apiClient<CreatedOrder>('/api/orders', {
     method: 'POST',

@@ -167,6 +167,31 @@ describe('OrdersService', () => {
     })
   })
 
+  // ── findUserOrders ────────────────────────────────────────────────────────
+
+  describe('findUserOrders()', () => {
+    it('returns orders for the given userId, newest first, with items', async () => {
+      mockPrismaService.order.findMany.mockResolvedValue([mockCreatedOrder])
+
+      const orders = await ordersService.findUserOrders('user-1')
+
+      expect(mockPrismaService.order.findMany).toHaveBeenCalledWith({
+        where: { userId: 'user-1' },
+        include: { items: true },
+        orderBy: { createdAt: 'desc' },
+      })
+      expect(orders).toEqual([mockCreatedOrder])
+    })
+
+    it('returns empty array when user has no orders', async () => {
+      mockPrismaService.order.findMany.mockResolvedValue([])
+
+      const orders = await ordersService.findUserOrders('user-with-no-orders')
+
+      expect(orders).toEqual([])
+    })
+  })
+
   // ── findOneById ───────────────────────────────────────────────────────────
 
   describe('findOneById()', () => {
