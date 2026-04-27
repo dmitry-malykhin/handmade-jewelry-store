@@ -107,6 +107,14 @@ export class OrdersService {
     }
   }
 
+  async findUserOrders(userId: string) {
+    return this.prismaService.order.findMany({
+      where: { userId },
+      include: { items: true },
+      orderBy: { createdAt: 'desc' },
+    })
+  }
+
   async findOneById(orderId: string) {
     const order = await this.prismaService.order.findUnique({
       where: { id: orderId },

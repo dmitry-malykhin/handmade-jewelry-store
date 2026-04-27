@@ -638,6 +638,29 @@
         }
       }
     },
+    "orders": {
+      "metaTitle": "Order History",
+      "metaDescription": "View your past orders and track current shipments.",
+      "title": "Order History",
+      "description": "View past orders and track current shipments.",
+      "loading": "Loading orders",
+      "loadError": "Could not load your orders. Please try again.",
+      "emptyTitle": "No orders yet",
+      "emptyDescription": "When you place an order, it will appear here.",
+      "emptyAction": "Browse jewelry",
+      "orderNumber": "Order",
+      "itemCount": "{count, plural, one {# item} other {# items}}",
+      "status": {
+        "PENDING": "Pending",
+        "PAID": "Paid",
+        "PROCESSING": "Processing",
+        "SHIPPED": "Shipped",
+        "DELIVERED": "Delivered",
+        "CANCELLED": "Cancelled",
+        "REFUNDED": "Refunded",
+        "PARTIALLY_REFUNDED": "Partially refunded"
+      }
+    },
     "settings": {
       "metaTitle": "Account Settings",
       "metaDescription": "Change your password and manage account preferences.",
