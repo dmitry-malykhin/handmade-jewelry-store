@@ -39,6 +39,10 @@ export function AddressesManager() {
       .catch(() => undefined)
   }
 
+  function handleAddNewClick() {
+    setIsCreating(true)
+  }
+
   async function handleSetDefault(addressId: string) {
     if (!accessToken) return
     try {
@@ -169,7 +173,7 @@ export function AddressesManager() {
         </ul>
       )}
 
-      <Button onClick={() => setIsCreating(true)} disabled={addresses.length >= MAX_ADDRESSES}>
+      <Button onClick={handleAddNewClick} disabled={addresses.length >= MAX_ADDRESSES}>
         {t('addNew')}
       </Button>
       {addresses.length >= MAX_ADDRESSES && (

@@ -15,6 +15,7 @@ import { OrdersModule } from './orders/orders.module'
 import { PaymentsModule } from './payments/payments.module'
 import { PrismaModule } from './prisma/prisma.module'
 import { ProductsModule } from './products/products.module'
+import { ReviewsModule } from './reviews/reviews.module'
 import { StripeModule } from './stripe/stripe.module'
 import { UploadModule } from './upload/upload.module'
 import { UsersModule } from './users/users.module'
@@ -35,6 +36,7 @@ import { UsersModule } from './users/users.module'
     AdminModule,
     AddressesModule,
     ProductsModule,
+    ReviewsModule,
     CategoriesModule,
     OrdersModule,
     StripeModule,
