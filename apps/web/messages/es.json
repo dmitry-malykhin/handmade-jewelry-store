@@ -721,5 +721,29 @@
         "errorGeneric": "No se pudo actualizar la contraseña. Inténtalo de nuevo."
       }
     }
+  },
+  "productReviews": {
+    "heading": "Opiniones de Clientes",
+    "totalCount": "{count, plural, =0 {Aún no hay opiniones} one {# opinión} other {# opiniones}}",
+    "writeReview": "Escribir opinión",
+    "signInToReview": "Inicia sesión para escribir una opinión.",
+    "purchaseRequired": "Podrás dejar una opinión cuando recibas este producto.",
+    "alreadyReviewed": "Ya has opinado sobre este producto. ¡Gracias por tu feedback!",
+    "loadError": "No se pudieron cargar las opiniones. Actualiza la página.",
+    "emptyState": "Sé el primero en opinar sobre este producto.",
+    "form": {
+      "title": "Comparte tu experiencia",
+      "ratingLabel": "Tu valoración",
+      "commentLabel": "Comentario (opcional)",
+      "commentPlaceholder": "¿Cómo se ve, queda, se siente? ¿Lo recomendarías?",
+      "commentHelper": "Hasta 2000 caracteres.",
+      "submit": "Enviar opinión",
+      "submitting": "Enviando...",
+      "submittedSuccess": "¡Gracias! Tu opinión ha sido publicada.",
+      "errorRatingRequired": "Selecciona una valoración de 1 a 5 estrellas.",
+      "errorUnauthorized": "Debes iniciar sesión para opinar.",
+      "errorSessionExpired": "Tu sesión ha expirado. Inicia sesión de nuevo.",
+      "errorGeneric": "No se pudo enviar la opinión. Inténtalo de nuevo."
+    }
   }
 }

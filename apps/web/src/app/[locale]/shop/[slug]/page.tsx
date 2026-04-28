@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { fetchProductBySlug } from '@/lib/api/products'
 import { generateBreadcrumbJsonLd, generateProductJsonLd } from '@/lib/seo/json-ld'
+import { ReviewsSection } from '@/components/features/reviews/reviews-section'
 import { ProductDetail } from './_components/product-detail'
 
 // ISR — same revalidation window as catalog so product data stays fresh
@@ -116,6 +117,12 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
       <div className="container mx-auto px-4 py-8">
         <ProductDetail product={product} />
+        <ReviewsSection
+          productId={product.id}
+          productSlug={product.slug}
+          initialAvgRating={product.avgRating}
+          initialReviewCount={product.reviewCount}
+        />
       </div>
     </>
   )

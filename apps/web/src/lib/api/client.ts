@@ -21,12 +21,17 @@ export class ApiError extends Error {
 }
 
 export async function apiClient<T>(path: string, options?: RequestInit): Promise<T> {
+  // Spread options first so that the headers below override any incomplete
+  // headers passed via options. Without this order, options.headers (e.g. with
+  // only Authorization) would replace the merged headers and Content-Type
+  // would be lost — the request body then arrives as text/plain and NestJS
+  // body-parser silently discards it.
   const response = await fetch(`${API_BASE_URL}${path}`, {
+    ...options,
     headers: {
       'Content-Type': 'application/json',
       ...options?.headers,
     },
-    ...options,
   })
 
   if (!response.ok) {

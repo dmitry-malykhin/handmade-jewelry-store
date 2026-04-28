@@ -721,5 +721,29 @@
         "errorGeneric": "Could not update password. Please try again."
       }
     }
+  },
+  "productReviews": {
+    "heading": "Customer Reviews",
+    "totalCount": "{count, plural, =0 {No reviews yet} one {# review} other {# reviews}}",
+    "writeReview": "Write a review",
+    "signInToReview": "Please sign in to write a review.",
+    "purchaseRequired": "You can leave a review after this product has been delivered to you.",
+    "alreadyReviewed": "You've already reviewed this product. Thanks for sharing your feedback!",
+    "loadError": "Could not load reviews. Please refresh the page.",
+    "emptyState": "Be the first to review this product.",
+    "form": {
+      "title": "Share your experience",
+      "ratingLabel": "Your rating",
+      "commentLabel": "Comment (optional)",
+      "commentPlaceholder": "How does it look, fit, feel? Would you recommend it?",
+      "commentHelper": "Up to 2000 characters.",
+      "submit": "Submit review",
+      "submitting": "Submitting...",
+      "submittedSuccess": "Thanks! Your review has been published.",
+      "errorRatingRequired": "Please select a rating from 1 to 5 stars.",
+      "errorUnauthorized": "You must be signed in to review.",
+      "errorSessionExpired": "Your session has expired. Please sign in again.",
+      "errorGeneric": "Could not submit review. Please try again."
+    }
   }
 }

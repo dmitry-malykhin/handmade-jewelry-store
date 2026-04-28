@@ -197,6 +197,54 @@ export async function seedReviews(
   )
 }
 
+/**
+ * Seeds a DELIVERED order for the test user containing every product.
+ * This satisfies the verified-purchase guard in ReviewsService and makes the
+ * "leave a review" flow testable on every product out of the box.
+ */
+export async function seedTestUserDeliveredOrder(
+  prisma: PrismaClient,
+  testUserId: string,
+  productMap: Record<string, { id: string; price: unknown; title: string; slug: string }>,
+) {
+  const products = Object.values(productMap)
+  const subtotal = products.reduce((sum, product) => sum + Number(product.price), 0)
+  const shippingCost = 0
+  const total = subtotal + shippingCost
+
+  await prisma.order.upsert({
+    where: { id: 'seed-order-test-user-delivered' },
+    update: {},
+    create: {
+      id: 'seed-order-test-user-delivered',
+      userId: testUserId,
+      status: 'DELIVERED',
+      subtotal,
+      shippingCost,
+      total,
+      shippingAddress: {
+        fullName: 'Test User',
+        addressLine1: '123 Seed St',
+        city: 'San Francisco',
+        state: 'CA',
+        postalCode: '94102',
+        country: 'US',
+      },
+      shippedAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
+      deliveredAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+      source: 'seed',
+      items: {
+        create: products.map((product) => ({
+          productId: product.id,
+          productSnapshot: { title: product.title, slug: product.slug },
+          quantity: 1,
+          price: product.price as number,
+        })),
+      },
+    },
+  })
+}
+
 export async function seedWishlist(
   prisma: PrismaClient,
   testUserId: string,
@@ -237,6 +285,11 @@ async function main() {
 
     const { adminUser, testUser } = await seedUsers(prisma)
     console.log(`  ✓ 2 users (${adminUser.email}, ${testUser.email})`)
+
+    // Order must be seeded BEFORE reviews — the verified-purchase guard in
+    // ReviewsService requires a DELIVERED order to exist for any review.
+    await seedTestUserDeliveredOrder(prisma, testUser.id, productMap)
+    console.log('  ✓ 1 delivered order for test user (all products)')
 
     await seedReviews(prisma, testUser.id, productMap)
     console.log('  ✓ 2 reviews')
