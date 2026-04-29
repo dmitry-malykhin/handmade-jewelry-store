@@ -136,7 +136,9 @@
     "sizeGuide": "Guía de tallas",
     "copyright": "Senichka. Todos los derechos reservados.",
     "privacy": "Política de privacidad",
-    "terms": "Términos de servicio"
+    "terms": "Términos de servicio",
+    "newsletterHeading": "Mantente al día",
+    "newsletterDescription": "Nuevas colecciones, reposiciones y descuentos exclusivos para suscriptores — directo a tu correo."
   },
   "catalog": {
     "metaTitle": "Toda la joyería",
@@ -745,5 +747,17 @@
       "errorSessionExpired": "Tu sesión ha expirado. Inicia sesión de nuevo.",
       "errorGeneric": "No se pudo enviar la opinión. Inténtalo de nuevo."
     }
+  },
+  "newsletter": {
+    "formLabel": "Suscripción al boletín",
+    "label": "Correo electrónico",
+    "placeholder": "tu@ejemplo.com",
+    "submit": "Suscribirse",
+    "submitting": "Suscribiendo…",
+    "helper": "Te enviaremos un correo de confirmación. Cancela cuando quieras.",
+    "successTitle": "¡Casi listo!",
+    "successMessage": "Revisa tu correo para confirmar la suscripción.",
+    "errorInvalidEmail": "Introduce un correo electrónico válido.",
+    "errorGeneric": "No se pudo suscribir. Inténtalo más tarde."
   }
 }

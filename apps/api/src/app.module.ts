@@ -11,6 +11,7 @@ import { RequestLoggerMiddleware } from './common/middleware/request-logger.midd
 import { ContactModule } from './contact/contact.module'
 import { HealthModule } from './health/health.module'
 import { LoggerModule } from './logger/logger.module'
+import { NewsletterModule } from './newsletter/newsletter.module'
 import { OrdersModule } from './orders/orders.module'
 import { PaymentsModule } from './payments/payments.module'
 import { PrismaModule } from './prisma/prisma.module'
@@ -43,6 +44,7 @@ import { UsersModule } from './users/users.module'
     PaymentsModule,
     UploadModule,
     ContactModule,
+    NewsletterModule,
     HealthModule,
   ],
   controllers: [AppController],

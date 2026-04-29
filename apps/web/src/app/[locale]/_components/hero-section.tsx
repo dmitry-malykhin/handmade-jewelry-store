@@ -1,5 +1,6 @@
 import { useTranslations } from 'next-intl'
 import { Badge } from '@/components/ui/badge'
+import { NewsletterForm } from '@/components/features/newsletter/newsletter-form'
 
 /**
  * Pure presentational component — reads translations via useTranslations.
@@ -18,6 +19,9 @@ export function HeroSection() {
         {t('title')}
       </h1>
       <p className="mt-3 text-base text-muted-foreground sm:text-lg">{t('description')}</p>
+      <div className="mt-8">
+        <NewsletterForm variant="hero" />
+      </div>
     </div>
   )
 }

@@ -110,6 +110,9 @@ importers:
       stripe:
         specifier: ^21.0.1
         version: 21.0.1(@types/node@22.19.15)
+      undici:
+        specifier: ^8.1.0
+        version: 8.1.0
       winston:
         specifier: ^3.19.0
         version: 3.19.0
@@ -6577,6 +6580,10 @@ packages:
   undici@7.24.5:
     resolution: {integrity: sha512-3IWdCpjgxp15CbJnsi/Y9TCDE7HWVN19j1hmzVhoAkY/+CJx449tVxT5wZc1Gwg8J+P0LWvzlBzxYRnHJ+1i7Q==}
     engines: {node: '>=20.18.1'}
+
+  undici@8.1.0:
+    resolution: {integrity: sha512-E9MkTS4xXLnRPYqxH2e6Hr2/49e7WFDKczKcCaFH4VaZs2iNvHMqeIkyUAD9vM8kujy9TjVrRlQ5KkdEJxB2pw==}
+    engines: {node: '>=22.19.0'}
 
   universalify@2.0.1:
     resolution: {integrity: sha512-gptHNQghINnc/vTGIk0SOFGFNXw7JVrlRUtConJRlvaw6DuX0wO5Jeko9sWrMBhh+PsYAZ7oXAiOnf/UKogyiw==}
@@ -14064,6 +14071,8 @@ snapshots:
   undici-types@6.21.0: {}
 
   undici@7.24.5: {}
+
+  undici@8.1.0: {}
 
   universalify@2.0.1: {}
 
