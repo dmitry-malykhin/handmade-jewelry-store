@@ -136,7 +136,9 @@
     "sizeGuide": "Size Guide",
     "copyright": "Senichka. All rights reserved.",
     "privacy": "Privacy Policy",
-    "terms": "Terms of Service"
+    "terms": "Terms of Service",
+    "newsletterHeading": "Stay in the loop",
+    "newsletterDescription": "New collections, restocks, and subscriber-only discounts — straight to your inbox."
   },
   "catalog": {
     "metaTitle": "All Jewelry",
@@ -745,5 +747,17 @@
       "errorSessionExpired": "Your session has expired. Please sign in again.",
       "errorGeneric": "Could not submit review. Please try again."
     }
+  },
+  "newsletter": {
+    "formLabel": "Newsletter signup",
+    "label": "Email address",
+    "placeholder": "you@example.com",
+    "submit": "Subscribe",
+    "submitting": "Subscribing…",
+    "helper": "We'll send a confirmation email. Unsubscribe anytime.",
+    "successTitle": "Almost there!",
+    "successMessage": "Check your inbox to confirm your subscription.",
+    "errorInvalidEmail": "Please enter a valid email address.",
+    "errorGeneric": "Could not subscribe. Please try again later."
   }
 }

@@ -5,9 +5,19 @@ import './instrument'
 import { ValidationPipe } from '@nestjs/common'
 import { HttpAdapterHost, NestFactory } from '@nestjs/core'
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston'
+import { ProxyAgent, setGlobalDispatcher } from 'undici'
 import { AppModule } from './app.module'
 import { HttpExceptionFilter } from './common/filters/http-exception.filter'
 import { SentryGlobalFilter } from '@sentry/nestjs/setup'
+
+// Node 22's built-in fetch (undici) does not honour HTTP(S)_PROXY env vars by default.
+// Local dev behind a corporate / personal VPN proxy needs an explicit dispatcher,
+// otherwise outbound calls (Klaviyo, Stripe, Resend) bypass the proxy and fail.
+// Production deploys do not set these vars → no behaviour change.
+const proxyUrl = process.env.HTTPS_PROXY ?? process.env.https_proxy
+if (proxyUrl) {
+  setGlobalDispatcher(new ProxyAgent(proxyUrl))
+}
 
 async function bootstrap() {
   // rawBody: true — required for Stripe webhook signature verification.

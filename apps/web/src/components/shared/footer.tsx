@@ -2,6 +2,7 @@ import Image from 'next/image'
 import { useTranslations } from 'next-intl'
 import { Link } from '@/i18n/navigation'
 import { CookiePreferencesButton } from '@/components/shared/cookie-preferences-button'
+import { NewsletterForm } from '@/components/features/newsletter/newsletter-form'
 
 /**
  * Site footer — Server Component.
@@ -42,6 +43,21 @@ export function Footer() {
   return (
     <footer className="border-t bg-background">
       <div className="container mx-auto px-4 py-12">
+        <section
+          aria-labelledby="footer-newsletter-heading"
+          className="mb-10 flex flex-col gap-3 border-b border-border pb-10 md:flex-row md:items-center md:justify-between"
+        >
+          <div className="max-w-md">
+            <h2 id="footer-newsletter-heading" className="text-base font-medium text-foreground">
+              {t('newsletterHeading')}
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">{t('newsletterDescription')}</p>
+          </div>
+          <div className="md:w-[28rem]">
+            <NewsletterForm variant="footer" />
+          </div>
+        </section>
+
         <div className="grid grid-cols-2 gap-6 sm:gap-8 md:grid-cols-4">
           <div className="col-span-2 md:col-span-1">
             <Image
