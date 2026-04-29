@@ -1,5 +1,11 @@
 # Senichka — Handmade Beaded Jewelry
 
+[![CI](https://github.com/dmitry-malykhin/handmade-jewelry-store/actions/workflows/ci.yml/badge.svg)](https://github.com/dmitry-malykhin/handmade-jewelry-store/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js&logoColor=white)](https://nextjs.org/)
+[![NestJS](https://img.shields.io/badge/NestJS-10-E0234E?logo=nestjs&logoColor=white)](https://nestjs.com/)
+
 Production-ready e-commerce platform for handmade beaded jewelry.
 Built with Next.js 15, NestJS, PostgreSQL, Stripe, and AWS.
 
@@ -126,7 +132,7 @@ handmade-jewelry-store/
 
 ```bash
 # Clone
-git clone https://github.com/mitrich83/handmade-jewelry-store.git
+git clone https://github.com/dmitry-malykhin/handmade-jewelry-store.git
 cd handmade-jewelry-store
 
 # Install dependencies
@@ -223,6 +229,21 @@ NEXT_PUBLIC_SENTRY_DSN=https://...
 
 ---
 
+## Architecture & engineering decisions
+
+This project is documented in depth — these are the key design decisions and rationales:
+
+- [Domain analysis](docs/07_DOMAIN_ANALYSIS.md) — entity modeling, schema design choices
+- [Order status state machine](docs/08_ORDER_STATUS_MODEL.md) — allowed transitions, Stripe event mapping
+- [Multi-currency strategy](docs/09_MULTI_CURRENCY.md) — USD-first storage, display-time conversion
+- [Measurement systems](docs/10_MEASUREMENT_SYSTEMS.md) — metric storage, imperial display
+- [SEO rules](docs/05_SEO_RULES.md) — metadata, JSON-LD, Core Web Vitals
+- [Observability stack](docs/13_OBSERVABILITY_OVERVIEW.md) — logging, error tracking, uptime
+- [Logging conventions](docs/14_LOGGING.md) — Winston, correlation IDs, sanitization
+- [Error tracking & alerting](docs/15_ERROR_TRACKING_ALERTING.md) — Sentry setup, health endpoint
+
+---
+
 ## License
 
-Private repository. All rights reserved.
+[MIT](LICENSE) © 2026 Dmitry Malykhin
