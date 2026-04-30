@@ -7,6 +7,8 @@ export interface WishlistProduct {
   description: string
   price: string
   stock: number
+  stockType: 'IN_STOCK' | 'MADE_TO_ORDER' | 'ONE_OF_A_KIND'
+  productionDays: number
   images: string[]
   material: string | null
   avgRating: number

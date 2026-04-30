@@ -1,8 +1,9 @@
-import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { ReactNode } from 'react'
 import { CheckoutEntry } from '../checkout-entry'
+import { useAuthStore } from '@/store/auth.store'
 
 vi.mock('next-intl', () => ({
   useTranslations: () => (key: string) => key,
@@ -57,6 +58,11 @@ vi.mock('../checkout-payment-form', () => ({
     </div>
   ),
 }))
+
+// Reset auth state between tests so the skip-gateway behaviour is deterministic.
+beforeEach(() => {
+  useAuthStore.getState().clearTokens()
+})
 
 describe('CheckoutEntry — gateway screen', () => {
   it('renders the entry screen with guest and auth options', () => {
@@ -139,5 +145,31 @@ describe('CheckoutEntry — multi-step flow', () => {
     await userEvent.click(screen.getByText('back-payment'))
 
     expect(screen.getByTestId('checkout-shipping-method-form')).toBeInTheDocument()
+  })
+})
+
+describe('CheckoutEntry — authenticated user skips the gateway', () => {
+  // Stand-in JWT — three dot-separated segments; only the middle base64-encoded
+  // payload is decoded by the auth store. role/user fields are not used here.
+  const fakeJwt =
+    'header.' + btoa(JSON.stringify({ sub: 'u1', email: 't@test.com', role: 'USER' })) + '.sig'
+
+  it('renders the address form (step 1) directly when user is logged in', async () => {
+    useAuthStore.getState().setTokens(fakeJwt, 'refresh-token')
+
+    render(<CheckoutEntry />)
+
+    // Skip-gateway runs in a useEffect so the address form appears asynchronously.
+    await waitFor(() => {
+      expect(screen.getByTestId('checkout-address-form')).toBeInTheDocument()
+    })
+    expect(screen.queryByText('continueAsGuest')).not.toBeInTheDocument()
+  })
+
+  it('still shows the gateway when the user is NOT authenticated', () => {
+    render(<CheckoutEntry />)
+
+    expect(screen.getByText('continueAsGuest')).toBeInTheDocument()
+    expect(screen.queryByTestId('checkout-address-form')).not.toBeInTheDocument()
   })
 })

@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { useCartTotalPrice } from '@/store/cart.store'
+import { useCheckoutTotalPrice } from '@/store/cart.store'
 import {
   SHIPPING_OPTIONS,
   calculateShippingCost,
@@ -32,7 +32,7 @@ interface ShippingOptionViewModel {
 
 export function CheckoutShippingMethodForm({ onNext, onBack }: CheckoutShippingMethodFormProps) {
   const t = useTranslations('checkoutPage')
-  const cartSubtotal = useCartTotalPrice()
+  const cartSubtotal = useCheckoutTotalPrice()
   const [selectedOptionId, setSelectedOptionId] = useState<ShippingOptionId>('standard')
 
   // Precompute display data for each option — avoids redundant calls inside map

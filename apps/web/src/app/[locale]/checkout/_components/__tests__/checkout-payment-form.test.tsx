@@ -23,7 +23,7 @@ vi.mock('../checkout-stripe-form', () => ({
 }))
 
 vi.mock('@/store/cart.store', () => ({
-  useCartTotalPrice: () => 49.98,
+  useCheckoutTotalPrice: () => 49.98,
 }))
 
 vi.mock('@stripe/stripe-js', () => ({

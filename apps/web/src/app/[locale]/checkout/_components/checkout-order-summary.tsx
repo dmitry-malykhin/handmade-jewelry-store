@@ -1,7 +1,7 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
-import { useCartItems, useCartTotalPrice } from '@/store/cart.store'
+import { useCheckoutItems, useCheckoutTotalPrice } from '@/store/cart.store'
 import {
   SHIPPING_OPTIONS,
   DEFAULT_SHIPPING_OPTION_ID,
@@ -22,8 +22,8 @@ interface CheckoutOrderSummaryProps {
 
 export function CheckoutOrderSummary({ shippingCost, selectedOption }: CheckoutOrderSummaryProps) {
   const t = useTranslations('checkoutPage')
-  const cartItems = useCartItems()
-  const cartSubtotal = useCartTotalPrice()
+  const cartItems = useCheckoutItems()
+  const cartSubtotal = useCheckoutTotalPrice()
 
   // SHIPPING_OPTIONS always contains 'standard' — defined in the same file
   const defaultOption = SHIPPING_OPTIONS.find((option) => option.id === DEFAULT_SHIPPING_OPTION_ID)

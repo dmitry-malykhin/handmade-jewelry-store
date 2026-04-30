@@ -6,7 +6,7 @@ import * as paymentsApi from '@/lib/api/payments'
 import type { CheckoutAddressFormValues } from '../../checkout-address-schema'
 
 vi.mock('@/store/cart.store', () => ({
-  useCartItems: () => [
+  useCheckoutItems: () => [
     {
       productId: 'prod_1',
       title: 'Silver Ring',

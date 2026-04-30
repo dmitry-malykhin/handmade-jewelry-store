@@ -37,7 +37,7 @@ const mockCartItems = [
 ]
 
 vi.mock('@/store/cart.store', () => ({
-  useCartItems: () => mockCartItems,
+  useCheckoutItems: () => mockCartItems,
 }))
 
 const mockAddressValues: CheckoutAddressFormValues = {

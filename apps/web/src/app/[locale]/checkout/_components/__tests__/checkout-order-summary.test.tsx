@@ -38,8 +38,8 @@ const mockCartItems = [
 ]
 
 vi.mock('@/store/cart.store', () => ({
-  useCartItems: () => mockCartItems,
-  useCartTotalPrice: () => 230.0, // 50×2 + 130×1
+  useCheckoutItems: () => mockCartItems,
+  useCheckoutTotalPrice: () => 230.0, // 50×2 + 130×1
 }))
 
 const EXPLICIT_SHIPPING_COST = 9.99

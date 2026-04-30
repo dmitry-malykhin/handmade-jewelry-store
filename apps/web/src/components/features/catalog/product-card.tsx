@@ -16,7 +16,10 @@ export async function ProductCard({ product, isPriority = false }: ProductCardPr
 
   const primaryImage = product.images[0] ?? '/placeholder-product.jpg'
   const formattedPrice = parseFloat(product.price).toFixed(2)
-  const isInStock = product.stock > 0
+  // Handmade business model: stock=0 doesn't block the sale — the master crafts
+  // on order. The only true dead-end is a sold-out ONE_OF_A_KIND piece.
+  const isPermanentlySoldOut = product.stockType === 'ONE_OF_A_KIND' && product.stock === 0
+  const isMadeOnDemand = product.stock === 0 && !isPermanentlySoldOut
 
   return (
     <article className="group relative flex flex-col overflow-hidden rounded-lg border border-border bg-card transition-shadow hover:shadow-md">
@@ -31,18 +34,23 @@ export async function ProductCard({ product, isPriority = false }: ProductCardPr
             className="object-cover transition-transform duration-300 group-hover:scale-105"
             priority={isPriority}
           />
-          {!isInStock && (
+          {isPermanentlySoldOut && (
             <div className="absolute inset-0 flex items-center justify-center bg-background/60">
-              <span className="text-sm font-medium text-muted-foreground">{t('outOfStock')}</span>
+              <span className="text-sm font-medium text-muted-foreground">{t('soldOut')}</span>
             </div>
           )}
         </figure>
       </Link>
 
       <div className="flex flex-1 flex-col gap-2 p-4">
-        {product.stockType !== 'IN_STOCK' && (
+        {product.stockType !== 'IN_STOCK' && product.stock > 0 && (
           <Badge variant="secondary" className="w-fit text-xs">
             {product.stockType === 'MADE_TO_ORDER' ? t('madeToOrder') : t('oneOfAKind')}
+          </Badge>
+        )}
+        {isMadeOnDemand && (
+          <Badge variant="secondary" className="w-fit text-xs">
+            {t('madeOnDemand', { days: product.productionDays })}
           </Badge>
         )}
 

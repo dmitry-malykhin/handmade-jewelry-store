@@ -88,7 +88,11 @@
     "addToCart": "Add to cart",
     "added": "Added",
     "addMore": "Add one more to cart",
-    "outOfStock": "Out of stock"
+    "viewCart": "View cart",
+    "addedToast": "Added \"{title}\" to your cart",
+    "outOfStock": "Out of stock",
+    "soldOut": "Sold out",
+    "buyNow": "Buy Now"
   },
   "cookieBanner": {
     "title": "We use cookies",
@@ -153,7 +157,9 @@
     "emptyDescription": "Try adjusting your filters or check back later.",
     "imageAlt": "handmade jewelry",
     "outOfStock": "Out of stock",
+    "soldOut": "Sold out",
     "madeToOrder": "Made to order",
+    "madeOnDemand": "Made to order — ready in {days} days",
     "oneOfAKind": "One of a kind",
     "ratingLabel": "{rating} out of 5 stars, {count} reviews",
     "filtersLabel": "Product filters",
@@ -730,13 +736,20 @@
       "title": "Wishlist",
       "description": "Pieces you saved for later. We'll email you when out-of-stock items are back.",
       "loadError": "Could not load your wishlist. Please refresh the page.",
-      "outOfStock": "Out of stock",
-      "removeFromWishlist": "Remove",
+      "removeFromWishlist": "Remove from wishlist",
       "removing": "Removing…",
       "errorRemove": "Could not remove the item. Please try again.",
       "emptyTitle": "Your wishlist is empty",
       "emptyDescription": "Tap the heart on any product to save it for later.",
-      "emptyCta": "Browse the shop"
+      "emptyCta": "Browse the shop",
+      "badgeMadeToOrder": "Made to order",
+      "badgeOneOfAKind": "One of a kind",
+      "badgeMadeOnDemand": "Crafted in {days} days",
+      "onlyNLeft": "{count, plural, one {Only # left} other {Only # left}}",
+      "ratingLabel": "{rating} out of 5 stars, {count} reviews",
+      "shipsAfterCrafting": "Ships after the master crafts your piece — about {days} business days.",
+      "soldOutTitle": "Sold — one of a kind",
+      "soldOutNotice": "This unique piece has been claimed and cannot be remade."
     }
   },
   "productReviews": {

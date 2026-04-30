@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { loadStripe } from '@stripe/stripe-js'
 import { Elements } from '@stripe/react-stripe-js'
 import { useLocale, useTranslations } from 'next-intl'
-import { useCartTotalPrice } from '@/store/cart.store'
+import { useCheckoutTotalPrice } from '@/store/cart.store'
 import { CheckoutOrderSummary } from './checkout-order-summary'
 import { CheckoutSteps } from './checkout-steps'
 import { CheckoutStripeForm } from './checkout-stripe-form'
@@ -30,8 +30,8 @@ export function CheckoutPaymentForm({
 }: CheckoutPaymentFormProps) {
   const t = useTranslations('checkoutPage')
   const locale = useLocale()
-  const cartTotalPrice = useCartTotalPrice()
-  const totalInCents = Math.round((cartTotalPrice + shippingCost) * 100)
+  const checkoutTotalPrice = useCheckoutTotalPrice()
+  const totalInCents = Math.round((checkoutTotalPrice + shippingCost) * 100)
 
   const { orderId, clientSecret, isLoading, error } = useInitiateCheckout(
     addressValues,
