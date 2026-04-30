@@ -611,6 +611,7 @@
       "label": "Account navigation",
       "overview": "Overview",
       "orders": "Orders",
+      "wishlist": "Wishlist",
       "addresses": "Addresses",
       "loyalty": "Loyalty",
       "settings": "Settings"
@@ -722,6 +723,20 @@
         "errorUnauthorized": "You must be signed in to change your password.",
         "errorGeneric": "Could not update password. Please try again."
       }
+    },
+    "wishlist": {
+      "metaTitle": "Wishlist",
+      "metaDescription": "Products you've saved for later.",
+      "title": "Wishlist",
+      "description": "Pieces you saved for later. We'll email you when out-of-stock items are back.",
+      "loadError": "Could not load your wishlist. Please refresh the page.",
+      "outOfStock": "Out of stock",
+      "removeFromWishlist": "Remove",
+      "removing": "Removing…",
+      "errorRemove": "Could not remove the item. Please try again.",
+      "emptyTitle": "Your wishlist is empty",
+      "emptyDescription": "Tap the heart on any product to save it for later.",
+      "emptyCta": "Browse the shop"
     }
   },
   "productReviews": {
@@ -759,5 +774,10 @@
     "successMessage": "Check your inbox to confirm your subscription.",
     "errorInvalidEmail": "Please enter a valid email address.",
     "errorGeneric": "Could not subscribe. Please try again later."
+  },
+  "wishlist": {
+    "addToWishlist": "Add to wishlist",
+    "removeFromWishlist": "Remove from wishlist",
+    "errorGeneric": "Could not update your wishlist. Please try again."
   }
 }

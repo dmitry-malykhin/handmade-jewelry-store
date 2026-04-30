@@ -8,8 +8,10 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useAuthStore } from '@/store/auth.store'
+import { useWishlistStore } from '@/store/wishlist.store'
 import { registerUser } from '@/lib/api/auth'
 import { ApiError } from '@/lib/api/client'
+import { mergeGuestWishlist } from '@/lib/api/wishlist'
 
 export function RegisterForm() {
   const t = useTranslations('auth')
@@ -55,6 +57,19 @@ export function RegisterForm() {
     try {
       const tokens = await registerUser(email, password)
       setTokens(tokens.accessToken, tokens.refreshToken)
+      // Carry over the guest wishlist (localStorage) so the user keeps the items
+      // they bookmarked before creating the account. Failures are silent — the
+      // local list remains as a fallback.
+      const guestProductIds = useWishlistStore.getState().productIds
+      if (guestProductIds.length > 0) {
+        mergeGuestWishlist(tokens.accessToken, guestProductIds)
+          .then((merged) => {
+            useWishlistStore.getState().setAll(merged.map((product) => product.id))
+          })
+          .catch(() => {
+            // No-op — see comment above.
+          })
+      }
       router.push('/')
     } catch (error) {
       if (error instanceof ApiError && error.status === 409) {

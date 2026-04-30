@@ -1,12 +1,13 @@
 import { Module } from '@nestjs/common'
 import { AuthModule } from '../auth/auth.module'
 import { PrismaModule } from '../prisma/prisma.module'
+import { WishlistModule } from '../wishlist/wishlist.module'
 import { AdminProductsController } from './admin-products.controller'
 import { ProductsController } from './products.controller'
 import { ProductsService } from './products.service'
 
 @Module({
-  imports: [PrismaModule, AuthModule],
+  imports: [PrismaModule, AuthModule, WishlistModule],
   controllers: [ProductsController, AdminProductsController],
   providers: [ProductsService],
 })

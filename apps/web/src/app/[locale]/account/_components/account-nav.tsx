@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils'
 const ACCOUNT_LINKS = [
   { href: '/account', key: 'overview' },
   { href: '/account/orders', key: 'orders' },
+  { href: '/account/wishlist', key: 'wishlist' },
   { href: '/account/addresses', key: 'addresses' },
   { href: '/account/loyalty', key: 'loyalty' },
   { href: '/account/settings', key: 'settings' },

@@ -22,6 +22,10 @@ import {
   buildContactMessageEmail,
   type ContactMessageEmailData,
 } from './templates/contact-message.template'
+import {
+  buildBackInStockEmail,
+  type BackInStockEmailData,
+} from './templates/back-in-stock.template'
 
 // TODO: replace with verified domain address after DNS setup (e.g. orders@yourdomain.com)
 const FROM_ADDRESS = 'onboarding@resend.dev'
@@ -60,6 +64,11 @@ export class EmailService {
 
   async sendRefundProcessed(data: RefundProcessedData): Promise<void> {
     const { subject, html } = buildRefundProcessedEmail(data)
+    await this.send({ to: data.recipientEmail, subject, html })
+  }
+
+  async sendBackInStock(data: BackInStockEmailData): Promise<void> {
+    const { subject, html } = buildBackInStockEmail(data)
     await this.send({ to: data.recipientEmail, subject, html })
   }
 
