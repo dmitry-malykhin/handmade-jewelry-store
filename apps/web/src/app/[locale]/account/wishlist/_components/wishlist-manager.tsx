@@ -2,15 +2,22 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import Image from 'next/image'
-import { Heart } from 'lucide-react'
+import { Heart, X } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { Link } from '@/i18n/navigation'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { AddToCartButton } from '@/components/features/cart/add-to-cart-button'
+import { BuyNowButton } from '@/components/features/cart/buy-now-button'
 import { useAuthStore } from '@/store/auth.store'
 import { useWishlistStore } from '@/store/wishlist.store'
 import { fetchMyWishlist, removeFromWishlist, type WishlistProduct } from '@/lib/api/wishlist'
 import { ApiError } from '@/lib/api/client'
+
+// Stock at or below this number triggers the "Only N left" scarcity badge.
+// Three is the sweet spot for handmade jewellery — most pieces ship in 1–5 unit batches.
+const SCARCITY_THRESHOLD = 3
 
 export function WishlistManager() {
   const t = useTranslations('account.wishlist')
@@ -30,8 +37,6 @@ export function WishlistManager() {
     fetchMyWishlist(accessToken)
       .then(setProducts)
       .catch((error) => {
-        // Stale token → clear it and present the empty-state. AccountAuthGuard will
-        // route the user to /login on next render.
         if (error instanceof ApiError && error.status === 401) {
           clearTokens()
           setProducts([])
@@ -82,7 +87,7 @@ export function WishlistManager() {
         {[0, 1, 2].map((skeleton) => (
           <li
             key={skeleton}
-            className="h-72 animate-pulse rounded-lg border border-border bg-card"
+            className="h-96 animate-pulse rounded-lg border border-border bg-card"
           />
         ))}
       </ul>
@@ -109,10 +114,30 @@ export function WishlistManager() {
       {products.map((product) => {
         const formattedPrice = parseFloat(product.price).toFixed(2)
         const primaryImage = product.images[0] ?? '/placeholder-product.jpg'
-        const isInStock = product.stock > 0
+        // For this handmade store, stock=0 doesn't mean "unavailable" — it means
+        // "the master will craft it after the order is paid". The only true
+        // dead-end is ONE_OF_A_KIND pieces that have already been sold.
+        const isPermanentlySoldOut = product.stockType === 'ONE_OF_A_KIND' && product.stock === 0
+        const isMadeOnDemand = product.stock === 0 && !isPermanentlySoldOut
+        const isLowStock =
+          product.stock > 0 && product.stock <= SCARCITY_THRESHOLD && !isMadeOnDemand
+        const isMadeToOrder = product.stockType === 'MADE_TO_ORDER'
+        const isOneOfAKind = product.stockType === 'ONE_OF_A_KIND' && product.stock > 0
+
         return (
           <li key={product.id}>
-            <article className="flex h-full flex-col overflow-hidden rounded-lg border border-border bg-card">
+            <article className="relative flex h-full flex-col overflow-hidden rounded-lg border border-border bg-card">
+              <button
+                type="button"
+                onClick={() => handleRemove(product.id)}
+                disabled={pendingRemovalId === product.id}
+                aria-label={t('removeFromWishlist')}
+                title={t('removeFromWishlist')}
+                className="absolute right-2 top-2 z-10 inline-flex size-8 items-center justify-center rounded-full border border-border bg-background/90 text-muted-foreground shadow-sm transition-colors hover:bg-accent hover:text-foreground disabled:opacity-50"
+              >
+                <X className="size-4" aria-hidden="true" />
+              </button>
+
               <Link href={`/shop/${product.slug}`} aria-label={product.title}>
                 <figure className="relative aspect-square overflow-hidden bg-accent/10">
                   <Image
@@ -122,35 +147,80 @@ export function WishlistManager() {
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                     className="object-cover"
                   />
-                  {!isInStock && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-background/60">
-                      <span className="text-sm font-medium text-muted-foreground">
-                        {t('outOfStock')}
-                      </span>
-                    </div>
-                  )}
                 </figure>
               </Link>
 
               <div className="flex flex-1 flex-col gap-2 p-4">
+                <div className="flex flex-wrap gap-1">
+                  {isMadeToOrder && (
+                    <Badge variant="secondary" className="text-xs">
+                      {t('badgeMadeToOrder')}
+                    </Badge>
+                  )}
+                  {isOneOfAKind && (
+                    <Badge variant="secondary" className="text-xs">
+                      {t('badgeOneOfAKind')}
+                    </Badge>
+                  )}
+                  {isMadeOnDemand && (
+                    <Badge variant="secondary" className="text-xs">
+                      {t('badgeMadeOnDemand', { days: product.productionDays })}
+                    </Badge>
+                  )}
+                  {isLowStock && (
+                    <Badge
+                      variant="outline"
+                      className="border-amber-500/50 bg-amber-50 text-xs text-amber-900 dark:bg-amber-950/30 dark:text-amber-300"
+                    >
+                      {t('onlyNLeft', { count: product.stock })}
+                    </Badge>
+                  )}
+                </div>
+
                 <Link href={`/shop/${product.slug}`}>
                   <h3 className="line-clamp-2 text-sm font-medium text-foreground hover:text-primary">
                     {product.title}
                   </h3>
                 </Link>
+
+                {product.avgRating > 0 && (
+                  <p
+                    className="text-xs text-muted-foreground"
+                    aria-label={t('ratingLabel', {
+                      rating: product.avgRating,
+                      count: product.reviewCount,
+                    })}
+                  >
+                    {'★'.repeat(Math.round(product.avgRating))}
+                    {'☆'.repeat(5 - Math.round(product.avgRating))}
+                    <span className="ml-1">({product.reviewCount})</span>
+                  </p>
+                )}
+
+                {product.material && (
+                  <p className="line-clamp-1 text-xs text-muted-foreground">{product.material}</p>
+                )}
+
                 <p className="text-base font-semibold text-foreground">
                   <data value={formattedPrice}>${formattedPrice}</data>
                 </p>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="mt-auto"
-                  onClick={() => handleRemove(product.id)}
-                  disabled={pendingRemovalId === product.id}
-                >
-                  {pendingRemovalId === product.id ? t('removing') : t('removeFromWishlist')}
-                </Button>
+
+                {isPermanentlySoldOut ? (
+                  <div className="mt-auto rounded-md border border-dashed border-border bg-muted/40 p-3 text-center">
+                    <p className="text-xs font-medium text-foreground">{t('soldOutTitle')}</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">{t('soldOutNotice')}</p>
+                  </div>
+                ) : (
+                  <div className="mt-auto flex flex-col gap-2 pt-2">
+                    {isMadeOnDemand && (
+                      <p className="text-xs text-muted-foreground">
+                        {t('shipsAfterCrafting', { days: product.productionDays })}
+                      </p>
+                    )}
+                    <BuyNowButton product={product} className="w-full" />
+                    <AddToCartButton product={product} className="w-full" />
+                  </div>
+                )}
               </div>
             </article>
           </li>

@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Link } from '@/i18n/navigation'
 import { Button } from '@/components/ui/button'
+import { useAuthStore } from '@/store/auth.store'
 import { CheckoutAddressForm } from './checkout-address-form'
 import { CheckoutShippingMethodForm } from './checkout-shipping-method-form'
 import { CheckoutPaymentForm } from './checkout-payment-form'
@@ -23,6 +24,7 @@ interface CheckoutFlowState {
 
 export function CheckoutEntry() {
   const t = useTranslations('checkoutPage')
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
 
   const [flowState, setFlowState] = useState<CheckoutFlowState>({
     path: null,
@@ -31,6 +33,18 @@ export function CheckoutEntry() {
     selectedShippingOption: null,
     resolvedShippingCost: 0,
   })
+
+  // Skip the guest/sign-in gateway for authenticated users — they're already
+  // identified, asking them to "continue as guest or sign in" is redundant
+  // friction (especially via the Buy Now flow from /account/wishlist where the
+  // user must be logged in to even be there).
+  // Auth state lives in localStorage; isAuthenticated is `false` on first
+  // render and flips after rehydration, so this effect runs once on hydration.
+  useEffect(() => {
+    if (isAuthenticated && flowState.path === null) {
+      setFlowState((prev) => ({ ...prev, path: 'auth' }))
+    }
+  }, [isAuthenticated, flowState.path])
 
   function handleGuestSelected() {
     setFlowState((prev) => ({ ...prev, path: 'guest', step: 1 }))
@@ -55,7 +69,10 @@ export function CheckoutEntry() {
     setFlowState((prev) => ({ ...prev, step: 2 }))
   }
 
-  if (flowState.path === 'guest') {
+  // Both 'guest' and 'auth' use the same form sequence today. They differ only
+  // semantically: 'auth' came from a logged-in user (gateway was skipped). When
+  // saved-address auto-fill / loyalty wiring lands, 'auth' will diverge.
+  if (flowState.path === 'guest' || flowState.path === 'auth') {
     if (flowState.step === 1) {
       return (
         <CheckoutAddressForm

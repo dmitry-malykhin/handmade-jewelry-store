@@ -9,6 +9,7 @@ import { ConfirmationNextSteps } from './_components/confirmation-next-steps'
 import { ConfirmationOrderItems } from './_components/confirmation-order-items'
 import { ConfirmationOrderSummary } from './_components/confirmation-order-summary'
 import { ConfirmationSuccessHeader } from './_components/confirmation-success-header'
+import { ExpressCheckoutCleanup } from './_components/express-checkout-cleanup'
 import { PaymentFailedContent } from './_components/payment-failed-content'
 
 interface ConfirmationPageProps {
@@ -80,6 +81,7 @@ export default async function ConfirmationPage({ params, searchParams }: Confirm
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-12 sm:px-6">
+      <ExpressCheckoutCleanup />
       <div className="space-y-8">
         <ConfirmationSuccessHeader orderId={order.id} />
 

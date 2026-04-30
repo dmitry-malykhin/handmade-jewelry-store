@@ -88,7 +88,11 @@
     "addToCart": "В корзину",
     "added": "Добавлено",
     "addMore": "Добавить ещё один",
-    "outOfStock": "Нет в наличии"
+    "viewCart": "Перейти в корзину",
+    "addedToast": "«{title}» добавлено в корзину",
+    "outOfStock": "Нет в наличии",
+    "soldOut": "Распродано",
+    "buyNow": "Купить сейчас"
   },
   "cookieBanner": {
     "title": "Мы используем файлы cookie",
@@ -153,7 +157,9 @@
     "emptyDescription": "Попробуйте изменить фильтры или загляните позже.",
     "imageAlt": "украшение ручной работы",
     "outOfStock": "Нет в наличии",
+    "soldOut": "Распродано",
     "madeToOrder": "На заказ",
+    "madeOnDemand": "На заказ — готов через {days} дн.",
     "oneOfAKind": "Единственный экземпляр",
     "ratingLabel": "{rating} из 5 звёзд, {count} отзывов",
     "filtersLabel": "Фильтры товаров",
@@ -730,13 +736,20 @@
       "title": "Избранное",
       "description": "Украшения, которые вы сохранили. Мы напишем, когда товар снова появится в наличии.",
       "loadError": "Не удалось загрузить избранное. Обновите страницу.",
-      "outOfStock": "Нет в наличии",
-      "removeFromWishlist": "Убрать",
+      "removeFromWishlist": "Убрать из избранного",
       "removing": "Убираем…",
       "errorRemove": "Не удалось убрать. Попробуйте снова.",
       "emptyTitle": "В избранном пока ничего нет",
       "emptyDescription": "Нажмите на сердечко на товаре, чтобы сохранить его на потом.",
-      "emptyCta": "Перейти в магазин"
+      "emptyCta": "Перейти в магазин",
+      "badgeMadeToOrder": "На заказ",
+      "badgeOneOfAKind": "Единственный экземпляр",
+      "badgeMadeOnDemand": "Изготовим за {days} дн.",
+      "onlyNLeft": "{count, plural, one {Осталась # шт.} few {Осталось # шт.} other {Осталось # шт.}}",
+      "ratingLabel": "{rating} из 5 звёзд, {count} отзывов",
+      "shipsAfterCrafting": "Мастер изготовит украшение под ваш заказ — около {days} рабочих дней.",
+      "soldOutTitle": "Продано — единственный экземпляр",
+      "soldOutNotice": "Эта уникальная вещь нашла владельца, повторить её невозможно."
     }
   },
   "productReviews": {

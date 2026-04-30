@@ -88,7 +88,11 @@
     "addToCart": "Añadir al carrito",
     "added": "Añadido",
     "addMore": "Añadir uno más al carrito",
-    "outOfStock": "Sin existencias"
+    "viewCart": "Ver carrito",
+    "addedToast": "«{title}» añadido al carrito",
+    "outOfStock": "Sin existencias",
+    "soldOut": "Agotado",
+    "buyNow": "Comprar ahora"
   },
   "cookieBanner": {
     "title": "Usamos cookies",
@@ -153,7 +157,9 @@
     "emptyDescription": "Prueba a ajustar los filtros o vuelve más tarde.",
     "imageAlt": "joya artesanal",
     "outOfStock": "Sin existencias",
+    "soldOut": "Agotado",
     "madeToOrder": "Bajo pedido",
+    "madeOnDemand": "Bajo pedido — listo en {days} días",
     "oneOfAKind": "Pieza única",
     "ratingLabel": "{rating} de 5 estrellas, {count} reseñas",
     "filtersLabel": "Filtros de productos",
@@ -730,13 +736,20 @@
       "title": "Favoritos",
       "description": "Piezas que guardaste para más tarde. Te avisaremos por correo cuando vuelvan a estar disponibles.",
       "loadError": "No se pudo cargar tu lista. Actualiza la página.",
-      "outOfStock": "Agotado",
-      "removeFromWishlist": "Quitar",
+      "removeFromWishlist": "Quitar de favoritos",
       "removing": "Quitando…",
       "errorRemove": "No se pudo quitar. Inténtalo de nuevo.",
       "emptyTitle": "Tu lista está vacía",
       "emptyDescription": "Toca el corazón en cualquier producto para guardarlo aquí.",
-      "emptyCta": "Ver la tienda"
+      "emptyCta": "Ver la tienda",
+      "badgeMadeToOrder": "Sobre pedido",
+      "badgeOneOfAKind": "Pieza única",
+      "badgeMadeOnDemand": "Lista en {days} días",
+      "onlyNLeft": "{count, plural, one {Solo queda #} other {Solo quedan #}}",
+      "ratingLabel": "{rating} de 5 estrellas, {count} opiniones",
+      "shipsAfterCrafting": "El maestro la elaborará tras tu pedido — unos {days} días hábiles.",
+      "soldOutTitle": "Vendida — pieza única",
+      "soldOutNotice": "Esta pieza única ya tiene dueño y no se puede repetir."
     }
   },
   "productReviews": {

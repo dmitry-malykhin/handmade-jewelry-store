@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { createOrder } from '@/lib/api/orders'
 import { createPaymentIntent } from '@/lib/api/payments'
-import { useCartItems } from '@/store/cart.store'
+import { useCheckoutItems } from '@/store/cart.store'
 import { buildOrderPayload } from '../../_lib/build-order-payload'
 import type { CheckoutAddressFormValues } from '../checkout-address-schema'
 
@@ -22,7 +22,7 @@ export function useInitiateCheckout(
   addressValues: CheckoutAddressFormValues,
   shippingCost: number,
 ): InitiateCheckoutResult {
-  const cartItems = useCartItems()
+  const checkoutItems = useCheckoutItems()
 
   const [orderId, setOrderId] = useState<string | null>(null)
   const [clientSecret, setClientSecret] = useState<string | null>(null)
@@ -34,7 +34,7 @@ export function useInitiateCheckout(
 
     async function initiate() {
       try {
-        const orderPayload = buildOrderPayload(cartItems, addressValues, shippingCost)
+        const orderPayload = buildOrderPayload(checkoutItems, addressValues, shippingCost)
         const createdOrder = await createOrder(orderPayload)
 
         if (isCancelled) return

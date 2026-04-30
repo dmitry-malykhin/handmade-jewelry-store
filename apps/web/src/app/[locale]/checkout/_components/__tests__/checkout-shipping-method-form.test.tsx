@@ -11,7 +11,7 @@ vi.mock('next-intl', () => ({
 }))
 
 vi.mock('@/store/cart.store', () => ({
-  useCartTotalPrice: () => 35,
+  useCheckoutTotalPrice: () => 35,
 }))
 
 vi.mock('../checkout-order-summary', () => ({

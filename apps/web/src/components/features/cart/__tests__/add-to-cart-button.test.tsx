@@ -1,9 +1,18 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { render, screen, act } from '@/test-utils'
 import userEvent from '@testing-library/user-event'
 import { AddToCartButton } from '../add-to-cart-button'
 import { useCartStore } from '@/store'
 import type { Product } from '@jewelry/shared'
+
+// Stub the i18n Link so the test doesn't drag in next/navigation transitively.
+vi.mock('@/i18n/navigation', () => ({
+  Link: ({ href, children, ...props }: { href: string; children: React.ReactNode }) => (
+    <a href={href} {...props}>
+      {children}
+    </a>
+  ),
+}))
 
 const inStockProduct: Product = {
   id: 'prod-1',
@@ -32,7 +41,14 @@ const inStockProduct: Product = {
   description: 'A beautiful ring',
 }
 
-const outOfStockProduct: Product = { ...inStockProduct, stock: 0 }
+// stock=0 + IN_STOCK ≠ unavailable in this store — master crafts on demand.
+const madeOnDemandProduct: Product = { ...inStockProduct, stock: 0 }
+// Truly unavailable: a sold one-of-a-kind piece cannot be remade.
+const permanentlySoldOutProduct: Product = {
+  ...inStockProduct,
+  stock: 0,
+  stockType: 'ONE_OF_A_KIND',
+}
 
 beforeEach(() => {
   useCartStore.setState({ items: [] })
@@ -88,42 +104,53 @@ describe('AddToCartButton — product already in cart', () => {
     })
   })
 
-  it('shows "Added" text when the product is already in the cart', () => {
+  it('renders a "View cart" link instead of the add button', () => {
     render(<AddToCartButton product={inStockProduct} />)
 
-    // en.json: cart.added = "Added"
-    expect(screen.getByText('Added')).toBeInTheDocument()
+    const link = screen.getByRole('link', { name: /view cart/i })
+    expect(link).toBeInTheDocument()
+    // Locale prefix is added by the i18n Link wrapper — anywhere in the href is enough.
+    expect(link.getAttribute('href')).toMatch(/\/cart$/)
   })
 
-  it('removes the product from the cart when clicked again (toggle off)', async () => {
+  it('does NOT remove the product when the user clicks the View cart link', async () => {
     render(<AddToCartButton product={inStockProduct} />)
 
-    await userEvent.click(screen.getByRole('button'))
+    await userEvent.click(screen.getByRole('link', { name: /view cart/i }))
 
-    expect(useCartStore.getState().items).toHaveLength(0)
+    // Removal must happen on the cart page itself — clicking the inline CTA
+    // navigates the user there instead of silently emptying the cart.
+    expect(useCartStore.getState().items).toHaveLength(1)
   })
 
-  it('shows "Added" state immediately after clicking "Add to cart"', async () => {
+  it('flips to "View cart" immediately after the first click', async () => {
     useCartStore.setState({ items: [] })
     render(<AddToCartButton product={inStockProduct} />)
 
     await userEvent.click(screen.getByRole('button', { name: /add to cart/i }))
 
-    // After click the item is in the cart → button switches to "Added" permanently
-    expect(screen.getByText('Added')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /view cart/i })).toBeInTheDocument()
   })
 })
 
-describe('AddToCartButton — out of stock', () => {
-  it('renders a disabled button when product stock is 0', () => {
-    render(<AddToCartButton product={outOfStockProduct} />)
+describe('AddToCartButton — handmade availability rules', () => {
+  it('stays enabled when stock=0 but stockType is IN_STOCK (made on demand)', () => {
+    render(<AddToCartButton product={madeOnDemandProduct} />)
 
-    expect(screen.getByRole('button')).toBeDisabled()
+    expect(screen.getByRole('button', { name: /add to cart/i })).not.toBeDisabled()
   })
 
-  it('does not add anything to the cart when out of stock button is rendered', () => {
-    render(<AddToCartButton product={outOfStockProduct} />)
+  it('lets the user add a stock=0 IN_STOCK piece to the cart (master will craft it)', async () => {
+    render(<AddToCartButton product={madeOnDemandProduct} />)
 
-    expect(useCartStore.getState().items).toHaveLength(0)
+    await userEvent.click(screen.getByRole('button', { name: /add to cart/i }))
+
+    expect(useCartStore.getState().items).toHaveLength(1)
+  })
+
+  it('renders a disabled "Sold out" button only for sold ONE_OF_A_KIND pieces', () => {
+    render(<AddToCartButton product={permanentlySoldOutProduct} />)
+
+    expect(screen.getByRole('button')).toBeDisabled()
   })
 })
