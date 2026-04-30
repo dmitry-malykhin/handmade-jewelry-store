@@ -4,6 +4,7 @@ import type { Product } from '@jewelry/shared'
 import { Link } from '@/i18n/navigation'
 import { Badge } from '@/components/ui/badge'
 import { AddToCartButton } from '@/components/features/cart/add-to-cart-button'
+import { WishlistButton } from '@/components/features/wishlist/wishlist-button'
 
 interface ProductCardProps {
   product: Product
@@ -18,7 +19,8 @@ export async function ProductCard({ product, isPriority = false }: ProductCardPr
   const isInStock = product.stock > 0
 
   return (
-    <article className="group flex flex-col overflow-hidden rounded-lg border border-border bg-card transition-shadow hover:shadow-md">
+    <article className="group relative flex flex-col overflow-hidden rounded-lg border border-border bg-card transition-shadow hover:shadow-md">
+      <WishlistButton productId={product.id} variant="card" />
       <Link href={`/shop/${product.slug}`} aria-label={product.title}>
         <figure className="relative aspect-square overflow-hidden bg-accent/10">
           <Image

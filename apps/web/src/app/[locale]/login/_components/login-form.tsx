@@ -9,8 +9,10 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Link } from '@/i18n/navigation'
 import { useAuthStore } from '@/store/auth.store'
+import { useWishlistStore } from '@/store/wishlist.store'
 import { loginUser } from '@/lib/api/auth'
 import { ApiError } from '@/lib/api/client'
+import { mergeGuestWishlist } from '@/lib/api/wishlist'
 
 export function LoginForm() {
   const t = useTranslations('auth')
@@ -31,6 +33,19 @@ export function LoginForm() {
     try {
       const tokens = await loginUser(email, password)
       setTokens(tokens.accessToken, tokens.refreshToken)
+      // Merge guest wishlist (localStorage) into the user's server-side wishlist.
+      // Failures here must not block login, so the call is fire-and-forget with a
+      // catch — the local wishlist stays as a fallback if the merge fails.
+      const guestProductIds = useWishlistStore.getState().productIds
+      if (guestProductIds.length > 0) {
+        mergeGuestWishlist(tokens.accessToken, guestProductIds)
+          .then((merged) => {
+            useWishlistStore.getState().setAll(merged.map((product) => product.id))
+          })
+          .catch(() => {
+            // Stay quiet — local list is the safety net.
+          })
+      }
       router.push('/')
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) {

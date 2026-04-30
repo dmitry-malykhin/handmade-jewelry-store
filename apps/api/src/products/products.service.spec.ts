@@ -2,6 +2,7 @@ import { NotFoundException } from '@nestjs/common'
 import { Test, TestingModule } from '@nestjs/testing'
 import { ProductStatus } from '@prisma/client'
 import { PrismaService } from '../prisma/prisma.service'
+import { BackInStockService } from '../wishlist/back-in-stock.service'
 import { AdminProductQueryDto } from './dto/admin-product-query.dto'
 import { CreateProductDto } from './dto/create-product.dto'
 import { ProductQueryDto, ProductSortField, SortOrder } from './dto/product-query.dto'
@@ -46,12 +47,20 @@ const mockPrismaService = {
   },
 }
 
+const mockBackInStockService = { notifyForProduct: jest.fn() }
+
 describe('ProductsService', () => {
   let productsService: ProductsService
 
   beforeEach(async () => {
+    mockBackInStockService.notifyForProduct.mockReset()
+
     const module: TestingModule = await Test.createTestingModule({
-      providers: [ProductsService, { provide: PrismaService, useValue: mockPrismaService }],
+      providers: [
+        ProductsService,
+        { provide: PrismaService, useValue: mockPrismaService },
+        { provide: BackInStockService, useValue: mockBackInStockService },
+      ],
     }).compile()
 
     productsService = module.get<ProductsService>(ProductsService)
@@ -239,6 +248,39 @@ describe('ProductsService', () => {
       await expect(productsService.update('unknown-slug', { title: 'X' })).rejects.toThrow(
         NotFoundException,
       )
+    })
+
+    it('triggers back-in-stock notifications when stock transitions from 0 to >0', async () => {
+      const outOfStock = { ...mockProduct, stock: 0 }
+      const restocked = { ...mockProduct, stock: 5 }
+      mockPrismaService.product.findUnique.mockResolvedValue(outOfStock)
+      mockPrismaService.product.update.mockResolvedValue(restocked)
+
+      await productsService.update('silver-ring', { stock: 5 })
+
+      expect(mockBackInStockService.notifyForProduct).toHaveBeenCalledWith(restocked.id)
+    })
+
+    it('does NOT trigger back-in-stock when stock stays >0 after the update', async () => {
+      const inStock = { ...mockProduct, stock: 3 }
+      const updated = { ...mockProduct, stock: 7 }
+      mockPrismaService.product.findUnique.mockResolvedValue(inStock)
+      mockPrismaService.product.update.mockResolvedValue(updated)
+
+      await productsService.update('silver-ring', { stock: 7 })
+
+      expect(mockBackInStockService.notifyForProduct).not.toHaveBeenCalled()
+    })
+
+    it('does NOT trigger back-in-stock when stock goes to 0', async () => {
+      const inStock = { ...mockProduct, stock: 3 }
+      const sold = { ...mockProduct, stock: 0 }
+      mockPrismaService.product.findUnique.mockResolvedValue(inStock)
+      mockPrismaService.product.update.mockResolvedValue(sold)
+
+      await productsService.update('silver-ring', { stock: 0 })
+
+      expect(mockBackInStockService.notifyForProduct).not.toHaveBeenCalled()
     })
   })
 

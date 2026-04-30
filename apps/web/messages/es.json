@@ -611,6 +611,7 @@
       "label": "Navegación de cuenta",
       "overview": "Resumen",
       "orders": "Pedidos",
+      "wishlist": "Favoritos",
       "addresses": "Direcciones",
       "loyalty": "Recompensas",
       "settings": "Configuración"
@@ -722,6 +723,20 @@
         "errorUnauthorized": "Debes iniciar sesión para cambiar tu contraseña.",
         "errorGeneric": "No se pudo actualizar la contraseña. Inténtalo de nuevo."
       }
+    },
+    "wishlist": {
+      "metaTitle": "Favoritos",
+      "metaDescription": "Productos que has guardado para más tarde.",
+      "title": "Favoritos",
+      "description": "Piezas que guardaste para más tarde. Te avisaremos por correo cuando vuelvan a estar disponibles.",
+      "loadError": "No se pudo cargar tu lista. Actualiza la página.",
+      "outOfStock": "Agotado",
+      "removeFromWishlist": "Quitar",
+      "removing": "Quitando…",
+      "errorRemove": "No se pudo quitar. Inténtalo de nuevo.",
+      "emptyTitle": "Tu lista está vacía",
+      "emptyDescription": "Toca el corazón en cualquier producto para guardarlo aquí.",
+      "emptyCta": "Ver la tienda"
     }
   },
   "productReviews": {
@@ -759,5 +774,10 @@
     "successMessage": "Revisa tu correo para confirmar la suscripción.",
     "errorInvalidEmail": "Introduce un correo electrónico válido.",
     "errorGeneric": "No se pudo suscribir. Inténtalo más tarde."
+  },
+  "wishlist": {
+    "addToWishlist": "Añadir a favoritos",
+    "removeFromWishlist": "Quitar de favoritos",
+    "errorGeneric": "No se pudo actualizar tu lista. Inténtalo de nuevo."
   }
 }

@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { ProductStatus } from '@prisma/client'
 import { PrismaService } from '../prisma/prisma.service'
+import { BackInStockService } from '../wishlist/back-in-stock.service'
 import { CreateProductDto } from './dto/create-product.dto'
 import { AdminProductQueryDto } from './dto/admin-product-query.dto'
 import { ProductQueryDto, ProductSortField, SortOrder } from './dto/product-query.dto'
@@ -8,7 +9,10 @@ import { UpdateProductDto } from './dto/update-product.dto'
 
 @Injectable()
 export class ProductsService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly backInStockService: BackInStockService,
+  ) {}
 
   async findAll(productQueryDto: ProductQueryDto) {
     const {
@@ -86,13 +90,21 @@ export class ProductsService {
   }
 
   async update(productSlug: string, updateProductDto: UpdateProductDto) {
-    await this.findOneBySlug(productSlug)
+    const previous = await this.findOneBySlug(productSlug)
 
-    return this.prismaService.product.update({
+    const updated = await this.prismaService.product.update({
       where: { slug: productSlug },
       data: updateProductDto,
       include: { category: { select: { name: true, slug: true } } },
     })
+
+    // Back-in-stock fan-out: only when stock genuinely transitions from 0 → >0.
+    // Fire-and-forget so the admin response stays fast; failures are logged inside the service.
+    if (previous.stock === 0 && updated.stock > 0) {
+      void this.backInStockService.notifyForProduct(updated.id)
+    }
+
+    return updated
   }
 
   async remove(productSlug: string) {

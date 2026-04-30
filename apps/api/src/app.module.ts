@@ -20,6 +20,7 @@ import { ReviewsModule } from './reviews/reviews.module'
 import { StripeModule } from './stripe/stripe.module'
 import { UploadModule } from './upload/upload.module'
 import { UsersModule } from './users/users.module'
+import { WishlistModule } from './wishlist/wishlist.module'
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { UsersModule } from './users/users.module'
     UploadModule,
     ContactModule,
     NewsletterModule,
+    WishlistModule,
     HealthModule,
   ],
   controllers: [AppController],
