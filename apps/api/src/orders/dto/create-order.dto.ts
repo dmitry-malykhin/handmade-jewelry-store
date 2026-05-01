@@ -9,9 +9,38 @@ import {
   IsOptional,
   IsPositive,
   IsString,
+  Max,
   Min,
+  registerDecorator,
   ValidateNested,
+  type ValidationOptions,
 } from 'class-validator'
+
+// Handmade business rule — each piece is unique, you can never order
+// two of the same product in the same order. Custom decorator runs on
+// the items[] array of CreateOrderDto and rejects any duplicates.
+function HasUniqueProductIds(validationOptions?: ValidationOptions) {
+  return function (target: object, propertyName: string) {
+    registerDecorator({
+      name: 'hasUniqueProductIds',
+      target: target.constructor,
+      propertyName,
+      options: validationOptions,
+      validator: {
+        validate(value: unknown) {
+          if (!Array.isArray(value)) return false
+          const productIds = value
+            .map((orderItem: { productId?: unknown }) => orderItem?.productId)
+            .filter((productId): productId is string => typeof productId === 'string')
+          return new Set(productIds).size === productIds.length
+        },
+        defaultMessage() {
+          return 'Each handmade piece is unique — you cannot order the same product twice in one order'
+        },
+      },
+    })
+  }
+}
 
 export class OrderItemDto {
   @IsString()
@@ -20,6 +49,7 @@ export class OrderItemDto {
 
   @IsInt()
   @Min(1)
+  @Max(1, { message: 'Each handmade piece is unique — quantity per line item must be 1' })
   quantity: number
 
   @IsNumber({ maxDecimalPlaces: 2 })
@@ -85,6 +115,7 @@ export class CreateOrderDto {
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => OrderItemDto)
+  @HasUniqueProductIds()
   items: OrderItemDto[]
 
   @ValidateNested()

@@ -35,9 +35,16 @@ export function CheckoutOrderSummary({ shippingCost, selectedOption }: CheckoutO
   const resolvedShippingCost = shippingCost ?? calculateShippingCost(displayOption, cartSubtotal)
   const orderTotal = cartSubtotal + resolvedShippingCost
 
+  // Order ETA = the slowest item's production time + carrier transit. The bottleneck
+  // item drives the customer-visible date, otherwise we'd promise an earlier ship for
+  // a multi-item order than we can actually keep.
+  const longestProductionDays = cartItems.reduce(
+    (maxDays, cartItem) => Math.max(maxDays, cartItem.productionDays ?? 0),
+    0,
+  )
   const delivery = calculateEstimatedDelivery(
-    displayOption.businessDaysMin,
-    displayOption.businessDaysMax,
+    displayOption.businessDaysMin + longestProductionDays,
+    displayOption.businessDaysMax + longestProductionDays,
   )
   const estimatedDeliveryRange = formatDeliveryRange(delivery.earliest, delivery.latest)
 

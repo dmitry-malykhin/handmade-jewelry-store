@@ -9,10 +9,12 @@ export const createProductSchema = z.object({
     .number({ message: 'Price must be a number' })
     .positive('Price must be positive')
     .multipleOf(0.01, 'Price can have at most 2 decimal places'),
+  // Handmade business model: stock is binary, 0 (made on order) or 1 (one piece ready to ship).
   stock: z
     .number({ message: 'Stock must be a number' })
     .int('Stock must be a whole number')
-    .min(0, 'Stock cannot be negative'),
+    .min(0, 'Stock cannot be negative')
+    .max(1, 'Each handmade piece is unique — stock can only be 0 or 1'),
   images: z
     .array(z.string().url('Each image must be a valid URL'))
     .min(1, 'At least one image is required')

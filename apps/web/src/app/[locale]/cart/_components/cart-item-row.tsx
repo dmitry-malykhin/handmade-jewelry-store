@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { Minus, Plus, Trash2 } from 'lucide-react'
+import { Trash2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { Link } from '@/i18n/navigation'
 import { Button } from '@/components/ui/button'
@@ -14,18 +14,12 @@ interface CartItemRowProps {
 
 export function CartItemRow({ cartItem }: CartItemRowProps) {
   const t = useTranslations('cartPage')
-  const updateQuantity = useCartStore((state) => state.updateQuantity)
   const removeItem = useCartStore((state) => state.removeItem)
 
   const itemTotal = (cartItem.price * cartItem.quantity).toFixed(2)
-
-  function handleDecrement() {
-    updateQuantity(cartItem.productId, cartItem.quantity - 1)
-  }
-
-  function handleIncrement() {
-    updateQuantity(cartItem.productId, cartItem.quantity + 1)
-  }
+  // productionDays is optional on CartItem (carts persisted before #227 lack it).
+  const productionDays = cartItem.productionDays ?? 0
+  const isMadeOnDemand = productionDays > 0
 
   function handleRemove() {
     removeItem(cartItem.productId)
@@ -63,31 +57,19 @@ export function CartItemRow({ cartItem }: CartItemRowProps) {
           </Button>
         </div>
 
+        {/* Per-item ETA — handmade pieces ship at different speeds, the cart sets
+            the customer's expectation before they reach checkout. */}
+        <p className="text-xs text-muted-foreground">
+          {isMadeOnDemand ? t('etaMadeOnDemand', { days: productionDays }) : t('etaInStock')}
+        </p>
+
         <div className="mt-auto flex items-center justify-between">
-          <div className="flex items-center gap-1" role="group" aria-label={t('quantityLabel')}>
-            <Button
-              variant="outline"
-              size="icon"
-              className="size-11"
-              aria-label={t('decreaseQuantity')}
-              onClick={handleDecrement}
-              disabled={cartItem.quantity <= 1}
-            >
-              <Minus className="size-3" />
-            </Button>
-            <span className="w-8 text-center text-sm font-medium text-foreground">
-              {cartItem.quantity}
-            </span>
-            <Button
-              variant="outline"
-              size="icon"
-              className="size-11"
-              aria-label={t('increaseQuantity')}
-              onClick={handleIncrement}
-            >
-              <Plus className="size-3" />
-            </Button>
-          </div>
+          {/* Quantity is hard-capped at 1 by the handmade business model — every
+              piece is unique. The +/− controls were removed as part of #227; users
+              who want to change quantity simply remove and re-add. */}
+          <p className="text-sm text-muted-foreground" aria-label={t('quantityLabel')}>
+            {t('quantityValue', { quantity: cartItem.quantity })}
+          </p>
 
           <p className="text-sm font-semibold text-foreground">
             <data value={itemTotal}>${itemTotal}</data>

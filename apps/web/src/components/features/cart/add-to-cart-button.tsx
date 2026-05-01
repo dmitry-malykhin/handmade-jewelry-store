@@ -19,6 +19,7 @@ export interface AddToCartProduct {
   price: string
   stock: number
   stockType: 'IN_STOCK' | 'MADE_TO_ORDER' | 'ONE_OF_A_KIND'
+  productionDays: number
   images: string[]
 }
 
@@ -56,6 +57,7 @@ export function AddToCartButton({ product, className }: AddToCartButtonProps) {
       title: product.title,
       price: parseFloat(product.price),
       image: product.images[0] ?? '',
+      productionDays: product.productionDays,
     })
     toast.success(t('addedToast', { title: product.title }))
   }

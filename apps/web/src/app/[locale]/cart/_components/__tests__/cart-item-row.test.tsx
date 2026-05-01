@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { render, screen, act } from '@/test-utils'
+import { render, screen } from '@/test-utils'
 import userEvent from '@testing-library/user-event'
 import { CartItemRow } from '../cart-item-row'
 import { useCartStore } from '@/store'
@@ -17,13 +17,22 @@ const ringCartItem: CartItem = {
   title: 'Silver Ring',
   price: 49.99,
   image: 'https://example.com/ring.jpg',
-  quantity: 2,
+  quantity: 1,
+  productionDays: 0, // in stock — ships fast
+}
+
+const madeToOrderCartItem: CartItem = {
+  productId: 'prod-2',
+  slug: 'gold-pendant',
+  title: 'Gold Pendant',
+  price: 120.0,
+  image: 'https://example.com/pendant.jpg',
+  quantity: 1,
+  productionDays: 5, // made on demand — 5 business days
 }
 
 beforeEach(() => {
-  useCartStore.setState({
-    items: [ringCartItem],
-  })
+  useCartStore.setState({ items: [ringCartItem] })
 })
 
 describe('CartItemRow — rendering', () => {
@@ -36,8 +45,8 @@ describe('CartItemRow — rendering', () => {
   it('displays the line item total (price × quantity)', () => {
     render(<CartItemRow cartItem={ringCartItem} />)
 
-    // 49.99 × 2 = 99.98
-    expect(screen.getByText('$99.98')).toBeInTheDocument()
+    // 49.99 × 1 = 49.99
+    expect(screen.getByText('$49.99')).toBeInTheDocument()
   })
 
   it('renders a link to the product page', () => {
@@ -48,51 +57,24 @@ describe('CartItemRow — rendering', () => {
     expect(links[0]).toHaveAttribute('href', '/shop/silver-ring')
   })
 
-  it('disables the decrease button when quantity is 1', () => {
-    const singleQuantityItem: CartItem = { ...ringCartItem, quantity: 1 }
-    render(<CartItemRow cartItem={singleQuantityItem} />)
-
-    expect(screen.getByRole('button', { name: /decrease quantity/i })).toBeDisabled()
-  })
-})
-
-describe('CartItemRow — quantity controls', () => {
-  it('increments quantity when the increase button is clicked', async () => {
+  it('shows the in-stock ETA copy when productionDays is 0', () => {
     render(<CartItemRow cartItem={ringCartItem} />)
 
-    await userEvent.click(screen.getByRole('button', { name: /increase quantity/i }))
-
-    expect(useCartStore.getState().items[0]?.quantity).toBe(3)
+    expect(screen.getByText(/ships in 1.{0,2}2 business days/i)).toBeInTheDocument()
   })
 
-  it('decrements quantity when the decrease button is clicked', async () => {
+  it('shows the made-on-demand ETA with productionDays when > 0', () => {
+    render(<CartItemRow cartItem={madeToOrderCartItem} />)
+
+    expect(screen.getByText(/5 business days/i)).toBeInTheDocument()
+  })
+
+  it('renders the static "Qty 1" indicator (no +/- controls in the handmade model)', () => {
     render(<CartItemRow cartItem={ringCartItem} />)
 
-    await userEvent.click(screen.getByRole('button', { name: /decrease quantity/i }))
-
-    expect(useCartStore.getState().items[0]?.quantity).toBe(1)
-  })
-
-  it('removes item from cart when decrement is clicked at quantity 1', async () => {
-    act(() => {
-      useCartStore.setState({ items: [{ ...ringCartItem, quantity: 1 }] })
-    })
-    render(<CartItemRow cartItem={{ ...ringCartItem, quantity: 1 }} />)
-
-    // Decrease button is disabled at qty=1 so test remove button instead
-    await userEvent.click(screen.getByRole('button', { name: /remove silver ring from cart/i }))
-
-    expect(useCartStore.getState().items).toHaveLength(0)
-  })
-})
-
-describe('CartItemRow — accessibility', () => {
-  it('renders quantity and remove buttons with 44px touch target (size-11) for Lighthouse compliance', () => {
-    const { container } = render(<CartItemRow cartItem={ringCartItem} />)
-
-    const iconButtons = container.querySelectorAll('.size-11')
-    // Trash button + decrease + increase = 3 buttons with 44px touch target
-    expect(iconButtons.length).toBe(3)
+    expect(screen.getByText(/qty 1/i)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /increase quantity/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /decrease quantity/i })).not.toBeInTheDocument()
   })
 })
 
@@ -103,5 +85,15 @@ describe('CartItemRow — remove', () => {
     await userEvent.click(screen.getByRole('button', { name: /remove silver ring from cart/i }))
 
     expect(useCartStore.getState().items).toHaveLength(0)
+  })
+})
+
+describe('CartItemRow — accessibility', () => {
+  it('renders the remove button with a 44px touch target (size-11) for Lighthouse compliance', () => {
+    const { container } = render(<CartItemRow cartItem={ringCartItem} />)
+
+    const iconButtons = container.querySelectorAll('.size-11')
+    // Only the Trash button remains — quantity controls were removed in #227.
+    expect(iconButtons.length).toBe(1)
   })
 })

@@ -37,7 +37,7 @@ const sampleProduct: Product = {
   title: 'Silver Ring',
   description: 'A beautiful handmade silver ring crafted with love.',
   price: '49.99',
-  stock: 5,
+  stock: 1,
   images: ['https://cdn.example.com/products/silver-ring.jpg'],
   slug: 'silver-ring',
   sku: 'SKU-100',
@@ -87,7 +87,7 @@ describe('EditProductForm', () => {
     mockUpdateAdminProduct.mockResolvedValue({
       ...sampleProduct,
       title: 'Updated Silver Ring',
-      stock: 7,
+      stock: 0,
     })
 
     render(<EditProductForm categories={sampleCategories} product={sampleProduct} />)
@@ -96,9 +96,8 @@ describe('EditProductForm', () => {
     await userEvent.clear(titleInput)
     await userEvent.type(titleInput, 'Updated Silver Ring')
 
-    const stockInput = screen.getByRole('spinbutton', { name: /stock quantity/i })
-    await userEvent.clear(stockInput)
-    await userEvent.type(stockInput, '7')
+    // Stock is now a binary toggle (#227). Click "Made on order" → field value becomes 0.
+    await userEvent.click(screen.getByRole('button', { name: /^made on order$/i }))
 
     await userEvent.click(screen.getByRole('button', { name: /save changes/i }))
 
@@ -107,7 +106,7 @@ describe('EditProductForm', () => {
         'silver-ring',
         expect.objectContaining({
           title: 'Updated Silver Ring',
-          stock: 7,
+          stock: 0,
           images: ['https://cdn.example.com/products/silver-ring.jpg'],
         }),
         'mock-token',

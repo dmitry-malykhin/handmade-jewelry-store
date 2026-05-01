@@ -206,7 +206,10 @@
     "freeShippingThreshold": "Добавьте товаров ещё на ${amount} для бесплатной доставки",
     "freeShippingUnlocked": "🎉 Вы получили бесплатную доставку!",
     "freeShippingLabel": "БЕСПЛАТНО",
-    "freeShippingProgressLabel": "Прогресс до бесплатной доставки"
+    "freeShippingProgressLabel": "Прогресс до бесплатной доставки",
+    "etaInStock": "Отправим за 1–2 рабочих дня",
+    "etaMadeOnDemand": "Отправим примерно через {days} рабочих дней после заказа",
+    "quantityValue": "Кол-во {quantity}"
   },
   "home": {
     "badge": "Скоро",
@@ -389,7 +392,10 @@
     "measurementImperial": "дюймы",
     "measurementMetric": "см",
     "ratingLabel": "{rating} из 5 звёзд, {count} отзывов",
-    "productionTime": "Изготавливается на заказ — готово через {days} рабочих дней"
+    "productionTime": "Изготавливается на заказ — готово через {days} рабочих дней",
+    "inStockShipsFast": "В наличии — отправим за 1–2 рабочих дня",
+    "madeOnDemandETA": "Под заказ — изготовим за {days} рабочих дней",
+    "permanentlySoldOut": "Продано — это изделие было в единственном экземпляре"
   },
   "admin": {
     "panelTitle": "Панель администратора",
@@ -599,7 +605,10 @@
     "orderDetailItemColQty": "Кол-во",
     "orderDetailItemColUnitPrice": "Цена за шт.",
     "orderDetailItemColLineTotal": "Сумма",
-    "orderDetailTimelineBy": "кем: {by}"
+    "orderDetailTimelineBy": "кем: {by}",
+    "productsFormFieldStockHint": "Каждое изделие уникально — выберите «готово к отправке» или «под заказ»",
+    "productsFormStockInStockOption": "В наличии (1 готово)",
+    "productsFormStockMadeOnOrderOption": "Под заказ"
   },
   "errors": {
     "somethingWentWrong": "Что-то пошло не так",

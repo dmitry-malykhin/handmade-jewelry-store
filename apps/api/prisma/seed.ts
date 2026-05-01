@@ -39,7 +39,10 @@ export async function seedProducts(
       description:
         'Handcrafted sterling silver ring featuring a natural rainbow moonstone. Each stone is unique, making every piece one-of-a-kind. Moonstone is known to promote intuition and balance.',
       price: '68.00',
-      stock: 5,
+      // ONE_OF_A_KIND — every moonstone is unique, this exact piece is the one in the photo.
+      stock: 1,
+      stockType: 'ONE_OF_A_KIND' as const,
+      productionDays: 0,
       images: ['https://placehold.co/800x800?text=Moonstone+Ring'],
       slug: 'sterling-silver-moonstone-ring',
       sku: 'RING-001',
@@ -55,7 +58,10 @@ export async function seedProducts(
       description:
         'Delicate stretch bracelet with 6mm natural amazonite beads and sterling silver spacers. Amazonite is known as the stone of hope and success. One size fits most.',
       price: '34.00',
-      stock: 12,
+      // IN_STOCK example — one piece ready to ship today.
+      stock: 1,
+      stockType: 'IN_STOCK' as const,
+      productionDays: 0,
       images: ['https://placehold.co/800x800?text=Amazonite+Bracelet'],
       slug: 'beaded-amazonite-bracelet',
       sku: 'BRAC-001',
@@ -71,7 +77,10 @@ export async function seedProducts(
       description:
         'Multi-strand necklace with genuine turquoise chips and 14k gold-filled chain. Adjustable length 16–18 inches. A boho-chic statement piece for everyday wear.',
       price: '89.00',
-      stock: 8,
+      // MADE_TO_ORDER example — master crafts a fresh one for each order (5 business days).
+      stock: 0,
+      stockType: 'MADE_TO_ORDER' as const,
+      productionDays: 5,
       images: ['https://placehold.co/800x800?text=Turquoise+Necklace'],
       slug: 'turquoise-layered-necklace',
       sku: 'NECK-001',
@@ -86,7 +95,10 @@ export async function seedProducts(
       description:
         'Elegant drop earrings with natural labradorite cabochons set in sterling silver bezels. The labradorite shows a vivid blue-green flash (labradorescence) in the light.',
       price: '52.00',
-      stock: 7,
+      // IN_STOCK example with a finished pair ready to ship.
+      stock: 1,
+      stockType: 'IN_STOCK' as const,
+      productionDays: 0,
       images: ['https://placehold.co/800x800?text=Labradorite+Earrings'],
       slug: 'labradorite-drop-earrings',
       sku: 'EARR-001',
@@ -102,7 +114,10 @@ export async function seedProducts(
       description:
         'Matching necklace, bracelet, and earrings set with natural rose quartz beads. Rose quartz is the stone of unconditional love. A perfect gift set, comes in a kraft gift box.',
       price: '124.00',
-      stock: 4,
+      // MADE_TO_ORDER set — three pieces to assemble, longer lead time (7 business days).
+      stock: 0,
+      stockType: 'MADE_TO_ORDER' as const,
+      productionDays: 7,
       images: ['https://placehold.co/800x800?text=Rose+Quartz+Set'],
       slug: 'rose-quartz-jewelry-set',
       sku: 'SET-001',
