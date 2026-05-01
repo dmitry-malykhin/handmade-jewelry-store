@@ -12,7 +12,9 @@ export async function ProductInfo({ product }: ProductInfoProps) {
   const t = await getTranslations('productDetail')
 
   const formattedPrice = parseFloat(product.price).toFixed(2)
-  const isInStock = product.stock > 0
+  const isReadyToShip = product.stock === 1
+  const isPermanentlySoldOut = product.stockType === 'ONE_OF_A_KIND' && product.stock === 0
+  const isMadeOnDemand = product.stock === 0 && !isPermanentlySoldOut
 
   return (
     <div className="flex flex-col gap-6">
@@ -45,13 +47,22 @@ export async function ProductInfo({ product }: ProductInfoProps) {
         <data value={formattedPrice}>${formattedPrice}</data>
       </p>
 
-      {/* Stock status */}
-      <p
-        className={`text-sm font-medium ${isInStock ? 'text-green-600 dark:text-green-400' : 'text-destructive'}`}
+      {/* Stock + production ETA — always visible so the customer never leaves
+          this page guessing when their piece will arrive. */}
+      <div
+        className={`rounded-lg px-4 py-3 text-sm font-medium ${
+          isPermanentlySoldOut
+            ? 'bg-destructive/10 text-destructive'
+            : isReadyToShip
+              ? 'bg-green-50 text-green-700 dark:bg-green-950/40 dark:text-green-400'
+              : 'bg-accent/20 text-foreground'
+        }`}
         aria-live="polite"
       >
-        {isInStock ? t('inStock', { count: product.stock }) : t('outOfStock')}
-      </p>
+        {isPermanentlySoldOut && t('permanentlySoldOut')}
+        {isReadyToShip && t('inStockShipsFast')}
+        {isMadeOnDemand && t('madeOnDemandETA', { days: product.productionDays })}
+      </div>
 
       {/* Add to cart */}
       <div className="flex items-center gap-4">
@@ -77,13 +88,6 @@ export async function ProductInfo({ product }: ProductInfoProps) {
 
       {/* Dimensions */}
       <ProductDimensions product={product} />
-
-      {/* Production time for made-to-order */}
-      {product.stockType === 'MADE_TO_ORDER' && product.productionDays > 0 && (
-        <p className="rounded-lg bg-accent/20 px-4 py-3 text-sm text-foreground">
-          {t('productionTime', { days: product.productionDays })}
-        </p>
-      )}
     </div>
   )
 }

@@ -177,7 +177,8 @@ describe('CreateProductForm — submission', () => {
       'A beautiful handmade silver ring crafted with love.',
     )
     await userEvent.type(screen.getByRole('spinbutton', { name: /price \(usd\)/i }), '49.99')
-    await userEvent.type(screen.getByRole('spinbutton', { name: /stock quantity/i }), '5')
+    // Stock is now a binary toggle (#227). Click "In stock (1 piece ready)" → field value becomes 1.
+    await userEvent.click(screen.getByRole('button', { name: /in stock \(1 piece ready\)/i }))
 
     // Select category
     await userEvent.click(screen.getByRole('combobox', { name: /category/i }))
@@ -194,7 +195,7 @@ describe('CreateProductForm — submission', () => {
           title: 'Silver Ring',
           slug: 'silver-ring',
           price: 49.99,
-          stock: 5,
+          stock: 1,
           categoryId: 'cat-1',
           images: ['https://s3.amazonaws.com/products/image.jpg'],
         }),

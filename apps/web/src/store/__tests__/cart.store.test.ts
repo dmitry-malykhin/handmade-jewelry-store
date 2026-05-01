@@ -17,6 +17,7 @@ const mockRing = {
   title: 'Sterling Silver Ring',
   price: 49.99,
   image: '/images/ring.jpg',
+  productionDays: 0,
 }
 
 const mockNecklace = {
@@ -25,6 +26,7 @@ const mockNecklace = {
   title: 'Gold Necklace',
   price: 129.99,
   image: '/images/necklace.jpg',
+  productionDays: 5,
 }
 
 // Reset store to empty state before each test — ensures full isolation
@@ -35,7 +37,7 @@ beforeEach(() => {
 // ── addItem ────────────────────────────────────────────────────────────────────
 
 describe('addItem()', () => {
-  it('adds a new product to the cart with quantity 1 by default', () => {
+  it('adds a new product to the cart with quantity 1', () => {
     useCartStore.getState().addItem(mockRing)
 
     const { items } = useCartStore.getState()
@@ -44,26 +46,19 @@ describe('addItem()', () => {
     expect(items[0]?.quantity).toBe(1)
   })
 
-  it('adds a new product with a specified quantity', () => {
+  it('ignores the explicit quantity argument and always stores 1 (handmade business rule)', () => {
     useCartStore.getState().addItem(mockRing, 3)
 
-    expect(useCartStore.getState().items[0]?.quantity).toBe(3)
+    expect(useCartStore.getState().items[0]?.quantity).toBe(1)
   })
 
-  it('increments quantity when the same product is added twice', () => {
+  it('is a no-op when the same product is added twice — never increments past 1', () => {
     useCartStore.getState().addItem(mockRing)
     useCartStore.getState().addItem(mockRing)
 
     const { items } = useCartStore.getState()
-    expect(items).toHaveLength(1) // no duplicate entries
-    expect(items[0]?.quantity).toBe(2)
-  })
-
-  it('increments by the specified quantity on repeated add', () => {
-    useCartStore.getState().addItem(mockRing, 2)
-    useCartStore.getState().addItem(mockRing, 3)
-
-    expect(useCartStore.getState().items[0]?.quantity).toBe(5)
+    expect(items).toHaveLength(1)
+    expect(items[0]?.quantity).toBe(1)
   })
 
   it('keeps multiple different products as separate cart items', () => {
@@ -81,6 +76,7 @@ describe('addItem()', () => {
     expect(cartItem?.title).toBe('Sterling Silver Ring')
     expect(cartItem?.price).toBe(49.99)
     expect(cartItem?.image).toBe('/images/ring.jpg')
+    expect(cartItem?.productionDays).toBe(0)
   })
 })
 
@@ -115,11 +111,11 @@ describe('removeItem()', () => {
 // ── updateQuantity ─────────────────────────────────────────────────────────────
 
 describe('updateQuantity()', () => {
-  it('sets an exact quantity for an existing cart item', () => {
+  it('clamps any quantity > 1 down to 1', () => {
     useCartStore.getState().addItem(mockRing)
     useCartStore.getState().updateQuantity('prod-1', 5)
 
-    expect(useCartStore.getState().items[0]?.quantity).toBe(5)
+    expect(useCartStore.getState().items[0]?.quantity).toBe(1)
   })
 
   it('removes the item when quantity is set to 0', () => {
@@ -161,14 +157,14 @@ describe('useCartTotalItems()', () => {
     expect(result.current).toBe(0)
   })
 
-  it('sums quantities across all cart items', () => {
+  it('counts each product as 1 (quantity is hard-capped at 1)', () => {
     act(() => {
-      useCartStore.getState().addItem(mockRing, 2)
-      useCartStore.getState().addItem(mockNecklace, 3)
+      useCartStore.getState().addItem(mockRing)
+      useCartStore.getState().addItem(mockNecklace)
     })
 
     const { result } = renderHook(() => useCartTotalItems())
-    expect(result.current).toBe(5)
+    expect(result.current).toBe(2)
   })
 })
 
@@ -178,17 +174,15 @@ describe('useCartTotalPrice()', () => {
     expect(result.current).toBe(0)
   })
 
-  it('calculates total price correctly: (price × quantity) summed', () => {
+  it('sums prices across cart items (each item is qty 1)', () => {
     act(() => {
-      // 49.99 × 2 = 99.98
-      useCartStore.getState().addItem(mockRing, 2)
-      // 129.99 × 1 = 129.99
-      useCartStore.getState().addItem(mockNecklace, 1)
+      useCartStore.getState().addItem(mockRing)
+      useCartStore.getState().addItem(mockNecklace)
     })
 
     const { result } = renderHook(() => useCartTotalPrice())
-    // 99.98 + 129.99 = 229.97
-    expect(result.current).toBeCloseTo(229.97, 2)
+    // 49.99 + 129.99 = 179.98
+    expect(result.current).toBeCloseTo(179.98, 2)
   })
 })
 
@@ -205,10 +199,10 @@ describe('expressItem flow', () => {
     expect(useCartStore.getState().expressItem).toEqual({ ...mockRing, quantity: 1 })
   })
 
-  it('setExpressItem accepts an explicit quantity', () => {
+  it('setExpressItem ignores explicit quantity argument and stores 1', () => {
     useCartStore.getState().setExpressItem(mockRing, 3)
 
-    expect(useCartStore.getState().expressItem?.quantity).toBe(3)
+    expect(useCartStore.getState().expressItem?.quantity).toBe(1)
   })
 
   it('clearExpressItem resets to null', () => {
@@ -219,7 +213,7 @@ describe('expressItem flow', () => {
   })
 
   it('setExpressItem does NOT touch the regular cart', () => {
-    useCartStore.getState().addItem(mockRing, 2)
+    useCartStore.getState().addItem(mockRing)
     useCartStore.getState().setExpressItem(mockNecklace)
 
     const state = useCartStore.getState()
@@ -232,7 +226,7 @@ describe('expressItem flow', () => {
 describe('useCheckoutItems()', () => {
   it('returns the regular cart when no express item is set', () => {
     act(() => {
-      useCartStore.getState().addItem(mockRing, 2)
+      useCartStore.getState().addItem(mockRing)
     })
 
     const { result } = renderHook(() => useCheckoutItems())
@@ -242,7 +236,7 @@ describe('useCheckoutItems()', () => {
 
   it('shadows the regular cart with the express item when set', () => {
     act(() => {
-      useCartStore.getState().addItem(mockRing, 2)
+      useCartStore.getState().addItem(mockRing)
       useCartStore.getState().setExpressItem(mockNecklace)
     })
 
@@ -253,7 +247,7 @@ describe('useCheckoutItems()', () => {
 
   it('switches back to the regular cart after clearExpressItem', () => {
     act(() => {
-      useCartStore.getState().addItem(mockRing, 2)
+      useCartStore.getState().addItem(mockRing)
       useCartStore.getState().setExpressItem(mockNecklace)
     })
     act(() => {
@@ -268,17 +262,17 @@ describe('useCheckoutItems()', () => {
 describe('useCheckoutTotalPrice()', () => {
   it('uses the regular cart subtotal when no express item', () => {
     act(() => {
-      useCartStore.getState().addItem(mockRing, 2) // 49.99 × 2 = 99.98
+      useCartStore.getState().addItem(mockRing)
     })
 
     const { result } = renderHook(() => useCheckoutTotalPrice())
-    expect(result.current).toBeCloseTo(99.98, 2)
+    expect(result.current).toBeCloseTo(49.99, 2)
   })
 
   it('uses ONLY the express item when set, ignoring the regular cart', () => {
     act(() => {
-      useCartStore.getState().addItem(mockRing, 5) // would be 249.95 if used
-      useCartStore.getState().setExpressItem(mockNecklace) // 129.99 × 1
+      useCartStore.getState().addItem(mockRing)
+      useCartStore.getState().setExpressItem(mockNecklace)
     })
 
     const { result } = renderHook(() => useCheckoutTotalPrice())

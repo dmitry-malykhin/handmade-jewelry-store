@@ -8,6 +8,7 @@ import {
   IsOptional,
   IsPositive,
   IsString,
+  Max,
   Min,
 } from 'class-validator'
 
@@ -26,6 +27,7 @@ export class CreateProductDto {
 
   @IsInt()
   @Min(0)
+  @Max(1, { message: 'Each handmade piece is unique — stock can only be 0 or 1' })
   stock: number
 
   @IsArray()

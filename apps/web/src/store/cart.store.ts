@@ -12,7 +12,11 @@ interface CartStore {
    */
   expressItem: CartItem | null
 
-  /** Add a product to the cart. If it already exists, increments quantity. */
+  /**
+   * Add a product to the cart. Idempotent — if the product is already in the
+   * cart, the call is a no-op (handmade pieces are unique, quantity is always 1).
+   * The `quantity` parameter is kept for backwards-compat but ignored.
+   */
   addItem: (item: Omit<CartItem, 'quantity'>, quantity?: number) => void
 
   /** Remove a product from the cart entirely. */
@@ -37,19 +41,14 @@ export const useCartStore = create<CartStore>()(
       items: [],
       expressItem: null,
 
-      addItem: (item, quantity = 1) => {
+      addItem: (item, _quantity = 1) => {
         set((state) => {
           const existingItem = state.items.find((cartItem) => cartItem.productId === item.productId)
-          if (existingItem) {
-            return {
-              items: state.items.map((cartItem) =>
-                cartItem.productId === item.productId
-                  ? { ...cartItem, quantity: cartItem.quantity + quantity }
-                  : cartItem,
-              ),
-            }
-          }
-          return { items: [...state.items, { ...item, quantity }] }
+          // Handmade business model — every piece is unique. quantity is hard-capped at 1.
+          // Adding the same product twice is a no-op; UI shows a "View cart" button for
+          // already-in-cart items, but this guard protects any other call site too.
+          if (existingItem) return state
+          return { items: [...state.items, { ...item, quantity: 1 }] }
         })
       },
 
@@ -64,17 +63,23 @@ export const useCartStore = create<CartStore>()(
           get().removeItem(productId)
           return
         }
+        // Clamp to 1 — handmade pieces are always quantity 1 per line item.
+        const clampedQuantity = Math.min(quantity, 1)
         set((state) => ({
           items: state.items.map((cartItem) =>
-            cartItem.productId === productId ? { ...cartItem, quantity } : cartItem,
+            cartItem.productId === productId
+              ? { ...cartItem, quantity: clampedQuantity }
+              : cartItem,
           ),
         }))
       },
 
       clearCart: () => set({ items: [] }),
 
-      setExpressItem: (item, quantity = 1) => {
-        set({ expressItem: { ...item, quantity } })
+      setExpressItem: (item, _quantity = 1) => {
+        // Express checkout for handmade pieces is always 1 unit — buy now flow
+        // mirrors the regular cart's hard-cap.
+        set({ expressItem: { ...item, quantity: 1 } })
       },
 
       clearExpressItem: () => set({ expressItem: null }),

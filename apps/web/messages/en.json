@@ -206,7 +206,10 @@
     "freeShippingThreshold": "Add ${amount} more for free shipping",
     "freeShippingUnlocked": "🎉 You've unlocked free shipping!",
     "freeShippingLabel": "FREE",
-    "freeShippingProgressLabel": "Free shipping progress"
+    "freeShippingProgressLabel": "Free shipping progress",
+    "etaInStock": "Ships in 1–2 business days",
+    "etaMadeOnDemand": "Ships ~{days} business days after order",
+    "quantityValue": "Qty {quantity}"
   },
   "home": {
     "badge": "Coming Soon",
@@ -389,7 +392,10 @@
     "measurementImperial": "in",
     "measurementMetric": "cm",
     "ratingLabel": "{rating} out of 5 stars, {count} reviews",
-    "productionTime": "Handcrafted to order — ready in {days} business days"
+    "productionTime": "Handcrafted to order — ready in {days} business days",
+    "inStockShipsFast": "In stock — ships in 1–2 business days",
+    "madeOnDemandETA": "Made on order — ready in {days} business days",
+    "permanentlySoldOut": "Sold out — this piece was one of a kind"
   },
   "admin": {
     "panelTitle": "Admin Panel",
@@ -599,7 +605,10 @@
     "orderDetailItemColQty": "Qty",
     "orderDetailItemColUnitPrice": "Unit price",
     "orderDetailItemColLineTotal": "Total",
-    "orderDetailTimelineBy": "by {by}"
+    "orderDetailTimelineBy": "by {by}",
+    "productsFormFieldStockHint": "Each handmade piece is unique — choose ready to ship or made on order",
+    "productsFormStockInStockOption": "In stock (1 piece ready)",
+    "productsFormStockMadeOnOrderOption": "Made on order"
   },
   "errors": {
     "somethingWentWrong": "Something went wrong",

@@ -94,7 +94,6 @@ export function CreateProductForm({ categories }: CreateProductFormProps) {
   })
 
   const watchedTitle = watch('title')
-  const watchedStockType = watch('stockType')
 
   // Auto-generate slug from title with 400ms debounce
   useEffect(() => {
@@ -228,16 +227,48 @@ export function CreateProductForm({ categories }: CreateProductFormProps) {
               </div>
             </FormField>
 
-            <FormField label={t('productsFormFieldStock')} error={errors.stock?.message}>
-              <Input
-                {...register('stock', { valueAsNumber: true })}
-                aria-label={t('productsFormFieldStock')}
-                type="number"
-                min="0"
-                step="1"
-                placeholder="0"
-                aria-invalid={!!errors.stock}
-                disabled={isFormDisabled}
+            <FormField
+              label={t('productsFormFieldStock')}
+              error={errors.stock?.message}
+              hint={t('productsFormFieldStockHint')}
+            >
+              <Controller
+                name="stock"
+                control={control}
+                render={({ field }) => (
+                  <div
+                    role="group"
+                    aria-label={t('productsFormFieldStock')}
+                    className="grid grid-cols-2 gap-1 rounded-md border border-input bg-background p-1"
+                  >
+                    <button
+                      type="button"
+                      aria-pressed={field.value === 1}
+                      disabled={isFormDisabled}
+                      onClick={() => field.onChange(1)}
+                      className={`rounded px-3 py-2 text-sm font-medium transition-colors ${
+                        field.value === 1
+                          ? 'bg-primary text-primary-foreground'
+                          : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                      }`}
+                    >
+                      {t('productsFormStockInStockOption')}
+                    </button>
+                    <button
+                      type="button"
+                      aria-pressed={field.value === 0}
+                      disabled={isFormDisabled}
+                      onClick={() => field.onChange(0)}
+                      className={`rounded px-3 py-2 text-sm font-medium transition-colors ${
+                        field.value === 0
+                          ? 'bg-primary text-primary-foreground'
+                          : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                      }`}
+                    >
+                      {t('productsFormStockMadeOnOrderOption')}
+                    </button>
+                  </div>
+                )}
               />
             </FormField>
 
@@ -266,23 +297,21 @@ export function CreateProductForm({ categories }: CreateProductFormProps) {
               />
             </FormField>
 
-            {watchedStockType === 'MADE_TO_ORDER' && (
-              <FormField
-                label={t('productsFormFieldProductionDays')}
-                error={errors.productionDays?.message}
-                hint={t('productsFormFieldProductionDaysHint')}
-              >
-                <Input
-                  {...register('productionDays', { valueAsNumber: true })}
-                  type="number"
-                  min="1"
-                  max="365"
-                  placeholder="7"
-                  aria-invalid={!!errors.productionDays}
-                  disabled={isFormDisabled}
-                />
-              </FormField>
-            )}
+            <FormField
+              label={t('productsFormFieldProductionDays')}
+              error={errors.productionDays?.message}
+              hint={t('productsFormFieldProductionDaysHint')}
+            >
+              <Input
+                {...register('productionDays', { valueAsNumber: true })}
+                type="number"
+                min="0"
+                max="365"
+                placeholder="0"
+                aria-invalid={!!errors.productionDays}
+                disabled={isFormDisabled}
+              />
+            </FormField>
           </div>
         </section>
 

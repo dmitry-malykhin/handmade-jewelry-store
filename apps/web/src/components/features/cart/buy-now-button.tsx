@@ -36,6 +36,7 @@ export function BuyNowButton({ product, className }: BuyNowButtonProps) {
       title: product.title,
       price: parseFloat(product.price),
       image: product.images[0] ?? '',
+      productionDays: product.productionDays,
     })
     router.push('/checkout')
   }

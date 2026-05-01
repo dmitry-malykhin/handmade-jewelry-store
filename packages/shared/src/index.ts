@@ -83,6 +83,10 @@ export interface CartItem {
   price: number // USD, e.g. 49.99
   image: string // URL of the primary product image
   quantity: number
+  // Production lead time (business days) captured at add-to-cart time.
+  // Drives per-item ETA in cart and order ETA at checkout. 0 = ships immediately.
+  // Optional for backwards compatibility with carts persisted before #227.
+  productionDays?: number
 }
 
 // ── User ──────────────────────────────────────────────────────────────────────

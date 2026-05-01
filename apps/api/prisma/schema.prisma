@@ -135,6 +135,8 @@ model Product {
   title          String
   description    String
   price          Decimal    @db.Decimal(10, 2)
+  // Binary stock — 0 (made on order) or 1 (one piece ready). DB-level CHECK constraint
+  // installed in migration 20260501000000_stock_zero_or_one_check.
   stock          Int        @default(0)
   images         String[]   // S3 URLs, uploaded in Issue #21
   slug           String     @unique // mandatory for SEO URLs: /products/silver-ring

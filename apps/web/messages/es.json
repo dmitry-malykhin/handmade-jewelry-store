@@ -206,7 +206,10 @@
     "freeShippingThreshold": "Añade ${amount} más para envío gratuito",
     "freeShippingUnlocked": "🎉 ¡Has desbloqueado el envío gratuito!",
     "freeShippingLabel": "GRATIS",
-    "freeShippingProgressLabel": "Progreso hacia el envío gratuito"
+    "freeShippingProgressLabel": "Progreso hacia el envío gratuito",
+    "etaInStock": "Se envía en 1–2 días hábiles",
+    "etaMadeOnDemand": "Se envía ~{days} días hábiles después del pedido",
+    "quantityValue": "Cant. {quantity}"
   },
   "home": {
     "badge": "Próximamente",
@@ -389,7 +392,10 @@
     "measurementImperial": "pulg.",
     "measurementMetric": "cm",
     "ratingLabel": "{rating} de 5 estrellas, {count} reseñas",
-    "productionTime": "Hecho a mano bajo pedido — listo en {days} días hábiles"
+    "productionTime": "Hecho a mano bajo pedido — listo en {days} días hábiles",
+    "inStockShipsFast": "En stock — se envía en 1–2 días hábiles",
+    "madeOnDemandETA": "Hecho a pedido — listo en {days} días hábiles",
+    "permanentlySoldOut": "Vendido — esta pieza era única"
   },
   "admin": {
     "panelTitle": "Panel de administración",
@@ -599,7 +605,10 @@
     "orderDetailItemColQty": "Cant.",
     "orderDetailItemColUnitPrice": "Precio unitario",
     "orderDetailItemColLineTotal": "Total",
-    "orderDetailTimelineBy": "por {by}"
+    "orderDetailTimelineBy": "por {by}",
+    "productsFormFieldStockHint": "Cada pieza artesanal es única — elige listo para enviar o hecho a pedido",
+    "productsFormStockInStockOption": "En stock (1 pieza lista)",
+    "productsFormStockMadeOnOrderOption": "Hecho a pedido"
   },
   "errors": {
     "somethingWentWrong": "Algo salió mal",
