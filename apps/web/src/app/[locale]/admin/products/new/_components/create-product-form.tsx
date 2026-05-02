@@ -304,6 +304,7 @@ export function CreateProductForm({ categories }: CreateProductFormProps) {
             >
               <Input
                 {...register('productionDays', { valueAsNumber: true })}
+                aria-label={t('productsFormFieldProductionDays')}
                 type="number"
                 min="0"
                 max="365"

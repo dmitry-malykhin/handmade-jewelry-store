@@ -99,6 +99,11 @@ describe('EditProductForm', () => {
     // Stock is now a binary toggle (#227). Click "Made on order" → field value becomes 0.
     await userEvent.click(screen.getByRole('button', { name: /^made on order$/i }))
 
+    // Per #231, when stock=0 productionDays must be ≥ 1 — otherwise Zod refine blocks submit.
+    const productionDaysInput = screen.getByRole('spinbutton', { name: /production days/i })
+    await userEvent.clear(productionDaysInput)
+    await userEvent.type(productionDaysInput, '3')
+
     await userEvent.click(screen.getByRole('button', { name: /save changes/i }))
 
     await waitFor(() => {

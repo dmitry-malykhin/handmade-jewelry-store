@@ -16,10 +16,9 @@ export async function ProductCard({ product, isPriority = false }: ProductCardPr
 
   const primaryImage = product.images[0] ?? '/placeholder-product.jpg'
   const formattedPrice = parseFloat(product.price).toFixed(2)
-  // Handmade business model: stock=0 doesn't block the sale — the master crafts
-  // on order. The only true dead-end is a sold-out ONE_OF_A_KIND piece.
-  const isPermanentlySoldOut = product.stockType === 'ONE_OF_A_KIND' && product.stock === 0
-  const isMadeOnDemand = product.stock === 0 && !isPermanentlySoldOut
+  // Issue #231 — handmade pieces are always orderable. Even an originally
+  // one-of-a-kind sold piece can be re-crafted with a similar stone.
+  const isMadeOnDemand = product.stock === 0
 
   return (
     <article className="group relative flex flex-col overflow-hidden rounded-lg border border-border bg-card transition-shadow hover:shadow-md">
@@ -34,11 +33,6 @@ export async function ProductCard({ product, isPriority = false }: ProductCardPr
             className="object-cover transition-transform duration-300 group-hover:scale-105"
             priority={isPriority}
           />
-          {isPermanentlySoldOut && (
-            <div className="absolute inset-0 flex items-center justify-center bg-background/60">
-              <span className="text-sm font-medium text-muted-foreground">{t('soldOut')}</span>
-            </div>
-          )}
         </figure>
       </Link>
 

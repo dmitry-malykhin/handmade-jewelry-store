@@ -13,8 +13,11 @@ export async function ProductInfo({ product }: ProductInfoProps) {
 
   const formattedPrice = parseFloat(product.price).toFixed(2)
   const isReadyToShip = product.stock === 1
-  const isPermanentlySoldOut = product.stockType === 'ONE_OF_A_KIND' && product.stock === 0
-  const isMadeOnDemand = product.stock === 0 && !isPermanentlySoldOut
+  // Issue #231 — handmade is always orderable. ONE_OF_A_KIND that's been sold
+  // shows a special copy variant ("we can craft a similar one") but the customer
+  // can still order; only the visual framing changes.
+  const isOneOfAKindReorderable = product.stockType === 'ONE_OF_A_KIND' && product.stock === 0
+  const isMadeOnDemand = product.stock === 0 && !isOneOfAKindReorderable
 
   return (
     <div className="flex flex-col gap-6">
@@ -47,21 +50,39 @@ export async function ProductInfo({ product }: ProductInfoProps) {
         <data value={formattedPrice}>${formattedPrice}</data>
       </p>
 
-      {/* Stock + production ETA — always visible so the customer never leaves
-          this page guessing when their piece will arrive. */}
+      {/* Stock + production + shipping ETA. Two-line structure separates the
+          master's precise commitment (top) from the carrier's approximate range
+          (helper) — see docs/18_PRODUCTION_VS_SHIPPING_ETA.md for the rationale. */}
       <div
-        className={`rounded-lg px-4 py-3 text-sm font-medium ${
-          isPermanentlySoldOut
-            ? 'bg-destructive/10 text-destructive'
-            : isReadyToShip
-              ? 'bg-green-50 text-green-700 dark:bg-green-950/40 dark:text-green-400'
-              : 'bg-accent/20 text-foreground'
+        className={`rounded-lg px-4 py-3 ${
+          isReadyToShip
+            ? 'bg-green-50 text-green-700 dark:bg-green-950/40 dark:text-green-400'
+            : 'bg-accent/20 text-foreground'
         }`}
         aria-live="polite"
       >
-        {isPermanentlySoldOut && t('permanentlySoldOut')}
-        {isReadyToShip && t('inStockShipsFast')}
-        {isMadeOnDemand && t('madeOnDemandETA', { days: product.productionDays })}
+        {isReadyToShip && (
+          <>
+            <p className="text-sm font-medium">{t('inStockMainLine')}</p>
+            <p className="mt-1 text-xs opacity-80">{t('inStockHelperLine')}</p>
+          </>
+        )}
+        {isOneOfAKindReorderable && (
+          <>
+            <p className="text-sm font-medium">
+              {t('oneOfAKindReorderableMain', { days: product.productionDays })}
+            </p>
+            <p className="mt-1 text-xs opacity-80">{t('oneOfAKindReorderableHelper')}</p>
+          </>
+        )}
+        {isMadeOnDemand && (
+          <>
+            <p className="text-sm font-medium">
+              {t('madeOnDemandMainLine', { days: product.productionDays })}
+            </p>
+            <p className="mt-1 text-xs opacity-80">{t('madeOnDemandHelperLine')}</p>
+          </>
+        )}
       </div>
 
       {/* Add to cart */}

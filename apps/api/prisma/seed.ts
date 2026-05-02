@@ -128,6 +128,26 @@ export async function seedProducts(
       beadSizeMm: 8.0, // 8mm rose quartz beads
       categorySlug: 'sets',
     },
+    {
+      title: 'Black Onyx Statement Pendant',
+      description:
+        'A bold statement pendant with a polished black onyx stone in a hand-forged sterling silver bezel. The original stone is gone, but the master can hand-pick a similar onyx and craft a comparable piece on order.',
+      price: '94.00',
+      // ONE_OF_A_KIND that's been sold — but per #231 still orderable. The master
+      // sources a similar (not identical) onyx and recreates the design in 2 days.
+      stock: 0,
+      stockType: 'ONE_OF_A_KIND' as const,
+      productionDays: 2,
+      images: ['https://placehold.co/800x800?text=Onyx+Pendant'],
+      slug: 'black-onyx-statement-pendant',
+      sku: 'PEND-001',
+      weight: 6.5,
+      material: 'Natural Black Onyx, Sterling Silver 925',
+      lengthCm: 3.2, // pendant drop length
+      widthCm: 2.0, // bezel width
+      weightGrams: 6.5,
+      categorySlug: 'necklaces',
+    },
   ]
 
   const products = await Promise.all(

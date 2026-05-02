@@ -207,9 +207,9 @@
     "freeShippingUnlocked": "🎉 You've unlocked free shipping!",
     "freeShippingLabel": "FREE",
     "freeShippingProgressLabel": "Free shipping progress",
-    "etaInStock": "Ships in 1–2 business days",
-    "etaMadeOnDemand": "Ships ~{days} business days after order",
-    "quantityValue": "Qty {quantity}"
+    "quantityValue": "Qty {quantity}",
+    "readyToShipToday": "Ready to ship today",
+    "masterCraftsLine": "Master crafts in {days} business days"
   },
   "home": {
     "badge": "Coming Soon",
@@ -277,7 +277,10 @@
     "securePaymentBadge": "256-bit SSL encryption — powered by Stripe",
     "payNow": "Pay {amount}",
     "paymentLoading": "Preparing payment form…",
-    "initiateCheckoutError": "Could not initialize payment. Please go back and try again."
+    "initiateCheckoutError": "Could not initialize payment. Please go back and try again.",
+    "craftingLine": "Crafting: up to {days} business days",
+    "shippingLineStandard": "Shipping: 5–7 business days standard",
+    "shippingLineExpress": "Shipping: 2–3 business days express"
   },
   "confirmationPage": {
     "metaTitle": "Order Confirmed",
@@ -393,9 +396,12 @@
     "measurementMetric": "cm",
     "ratingLabel": "{rating} out of 5 stars, {count} reviews",
     "productionTime": "Handcrafted to order — ready in {days} business days",
-    "inStockShipsFast": "In stock — ships in 1–2 business days",
-    "madeOnDemandETA": "Made on order — ready in {days} business days",
-    "permanentlySoldOut": "Sold out — this piece was one of a kind"
+    "inStockMainLine": "In stock — ships within 1 business day",
+    "inStockHelperLine": "Standard delivery: 5–7 business days",
+    "madeOnDemandMainLine": "Master crafts your piece in {days} business days",
+    "madeOnDemandHelperLine": "Then ships in 5–7 business days standard",
+    "oneOfAKindReorderableMain": "Originally one of a kind — we can craft a similar piece in {days} business days",
+    "oneOfAKindReorderableHelper": "Then ships in 5–7 business days standard"
   },
   "admin": {
     "panelTitle": "Admin Panel",
@@ -529,7 +535,7 @@
     "productsFormStockTypeMADE_TO_ORDER": "Made to order",
     "productsFormStockTypeONE_OF_A_KIND": "One of a kind",
     "productsFormFieldProductionDays": "Production days",
-    "productsFormFieldProductionDaysHint": "Estimated working days to produce this item",
+    "productsFormFieldProductionDaysHint": "Working days needed to craft this piece. Required (≥ 1) when stock is set to \"Made on order\".",
     "productsFormFieldCategory": "Category",
     "productsFormFieldCategoryPlaceholder": "Select a category",
     "productsFormFieldMaterial": "Material (optional)",

@@ -57,16 +57,23 @@ describe('CartItemRow — rendering', () => {
     expect(links[0]).toHaveAttribute('href', '/shop/silver-ring')
   })
 
-  it('shows the in-stock ETA copy when productionDays is 0', () => {
+  it('shows "Ready to ship today" copy when productionDays is 0', () => {
     render(<CartItemRow cartItem={ringCartItem} />)
 
-    expect(screen.getByText(/ships in 1.{0,2}2 business days/i)).toBeInTheDocument()
+    expect(screen.getByText(/ready to ship today/i)).toBeInTheDocument()
   })
 
-  it('shows the made-on-demand ETA with productionDays when > 0', () => {
+  it('shows the production-only crafting copy with productionDays when > 0', () => {
     render(<CartItemRow cartItem={madeToOrderCartItem} />)
 
-    expect(screen.getByText(/5 business days/i)).toBeInTheDocument()
+    expect(screen.getByText(/master crafts in 5 business days/i)).toBeInTheDocument()
+  })
+
+  it('does NOT mention shipping in the cart row (carrier window is shown at checkout only)', () => {
+    render(<CartItemRow cartItem={madeToOrderCartItem} />)
+
+    expect(screen.queryByText(/ships in/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/shipping/i)).not.toBeInTheDocument()
   })
 
   it('renders the static "Qty 1" indicator (no +/- controls in the handmade model)', () => {

@@ -207,9 +207,9 @@
     "freeShippingUnlocked": "🎉 ¡Has desbloqueado el envío gratuito!",
     "freeShippingLabel": "GRATIS",
     "freeShippingProgressLabel": "Progreso hacia el envío gratuito",
-    "etaInStock": "Se envía en 1–2 días hábiles",
-    "etaMadeOnDemand": "Se envía ~{days} días hábiles después del pedido",
-    "quantityValue": "Cant. {quantity}"
+    "quantityValue": "Cant. {quantity}",
+    "readyToShipToday": "Listo para enviar hoy",
+    "masterCraftsLine": "El maestro lo elabora en {days} días hábiles"
   },
   "home": {
     "badge": "Próximamente",
@@ -277,7 +277,10 @@
     "securePaymentBadge": "Cifrado SSL de 256 bits — con Stripe",
     "payNow": "Pagar {amount}",
     "paymentLoading": "Preparando el formulario de pago…",
-    "initiateCheckoutError": "No se pudo inicializar el pago. Vuelve atrás e inténtalo de nuevo."
+    "initiateCheckoutError": "No se pudo inicializar el pago. Vuelve atrás e inténtalo de nuevo.",
+    "craftingLine": "Elaboración: hasta {days} días hábiles",
+    "shippingLineStandard": "Envío: 5–7 días hábiles estándar",
+    "shippingLineExpress": "Envío: 2–3 días hábiles exprés"
   },
   "confirmationPage": {
     "metaTitle": "Pedido confirmado",
@@ -393,9 +396,12 @@
     "measurementMetric": "cm",
     "ratingLabel": "{rating} de 5 estrellas, {count} reseñas",
     "productionTime": "Hecho a mano bajo pedido — listo en {days} días hábiles",
-    "inStockShipsFast": "En stock — se envía en 1–2 días hábiles",
-    "madeOnDemandETA": "Hecho a pedido — listo en {days} días hábiles",
-    "permanentlySoldOut": "Vendido — esta pieza era única"
+    "inStockMainLine": "En stock — se envía en 1 día hábil",
+    "inStockHelperLine": "Entrega estándar: 5–7 días hábiles",
+    "madeOnDemandMainLine": "El maestro elabora tu pieza en {days} días hábiles",
+    "madeOnDemandHelperLine": "Luego se envía en 5–7 días hábiles estándar",
+    "oneOfAKindReorderableMain": "Originalmente única — podemos elaborar una pieza similar en {days} días hábiles",
+    "oneOfAKindReorderableHelper": "Luego se envía en 5–7 días hábiles estándar"
   },
   "admin": {
     "panelTitle": "Panel de administración",
@@ -529,7 +535,7 @@
     "productsFormStockTypeMADE_TO_ORDER": "Por encargo",
     "productsFormStockTypeONE_OF_A_KIND": "Pieza única",
     "productsFormFieldProductionDays": "Días de producción",
-    "productsFormFieldProductionDaysHint": "Días laborables estimados para fabricar este artículo",
+    "productsFormFieldProductionDaysHint": "Días hábiles para elaborar la pieza. Obligatorio (≥ 1) cuando el stock es \"Hecho a pedido\".",
     "productsFormFieldCategory": "Categoría",
     "productsFormFieldCategoryPlaceholder": "Selecciona una categoría",
     "productsFormFieldMaterial": "Material (opcional)",
