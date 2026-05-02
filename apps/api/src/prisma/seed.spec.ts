@@ -78,7 +78,7 @@ describe('seedCategories', () => {
 })
 
 describe('seedProducts', () => {
-  it('upserts exactly 5 products with correct slugs', async () => {
+  it('upserts exactly 6 products with correct slugs', async () => {
     const mockPrismaClient = buildMockPrismaClient()
     const categoryMap = {
       rings: { id: 'cat-rings' },
@@ -93,6 +93,7 @@ describe('seedProducts', () => {
       'turquoise-layered-necklace',
       'labradorite-drop-earrings',
       'rose-quartz-jewelry-set',
+      'black-onyx-statement-pendant',
     ]
 
     expectedSlugs.forEach((slug, index) => {
@@ -101,7 +102,7 @@ describe('seedProducts', () => {
 
     const productMap = await seedProducts(mockPrismaClient as unknown as PrismaClient, categoryMap)
 
-    expect(mockPrismaClient.product.upsert).toHaveBeenCalledTimes(5)
+    expect(mockPrismaClient.product.upsert).toHaveBeenCalledTimes(6)
     expect(Object.keys(productMap)).toEqual(expect.arrayContaining(expectedSlugs))
   })
 

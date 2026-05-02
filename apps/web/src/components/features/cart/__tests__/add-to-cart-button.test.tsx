@@ -148,9 +148,13 @@ describe('AddToCartButton — handmade availability rules', () => {
     expect(useCartStore.getState().items).toHaveLength(1)
   })
 
-  it('renders a disabled "Sold out" button only for sold ONE_OF_A_KIND pieces', () => {
+  it('stays active for ONE_OF_A_KIND pieces with stock=0 (re-craftable per #231)', () => {
     render(<AddToCartButton product={permanentlySoldOutProduct} />)
 
-    expect(screen.getByRole('button')).toBeDisabled()
+    // Per #231: every handmade piece is orderable. Even an originally one-of-a-kind
+    // sold piece can be re-crafted on demand — the disabled "Sold out" branch
+    // was removed.
+    expect(screen.getByRole('button')).not.toBeDisabled()
+    expect(screen.getByRole('button', { name: /add to cart/i })).toBeInTheDocument()
   })
 })

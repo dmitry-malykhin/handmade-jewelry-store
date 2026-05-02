@@ -207,9 +207,9 @@
     "freeShippingUnlocked": "🎉 Вы получили бесплатную доставку!",
     "freeShippingLabel": "БЕСПЛАТНО",
     "freeShippingProgressLabel": "Прогресс до бесплатной доставки",
-    "etaInStock": "Отправим за 1–2 рабочих дня",
-    "etaMadeOnDemand": "Отправим примерно через {days} рабочих дней после заказа",
-    "quantityValue": "Кол-во {quantity}"
+    "quantityValue": "Кол-во {quantity}",
+    "readyToShipToday": "Готово к отправке сегодня",
+    "masterCraftsLine": "Мастер изготовит за {days} рабочих дней"
   },
   "home": {
     "badge": "Скоро",
@@ -277,7 +277,10 @@
     "securePaymentBadge": "256-битное SSL-шифрование — на базе Stripe",
     "payNow": "Оплатить {amount}",
     "paymentLoading": "Подготовка формы оплаты…",
-    "initiateCheckoutError": "Не удалось инициализировать оплату. Вернитесь и попробуйте снова."
+    "initiateCheckoutError": "Не удалось инициализировать оплату. Вернитесь и попробуйте снова.",
+    "craftingLine": "Изготовление: до {days} рабочих дней",
+    "shippingLineStandard": "Доставка: 5–7 рабочих дней стандартная",
+    "shippingLineExpress": "Доставка: 2–3 рабочих дня экспресс"
   },
   "confirmationPage": {
     "metaTitle": "Заказ подтверждён",
@@ -393,9 +396,12 @@
     "measurementMetric": "см",
     "ratingLabel": "{rating} из 5 звёзд, {count} отзывов",
     "productionTime": "Изготавливается на заказ — готово через {days} рабочих дней",
-    "inStockShipsFast": "В наличии — отправим за 1–2 рабочих дня",
-    "madeOnDemandETA": "Под заказ — изготовим за {days} рабочих дней",
-    "permanentlySoldOut": "Продано — это изделие было в единственном экземпляре"
+    "inStockMainLine": "В наличии — отправим в течение 1 рабочего дня",
+    "inStockHelperLine": "Стандартная доставка: 5–7 рабочих дней",
+    "madeOnDemandMainLine": "Мастер изготовит изделие за {days} рабочих дней",
+    "madeOnDemandHelperLine": "Затем отправка стандартной почтой 5–7 рабочих дней",
+    "oneOfAKindReorderableMain": "Изначально единственный экземпляр — мы можем изготовить похожее изделие за {days} рабочих дней",
+    "oneOfAKindReorderableHelper": "Затем отправка стандартной почтой 5–7 рабочих дней"
   },
   "admin": {
     "panelTitle": "Панель администратора",
@@ -529,7 +535,7 @@
     "productsFormStockTypeMADE_TO_ORDER": "Под заказ",
     "productsFormStockTypeONE_OF_A_KIND": "Единственный экземпляр",
     "productsFormFieldProductionDays": "Дней производства",
-    "productsFormFieldProductionDaysHint": "Ориентировочное время изготовления в рабочих днях",
+    "productsFormFieldProductionDaysHint": "Рабочие дни на изготовление. Обязательно (≥ 1), если выбрано «Под заказ».",
     "productsFormFieldCategory": "Категория",
     "productsFormFieldCategoryPlaceholder": "Выберите категорию",
     "productsFormFieldMaterial": "Материал (необязательно)",

@@ -57,10 +57,11 @@ export function CartItemRow({ cartItem }: CartItemRowProps) {
           </Button>
         </div>
 
-        {/* Per-item ETA — handmade pieces ship at different speeds, the cart sets
-            the customer's expectation before they reach checkout. */}
+        {/* Per-item PRODUCTION copy only. Carrier shipping is shown once at
+            checkout (depends on user's delivery method choice — not known yet
+            in cart). See docs/18_PRODUCTION_VS_SHIPPING_ETA.md §5.3. */}
         <p className="text-xs text-muted-foreground">
-          {isMadeOnDemand ? t('etaMadeOnDemand', { days: productionDays }) : t('etaInStock')}
+          {isMadeOnDemand ? t('masterCraftsLine', { days: productionDays }) : t('readyToShipToday')}
         </p>
 
         <div className="mt-auto flex items-center justify-between">

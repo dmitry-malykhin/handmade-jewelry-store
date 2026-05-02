@@ -114,11 +114,9 @@ export function WishlistManager() {
       {products.map((product) => {
         const formattedPrice = parseFloat(product.price).toFixed(2)
         const primaryImage = product.images[0] ?? '/placeholder-product.jpg'
-        // For this handmade store, stock=0 doesn't mean "unavailable" — it means
-        // "the master will craft it after the order is paid". The only true
-        // dead-end is ONE_OF_A_KIND pieces that have already been sold.
-        const isPermanentlySoldOut = product.stockType === 'ONE_OF_A_KIND' && product.stock === 0
-        const isMadeOnDemand = product.stock === 0 && !isPermanentlySoldOut
+        // Issue #231 — handmade pieces are always orderable. stock=0 means "the
+        // master will craft it after the order is paid", regardless of stockType.
+        const isMadeOnDemand = product.stock === 0
         const isLowStock =
           product.stock > 0 && product.stock <= SCARCITY_THRESHOLD && !isMadeOnDemand
         const isMadeToOrder = product.stockType === 'MADE_TO_ORDER'
@@ -205,22 +203,15 @@ export function WishlistManager() {
                   <data value={formattedPrice}>${formattedPrice}</data>
                 </p>
 
-                {isPermanentlySoldOut ? (
-                  <div className="mt-auto rounded-md border border-dashed border-border bg-muted/40 p-3 text-center">
-                    <p className="text-xs font-medium text-foreground">{t('soldOutTitle')}</p>
-                    <p className="mt-0.5 text-xs text-muted-foreground">{t('soldOutNotice')}</p>
-                  </div>
-                ) : (
-                  <div className="mt-auto flex flex-col gap-2 pt-2">
-                    {isMadeOnDemand && (
-                      <p className="text-xs text-muted-foreground">
-                        {t('shipsAfterCrafting', { days: product.productionDays })}
-                      </p>
-                    )}
-                    <BuyNowButton product={product} className="w-full" />
-                    <AddToCartButton product={product} className="w-full" />
-                  </div>
-                )}
+                <div className="mt-auto flex flex-col gap-2 pt-2">
+                  {isMadeOnDemand && (
+                    <p className="text-xs text-muted-foreground">
+                      {t('shipsAfterCrafting', { days: product.productionDays })}
+                    </p>
+                  )}
+                  <BuyNowButton product={product} className="w-full" />
+                  <AddToCartButton product={product} className="w-full" />
+                </div>
               </div>
             </article>
           </li>

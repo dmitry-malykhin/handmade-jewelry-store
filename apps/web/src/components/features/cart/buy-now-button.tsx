@@ -25,10 +25,6 @@ export function BuyNowButton({ product, className }: BuyNowButtonProps) {
   const router = useRouter()
   const setExpressItem = useCartStore((state) => state.setExpressItem)
 
-  // Same rule as AddToCartButton: only ONE_OF_A_KIND with stock=0 is truly final.
-  // Everything else can be ordered — master makes the piece after the order is paid.
-  const isPermanentlySoldOut = product.stockType === 'ONE_OF_A_KIND' && product.stock === 0
-
   function handleBuyNow() {
     setExpressItem({
       productId: product.id,
@@ -41,12 +37,13 @@ export function BuyNowButton({ product, className }: BuyNowButtonProps) {
     router.push('/checkout')
   }
 
+  // Issue #231 — every handmade piece is orderable, so Buy Now stays active
+  // for stock=0 too (the master crafts after payment).
   return (
     <Button
       type="button"
       size="sm"
       onClick={handleBuyNow}
-      disabled={isPermanentlySoldOut}
       aria-label={t('buyNow')}
       className={className}
     >

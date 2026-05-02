@@ -8,10 +8,8 @@ import {
   calculateShippingCost,
   type ShippingOption,
 } from '../_lib/shipping-options'
-import {
-  calculateEstimatedDelivery,
-  formatDeliveryRange,
-} from '../_lib/calculate-estimated-delivery'
+import { formatDeliveryRange } from '../_lib/calculate-estimated-delivery'
+import { calculateOrderEta, findLongestProductionDays } from '../_lib/format-eta'
 
 interface CheckoutOrderSummaryProps {
   /** Resolved shipping cost. When omitted, derived from selectedOption + cart subtotal. */
@@ -35,18 +33,14 @@ export function CheckoutOrderSummary({ shippingCost, selectedOption }: CheckoutO
   const resolvedShippingCost = shippingCost ?? calculateShippingCost(displayOption, cartSubtotal)
   const orderTotal = cartSubtotal + resolvedShippingCost
 
-  // Order ETA = the slowest item's production time + carrier transit. The bottleneck
-  // item drives the customer-visible date, otherwise we'd promise an earlier ship for
-  // a multi-item order than we can actually keep.
-  const longestProductionDays = cartItems.reduce(
-    (maxDays, cartItem) => Math.max(maxDays, cartItem.productionDays ?? 0),
-    0,
-  )
-  const delivery = calculateEstimatedDelivery(
-    displayOption.businessDaysMin + longestProductionDays,
-    displayOption.businessDaysMax + longestProductionDays,
-  )
+  // Order ETA breakdown — see docs/18_PRODUCTION_VS_SHIPPING_ETA.md.
+  // We attribute time to its source so customers can tell which leg ran long
+  // when a package is delayed.
+  const longestProductionDays = findLongestProductionDays(cartItems)
+  const delivery = calculateOrderEta(longestProductionDays, displayOption)
   const estimatedDeliveryRange = formatDeliveryRange(delivery.earliest, delivery.latest)
+  const shippingLineKey: 'shippingLineStandard' | 'shippingLineExpress' =
+    displayOption.id === 'express' ? 'shippingLineExpress' : 'shippingLineStandard'
 
   return (
     <aside aria-label={t('orderSummaryLabel')} className="lg:col-span-1">
@@ -90,9 +84,15 @@ export function CheckoutOrderSummary({ shippingCost, selectedOption }: CheckoutO
           </div>
         </div>
 
-        <p className="mt-3 text-xs text-muted-foreground">
-          {t('estimatedDelivery', { date: estimatedDeliveryRange })}
-        </p>
+        {/* ETA breakdown — production line only when there's anything to craft.
+            Customers see which part is the master's commitment vs the carrier's. */}
+        <div className="mt-3 space-y-1 text-xs text-muted-foreground">
+          {longestProductionDays > 0 && <p>{t('craftingLine', { days: longestProductionDays })}</p>}
+          <p>{t(shippingLineKey)}</p>
+          <p className="font-medium text-foreground">
+            {t('estimatedDelivery', { date: estimatedDeliveryRange })}
+          </p>
+        </div>
       </div>
     </aside>
   )

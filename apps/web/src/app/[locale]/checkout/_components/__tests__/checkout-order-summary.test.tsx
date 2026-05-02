@@ -112,4 +112,32 @@ describe('CheckoutOrderSummary', () => {
     // We verify the estimated delivery line is present — exact dates depend on current date.
     expect(screen.getByText(/Estimated delivery:/i)).toBeInTheDocument()
   })
+
+  it('renders the standard shipping line by default', () => {
+    render(<CheckoutOrderSummary shippingCost={EXPLICIT_SHIPPING_COST} />)
+
+    expect(screen.getByText('shippingLineStandard')).toBeInTheDocument()
+  })
+
+  it('renders the express shipping line when express option is selected', () => {
+    const expressOption = {
+      id: 'express' as const,
+      businessDaysMin: 2,
+      businessDaysMax: 3,
+      baseCost: 12.99,
+      freeThreshold: null,
+    }
+
+    render(<CheckoutOrderSummary shippingCost={12.99} selectedOption={expressOption} />)
+
+    expect(screen.getByText('shippingLineExpress')).toBeInTheDocument()
+    expect(screen.queryByText('shippingLineStandard')).not.toBeInTheDocument()
+  })
+
+  it('hides the crafting line when no cart item has productionDays > 0', () => {
+    render(<CheckoutOrderSummary shippingCost={EXPLICIT_SHIPPING_COST} />)
+
+    // mockCartItems lack productionDays — treated as 0 — line should not render.
+    expect(screen.queryByText('craftingLine')).not.toBeInTheDocument()
+  })
 })
