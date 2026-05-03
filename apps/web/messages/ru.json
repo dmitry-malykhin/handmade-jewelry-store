@@ -396,12 +396,17 @@
     "measurementMetric": "см",
     "ratingLabel": "{rating} из 5 звёзд, {count} отзывов",
     "productionTime": "Изготавливается на заказ — готово через {days} рабочих дней",
-    "inStockMainLine": "В наличии — отправим в течение 1 рабочего дня",
+    "inStockMainLine": "В наличии — отправим сегодня",
     "inStockHelperLine": "Стандартная доставка: 5–7 рабочих дней",
-    "madeOnDemandMainLine": "Мастер изготовит изделие за {days} рабочих дней",
+    "madeOnDemandMainLine": "Под заказ — изготовим за {days} рабочих дней",
     "madeOnDemandHelperLine": "Затем отправка стандартной почтой 5–7 рабочих дней",
-    "oneOfAKindReorderableMain": "Изначально единственный экземпляр — мы можем изготовить похожее изделие за {days} рабочих дней",
-    "oneOfAKindReorderableHelper": "Затем отправка стандартной почтой 5–7 рабочих дней"
+    "oneOfAKindReorderableMain": "Изначально единственный экземпляр — повторим за {days} рабочих дней",
+    "oneOfAKindReorderableHelper": "Затем отправка стандартной почтой 5–7 рабочих дней",
+    "deliveryByDate": "прибудет к {date}",
+    "trustReturns": "Возврат в течение 30 дней",
+    "trustSecure": "Защищённая оплата",
+    "trustHandcrafted": "Ручная работа из {city}",
+    "makerLine": "Изготовлено в нашей мастерской {studio}"
   },
   "admin": {
     "panelTitle": "Панель администратора",

@@ -30,3 +30,19 @@ export function calculateOrderEta(
     fromDate,
   )
 }
+
+/**
+ * Format the latest end of the delivery window as a single date — used on
+ * product detail "arrives by Apr 14" copy. Issue #233 chose the LATEST date
+ * (not earliest) so we under-promise and over-deliver: customers happy when
+ * pieces arrive sooner, never disappointed by them arriving later than promised.
+ */
+export function formatLatestDeliveryDate(
+  productionDays: number,
+  shippingOption: ShippingOption,
+  fromDate: Date = new Date(),
+  locale: string = 'en-US',
+): string {
+  const delivery = calculateOrderEta(productionDays, shippingOption, fromDate)
+  return new Intl.DateTimeFormat(locale, { month: 'short', day: 'numeric' }).format(delivery.latest)
+}

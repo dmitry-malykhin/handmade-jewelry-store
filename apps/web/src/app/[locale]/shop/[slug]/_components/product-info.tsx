@@ -2,10 +2,20 @@ import { getTranslations } from 'next-intl/server'
 import type { Product } from '@jewelry/shared'
 import { Badge } from '@/components/ui/badge'
 import { AddToCartButton } from '@/components/features/cart/add-to-cart-button'
+import { SHIPPING_OPTIONS } from '@/app/[locale]/checkout/_lib/shipping-options'
+import { formatLatestDeliveryDate } from '@/app/[locale]/checkout/_lib/format-eta'
+import { STUDIO_NAME, STUDIO_CITY } from '@/lib/studio'
 import { ProductDimensions } from './product-dimensions'
 
 interface ProductInfoProps {
   product: Product
+}
+
+const STANDARD_SHIPPING = SHIPPING_OPTIONS.find((option) => option.id === 'standard')
+if (!STANDARD_SHIPPING) {
+  throw new Error(
+    'Standard shipping option missing from SHIPPING_OPTIONS — check shipping-options.ts',
+  )
 }
 
 export async function ProductInfo({ product }: ProductInfoProps) {
@@ -18,6 +28,32 @@ export async function ProductInfo({ product }: ProductInfoProps) {
   // can still order; only the visual framing changes.
   const isOneOfAKindReorderable = product.stockType === 'ONE_OF_A_KIND' && product.stock === 0
   const isMadeOnDemand = product.stock === 0 && !isOneOfAKindReorderable
+
+  // Issue #233 — concrete delivery date (under-promise, over-deliver: latest of range).
+  const productionDaysForEta = isReadyToShip ? 0 : product.productionDays
+  const arriveByDate = formatLatestDeliveryDate(productionDaysForEta, STANDARD_SHIPPING)
+
+  // Issue #233 — premium-min stock indicator: small dot + plain text, no
+  // full-width colored block. Each state has its own dot tint and main copy.
+  // ─ green dot for in stock (ready to ship today)
+  // ─ amber dot for made-on-demand (master crafts)
+  // ─ neutral muted dot for ONE_OF_A_KIND reorderable (originally one of a kind)
+  let dotColorClass = 'bg-muted-foreground'
+  let mainCopy = ''
+  let helperCopy = ''
+  if (isReadyToShip) {
+    dotColorClass = 'bg-green-600 dark:bg-green-400'
+    mainCopy = t('inStockMainLine')
+    helperCopy = `${t('inStockHelperLine')} · ${t('deliveryByDate', { date: arriveByDate })}`
+  } else if (isMadeOnDemand) {
+    dotColorClass = 'bg-amber-500 dark:bg-amber-400'
+    mainCopy = t('madeOnDemandMainLine', { days: product.productionDays })
+    helperCopy = `${t('madeOnDemandHelperLine')} · ${t('deliveryByDate', { date: arriveByDate })}`
+  } else if (isOneOfAKindReorderable) {
+    dotColorClass = 'bg-muted-foreground'
+    mainCopy = t('oneOfAKindReorderableMain', { days: product.productionDays })
+    helperCopy = `${t('oneOfAKindReorderableHelper')} · ${t('deliveryByDate', { date: arriveByDate })}`
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -50,45 +86,28 @@ export async function ProductInfo({ product }: ProductInfoProps) {
         <data value={formattedPrice}>${formattedPrice}</data>
       </p>
 
-      {/* Stock + production + shipping ETA. Two-line structure separates the
-          master's precise commitment (top) from the carrier's approximate range
-          (helper) — see docs/18_PRODUCTION_VS_SHIPPING_ETA.md for the rationale. */}
-      <div
-        className={`rounded-lg px-4 py-3 ${
-          isReadyToShip
-            ? 'bg-green-50 text-green-700 dark:bg-green-950/40 dark:text-green-400'
-            : 'bg-accent/20 text-foreground'
-        }`}
-        aria-live="polite"
-      >
-        {isReadyToShip && (
-          <>
-            <p className="text-sm font-medium">{t('inStockMainLine')}</p>
-            <p className="mt-1 text-xs opacity-80">{t('inStockHelperLine')}</p>
-          </>
-        )}
-        {isOneOfAKindReorderable && (
-          <>
-            <p className="text-sm font-medium">
-              {t('oneOfAKindReorderableMain', { days: product.productionDays })}
-            </p>
-            <p className="mt-1 text-xs opacity-80">{t('oneOfAKindReorderableHelper')}</p>
-          </>
-        )}
-        {isMadeOnDemand && (
-          <>
-            <p className="text-sm font-medium">
-              {t('madeOnDemandMainLine', { days: product.productionDays })}
-            </p>
-            <p className="mt-1 text-xs opacity-80">{t('madeOnDemandHelperLine')}</p>
-          </>
-        )}
+      {/* Stock + production + shipping ETA. Premium-min: small colored dot +
+          plain text rather than a full-width colored block. The helper line
+          combines the carrier window with a concrete arrival date — the latest
+          of the range (under-promise, over-deliver). See docs/19. */}
+      <div className="flex flex-col gap-1" aria-live="polite">
+        <div className="flex items-center gap-2">
+          <span className={`size-2 shrink-0 rounded-full ${dotColorClass}`} aria-hidden="true" />
+          <p className="text-sm font-medium text-foreground">{mainCopy}</p>
+        </div>
+        <p className="ml-4 text-xs text-muted-foreground">{helperCopy}</p>
       </div>
 
       {/* Add to cart */}
       <div className="flex items-center gap-4">
         <AddToCartButton product={product} />
       </div>
+
+      {/* Trust block — premium-min row of 3 signals under CTA. Dot-separated,
+          muted color, no icons. See docs/19 §5.2 for rationale. */}
+      <p className="text-xs text-muted-foreground">
+        {t('trustReturns')} · {t('trustSecure')} · {t('trustHandcrafted', { city: STUDIO_CITY })}
+      </p>
 
       {/* Material */}
       {product.material && (
@@ -106,6 +125,11 @@ export async function ProductInfo({ product }: ProductInfoProps) {
           {product.description}
         </p>
       </section>
+
+      {/* Maker provenance — single factual line, premium-min tone (Catbird /
+          Mejuri pattern). No bio, no photo here; "About the studio" is a
+          separate page (post-MVP). */}
+      <p className="text-sm text-muted-foreground">{t('makerLine', { studio: STUDIO_NAME })}</p>
 
       {/* Dimensions */}
       <ProductDimensions product={product} />

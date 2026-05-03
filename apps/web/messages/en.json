@@ -396,12 +396,17 @@
     "measurementMetric": "cm",
     "ratingLabel": "{rating} out of 5 stars, {count} reviews",
     "productionTime": "Handcrafted to order — ready in {days} business days",
-    "inStockMainLine": "In stock — ships within 1 business day",
+    "inStockMainLine": "In stock — ready to ship today",
     "inStockHelperLine": "Standard delivery: 5–7 business days",
-    "madeOnDemandMainLine": "Master crafts your piece in {days} business days",
+    "madeOnDemandMainLine": "Made to order — crafted in {days} business days",
     "madeOnDemandHelperLine": "Then ships in 5–7 business days standard",
-    "oneOfAKindReorderableMain": "Originally one of a kind — we can craft a similar piece in {days} business days",
-    "oneOfAKindReorderableHelper": "Then ships in 5–7 business days standard"
+    "oneOfAKindReorderableMain": "Originally one of a kind — re-crafted in {days} business days",
+    "oneOfAKindReorderableHelper": "Then ships in 5–7 business days standard",
+    "deliveryByDate": "arrives by {date}",
+    "trustReturns": "Free returns within 30 days",
+    "trustSecure": "Secure checkout",
+    "trustHandcrafted": "Handcrafted in {city}",
+    "makerLine": "Crafted in our {studio} studio"
   },
   "admin": {
     "panelTitle": "Admin Panel",
