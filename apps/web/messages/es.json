@@ -639,7 +639,6 @@
       "orders": "Pedidos",
       "wishlist": "Favoritos",
       "addresses": "Direcciones",
-      "loyalty": "Recompensas",
       "settings": "Configuración"
     },
     "overview": {
@@ -647,7 +646,7 @@
       "metaDescription": "Gestiona tus pedidos, direcciones y configuración de cuenta.",
       "welcome": "Bienvenido de nuevo, {email}",
       "welcomeFallback": "Bienvenido a tu cuenta",
-      "description": "Gestiona pedidos, direcciones guardadas, recompensas de fidelidad y configuración.",
+      "description": "Gestiona pedidos, direcciones guardadas y configuración.",
       "sections": {
         "orders": {
           "title": "Historial de pedidos",
@@ -656,10 +655,6 @@
         "addresses": {
           "title": "Direcciones guardadas",
           "description": "Añade o edita direcciones de envío para un pago más rápido."
-        },
-        "loyalty": {
-          "title": "Recompensas de fidelidad",
-          "description": "Gana puntos en cada compra y canjéalos al pagar."
         },
         "settings": {
           "title": "Configuración de cuenta",

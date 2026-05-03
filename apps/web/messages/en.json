@@ -639,7 +639,6 @@
       "orders": "Orders",
       "wishlist": "Wishlist",
       "addresses": "Addresses",
-      "loyalty": "Loyalty",
       "settings": "Settings"
     },
     "overview": {
@@ -647,7 +646,7 @@
       "metaDescription": "Manage your orders, addresses, and account settings.",
       "welcome": "Welcome back, {email}",
       "welcomeFallback": "Welcome to your account",
-      "description": "Manage your orders, saved addresses, loyalty rewards, and account settings.",
+      "description": "Manage your orders, saved addresses, and account settings.",
       "sections": {
         "orders": {
           "title": "Order history",
@@ -656,10 +655,6 @@
         "addresses": {
           "title": "Saved addresses",
           "description": "Add or edit shipping addresses for faster checkout."
-        },
-        "loyalty": {
-          "title": "Loyalty rewards",
-          "description": "Earn points on every purchase and redeem at checkout."
         },
         "settings": {
           "title": "Account settings",
