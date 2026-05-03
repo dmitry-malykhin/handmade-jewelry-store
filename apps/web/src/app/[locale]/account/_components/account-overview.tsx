@@ -6,10 +6,11 @@ import { Link } from '@/i18n/navigation'
 import { useAuthStore } from '@/store/auth.store'
 import { fetchCurrentUser, type AuthenticatedUser } from '@/lib/api/auth'
 
+// Issue #234 — loyalty section removed until #124 ships. Promising "Earn
+// points on every purchase" with no implementation breaks brand trust.
 const SECTIONS = [
   { key: 'orders', href: '/account/orders' },
   { key: 'addresses', href: '/account/addresses' },
-  { key: 'loyalty', href: '/account/loyalty' },
   { key: 'settings', href: '/account/settings' },
 ] as const
 
