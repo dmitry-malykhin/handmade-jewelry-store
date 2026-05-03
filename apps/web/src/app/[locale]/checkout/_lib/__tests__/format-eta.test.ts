@@ -1,6 +1,10 @@
 import { describe, it, expect } from 'vitest'
 import type { CartItem } from '@jewelry/shared'
-import { findLongestProductionDays, calculateOrderEta } from '../format-eta'
+import {
+  findLongestProductionDays,
+  calculateOrderEta,
+  formatLatestDeliveryDate,
+} from '../format-eta'
 import type { ShippingOption } from '../shipping-options'
 
 const baseCartItem = {
@@ -72,5 +76,28 @@ describe('calculateOrderEta()', () => {
     const result = calculateOrderEta(0, standardShipping, monday)
     expect(result.earliest.getDay()).not.toBe(0) // not Sunday
     expect(result.earliest.getDay()).not.toBe(6) // not Saturday
+  })
+})
+
+describe('formatLatestDeliveryDate()', () => {
+  // Anchored on Mon May 4 2026 so the math is deterministic regardless of run time.
+  const monday = new Date('2026-05-04T12:00:00Z')
+
+  it('returns the LATEST date of the delivery window (under-promise, over-deliver)', () => {
+    // 0 production + 7 business days = Wed May 13
+    const formatted = formatLatestDeliveryDate(0, standardShipping, monday)
+    expect(formatted).toBe('May 13')
+  })
+
+  it('extends the delivery window by productionDays for made-on-order pieces', () => {
+    // 3 production + 5–7 shipping → latest is May 18 (10 business days from Mon May 4)
+    const formatted = formatLatestDeliveryDate(3, standardShipping, monday)
+    expect(formatted).toBe('May 18')
+  })
+
+  it('respects the locale argument for date formatting', () => {
+    // Spanish abbreviation: "may" (lowercase) for May
+    const formatted = formatLatestDeliveryDate(0, standardShipping, monday, 'es-US')
+    expect(formatted.toLowerCase()).toContain('may')
   })
 })

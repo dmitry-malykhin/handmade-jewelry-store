@@ -396,12 +396,17 @@
     "measurementMetric": "cm",
     "ratingLabel": "{rating} de 5 estrellas, {count} reseñas",
     "productionTime": "Hecho a mano bajo pedido — listo en {days} días hábiles",
-    "inStockMainLine": "En stock — se envía en 1 día hábil",
+    "inStockMainLine": "En stock — listo para enviar hoy",
     "inStockHelperLine": "Entrega estándar: 5–7 días hábiles",
-    "madeOnDemandMainLine": "El maestro elabora tu pieza en {days} días hábiles",
+    "madeOnDemandMainLine": "Hecho a pedido — elaborado en {days} días hábiles",
     "madeOnDemandHelperLine": "Luego se envía en 5–7 días hábiles estándar",
-    "oneOfAKindReorderableMain": "Originalmente única — podemos elaborar una pieza similar en {days} días hábiles",
-    "oneOfAKindReorderableHelper": "Luego se envía en 5–7 días hábiles estándar"
+    "oneOfAKindReorderableMain": "Originalmente única — recreada en {days} días hábiles",
+    "oneOfAKindReorderableHelper": "Luego se envía en 5–7 días hábiles estándar",
+    "deliveryByDate": "llega para el {date}",
+    "trustReturns": "Devoluciones gratuitas en 30 días",
+    "trustSecure": "Pago seguro",
+    "trustHandcrafted": "Hecho a mano en {city}",
+    "makerLine": "Elaborado en nuestro estudio {studio}"
   },
   "admin": {
     "panelTitle": "Panel de administración",
