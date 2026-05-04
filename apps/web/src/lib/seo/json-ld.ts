@@ -43,6 +43,44 @@ export interface ProductJsonLdProps {
   reviewCount: number
 }
 
+export interface HowToStep {
+  name: string
+  text: string
+}
+
+/**
+ * Build a HowTo JSON-LD object — used on the ring size guide (#118) so
+ * Google can show rich results for "how to measure ring size" queries.
+ *
+ * The `name` is the page title; `description` is a one-line summary;
+ * `steps` is the ordered list of methods.
+ */
+export function generateHowToJsonLd({
+  name,
+  description,
+  url,
+  steps,
+}: {
+  name: string
+  description: string
+  url: string
+  steps: HowToStep[]
+}) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'HowTo',
+    name,
+    description,
+    url: `${SITE_URL}${url}`,
+    step: steps.map((step, index) => ({
+      '@type': 'HowToStep',
+      position: index + 1,
+      name: step.name,
+      text: step.text,
+    })),
+  }
+}
+
 export function generateProductJsonLd(product: ProductJsonLdProps) {
   return {
     '@context': 'https://schema.org',

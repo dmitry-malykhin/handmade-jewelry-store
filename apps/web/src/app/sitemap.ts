@@ -34,6 +34,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'daily',
       priority: 0.9,
     },
+    {
+      // Issue #118 — high-SEO-value evergreen content; rarely changes.
+      url: `${SITE_URL}/${locale}/ring-size-guide`,
+      changeFrequency: 'yearly' as const,
+      priority: 0.6,
+    },
     ...categories.map((category) => ({
       url: `${SITE_URL}/${locale}/shop?categorySlug=${category.slug}`,
       changeFrequency: 'weekly' as const,

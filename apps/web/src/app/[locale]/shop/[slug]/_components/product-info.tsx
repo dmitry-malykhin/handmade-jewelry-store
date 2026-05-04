@@ -1,6 +1,7 @@
 import { getTranslations } from 'next-intl/server'
 import type { Product } from '@jewelry/shared'
 import { Badge } from '@/components/ui/badge'
+import { Link } from '@/i18n/navigation'
 import { AddToCartButton } from '@/components/features/cart/add-to-cart-button'
 import { SHIPPING_OPTIONS } from '@/app/[locale]/checkout/_lib/shipping-options'
 import { formatLatestDeliveryDate } from '@/app/[locale]/checkout/_lib/format-eta'
@@ -133,6 +134,18 @@ export async function ProductInfo({ product }: ProductInfoProps) {
 
       {/* Dimensions */}
       <ProductDimensions product={product} />
+
+      {/* Ring size guide — only on rings (issue #118). Internal link helps
+          customers find the right size before adding to cart and improves SEO
+          via cross-linking. */}
+      {product.category.slug === 'rings' && (
+        <Link
+          href="/ring-size-guide"
+          className="text-sm text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline"
+        >
+          {t('ringSizeGuideLink')} →
+        </Link>
+      )}
     </div>
   )
 }

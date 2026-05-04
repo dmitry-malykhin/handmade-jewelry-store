@@ -7,7 +7,8 @@
     "shop": "Shop",
     "collections": "Collections",
     "about": "About",
-    "contact": "Contact"
+    "contact": "Contact",
+    "ringSizeGuide": "Ring size guide"
   },
   "contactPage": {
     "metaTitle": "Contact Us — We'd Love to Hear From You",
@@ -406,7 +407,8 @@
     "trustReturns": "Free returns within 30 days",
     "trustSecure": "Secure checkout",
     "trustHandcrafted": "Handcrafted in {city}",
-    "makerLine": "Crafted in our {studio} studio"
+    "makerLine": "Crafted in our {studio} studio",
+    "ringSizeGuideLink": "View ring size guide"
   },
   "admin": {
     "panelTitle": "Admin Panel",
@@ -807,5 +809,33 @@
     "addToWishlist": "Add to wishlist",
     "removeFromWishlist": "Remove from wishlist",
     "errorGeneric": "Could not update your wishlist. Please try again."
+  },
+  "ringSizeGuide": {
+    "metaTitle": "Ring Size Guide — US, EU, UK Conversion · Senichka",
+    "metaDescription": "Find your ring size with our conversion chart and step-by-step measuring guide. US, EU, UK sizes plus inner diameter in millimeters.",
+    "title": "Ring Size Guide",
+    "subtitle": "Measure once, wear forever. A clean conversion table and three reliable ways to find your size at home.",
+    "howToMeasureTitle": "How to measure your ring size",
+    "methodExistingRingTitle": "Use a ring you already own",
+    "methodExistingRingBody": "Pick a ring that fits the intended finger comfortably. Place it on a millimeter ruler and measure the inner diameter from edge to edge. Match the diameter to the table below.",
+    "methodPaperStripTitle": "Paper strip method",
+    "methodPaperStripBody": "Cut a thin strip of paper about 80 mm long. Wrap it snugly around the base of your finger and mark where the ends overlap. Measure the length in millimeters — that's your inner circumference (the EU size).",
+    "methodJewelerTitle": "Visit a local jeweler",
+    "methodJewelerBody": "Most jewelers will size your finger for free in under a minute. The most accurate option, especially for engagement rings or gifts.",
+    "conversionTableTitle": "Size conversion table",
+    "conversionTableSubtitle": "EU is the inner circumference in mm. UK uses letters. Diameter is the inner ring opening.",
+    "tableCaption": "Ring size conversion: US, UK, EU, and inner diameter in millimeters.",
+    "columnUs": "US",
+    "columnUk": "UK",
+    "columnEu": "EU (mm)",
+    "columnDiameter": "Diameter",
+    "tipsTitle": "Tips for an accurate measurement",
+    "tipMeasureWarm": "Measure at the end of the day or when your hands are warm — fingers swell slightly when warm.",
+    "tipMeasureMultiple": "Measure two or three times and use the largest result — a ring should slide on but not fly off.",
+    "tipKnuckleSize": "If your knuckle is much wider than the base of your finger, size up by half so the ring passes over comfortably.",
+    "tipBetweenSizes": "When in between sizes, choose the larger one — easier to resize down than up.",
+    "printHint": "Tip: print this page (Cmd/Ctrl + P) for a physical reference.",
+    "howToSchemaName": "How to measure your ring size at home",
+    "howToSchemaDescription": "Three reliable methods to measure your ring size: using an existing ring, the paper strip method, or visiting a jeweler."
   }
 }
