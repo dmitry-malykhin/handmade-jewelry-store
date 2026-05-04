@@ -7,7 +7,8 @@
     "shop": "Tienda",
     "collections": "Colecciones",
     "about": "Nosotros",
-    "contact": "Contacto"
+    "contact": "Contacto",
+    "ringSizeGuide": "Guía de tallas"
   },
   "contactPage": {
     "metaTitle": "Contacto — Nos encantaría saber de ti",
@@ -406,7 +407,8 @@
     "trustReturns": "Devoluciones gratuitas en 30 días",
     "trustSecure": "Pago seguro",
     "trustHandcrafted": "Hecho a mano en {city}",
-    "makerLine": "Elaborado en nuestro estudio {studio}"
+    "makerLine": "Elaborado en nuestro estudio {studio}",
+    "ringSizeGuideLink": "Ver guía de tallas de anillos"
   },
   "admin": {
     "panelTitle": "Panel de administración",
@@ -807,5 +809,33 @@
     "addToWishlist": "Añadir a favoritos",
     "removeFromWishlist": "Quitar de favoritos",
     "errorGeneric": "No se pudo actualizar tu lista. Inténtalo de nuevo."
+  },
+  "ringSizeGuide": {
+    "metaTitle": "Guía de tallas de anillos — Conversión US, EU, UK · Senichka",
+    "metaDescription": "Encuentra tu talla de anillo con nuestra tabla de conversión y guía paso a paso. Tallas US, EU, UK más diámetro interior en milímetros.",
+    "title": "Guía de tallas de anillos",
+    "subtitle": "Mide una vez, lleva siempre. Una tabla de conversión clara y tres formas confiables de encontrar tu talla en casa.",
+    "howToMeasureTitle": "Cómo medir tu talla de anillo",
+    "methodExistingRingTitle": "Usa un anillo que ya tengas",
+    "methodExistingRingBody": "Elige un anillo que ajuste cómodamente en el dedo deseado. Colócalo sobre una regla milimétrica y mide el diámetro interior de borde a borde. Compara con la tabla de abajo.",
+    "methodPaperStripTitle": "Método de la tira de papel",
+    "methodPaperStripBody": "Corta una tira fina de papel de unos 80 mm. Envuélvela ajustadamente en la base del dedo y marca dónde se cruzan los extremos. Mide la longitud en milímetros — esa es tu circunferencia interior (la talla EU).",
+    "methodJewelerTitle": "Visita un joyero local",
+    "methodJewelerBody": "La mayoría de joyeros miden tu dedo gratis en menos de un minuto. La opción más precisa, especialmente para anillos de compromiso o regalos.",
+    "conversionTableTitle": "Tabla de conversión de tallas",
+    "conversionTableSubtitle": "EU es la circunferencia interior en mm. UK usa letras. El diámetro es la abertura interior del anillo.",
+    "tableCaption": "Conversión de tallas de anillos: US, UK, EU y diámetro interior en milímetros.",
+    "columnUs": "US",
+    "columnUk": "UK",
+    "columnEu": "EU (mm)",
+    "columnDiameter": "Diámetro",
+    "tipsTitle": "Consejos para una medición precisa",
+    "tipMeasureWarm": "Mide al final del día o cuando tus manos estén tibias — los dedos se hinchan ligeramente con el calor.",
+    "tipMeasureMultiple": "Mide dos o tres veces y usa el resultado más grande — el anillo debe deslizarse pero no caerse.",
+    "tipKnuckleSize": "Si tu nudillo es mucho más ancho que la base del dedo, sube media talla para que el anillo pase cómodamente.",
+    "tipBetweenSizes": "Cuando estés entre tallas, elige la más grande — es más fácil reducir que ampliar.",
+    "printHint": "Consejo: imprime esta página (Cmd/Ctrl + P) como referencia física.",
+    "howToSchemaName": "Cómo medir tu talla de anillo en casa",
+    "howToSchemaDescription": "Tres métodos confiables para medir tu talla: usar un anillo existente, el método de la tira de papel o visitar un joyero."
   }
 }

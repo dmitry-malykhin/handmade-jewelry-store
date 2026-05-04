@@ -31,8 +31,8 @@ describe('sitemap', () => {
     const { default: sitemap } = await import('../sitemap')
     const result = await sitemap()
 
-    // 3 locales × 2 static pages (home + shop)
-    expect(result.length).toBe(6)
+    // 3 locales × 3 static pages (home + shop + ring-size-guide)
+    expect(result.length).toBe(9)
   })
 
   it('includes home and shop entries for each locale', async () => {
@@ -93,9 +93,23 @@ describe('sitemap', () => {
     const { default: sitemap } = await import('../sitemap')
     const result = await sitemap()
 
-    // Only 3 locales × 2 static pages, no product or category entries
-    expect(result.length).toBe(6)
+    // Only 3 locales × 3 static pages (home + shop + ring-size-guide), no product/category
+    expect(result.length).toBe(9)
     expect(result.every((entry) => !entry.url.includes('silver-moonstone-ring'))).toBe(true)
+  })
+
+  it('includes ring size guide entry for each locale', async () => {
+    mockFetchProducts.mockResolvedValue({
+      data: [],
+      meta: { totalCount: 0, totalPages: 1, page: 1, limit: 1000 },
+    })
+    mockFetchCategories.mockResolvedValue([])
+
+    const { default: sitemap } = await import('../sitemap')
+    const result = await sitemap()
+
+    const guideUrls = result.filter((entry) => entry.url.includes('/ring-size-guide'))
+    expect(guideUrls).toHaveLength(3)
   })
 
   it('adds category filter pages for each locale', async () => {
