@@ -1,0 +1,26 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "S3ProductImagesReadWrite",
+      "Effect": "Allow",
+      "Action": ["s3:PutObject", "s3:GetObject", "s3:DeleteObject", "s3:ListBucket"],
+      "Resource": [
+        "arn:aws:s3:::handmade-jewelry-store-product-images",
+        "arn:aws:s3:::handmade-jewelry-store-product-images/*"
+      ]
+    },
+    {
+      "Sid": "SecretsManagerReadAppSecrets",
+      "Effect": "Allow",
+      "Action": ["secretsmanager:GetSecretValue"],
+      "Resource": ["arn:aws:secretsmanager:*:*:secret:handmade-jewelry-store/*"]
+    },
+    {
+      "Sid": "S3PresignedUrlGeneration",
+      "Effect": "Allow",
+      "Action": ["s3:PutObject", "s3:GetObject"],
+      "Resource": "arn:aws:s3:::handmade-jewelry-store-product-images/uploads/*"
+    }
+  ]
+}
