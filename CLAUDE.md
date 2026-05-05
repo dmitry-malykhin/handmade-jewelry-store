@@ -41,6 +41,7 @@ Read the relevant document(s) **before writing code** for that task:
 | **Analytics / Tracking events**           | [docs/16_USER_ANALYTICS.md](docs/16_USER_ANALYTICS.md) — PostHog + GA4 + Clarity + FB Pixel event taxonomy, cookie consent requirement                                    |
 | **Observability stack overview**          | [docs/13_OBSERVABILITY_OVERVIEW.md](docs/13_OBSERVABILITY_OVERVIEW.md) — tool comparison, zero-budget stack decision                                                      |
 | **AWS infra / Deployment / Staging**      | [docs/17_STAGING_ENVIRONMENTS.md](docs/17_STAGING_ENVIRONMENTS.md) — staging strategy, Fly.io + Neon (pre-revenue), AWS shared ALB (post-revenue)                         |
+| **AWS networking / VPC / RDS setup**      | [docs/runbooks/aws-networking-setup.md](docs/runbooks/aws-networking-setup.md) + [infra/aws/](infra/aws/) — VPC, subnets, SGs, IAM roles, RDS, Secrets Manager            |
 | **Email flows / Klaviyo**                 | [docs/16_USER_ANALYTICS.md](docs/16_USER_ANALYTICS.md) — Klaviyo flows priority table, event taxonomy                                                                     |
 | **Any new feature** (if uncertain)        | [docs/12_PLAN_PERSONAL.md](docs/12_PLAN_PERSONAL.md) — full task order, staging decision, key risks                                                                       |
 
