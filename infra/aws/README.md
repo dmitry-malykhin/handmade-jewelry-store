@@ -1,19 +1,28 @@
 # AWS Infrastructure
 
-Source-controlled artifacts for provisioning the AWS networking, IAM, and database
-foundation that ECS Fargate (#82) and the production deploy pipeline depend on.
+Source-controlled artifacts for provisioning the AWS networking, storage, CDN,
+and IAM foundation that ECS Fargate (#82) and the production deploy pipeline
+depend on.
 
 ## Layout
 
 ```
 infra/aws/
 ├── README.md                       # this file
-├── setup-networking.sh             # one-shot bash + AWS CLI provisioner (#76)
-└── iam/
-    ├── ecs-task-execution-role-trust-policy.json
-    ├── ecs-task-execution-role-policy.json
-    ├── ecs-task-role-trust-policy.json
-    └── ecs-task-role-policy.json
+├── setup-networking.sh             # one-shot provisioner — VPC + RDS + IAM (#76)
+├── setup-cloudfront-s3.sh          # one-shot provisioner — S3 + CloudFront (#77)
+├── invalidate-cache.sh             # CloudFront cache invalidation helper (#77)
+├── iam/
+│   ├── ecs-task-execution-role-trust-policy.json
+│   ├── ecs-task-execution-role-policy.json
+│   ├── ecs-task-role-trust-policy.json
+│   └── ecs-task-role-policy.json
+├── s3/
+│   ├── bucket-policy.json          # OAC read-only access for CloudFront
+│   ├── cors-config.json            # presigned PUT from app origins
+│   └── lifecycle-config.json       # auto-cleanup of uploads/ temp files
+└── cloudfront/
+    └── distribution-config.json    # template for CloudFront distribution
 ```
 
 ## How to use
@@ -33,11 +42,12 @@ Best for: first-time setup, learning what each resource does, debugging.
 # 1. Configure AWS CLI once
 aws configure   # provide IAM access key, secret, region (us-east-1)
 
-# 2. Run the provisioner
-./infra/aws/setup-networking.sh
+# 2. Run the provisioners — order matters
+./infra/aws/setup-networking.sh        # #76: VPC + RDS + IAM
+./infra/aws/setup-cloudfront-s3.sh     # #77: S3 + CloudFront
 
-# 3. Save the printed resource IDs (VPC, subnets, SGs, roles)
-#    into your password manager / .env.prod for later use in #81 and #82.
+# 3. Save the printed resource IDs into your password manager / .env.prod
+#    for later use in #81 (ECR), #82 (ECS), and the production deploy workflow.
 ```
 
 Best for: re-runs in fresh AWS accounts (e.g. company sandbox → prod).
@@ -47,7 +57,7 @@ Best for: re-runs in fresh AWS accounts (e.g. company sandbox → prod).
 - ❌ ECR repository (#81 — separate)
 - ❌ ECS Fargate cluster + task definitions (#82 — separate)
 - ❌ ALB / target groups (#82 — depends on networking + ECS)
-- ❌ CloudFront + S3 product images bucket (#77 — separate runbook)
+- ❌ Custom domain on CloudFront (`cdn.senichka.com`) — Phase 2 in #77 runbook, requires #43 (domain setup)
 - ❌ Terraform state — Terraform migration is post-MVP (#102)
 
 ## Why bash + JSON, not Terraform?
@@ -71,9 +81,12 @@ runbooks + scripts into Terraform modules.
 | VPC + subnets + SGs + IGW        | n/a                                  | $0                                 |
 | RDS PostgreSQL                   | db.t3.micro, 20 GB gp2, 7-day backup | ~$13                               |
 | Secrets Manager                  | 1 secret + light API calls           | ~$0.40                             |
+| S3 storage                       | ~50 MB product images at launch      | ~$0                                |
+| CloudFront egress                | ~10 GB/month at launch traffic       | ~$1                                |
+| CloudFront requests              | ~100K/month at launch                | ~$0.50                             |
 | **NOT provisioned:** NAT Gateway | —                                    | **$0** (saves ~$32/mo)             |
 
-**Baseline networking + DB:** ~$13.40/month before adding ECS/ALB.
+**Baseline networking + DB + CDN:** ~$15/month before adding ECS/ALB.
 
 ## Production cutover prerequisites
 
