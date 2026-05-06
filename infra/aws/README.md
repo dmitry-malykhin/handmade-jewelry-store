@@ -11,6 +11,7 @@ infra/aws/
 ├── README.md                       # this file
 ├── setup-networking.sh             # one-shot provisioner — VPC + RDS + IAM (#76)
 ├── setup-cloudfront-s3.sh          # one-shot provisioner — S3 + CloudFront (#77)
+├── setup-ecr.sh                    # one-shot provisioner — ECR + GitHub Actions IAM (#81)
 ├── invalidate-cache.sh             # CloudFront cache invalidation helper (#77)
 ├── iam/
 │   ├── ecs-task-execution-role-trust-policy.json
@@ -21,8 +22,11 @@ infra/aws/
 │   ├── bucket-policy.json          # OAC read-only access for CloudFront
 │   ├── cors-config.json            # presigned PUT from app origins
 │   └── lifecycle-config.json       # auto-cleanup of uploads/ temp files
-└── cloudfront/
-    └── distribution-config.json    # template for CloudFront distribution
+├── cloudfront/
+│   └── distribution-config.json    # template for CloudFront distribution
+└── ecr/
+    ├── lifecycle-policy.json       # keep last 30 SHA images, expire untagged after 7d
+    └── github-actions-policy.json  # ECR push + ECS deploy IAM policy for CI
 ```
 
 ## How to use
@@ -45,19 +49,22 @@ aws configure   # provide IAM access key, secret, region (us-east-1)
 # 2. Run the provisioners — order matters
 ./infra/aws/setup-networking.sh        # #76: VPC + RDS + IAM
 ./infra/aws/setup-cloudfront-s3.sh     # #77: S3 + CloudFront
+./infra/aws/setup-ecr.sh               # #81: ECR repo + GitHub Actions IAM user
 
 # 3. Save the printed resource IDs into your password manager / .env.prod
-#    for later use in #81 (ECR), #82 (ECS), and the production deploy workflow.
+#    for later use in #82 (ECS) and the production deploy workflow.
+#    The setup-ecr.sh script also prints AWS access keys — save them as
+#    GitHub Secrets immediately.
 ```
 
 Best for: re-runs in fresh AWS accounts (e.g. company sandbox → prod).
 
 ## What this **does not** do
 
-- ❌ ECR repository (#81 — separate)
 - ❌ ECS Fargate cluster + task definitions (#82 — separate)
 - ❌ ALB / target groups (#82 — depends on networking + ECS)
 - ❌ Custom domain on CloudFront (`cdn.senichka.com`) — Phase 2 in #77 runbook, requires #43 (domain setup)
+- ❌ OIDC federation for GitHub Actions (uses access keys for now) — post-MVP improvement, see #81 runbook
 - ❌ Terraform state — Terraform migration is post-MVP (#102)
 
 ## Why bash + JSON, not Terraform?
@@ -84,9 +91,10 @@ runbooks + scripts into Terraform modules.
 | S3 storage                       | ~50 MB product images at launch      | ~$0                                |
 | CloudFront egress                | ~10 GB/month at launch traffic       | ~$1                                |
 | CloudFront requests              | ~100K/month at launch                | ~$0.50                             |
+| ECR storage                      | ~30 retained API images, ~1.5 GB     | ~$2                                |
 | **NOT provisioned:** NAT Gateway | —                                    | **$0** (saves ~$32/mo)             |
 
-**Baseline networking + DB + CDN:** ~$15/month before adding ECS/ALB.
+**Baseline networking + DB + CDN + registry:** ~$17/month before adding ECS/ALB.
 
 ## Production cutover prerequisites
 
