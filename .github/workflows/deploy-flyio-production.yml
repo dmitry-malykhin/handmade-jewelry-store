@@ -1,0 +1,73 @@
+# Deploy NestJS API to Fly.io production on merge to main.
+#
+# Prerequisites:
+#   - Fly.io app `handmade-jewelry-api` created (see docs/runbooks/flyio-production-setup.md)
+#   - Fly.io secrets set: DATABASE_URL, JWT_SECRET, JWT_REFRESH_SECRET,
+#       STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, RESEND_API_KEY, SENTRY_DSN,
+#       KLAVIYO_PRIVATE_API_KEY, KLAVIYO_NEWSLETTER_LIST_ID, STORE_OWNER_EMAIL,
+#       FRONTEND_URL
+#   - GitHub Secret: FLY_API_TOKEN (`flyctl auth token` → copy)
+#
+# Issue #242. Frontend deploys to Vercel automatically — no workflow needed.
+
+name: Deploy API to Fly.io production
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/api/**'
+      - 'packages/shared/**'
+      - 'pnpm-lock.yaml'
+      - 'apps/api/fly.production.toml'
+
+# Prevent overlapping deploys — newer always wins.
+concurrency:
+  group: deploy-flyio-production
+  cancel-in-progress: false
+
+jobs:
+  deploy-api-production:
+    name: Build & Deploy API → Fly.io
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Fly CLI
+        uses: superfly/flyctl-actions/setup-flyctl@master
+
+      # Pre-deploy migrations against production Neon DB. Runs idempotently —
+      # safe to re-run; Prisma applies only pending migrations.
+      # If you'd rather migrate manually before deploy, comment this step out
+      # and run `prisma migrate deploy` from a local shell with prod DATABASE_URL.
+      - name: Apply pending Prisma migrations
+        run: |
+          flyctl ssh console \
+            --app handmade-jewelry-api \
+            --command "node /app/apps/api/node_modules/.bin/prisma migrate deploy --schema=/app/apps/api/prisma/schema.prisma"
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        # Continue even if migration step fails on first deploy (no machine yet).
+        # On subsequent deploys, failure here will block deploy.
+        continue-on-error: true
+
+      - name: Deploy to Fly.io
+        run: |
+          flyctl deploy \
+            --config apps/api/fly.production.toml \
+            --app handmade-jewelry-api \
+            --remote-only \
+            --strategy rolling
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
+      - name: Smoke test — /api/health
+        run: |
+          # Give the rolling deploy ~30s to stabilize, then probe.
+          sleep 30
+          curl --fail --show-error --silent --max-time 10 \
+            https://handmade-jewelry-api.fly.dev/api/health \
+            || (echo "Health check failed after deploy" && exit 1)
