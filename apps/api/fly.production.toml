@@ -1,0 +1,65 @@
+# Fly.io PRODUCTION configuration for NestJS API
+#
+# Deploy:   flyctl deploy -c apps/api/fly.production.toml --remote-only
+# Logs:     flyctl logs    -a handmade-jewelry-api
+# Secrets:  flyctl secrets set KEY=value -a handmade-jewelry-api
+# Status:   flyctl status   -a handmade-jewelry-api
+#
+# Issue #242. Related runbook: docs/runbooks/flyio-production-setup.md
+# Staging config (separate app): fly.toml
+
+app = "handmade-jewelry-api"
+primary_region = "iad"
+
+[build]
+  dockerfile = "Dockerfile"
+
+# Non-secret env vars only. Secrets (DATABASE_URL, JWT_SECRET, etc.) live in
+# Fly.io vault — set via `flyctl secrets set` per the runbook §3.
+[env]
+  NODE_ENV = "production"
+  PORT = "4000"
+  API_PORT = "4000"
+
+[http_service]
+  internal_port = 4000
+  force_https = true
+  # Production: keep at least one machine running 24/7 — no cold starts.
+  # Free tier: ~720 hours/month/VM, fits within 2340 vCPU-hours allowance.
+  auto_stop_machines = "off"
+  auto_start_machines = true
+  min_machines_running = 1
+
+  # Concurrency limits — Fly auto-routes new requests to a fresh machine when
+  # an existing one hits soft_limit. hard_limit caps per-machine load.
+  [http_service.concurrency]
+    type = "connections"
+    hard_limit = 50
+    soft_limit = 40
+
+# Single shared-cpu-1x VM with 256 MB. Sufficient for NestJS at MVP traffic
+# (~50 RPS with Prisma + Stripe + Redis-less session). Bump memory_mb to 512
+# if OOM kills appear in `flyctl logs`.
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 256
+
+# Health checks — Fly probes /api/health every 30s. If 3 consecutive fail,
+# the machine restarts. Tune grace_period if cold-start latency rises (e.g.
+# Prisma client startup or Neon wake-up).
+[checks]
+  [checks.health]
+    grace_period = "15s"
+    interval = "30s"
+    method = "get"
+    path = "/api/health"
+    port = 4000
+    timeout = "5s"
+    type = "http"
+
+# Deploy strategy — rolling: replace machines one-by-one, validate health,
+# then proceed. Zero-downtime as long as min_machines_running >= 1.
+[deploy]
+  strategy = "rolling"
+  max_unavailable = 0.5
