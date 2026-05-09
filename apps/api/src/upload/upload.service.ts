@@ -1,6 +1,6 @@
 import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3'
+import { PutObjectCommand, S3Client, type S3ClientConfig } from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { randomUUID } from 'crypto'
 import { extname } from 'path'
@@ -16,16 +16,33 @@ export class UploadService {
 
   constructor(private readonly configService: ConfigService) {}
 
-  // S3 client is created lazily so the app starts without AWS credentials in dev.
-  // A real upload attempt will throw InternalServerErrorException if credentials are missing.
+  // S3 client is created lazily so the app starts without credentials in dev.
+  // A real upload attempt will throw InternalServerErrorException if missing.
+  //
+  // Supports two providers via AWS_S3_ENDPOINT (issue #243):
+  //  - When AWS_S3_ENDPOINT is set → Cloudflare R2 or any S3-compatible service.
+  //    R2 endpoint shape: https://<account-id>.r2.cloudflarestorage.com.
+  //    R2 requires path-style addressing (forcePathStyle).
+  //  - When AWS_S3_ENDPOINT is empty/unset → default AWS S3 endpoint per region.
+  //
+  // Switching providers is an env-only change; consumers (presigned URLs, public
+  // URL prefix) work identically because R2's API is S3-compatible.
   private buildS3Client(): S3Client {
-    return new S3Client({
+    const config: S3ClientConfig = {
       region: this.configService.getOrThrow<string>('AWS_REGION'),
       credentials: {
         accessKeyId: this.configService.getOrThrow<string>('AWS_ACCESS_KEY_ID'),
         secretAccessKey: this.configService.getOrThrow<string>('AWS_SECRET_ACCESS_KEY'),
       },
-    })
+    }
+
+    const customEndpoint = this.configService.get<string>('AWS_S3_ENDPOINT')
+    if (customEndpoint) {
+      config.endpoint = customEndpoint
+      config.forcePathStyle = true
+    }
+
+    return new S3Client(config)
   }
 
   async generatePresignedUrl(
