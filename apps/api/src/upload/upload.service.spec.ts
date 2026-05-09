@@ -1,6 +1,7 @@
 import { InternalServerErrorException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { Test, TestingModule } from '@nestjs/testing'
+import { S3Client } from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { UploadService } from './upload.service'
 
@@ -14,29 +15,44 @@ jest.mock('@aws-sdk/client-s3', () => ({
 }))
 
 const mockGetSignedUrl = jest.mocked(getSignedUrl)
+const mockS3Client = jest.mocked(S3Client)
 
-const mockConfigService = {
-  getOrThrow: jest.fn((key: string) => {
-    const configMap: Record<string, string> = {
-      AWS_S3_BUCKET: 'test-bucket',
-      AWS_S3_PUBLIC_URL_PREFIX: 'https://test-bucket.s3.us-east-1.amazonaws.com',
-      AWS_REGION: 'us-east-1',
-      AWS_ACCESS_KEY_ID: 'test-key-id',
-      AWS_SECRET_ACCESS_KEY: 'test-secret',
-    }
-    return configMap[key]
-  }),
+// Default AWS S3 config (no custom endpoint).
+const defaultConfigMap: Record<string, string> = {
+  AWS_S3_BUCKET: 'test-bucket',
+  AWS_S3_PUBLIC_URL_PREFIX: 'https://test-bucket.s3.us-east-1.amazonaws.com',
+  AWS_REGION: 'us-east-1',
+  AWS_ACCESS_KEY_ID: 'test-key-id',
+  AWS_SECRET_ACCESS_KEY: 'test-secret',
+}
+
+function buildMockConfigService(extraConfig: Record<string, string> = {}) {
+  const configMap = { ...defaultConfigMap, ...extraConfig }
+  return {
+    getOrThrow: jest.fn((key: string) => {
+      const value = configMap[key]
+      if (value === undefined) throw new Error(`Config key not set: ${key}`)
+      return value
+    }),
+    get: jest.fn((key: string) => configMap[key]),
+  }
+}
+
+async function buildUploadService(extraConfig: Record<string, string> = {}) {
+  const module: TestingModule = await Test.createTestingModule({
+    providers: [
+      UploadService,
+      { provide: ConfigService, useValue: buildMockConfigService(extraConfig) },
+    ],
+  }).compile()
+  return module.get<UploadService>(UploadService)
 }
 
 describe('UploadService', () => {
   let uploadService: UploadService
 
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [UploadService, { provide: ConfigService, useValue: mockConfigService }],
-    }).compile()
-
-    uploadService = module.get<UploadService>(UploadService)
+    uploadService = await buildUploadService()
   })
 
   afterEach(() => {
@@ -72,6 +88,32 @@ describe('UploadService', () => {
       await expect(uploadService.generatePresignedUrl('photo.jpg', 'image/jpeg')).rejects.toThrow(
         InternalServerErrorException,
       )
+    })
+  })
+
+  // Issue #243 — S3-compatible providers (Cloudflare R2) via AWS_S3_ENDPOINT.
+  describe('S3 provider configuration', () => {
+    it('omits endpoint when AWS_S3_ENDPOINT is unset (default AWS S3)', async () => {
+      mockGetSignedUrl.mockResolvedValue('https://signed-url')
+
+      await uploadService.generatePresignedUrl('photo.jpg', 'image/jpeg')
+
+      const passedConfig = mockS3Client.mock.calls[0]?.[0]
+      expect(passedConfig?.endpoint).toBeUndefined()
+      expect(passedConfig?.forcePathStyle).toBeUndefined()
+    })
+
+    it('passes custom endpoint + forcePathStyle when AWS_S3_ENDPOINT is set (R2)', async () => {
+      const r2Service = await buildUploadService({
+        AWS_S3_ENDPOINT: 'https://abcdef.r2.cloudflarestorage.com',
+      })
+      mockGetSignedUrl.mockResolvedValue('https://signed-url')
+
+      await r2Service.generatePresignedUrl('photo.jpg', 'image/jpeg')
+
+      const passedConfig = mockS3Client.mock.calls.at(-1)?.[0]
+      expect(passedConfig?.endpoint).toBe('https://abcdef.r2.cloudflarestorage.com')
+      expect(passedConfig?.forcePathStyle).toBe(true)
     })
   })
 })
