@@ -47,12 +47,23 @@ export class PaymentsService {
     // Stripe requires amount in the smallest currency unit (cents for USD)
     const amountInCents = Math.round(Number(order.total) * 100)
 
+    // Issue #101 — enable Klarna + Afterpay Buy Now Pay Later alongside cards.
+    // Stripe Payment Element renders these as tabs automatically. The methods
+    // are filtered server-side by region, currency, and amount eligibility,
+    // and on the client by browser locale — Stripe shows only what's relevant.
+    // Both must also be enabled in Stripe Dashboard → Settings → Payment methods
+    // (see docs/runbooks/stripe-bnpl-setup.md).
+    //
+    // 'afterpay_clearpay' is Stripe's canonical id for both Afterpay (US/AU/NZ/CA)
+    // and Clearpay (UK) — same product, regional brand split.
+    const paymentMethodTypes = ['card', 'klarna', 'afterpay_clearpay']
+
     // orderId as idempotency key — prevents duplicate PaymentIntents on network retries
     const stripePaymentIntent = await this.stripeService.client.paymentIntents.create(
       {
         amount: amountInCents,
         currency: 'usd',
-        payment_method_types: ['card'],
+        payment_method_types: paymentMethodTypes,
         // Stored on the PaymentIntent for reconciliation in Stripe Dashboard
         metadata: { orderId },
       },

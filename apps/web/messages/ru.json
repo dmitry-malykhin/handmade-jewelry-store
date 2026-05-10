@@ -281,7 +281,8 @@
     "initiateCheckoutError": "Не удалось инициализировать оплату. Вернитесь и попробуйте снова.",
     "craftingLine": "Изготовление: до {days} рабочих дней",
     "shippingLineStandard": "Доставка: 5–7 рабочих дней стандартная",
-    "shippingLineExpress": "Доставка: 2–3 рабочих дня экспресс"
+    "shippingLineExpress": "Доставка: 2–3 рабочих дня экспресс",
+    "installmentPreview": "Или оплати в {count} беспроцентных платежей по ${amount} через Klarna или Afterpay."
   },
   "confirmationPage": {
     "metaTitle": "Заказ подтверждён",
@@ -408,7 +409,8 @@
     "trustSecure": "Защищённая оплата",
     "trustHandcrafted": "Ручная работа из {city}",
     "makerLine": "Изготовлено в нашей мастерской {studio}",
-    "ringSizeGuideLink": "Открыть гид по размерам колец"
+    "ringSizeGuideLink": "Открыть гид по размерам колец",
+    "installmentPreview": "Или {count} платежа по ${amount} с Klarna или Afterpay."
   },
   "admin": {
     "panelTitle": "Панель администратора",

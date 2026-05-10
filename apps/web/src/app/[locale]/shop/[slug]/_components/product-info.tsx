@@ -5,6 +5,7 @@ import { Link } from '@/i18n/navigation'
 import { AddToCartButton } from '@/components/features/cart/add-to-cart-button'
 import { SHIPPING_OPTIONS } from '@/app/[locale]/checkout/_lib/shipping-options'
 import { formatLatestDeliveryDate } from '@/app/[locale]/checkout/_lib/format-eta'
+import { calculateInstallmentPreview } from '@/lib/installment-preview'
 import { STUDIO_NAME, STUDIO_CITY } from '@/lib/studio'
 import { ProductDimensions } from './product-dimensions'
 
@@ -86,6 +87,21 @@ export async function ProductInfo({ product }: ProductInfoProps) {
       <p className="text-3xl font-bold text-foreground">
         <data value={formattedPrice}>${formattedPrice}</data>
       </p>
+
+      {/* BNPL installment preview — shown when total is in Afterpay's
+          eligibility range ($35–$1000). Pure marketing signal; Stripe Payment
+          Element does the real eligibility check at checkout. See #101. */}
+      {(() => {
+        const installmentPreview = calculateInstallmentPreview(parseFloat(product.price))
+        return installmentPreview ? (
+          <p className="-mt-3 text-sm text-muted-foreground">
+            {t('installmentPreview', {
+              count: installmentPreview.installmentCount,
+              amount: installmentPreview.installmentAmount,
+            })}
+          </p>
+        ) : null
+      })()}
 
       {/* Stock + production + shipping ETA. Premium-min: small colored dot +
           plain text rather than a full-width colored block. The helper line
