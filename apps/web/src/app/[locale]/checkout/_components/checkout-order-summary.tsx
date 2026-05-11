@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl'
 import { useCheckoutItems, useCheckoutTotalPrice } from '@/store/cart.store'
+import { calculateInstallmentPreview } from '@/lib/installment-preview'
 import {
   SHIPPING_OPTIONS,
   DEFAULT_SHIPPING_OPTION_ID,
@@ -93,6 +94,20 @@ export function CheckoutOrderSummary({ shippingCost, selectedOption }: CheckoutO
             {t('estimatedDelivery', { date: estimatedDeliveryRange })}
           </p>
         </div>
+
+        {/* BNPL installment preview — Stripe handles real eligibility at the
+            payment step; this is a marketing nudge for in-range orders (#101). */}
+        {(() => {
+          const installmentPreview = calculateInstallmentPreview(orderTotal)
+          return installmentPreview ? (
+            <p className="mt-3 text-xs text-muted-foreground">
+              {t('installmentPreview', {
+                count: installmentPreview.installmentCount,
+                amount: installmentPreview.installmentAmount,
+              })}
+            </p>
+          ) : null
+        })()}
       </div>
     </aside>
   )

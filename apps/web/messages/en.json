@@ -281,7 +281,8 @@
     "initiateCheckoutError": "Could not initialize payment. Please go back and try again.",
     "craftingLine": "Crafting: up to {days} business days",
     "shippingLineStandard": "Shipping: 5–7 business days standard",
-    "shippingLineExpress": "Shipping: 2–3 business days express"
+    "shippingLineExpress": "Shipping: 2–3 business days express",
+    "installmentPreview": "Or pay in {count} interest-free installments of ${amount} with Klarna or Afterpay at checkout."
   },
   "confirmationPage": {
     "metaTitle": "Order Confirmed",
@@ -408,7 +409,8 @@
     "trustSecure": "Secure checkout",
     "trustHandcrafted": "Handcrafted in {city}",
     "makerLine": "Crafted in our {studio} studio",
-    "ringSizeGuideLink": "View ring size guide"
+    "ringSizeGuideLink": "View ring size guide",
+    "installmentPreview": "Or {count} payments of ${amount} with Klarna or Afterpay."
   },
   "admin": {
     "panelTitle": "Admin Panel",

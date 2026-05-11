@@ -281,7 +281,8 @@
     "initiateCheckoutError": "No se pudo inicializar el pago. Vuelve atrás e inténtalo de nuevo.",
     "craftingLine": "Elaboración: hasta {days} días hábiles",
     "shippingLineStandard": "Envío: 5–7 días hábiles estándar",
-    "shippingLineExpress": "Envío: 2–3 días hábiles exprés"
+    "shippingLineExpress": "Envío: 2–3 días hábiles exprés",
+    "installmentPreview": "O paga en {count} cuotas sin intereses de ${amount} con Klarna o Afterpay."
   },
   "confirmationPage": {
     "metaTitle": "Pedido confirmado",
@@ -408,7 +409,8 @@
     "trustSecure": "Pago seguro",
     "trustHandcrafted": "Hecho a mano en {city}",
     "makerLine": "Elaborado en nuestro estudio {studio}",
-    "ringSizeGuideLink": "Ver guía de tallas de anillos"
+    "ringSizeGuideLink": "Ver guía de tallas de anillos",
+    "installmentPreview": "O {count} pagos de ${amount} con Klarna o Afterpay."
   },
   "admin": {
     "panelTitle": "Panel de administración",
