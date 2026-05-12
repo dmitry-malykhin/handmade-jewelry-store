@@ -38,6 +38,14 @@
   --color-input: var(--input-border);
   --color-ring: var(--color-accent-secondary);
 
+  /* CTA — high-contrast rose-gold action color (deeper than --primary,
+     reserved for hero / checkout / "Add to cart" surfaces). Tokens defined
+     in senichka-tokens.css §9. */
+  --color-cta: var(--btn-cta-bg);
+  --color-cta-foreground: var(--btn-cta-text);
+  --color-cta-hover: var(--btn-cta-hover-bg);
+  --color-cta-active: var(--btn-cta-active);
+
   /* Chart colors — brand palette */
   --color-chart-1: var(--brand-rose-gold);
   --color-chart-2: var(--jewel-emerald);
