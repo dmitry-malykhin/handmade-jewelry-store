@@ -37,6 +37,23 @@ describe('Button', () => {
     expect(screen.getByRole('button')).toHaveClass('bg-destructive')
   })
 
+  // Issue #210 — Senichka brand CTA is a deeper rose-gold than --primary,
+  // reserved for the strongest call-to-action surfaces (hero, checkout,
+  // "Add to cart"). It must be distinguishable from the regular default
+  // button so designers can pick the right emphasis level.
+  it('applies the cta variant class', () => {
+    render(<Button variant="cta">Add to Cart</Button>)
+    const renderedButton = screen.getByRole('button')
+    expect(renderedButton).toHaveClass('bg-cta')
+    expect(renderedButton).toHaveClass('text-cta-foreground')
+    expect(renderedButton).toHaveClass('hover:bg-cta-hover')
+  })
+
+  it('cta variant carries data-variant="cta" for analytics targeting', () => {
+    render(<Button variant="cta">Add to Cart</Button>)
+    expect(screen.getByRole('button')).toHaveAttribute('data-variant', 'cta')
+  })
+
   it('applies additional className passed via props', () => {
     render(<Button className="my-custom-class">Custom</Button>)
     expect(screen.getByRole('button')).toHaveClass('my-custom-class')
