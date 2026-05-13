@@ -9,6 +9,7 @@ import { GoogleAnalytics } from '@/components/analytics/google-analytics'
 import { FacebookPixel } from '@/components/analytics/facebook-pixel'
 import { PinterestTag } from '@/components/analytics/pinterest-tag'
 import { Klaviyo } from '@/components/analytics/klaviyo'
+import { MicrosoftClarity } from '@/components/analytics/microsoft-clarity'
 import { PostHogAnalytics } from '@/components/analytics/posthog'
 import './globals.css'
 
@@ -122,6 +123,9 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
                 host={process.env.NEXT_PUBLIC_POSTHOG_HOST}
               />
             </Suspense>
+          )}
+          {process.env.NEXT_PUBLIC_CLARITY_PROJECT_ID && (
+            <MicrosoftClarity projectId={process.env.NEXT_PUBLIC_CLARITY_PROJECT_ID} />
           )}
         </ThemeProvider>
       </body>
