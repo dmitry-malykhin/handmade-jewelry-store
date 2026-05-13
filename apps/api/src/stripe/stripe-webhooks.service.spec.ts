@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing'
 import { OrderStatus, PaymentStatus } from '@prisma/client'
 import { Decimal } from '@prisma/client/runtime/library'
 import type Stripe from 'stripe'
+import { AnalyticsService } from '../analytics/analytics.service'
 import { EmailService } from '../email/email.service'
 import { PrismaService } from '../prisma/prisma.service'
 import { StripeWebhooksService } from './stripe-webhooks.service'
@@ -67,6 +68,10 @@ describe('StripeWebhooksService', () => {
     $transaction: jest.Mock
   }
   let mockEmailService: { sendOrderConfirmation: jest.Mock; sendRefundProcessed: jest.Mock }
+  let mockAnalyticsService: {
+    trackPaymentSucceeded: jest.Mock
+    trackOrderCreated: jest.Mock
+  }
 
   beforeEach(async () => {
     mockPrismaService = {
@@ -79,12 +84,17 @@ describe('StripeWebhooksService', () => {
       sendOrderConfirmation: jest.fn(),
       sendRefundProcessed: jest.fn(),
     }
+    mockAnalyticsService = {
+      trackPaymentSucceeded: jest.fn(),
+      trackOrderCreated: jest.fn(),
+    }
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         StripeWebhooksService,
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: EmailService, useValue: mockEmailService },
+        { provide: AnalyticsService, useValue: mockAnalyticsService },
       ],
     }).compile()
 
@@ -137,6 +147,65 @@ describe('StripeWebhooksService', () => {
           orderId: ORDER_ID,
         }),
       )
+    })
+
+    // PostHog server-side capture — webhook is the trusted source of revenue
+    // events. Client `order_placed` can be lost, so this server event is the
+    // source of truth in funnel analysis.
+    it('captures payment_succeeded with guest email as distinct_id for guest orders', async () => {
+      mockPrismaService.payment.findUnique.mockResolvedValueOnce(buildMockPayment())
+
+      await stripeWebhooksService.handlePaymentIntentSucceeded(
+        buildMockPaymentIntent({
+          amount: 14998,
+          payment_method_types: ['card'],
+        } as Partial<Stripe.PaymentIntent>),
+      )
+
+      expect(mockAnalyticsService.trackPaymentSucceeded).toHaveBeenCalledWith('guest@example.com', {
+        orderId: ORDER_ID,
+        amountUsd: 149.98,
+        paymentMethod: 'card',
+      })
+    })
+
+    it('captures payment_succeeded with userId as distinct_id for registered orders', async () => {
+      mockPrismaService.payment.findUnique.mockResolvedValueOnce(
+        buildMockPayment({
+          order: {
+            id: ORDER_ID,
+            status: OrderStatus.PENDING,
+            userId: 'user-42',
+            guestEmail: null,
+          },
+        }),
+      )
+
+      await stripeWebhooksService.handlePaymentIntentSucceeded(
+        buildMockPaymentIntent({
+          amount: 4998,
+          payment_method_types: ['klarna'],
+        } as Partial<Stripe.PaymentIntent>),
+      )
+
+      expect(mockAnalyticsService.trackPaymentSucceeded).toHaveBeenCalledWith(
+        'user-42',
+        expect.objectContaining({
+          orderId: ORDER_ID,
+          amountUsd: 49.98,
+          paymentMethod: 'klarna',
+        }),
+      )
+    })
+
+    it('does not capture payment_succeeded on idempotent re-delivery', async () => {
+      mockPrismaService.payment.findUnique.mockResolvedValueOnce(
+        buildMockPayment({ status: PaymentStatus.SUCCEEDED }),
+      )
+
+      await stripeWebhooksService.handlePaymentIntentSucceeded(buildMockPaymentIntent())
+
+      expect(mockAnalyticsService.trackPaymentSucceeded).not.toHaveBeenCalled()
     })
   })
 

@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config'
 import { SentryModule } from '@sentry/nestjs/setup'
 import { AddressesModule } from './addresses/addresses.module'
 import { AdminModule } from './admin/admin.module'
+import { AnalyticsModule } from './analytics/analytics.module'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
 import { AuthModule } from './auth/auth.module'
@@ -32,6 +33,8 @@ import { WishlistModule } from './wishlist/wishlist.module'
     // SentryModule.forRoot() wires Sentry into NestJS request lifecycle:
     // adds transaction spans per controller method and propagates trace context.
     SentryModule.forRoot(),
+    // @Global — provides AnalyticsService for server-side PostHog event capture
+    AnalyticsModule,
     PrismaModule,
     UsersModule,
     AuthModule,
