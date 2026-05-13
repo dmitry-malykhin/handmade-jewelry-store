@@ -1,10 +1,12 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Link } from '@/i18n/navigation'
 import { Button } from '@/components/ui/button'
 import { useAuthStore } from '@/store/auth.store'
+import { useCheckoutItems, useCheckoutTotalPrice } from '@/store/cart.store'
+import { trackCheckoutStarted } from '@/lib/analytics/posthog'
 import { CheckoutAddressForm } from './checkout-address-form'
 import { CheckoutShippingMethodForm } from './checkout-shipping-method-form'
 import { CheckoutPaymentForm } from './checkout-payment-form'
@@ -25,6 +27,9 @@ interface CheckoutFlowState {
 export function CheckoutEntry() {
   const t = useTranslations('checkoutPage')
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+  const cartItems = useCheckoutItems()
+  const cartSubtotal = useCheckoutTotalPrice()
+  const checkoutStartedFired = useRef(false)
 
   const [flowState, setFlowState] = useState<CheckoutFlowState>({
     path: null,
@@ -33,6 +38,19 @@ export function CheckoutEntry() {
     selectedShippingOption: null,
     resolvedShippingCost: 0,
   })
+
+  // Fire checkout_started once per checkout session — only after the cart is
+  // confirmed non-empty (avoids firing on an immediate redirect-to-cart case
+  // before users have hydrated their cart from localStorage).
+  useEffect(() => {
+    if (checkoutStartedFired.current) return
+    if (cartItems.length === 0) return
+    trackCheckoutStarted({
+      cartItemCount: cartItems.reduce((sum, cartItem) => sum + cartItem.quantity, 0),
+      cartTotalUsd: cartSubtotal,
+    })
+    checkoutStartedFired.current = true
+  }, [cartItems, cartSubtotal])
 
   // Skip the guest/sign-in gateway for authenticated users — they're already
   // identified, asking them to "continue as guest or sign in" is redundant

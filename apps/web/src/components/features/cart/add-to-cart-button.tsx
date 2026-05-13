@@ -6,6 +6,7 @@ import { toast } from 'sonner'
 import { Link } from '@/i18n/navigation'
 import { Button } from '@/components/ui/button'
 import { useCartStore } from '@/store'
+import { trackProductAddedToCart } from '@/lib/analytics/posthog'
 
 /**
  * Structural minimum the button needs to read from a product. Both the catalog
@@ -56,6 +57,13 @@ export function AddToCartButton({ product, className }: AddToCartButtonProps) {
       price: parseFloat(product.price),
       image: product.images[0] ?? '',
       productionDays: product.productionDays,
+    })
+    trackProductAddedToCart({
+      productId: product.id,
+      slug: product.slug,
+      title: product.title,
+      priceUsd: parseFloat(product.price),
+      quantity: 1,
     })
     toast.success(t('addedToast', { title: product.title }))
   }

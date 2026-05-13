@@ -5,6 +5,7 @@ import { fetchProductBySlug } from '@/lib/api/products'
 import { generateBreadcrumbJsonLd, generateProductJsonLd } from '@/lib/seo/json-ld'
 import { ReviewsSection } from '@/components/features/reviews/reviews-section'
 import { ProductDetail } from './_components/product-detail'
+import { ProductViewTracker } from './_components/product-view-tracker'
 
 // ISR — same revalidation window as catalog so product data stays fresh
 export const revalidate = 3600
@@ -113,6 +114,15 @@ export default async function ProductPage({ params }: ProductPageProps) {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+
+      <ProductViewTracker
+        productId={product.id}
+        slug={product.slug}
+        title={product.title}
+        priceUsd={parseFloat(product.price)}
+        categorySlug={product.category?.slug}
+        stockType={product.stockType}
       />
 
       <div className="container mx-auto px-4 py-8">

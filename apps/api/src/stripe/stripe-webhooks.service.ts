@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { OrderStatus, PaymentStatus } from '@prisma/client'
 import type Stripe from 'stripe'
+import { AnalyticsService } from '../analytics/analytics.service'
 import { EmailService } from '../email/email.service'
 import { PrismaService } from '../prisma/prisma.service'
 import { isValidOrderStatusTransition } from '../orders/order-status.transitions'
@@ -12,6 +13,7 @@ export class StripeWebhooksService {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly emailService: EmailService,
+    private readonly analyticsService: AnalyticsService,
   ) {}
 
   async handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent): Promise<void> {
@@ -60,6 +62,21 @@ export class StripeWebhooksService {
     })
 
     this.logger.log(`Order ${payment.orderId} transitioned to PAID`)
+
+    // Authoritative revenue event — webhook is the trusted source. Client
+    // `order_placed` from the confirmation page can be lost (tab close, network
+    // drop), so payment_succeeded here is the source of truth for revenue.
+    // PostHog merges anonymous → identified sessions automatically when the
+    // distinct_id matches a prior `posthog.identify()` call.
+    const distinctId =
+      payment.order.userId ?? payment.order.guestEmail ?? `order-${payment.orderId}`
+    const amountUsd = (paymentIntent.amount ?? 0) / 100
+    const paymentMethod = paymentIntent.payment_method_types?.[0] ?? 'unknown'
+    this.analyticsService.trackPaymentSucceeded(distinctId, {
+      orderId: payment.orderId,
+      amountUsd,
+      paymentMethod,
+    })
 
     await this.sendOrderConfirmationEmail(payment.orderId)
   }
