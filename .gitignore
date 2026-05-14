@@ -25,6 +25,11 @@ coverage
 # nyc test coverage
 .nyc_output
 
+# JUnit test reports — generated per-run by jest-junit (api) and vitest junit
+# reporter (web). Read by CI (dorny/test-reporter) and discarded after.
+reports/
+apps/*/reports/
+
 # Grunt intermediate storage (https://gruntjs.com/creating-plugins#storing-task-files)
 .grunt
 

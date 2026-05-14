@@ -22,3 +22,4 @@ Closes #
 - [ ] `pnpm lint` passes
 - [ ] `pnpm build` passes locally
 - [ ] Self-reviewed the diff before opening PR
+- [ ] QA: affected `docs/qa/**.md` test cases updated (or N/A — purely internal change)

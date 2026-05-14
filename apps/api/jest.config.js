@@ -12,4 +12,20 @@ module.exports = {
   moduleNameMapper: {
     '^@jewelry/shared$': '<rootDir>/../../../packages/shared/src/index.ts',
   },
+  // jest-junit emits a JUnit-format XML so CI (dorny/test-reporter) can show
+  // per-PR test results. Default reporter stays on for local readable output.
+  reporters: [
+    'default',
+    [
+      'jest-junit',
+      {
+        outputDirectory: '<rootDir>/../reports',
+        outputName: 'junit.xml',
+        suiteName: 'API Unit Tests',
+        classNameTemplate: '{filepath}',
+        titleTemplate: '{title}',
+        ancestorSeparator: ' > ',
+      },
+    ],
+  ],
 }
