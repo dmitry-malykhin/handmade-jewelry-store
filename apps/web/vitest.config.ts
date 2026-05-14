@@ -13,6 +13,10 @@ export default defineConfig({
     setupFiles: ['./vitest.setup.ts'],
     include: ['src/**/__tests__/**/*.{test,spec}.{ts,tsx}'],
     exclude: ['node_modules', '.next'],
+    // CI reads junit.xml via dorny/test-reporter to surface per-PR test results.
+    // Local dev keeps the default human-readable reporter; junit is additive.
+    reporters: process.env.CI ? ['default', 'junit'] : ['default'],
+    outputFile: { junit: './reports/junit.xml' },
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html', 'lcov'],
