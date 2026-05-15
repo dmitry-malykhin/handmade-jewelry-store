@@ -145,8 +145,19 @@ export class StripeWebhooksService {
       return
     }
 
-    if (payment.status === PaymentStatus.REFUNDED) {
-      this.logger.log(`Charge ${charge.id} already refunded — skipping`)
+    // Detect partial vs full refund from the Stripe charge itself — admin
+    // refund flow (#170) may set PARTIALLY_REFUNDED before this webhook arrives.
+    const isFullRefund = charge.amount_refunded >= charge.amount
+    const targetPaymentStatus = isFullRefund
+      ? PaymentStatus.REFUNDED
+      : PaymentStatus.PARTIALLY_REFUNDED
+    const targetOrderStatus = isFullRefund ? OrderStatus.REFUNDED : OrderStatus.PARTIALLY_REFUNDED
+
+    // Idempotency — if the admin endpoint already moved the payment to the
+    // matching refund state, skip. Cross-state move (PARTIALLY_REFUNDED →
+    // REFUNDED on a follow-up additional refund) still proceeds.
+    if (payment.status === targetPaymentStatus) {
+      this.logger.log(`Charge ${charge.id} already at ${targetPaymentStatus} — skipping`)
       return
     }
 
@@ -155,20 +166,20 @@ export class StripeWebhooksService {
     await this.prismaService.$transaction(async (transaction) => {
       await transaction.payment.update({
         where: { id: payment.id },
-        data: { status: PaymentStatus.REFUNDED },
+        data: { status: targetPaymentStatus },
       })
 
-      if (isValidOrderStatusTransition(payment.order.status, OrderStatus.REFUNDED)) {
+      if (isValidOrderStatusTransition(payment.order.status, targetOrderStatus)) {
         await transaction.order.update({
           where: { id: payment.orderId },
           data: {
-            status: OrderStatus.REFUNDED,
+            status: targetOrderStatus,
             refundedAt: new Date(),
             refundAmount: refundAmountInDollars,
             statusHistory: {
               create: {
                 fromStatus: payment.order.status,
-                toStatus: OrderStatus.REFUNDED,
+                toStatus: targetOrderStatus,
                 note: `Stripe charge ${charge.id} refunded — $${refundAmountInDollars}`,
                 createdBy: 'system',
               },

@@ -56,6 +56,8 @@ const buildMockCharge = (overrides: Partial<Stripe.Charge> = {}) =>
   ({
     id: STRIPE_CHARGE_ID,
     payment_intent: STRIPE_INTENT_ID,
+    // amount and amount_refunded equal → full refund (default case)
+    amount: 4998,
     amount_refunded: 4998,
     ...overrides,
   }) as unknown as Stripe.Charge
@@ -291,6 +293,42 @@ describe('StripeWebhooksService', () => {
         orderId: ORDER_ID,
         refundAmount: 49.98,
       })
+    })
+
+    // #170 — partial refund detection: when charge.amount_refunded < charge.amount,
+    // the order must transition to PARTIALLY_REFUNDED, not REFUNDED.
+    it('sets PARTIALLY_REFUNDED when amount_refunded < charge.amount', async () => {
+      mockPrismaService.payment.findUnique.mockResolvedValueOnce(
+        buildMockPayment({ order: { id: ORDER_ID, status: OrderStatus.DELIVERED } }),
+      )
+
+      await stripeWebhooksService.handleChargeRefunded(
+        buildMockCharge({ amount: 4998, amount_refunded: 2000 } as Partial<Stripe.Charge>),
+      )
+
+      expect(mockPrismaService.payment.update).toHaveBeenCalledWith(
+        expect.objectContaining({ data: { status: PaymentStatus.PARTIALLY_REFUNDED } }),
+      )
+      expect(mockPrismaService.order.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            status: OrderStatus.PARTIALLY_REFUNDED,
+            refundAmount: 20,
+          }),
+        }),
+      )
+    })
+
+    it('skips when payment already PARTIALLY_REFUNDED and webhook reports same partial', async () => {
+      mockPrismaService.payment.findUnique.mockResolvedValueOnce(
+        buildMockPayment({ status: PaymentStatus.PARTIALLY_REFUNDED }),
+      )
+
+      await stripeWebhooksService.handleChargeRefunded(
+        buildMockCharge({ amount: 4998, amount_refunded: 2000 } as Partial<Stripe.Charge>),
+      )
+
+      expect(mockPrismaService.$transaction).not.toHaveBeenCalled()
     })
   })
 

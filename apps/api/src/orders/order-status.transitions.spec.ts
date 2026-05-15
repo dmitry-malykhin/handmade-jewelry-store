@@ -104,17 +104,18 @@ describe('isValidOrderStatusTransition', () => {
       })
     })
 
-    it('allows no transitions out of PARTIALLY_REFUNDED', () => {
+    it('only allows PARTIALLY_REFUNDED → REFUNDED (top-up follow-up refund, #170)', () => {
       const partiallyRefundedTransitions =
         ALLOWED_ORDER_STATUS_TRANSITIONS[OrderStatus.PARTIALLY_REFUNDED]
-      expect(partiallyRefundedTransitions).toHaveLength(0)
+      expect(partiallyRefundedTransitions).toEqual([OrderStatus.REFUNDED])
     })
 
-    it('returns false for every possible target status from PARTIALLY_REFUNDED', () => {
+    it('returns false from PARTIALLY_REFUNDED for every status except REFUNDED', () => {
       const allStatuses = Object.values(OrderStatus)
       allStatuses.forEach((targetStatus) => {
+        const expected = targetStatus === OrderStatus.REFUNDED
         expect(isValidOrderStatusTransition(OrderStatus.PARTIALLY_REFUNDED, targetStatus)).toBe(
-          false,
+          expected,
         )
       })
     })

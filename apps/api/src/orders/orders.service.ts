@@ -1,10 +1,13 @@
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common'
-import { OrderStatus, Prisma } from '@prisma/client'
-import { InputJsonValue } from '@prisma/client/runtime/library'
+import { OrderStatus, PaymentStatus, Prisma } from '@prisma/client'
+import { Decimal, InputJsonValue } from '@prisma/client/runtime/library'
+import { AnalyticsService } from '../analytics/analytics.service'
 import { EmailService } from '../email/email.service'
 import { PrismaService } from '../prisma/prisma.service'
+import { StripeService } from '../stripe/stripe.service'
 import { CreateOrderDto } from './dto/create-order.dto'
 import { OrderQueryDto } from './dto/order-query.dto'
+import { RefundOrderDto } from './dto/refund-order.dto'
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto'
 import { UpdateOrderTrackingDto } from './dto/update-order-tracking.dto'
 import { isValidOrderStatusTransition } from './order-status.transitions'
@@ -16,6 +19,8 @@ export class OrdersService {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly emailService: EmailService,
+    private readonly stripeService: StripeService,
+    private readonly analyticsService: AnalyticsService,
   ) {}
 
   async create(createOrderDto: CreateOrderDto) {
@@ -189,6 +194,172 @@ export class OrdersService {
         items: true,
         payment: true,
         statusHistory: { orderBy: { createdAt: 'asc' } },
+      },
+    })
+  }
+
+  /**
+   * Issues a full or partial refund against the order's Stripe PaymentIntent.
+   *
+   * Order is the source of truth for refund metadata (reason, note) — the Stripe
+   * webhook `charge.refunded` will arrive later but the idempotency guard
+   * (payment.status already REFUNDED / PARTIALLY_REFUNDED) makes it a no-op.
+   *
+   * Validation:
+   *  - Order must have a Payment in SUCCEEDED or PARTIALLY_REFUNDED status
+   *  - Requested amount cannot exceed remaining refundable (total − refundAmount)
+   *  - Status transition to REFUNDED / PARTIALLY_REFUNDED must be allowed
+   *
+   * Side effects (all in a single transaction):
+   *  - Stripe Refund created (outside transaction; if it succeeds and DB writes
+   *    fail, the webhook will reconcile on retry)
+   *  - Payment.status → REFUNDED (full) or PARTIALLY_REFUNDED (partial)
+   *  - Order.status, refundedAt, refundAmount (cumulative), refundReason, refundNote
+   *  - OrderStatusHistory entry
+   *  - Refund confirmation email sent (best-effort; failure does not roll back)
+   */
+  async refundOrder(orderId: string, refundOrderDto: RefundOrderDto) {
+    const order = await this.prismaService.order.findUnique({
+      where: { id: orderId },
+      include: { payment: true },
+    })
+
+    if (!order) {
+      throw new NotFoundException(`Order ${orderId} not found`)
+    }
+    if (!order.payment) {
+      throw new BadRequestException(`Order ${orderId} has no payment to refund`)
+    }
+    if (
+      order.payment.status !== PaymentStatus.SUCCEEDED &&
+      order.payment.status !== PaymentStatus.PARTIALLY_REFUNDED
+    ) {
+      throw new BadRequestException(
+        `Order ${orderId} payment status is ${order.payment.status} — cannot refund`,
+      )
+    }
+
+    const alreadyRefunded = order.refundAmount ?? new Decimal(0)
+    const remainingRefundable = order.total.minus(alreadyRefunded)
+    const requestedAmount = refundOrderDto.amount
+      ? new Decimal(refundOrderDto.amount)
+      : remainingRefundable
+
+    if (requestedAmount.greaterThan(remainingRefundable)) {
+      throw new BadRequestException(
+        `Refund amount $${requestedAmount} exceeds remaining refundable $${remainingRefundable}`,
+      )
+    }
+    if (requestedAmount.lessThanOrEqualTo(0)) {
+      throw new BadRequestException('Refund amount must be greater than zero')
+    }
+
+    // Stripe refund happens outside the DB transaction. If Stripe succeeds but
+    // DB write fails, the webhook handler will reconcile (idempotent).
+    const stripeRefund = await this.stripeService.createRefund(
+      order.payment.stripeId,
+      requestedAmount.toNumber(),
+    )
+
+    const cumulativeRefunded = alreadyRefunded.plus(requestedAmount)
+    const isFullRefund = cumulativeRefunded.greaterThanOrEqualTo(order.total)
+    const newOrderStatus = isFullRefund ? OrderStatus.REFUNDED : OrderStatus.PARTIALLY_REFUNDED
+    const newPaymentStatus = isFullRefund
+      ? PaymentStatus.REFUNDED
+      : PaymentStatus.PARTIALLY_REFUNDED
+
+    if (!isValidOrderStatusTransition(order.status, newOrderStatus)) {
+      throw new BadRequestException(
+        `Order ${orderId} cannot transition from ${order.status} to ${newOrderStatus}`,
+      )
+    }
+
+    // Capture the payment narrowing — TypeScript loses it inside the async
+    // transaction callback closure, which is why we previously needed `!`.
+    const payment = order.payment
+
+    const updatedOrder = await this.prismaService.$transaction(async (transaction) => {
+      await transaction.payment.update({
+        where: { id: payment.id },
+        data: { status: newPaymentStatus },
+      })
+
+      return transaction.order.update({
+        where: { id: orderId },
+        data: {
+          status: newOrderStatus,
+          refundedAt: new Date(),
+          refundAmount: cumulativeRefunded,
+          refundReason: refundOrderDto.reason,
+          refundNote: refundOrderDto.note ?? null,
+          statusHistory: {
+            create: {
+              fromStatus: order.status,
+              toStatus: newOrderStatus,
+              note: `Refund $${requestedAmount} — ${refundOrderDto.reason}${
+                refundOrderDto.note ? ` — ${refundOrderDto.note}` : ''
+              } (Stripe refund ${stripeRefund.id})`,
+              createdBy: 'admin',
+            },
+          },
+        },
+        include: {
+          items: true,
+          payment: true,
+          statusHistory: { orderBy: { createdAt: 'asc' } },
+        },
+      })
+    })
+
+    this.logger.log(
+      `Order ${orderId} refunded $${requestedAmount} (cumulative $${cumulativeRefunded}, ${newOrderStatus})`,
+    )
+
+    // PostHog refund event — fires AFTER DB commit so a failed transaction
+    // doesn't pollute the funnel. DistinctId matches trackPaymentSucceeded
+    // so PostHog threads the refund into the same customer profile.
+    const distinctId = updatedOrder.userId ?? updatedOrder.guestEmail ?? `order-${orderId}`
+    this.analyticsService.trackOrderRefunded(distinctId, {
+      orderId,
+      refundAmountUsd: requestedAmount.toNumber(),
+      reason: refundOrderDto.reason,
+      isFullRefund,
+    })
+
+    // Refund confirmation email — best-effort, do not roll back the refund.
+    const recipientEmail = updatedOrder.guestEmail ?? null
+    if (recipientEmail) {
+      try {
+        await this.emailService.sendRefundProcessed({
+          recipientEmail,
+          orderId,
+          refundAmount: requestedAmount.toNumber(),
+        })
+      } catch (error) {
+        this.logger.error(
+          `Refund email failed for order ${orderId} — refund itself succeeded`,
+          error instanceof Error ? error.stack : undefined,
+        )
+      }
+    }
+
+    return updatedOrder
+  }
+
+  /**
+   * Lists all orders that have a refund recorded — both fully and partially
+   * refunded. Used by the admin refunds page; orders without `refundedAt` are
+   * excluded so the result is a pure refund ledger.
+   */
+  async findAllRefunds() {
+    return this.prismaService.order.findMany({
+      where: {
+        OR: [{ status: OrderStatus.REFUNDED }, { status: OrderStatus.PARTIALLY_REFUNDED }],
+      },
+      orderBy: { refundedAt: 'desc' },
+      include: {
+        items: true,
+        payment: true,
       },
     })
   }

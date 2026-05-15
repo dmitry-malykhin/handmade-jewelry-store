@@ -93,6 +93,8 @@ export interface AdminOrderDetail extends OrderDetails {
   cancelNote: string | null
   refundedAt: string | null
   refundAmount: number | null
+  refundReason: string | null
+  refundNote: string | null
   source: string | null
   statusHistory: OrderStatusHistoryEntry[]
   payment: OrderPaymentInfo | null
@@ -201,5 +203,37 @@ export async function updateAdminOrderTracking(
     method: 'PATCH',
     headers: { Authorization: `Bearer ${accessToken}` },
     body: JSON.stringify(payload),
+  })
+}
+
+export type RefundReason =
+  | 'ITEM_DAMAGED'
+  | 'ITEM_NOT_AS_DESCRIBED'
+  | 'CUSTOMER_CHANGED_MIND'
+  | 'DUPLICATE_ORDER'
+  | 'OTHER'
+
+export interface RefundOrderPayload {
+  /** Amount in USD. Omit for full refund of remaining amount. */
+  amount?: number
+  reason: RefundReason
+  note?: string
+}
+
+export async function refundAdminOrder(
+  orderId: string,
+  payload: RefundOrderPayload,
+  accessToken: string,
+): Promise<AdminOrderDetail> {
+  return apiClient<AdminOrderDetail>(`/api/admin/orders/${orderId}/refund`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${accessToken}` },
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function fetchAdminRefunds(accessToken: string): Promise<AdminOrderDetail[]> {
+  return apiClient<AdminOrderDetail[]>('/api/admin/orders/refunds', {
+    headers: { Authorization: `Bearer ${accessToken}` },
   })
 }
