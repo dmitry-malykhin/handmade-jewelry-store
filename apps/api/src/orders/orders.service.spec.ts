@@ -1,8 +1,11 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common'
 import { Test, TestingModule } from '@nestjs/testing'
 import { OrderStatus } from '@prisma/client'
+import { Decimal } from '@prisma/client/runtime/library'
+import { AnalyticsService } from '../analytics/analytics.service'
 import { EmailService } from '../email/email.service'
 import { PrismaService } from '../prisma/prisma.service'
+import { StripeService } from '../stripe/stripe.service'
 import { CreateOrderDto } from './dto/create-order.dto'
 import { OrdersService } from './orders.service'
 
@@ -38,6 +41,8 @@ const mockCreatedOrder = {
   updatedAt: new Date(),
 }
 
+type TransactionCallback = (tx: typeof mockPrismaService) => Promise<unknown>
+
 const mockPrismaService = {
   order: {
     create: jest.fn(),
@@ -46,10 +51,27 @@ const mockPrismaService = {
     findUnique: jest.fn(),
     update: jest.fn(),
   },
+  payment: {
+    update: jest.fn(),
+  },
+  $transaction: jest.fn(
+    (callback: TransactionCallback): Promise<unknown> => callback(mockPrismaService),
+  ),
 }
 
 const mockEmailService = {
   sendShippingNotification: jest.fn(),
+  sendRefundProcessed: jest.fn(),
+}
+
+const mockStripeService = {
+  createRefund: jest.fn(),
+}
+
+const mockAnalyticsService = {
+  trackOrderRefunded: jest.fn(),
+  trackOrderCreated: jest.fn(),
+  trackPaymentSucceeded: jest.fn(),
 }
 
 describe('OrdersService', () => {
@@ -61,6 +83,8 @@ describe('OrdersService', () => {
         OrdersService,
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: EmailService, useValue: mockEmailService },
+        { provide: StripeService, useValue: mockStripeService },
+        { provide: AnalyticsService, useValue: mockAnalyticsService },
       ],
     }).compile()
 
@@ -287,6 +311,201 @@ describe('OrdersService', () => {
       await ordersService.updateStatus('order-1', { status: OrderStatus.SHIPPED })
 
       expect(mockEmailService.sendShippingNotification).not.toHaveBeenCalled()
+    })
+  })
+
+  // ── refundOrder ───────────────────────────────────────────────────────────
+
+  describe('refundOrder()', () => {
+    const refundablePayment = {
+      id: 'payment-1',
+      stripeId: 'pi_test_123',
+      status: 'SUCCEEDED',
+    }
+
+    // Real Decimal behaviour matters — arithmetic in refundOrder must produce
+    // the same totals the production code computes, so reuse the prod class.
+    function buildOrder(overrides: Record<string, unknown> = {}): Record<string, unknown> {
+      return {
+        id: 'order-1',
+        status: OrderStatus.DELIVERED,
+        total: new Decimal('100.00'),
+        refundAmount: null,
+        guestEmail: 'jane@example.com',
+        payment: refundablePayment,
+        ...overrides,
+      }
+    }
+
+    it('throws NotFound when order does not exist', async () => {
+      mockPrismaService.order.findUnique.mockResolvedValueOnce(null)
+
+      await expect(
+        ordersService.refundOrder('missing-order', { reason: 'OTHER' as const }),
+      ).rejects.toThrow(NotFoundException)
+    })
+
+    it('throws BadRequest when order has no payment record', async () => {
+      mockPrismaService.order.findUnique.mockResolvedValueOnce(buildOrder({ payment: null }))
+
+      await expect(
+        ordersService.refundOrder('order-1', { reason: 'OTHER' as const }),
+      ).rejects.toThrow(/no payment/i)
+    })
+
+    it('throws BadRequest when payment status is not SUCCEEDED or PARTIALLY_REFUNDED', async () => {
+      mockPrismaService.order.findUnique.mockResolvedValueOnce(
+        buildOrder({ payment: { ...refundablePayment, status: 'PENDING' } }),
+      )
+
+      await expect(
+        ordersService.refundOrder('order-1', { reason: 'OTHER' as const }),
+      ).rejects.toThrow(/cannot refund/i)
+    })
+
+    it('throws BadRequest when requested amount exceeds remaining refundable', async () => {
+      mockPrismaService.order.findUnique.mockResolvedValueOnce(buildOrder())
+
+      await expect(
+        ordersService.refundOrder('order-1', { reason: 'OTHER' as const, amount: 150 }),
+      ).rejects.toThrow(/exceeds remaining refundable/i)
+    })
+
+    it('performs a full refund — sets REFUNDED status, calls Stripe, records history', async () => {
+      const order = buildOrder({ guestEmail: 'jane@example.com' })
+      mockPrismaService.order.findUnique.mockResolvedValueOnce(order)
+      mockStripeService.createRefund.mockResolvedValueOnce({ id: 're_test_full' })
+      mockPrismaService.order.update.mockImplementationOnce(
+        ({ data }: { data: Record<string, unknown> }) =>
+          Promise.resolve({ ...order, ...data, items: [], statusHistory: [] }),
+      )
+
+      const result = await ordersService.refundOrder('order-1', {
+        reason: 'ITEM_DAMAGED' as const,
+        note: 'Buyer reported broken clasp',
+      })
+
+      expect(mockStripeService.createRefund).toHaveBeenCalledWith('pi_test_123', 100)
+      expect(mockPrismaService.payment.update).toHaveBeenCalledWith({
+        where: { id: 'payment-1' },
+        data: { status: 'REFUNDED' },
+      })
+      expect(mockPrismaService.order.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'order-1' },
+          data: expect.objectContaining({
+            status: OrderStatus.REFUNDED,
+            refundReason: 'ITEM_DAMAGED',
+            refundNote: 'Buyer reported broken clasp',
+            refundAmount: expect.any(Decimal),
+            statusHistory: expect.objectContaining({
+              create: expect.objectContaining({
+                fromStatus: OrderStatus.DELIVERED,
+                toStatus: OrderStatus.REFUNDED,
+                createdBy: 'admin',
+              }),
+            }),
+          }),
+        }),
+      )
+      // PostHog: full-refund event with reason + isFullRefund=true, keyed by guestEmail
+      expect(mockAnalyticsService.trackOrderRefunded).toHaveBeenCalledWith('jane@example.com', {
+        orderId: 'order-1',
+        refundAmountUsd: 100,
+        reason: 'ITEM_DAMAGED',
+        isFullRefund: true,
+      })
+      expect(result.status).toBe(OrderStatus.REFUNDED)
+    })
+
+    it('performs a partial refund — sets PARTIALLY_REFUNDED status', async () => {
+      const order = buildOrder()
+      mockPrismaService.order.findUnique.mockResolvedValueOnce(order)
+      mockStripeService.createRefund.mockResolvedValueOnce({ id: 're_test_partial' })
+      mockPrismaService.order.update.mockImplementationOnce(
+        ({ data }: { data: Record<string, unknown> }) =>
+          Promise.resolve({ ...order, ...data, items: [], statusHistory: [] }),
+      )
+
+      const result = await ordersService.refundOrder('order-1', {
+        reason: 'CUSTOMER_CHANGED_MIND' as const,
+        amount: 40,
+      })
+
+      expect(mockStripeService.createRefund).toHaveBeenCalledWith('pi_test_123', 40)
+      expect(mockPrismaService.payment.update).toHaveBeenCalledWith({
+        where: { id: 'payment-1' },
+        data: { status: 'PARTIALLY_REFUNDED' },
+      })
+      expect(mockAnalyticsService.trackOrderRefunded).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({ refundAmountUsd: 40, isFullRefund: false }),
+      )
+      expect(result.status).toBe(OrderStatus.PARTIALLY_REFUNDED)
+    })
+
+    it('top-up after PARTIALLY_REFUNDED — cumulative refund reaches total → REFUNDED', async () => {
+      const partialOrder = buildOrder({
+        status: OrderStatus.PARTIALLY_REFUNDED,
+        refundAmount: new Decimal('40.00'),
+        payment: { ...refundablePayment, status: 'PARTIALLY_REFUNDED' },
+      })
+      mockPrismaService.order.findUnique.mockResolvedValueOnce(partialOrder)
+      mockStripeService.createRefund.mockResolvedValueOnce({ id: 're_test_topup' })
+      mockPrismaService.order.update.mockImplementationOnce(
+        ({ data }: { data: Record<string, unknown> }) =>
+          Promise.resolve({ ...partialOrder, ...data, items: [], statusHistory: [] }),
+      )
+
+      const result = await ordersService.refundOrder('order-1', {
+        reason: 'OTHER' as const,
+        amount: 60,
+      })
+
+      expect(mockStripeService.createRefund).toHaveBeenCalledWith('pi_test_123', 60)
+      expect(result.status).toBe(OrderStatus.REFUNDED)
+      expect(mockPrismaService.payment.update).toHaveBeenCalledWith({
+        where: { id: 'payment-1' },
+        data: { status: 'REFUNDED' },
+      })
+    })
+
+    it('sends refund email but swallows email failure (refund must not be rolled back)', async () => {
+      const order = buildOrder()
+      mockPrismaService.order.findUnique.mockResolvedValueOnce(order)
+      mockStripeService.createRefund.mockResolvedValueOnce({ id: 're_test_email_fail' })
+      mockPrismaService.order.update.mockResolvedValueOnce({
+        ...order,
+        status: OrderStatus.REFUNDED,
+        guestEmail: 'jane@example.com',
+        items: [],
+        statusHistory: [],
+      })
+      mockEmailService.sendRefundProcessed.mockRejectedValueOnce(new Error('Resend down'))
+
+      await expect(
+        ordersService.refundOrder('order-1', { reason: 'OTHER' as const }),
+      ).resolves.toBeDefined()
+
+      expect(mockEmailService.sendRefundProcessed).toHaveBeenCalled()
+    })
+  })
+
+  // ── findAllRefunds ────────────────────────────────────────────────────────
+
+  describe('findAllRefunds()', () => {
+    it('queries orders in REFUNDED or PARTIALLY_REFUNDED status ordered by refundedAt desc', async () => {
+      mockPrismaService.order.findMany.mockResolvedValueOnce([])
+
+      await ordersService.findAllRefunds()
+
+      expect(mockPrismaService.order.findMany).toHaveBeenCalledWith({
+        where: {
+          OR: [{ status: OrderStatus.REFUNDED }, { status: OrderStatus.PARTIALLY_REFUNDED }],
+        },
+        orderBy: { refundedAt: 'desc' },
+        include: { items: true, payment: true },
+      })
     })
   })
 })

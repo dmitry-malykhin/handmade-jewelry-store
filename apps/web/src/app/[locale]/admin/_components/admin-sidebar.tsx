@@ -1,7 +1,7 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
-import { LayoutDashboard, Package, ShoppingCart, Tag } from 'lucide-react'
+import { LayoutDashboard, Package, RotateCcw, ShoppingCart, Tag } from 'lucide-react'
 import { Link, usePathname } from '@/i18n/navigation'
 import { cn } from '@/lib/utils'
 
@@ -31,7 +31,15 @@ export function AdminSidebar({ locale }: AdminSidebarProps) {
       href: `/${locale}/admin/orders`,
       labelKey: 'navOrders' as const,
       icon: <ShoppingCart className="size-4" aria-hidden="true" />,
-      isActive: pathname.startsWith('/admin/orders'),
+      // Match /admin/orders but not /admin/orders/refunds — refunds is its own nav entry
+      isActive:
+        pathname.startsWith('/admin/orders') && !pathname.startsWith('/admin/orders/refunds'),
+    },
+    {
+      href: `/${locale}/admin/orders/refunds`,
+      labelKey: 'navRefunds' as const,
+      icon: <RotateCcw className="size-4" aria-hidden="true" />,
+      isActive: pathname.startsWith('/admin/orders/refunds'),
     },
     {
       href: `/${locale}/admin/categories`,

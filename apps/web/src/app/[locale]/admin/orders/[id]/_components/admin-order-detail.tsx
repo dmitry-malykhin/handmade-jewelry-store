@@ -36,6 +36,7 @@ import {
   type UpdateOrderTrackingPayload,
 } from '@/lib/api/orders'
 import { ApiError } from '@/lib/api/client'
+import { RefundOrderModal } from './refund-order-modal'
 
 interface AdminOrderDetailProps {
   orderId: string
@@ -451,6 +452,7 @@ export function AdminOrderDetail({ orderId }: AdminOrderDetailProps) {
   const t = useTranslations('admin')
   const queryClient = useQueryClient()
   const accessToken = useAuthStore((state) => state.accessToken)
+  const [isRefundModalOpen, setIsRefundModalOpen] = useState(false)
 
   const { data: order, isPending: isOrderLoading } = useQuery({
     queryKey: ['admin', 'orders', orderId],
@@ -536,7 +538,32 @@ export function AdminOrderDetail({ orderId }: AdminOrderDetailProps) {
             isUpdating={trackingMutation.isPending}
           />
 
+          {/* Refund — only for orders with a successful or partially refunded payment. */}
+          {order.payment &&
+            (order.payment.status === 'SUCCEEDED' ||
+              order.payment.status === 'PARTIALLY_REFUNDED') && (
+              <div className="flex justify-end">
+                <Button
+                  type="button"
+                  variant="destructive"
+                  onClick={() => setIsRefundModalOpen(true)}
+                >
+                  {t('refundButtonIssue')}
+                </Button>
+              </div>
+            )}
+
           <StatusTimeline order={order} />
+
+          <RefundOrderModal
+            isOpen={isRefundModalOpen}
+            onClose={() => setIsRefundModalOpen(false)}
+            orderId={order.id}
+            orderTotal={Number(order.total)}
+            // refundAmount comes through as a string after JSON serialization
+            // when populated; Number() handles both null and string safely.
+            alreadyRefunded={order.refundAmount != null ? Number(order.refundAmount) : 0}
+          />
         </>
       )}
 

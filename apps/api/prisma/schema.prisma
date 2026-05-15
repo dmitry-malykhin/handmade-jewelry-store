@@ -65,6 +65,14 @@ enum CancelReason {
   OTHER
 }
 
+enum RefundReason {
+  ITEM_DAMAGED          // Damage in transit or quality issue
+  ITEM_NOT_AS_DESCRIBED // Mismatch with product description
+  CUSTOMER_CHANGED_MIND // Return-policy refund
+  DUPLICATE_ORDER       // Customer paid twice for same order
+  OTHER
+}
+
 // ─── Models ──────────────────────────────────────────────────────────────────
 
 model User {
@@ -193,7 +201,9 @@ model Order {
 
   // Refund
   refundedAt   DateTime?
-  refundAmount Decimal?  @db.Decimal(10, 2) // may be less than total (partial refund)
+  refundAmount Decimal?      @db.Decimal(10, 2) // may be less than total (partial refund)
+  refundReason RefundReason?
+  refundNote   String?       // admin-facing internal note shown in refunds list
 
   // Loyalty points — Post-MVP; schema added now to avoid future migration
   loyaltyPointsUsed   Int @default(0) // 1 point = $0.01

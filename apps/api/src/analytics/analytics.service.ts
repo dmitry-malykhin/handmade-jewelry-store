@@ -13,6 +13,13 @@ interface PaymentSucceededProperties {
   paymentMethod: string
 }
 
+interface OrderRefundedProperties {
+  orderId: string
+  refundAmountUsd: number
+  reason: string
+  isFullRefund: boolean
+}
+
 /**
  * Server-side PostHog event capture. Webhook-driven events (Stripe payment,
  * order status transitions) belong here — they're verified by trusted
@@ -69,6 +76,26 @@ export class AnalyticsService implements OnModuleDestroy {
         order_id: properties.orderId,
         total_usd: properties.totalUsd,
         item_count: properties.itemCount,
+      },
+    })
+  }
+
+  /**
+   * Captures the admin-initiated refund event. Fires after the Stripe refund
+   * succeeds AND the DB transaction commits — so funnel analysis correctly
+   * shows post-purchase return rate by reason without double-counting failed
+   * refund attempts.
+   */
+  trackOrderRefunded(userId: string, properties: OrderRefundedProperties): void {
+    if (!this.client) return
+    this.client.capture({
+      distinctId: userId,
+      event: 'order_refunded',
+      properties: {
+        order_id: properties.orderId,
+        refund_amount_usd: properties.refundAmountUsd,
+        reason: properties.reason,
+        is_full_refund: properties.isFullRefund,
       },
     })
   }

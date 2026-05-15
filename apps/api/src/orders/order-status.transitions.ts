@@ -7,13 +7,15 @@ import { OrderStatus } from '@prisma/client'
  */
 export const ALLOWED_ORDER_STATUS_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
   PENDING: [OrderStatus.PAID, OrderStatus.CANCELLED],
-  PAID: [OrderStatus.PROCESSING, OrderStatus.CANCELLED],
-  PROCESSING: [OrderStatus.SHIPPED, OrderStatus.CANCELLED],
-  SHIPPED: [OrderStatus.DELIVERED],
+  PAID: [OrderStatus.PROCESSING, OrderStatus.CANCELLED, OrderStatus.PARTIALLY_REFUNDED],
+  PROCESSING: [OrderStatus.SHIPPED, OrderStatus.CANCELLED, OrderStatus.PARTIALLY_REFUNDED],
+  SHIPPED: [OrderStatus.DELIVERED, OrderStatus.PARTIALLY_REFUNDED],
   DELIVERED: [OrderStatus.REFUNDED, OrderStatus.PARTIALLY_REFUNDED],
   CANCELLED: [OrderStatus.REFUNDED, OrderStatus.PARTIALLY_REFUNDED],
+  // PARTIALLY_REFUNDED → REFUNDED allowed for follow-up refunds — a top-up
+  // refund that brings the cumulative amount to the full total.
+  PARTIALLY_REFUNDED: [OrderStatus.REFUNDED],
   REFUNDED: [], // terminal state — no transitions allowed
-  PARTIALLY_REFUNDED: [], // terminal state — no transitions allowed
 }
 
 export function isValidOrderStatusTransition(

@@ -6,6 +6,7 @@ import {
   HttpStatus,
   Param,
   Patch,
+  Post,
   Query,
   UseGuards,
 } from '@nestjs/common'
@@ -14,6 +15,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
 import { RolesGuard } from '../auth/guards/roles.guard'
 import { Roles } from '../common/decorators/roles.decorator'
 import { OrderQueryDto } from './dto/order-query.dto'
+import { RefundOrderDto } from './dto/refund-order.dto'
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto'
 import { UpdateOrderTrackingDto } from './dto/update-order-tracking.dto'
 import { OrdersService } from './orders.service'
@@ -27,6 +29,12 @@ export class AdminOrdersController {
   @Get()
   findAll(@Query() orderQueryDto: OrderQueryDto) {
     return this.ordersService.findAll(orderQueryDto)
+  }
+
+  // Refunds list — placed before :id route so 'refunds' doesn't match :id
+  @Get('refunds')
+  findAllRefunds() {
+    return this.ordersService.findAllRefunds()
   }
 
   @Get(':id')
@@ -47,5 +55,11 @@ export class AdminOrdersController {
     @Body() updateOrderTrackingDto: UpdateOrderTrackingDto,
   ) {
     return this.ordersService.updateTracking(orderId, updateOrderTrackingDto)
+  }
+
+  @Post(':id/refund')
+  @HttpCode(HttpStatus.OK)
+  refund(@Param('id') orderId: string, @Body() refundOrderDto: RefundOrderDto) {
+    return this.ordersService.refundOrder(orderId, refundOrderDto)
   }
 }
