@@ -1,9 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
-import { ProductStatus } from '@prisma/client'
+import { ProductStatus, StockType } from '@prisma/client'
 import { PrismaService } from '../prisma/prisma.service'
 import { BackInStockService } from '../wishlist/back-in-stock.service'
 import { CreateProductDto } from './dto/create-product.dto'
 import { AdminProductQueryDto } from './dto/admin-product-query.dto'
+import { InventoryQueryDto } from './dto/inventory-query.dto'
 import { ProductQueryDto, ProductSortField, SortOrder } from './dto/product-query.dto'
 import { UpdateProductDto } from './dto/update-product.dto'
 
@@ -171,6 +172,71 @@ export class ProductsService {
       where: { id: productId },
       data: { status: newStatus },
       select: { id: true, slug: true, title: true, status: true },
+    })
+  }
+
+  /**
+   * Lists products for the admin inventory view, sorted by stock ASC so the
+   * most-at-risk items surface first. Adds an `isLowStock` flag computed from
+   * the threshold — only IN_STOCK type counts, since MADE_TO_ORDER and
+   * ONE_OF_A_KIND items aren't depleted by orders in the conventional sense.
+   *
+   * `lowStockOnly` toggle filters the result set to flagged items in SQL so
+   * the table doesn't ship the full catalog when admin is investigating
+   * restocks specifically.
+   */
+  async findInventory(inventoryQueryDto: InventoryQueryDto) {
+    const threshold = inventoryQueryDto.threshold ?? 3
+    const lowStockOnly = inventoryQueryDto.lowStockOnly ?? false
+
+    const whereClause = lowStockOnly
+      ? { stockType: StockType.IN_STOCK, stock: { lte: threshold } }
+      : {}
+
+    const products = await this.prismaService.product.findMany({
+      where: whereClause,
+      orderBy: [{ stock: 'asc' }, { title: 'asc' }],
+      include: { category: { select: { name: true, slug: true } } },
+    })
+
+    return {
+      threshold,
+      data: products.map((product) => ({
+        ...product,
+        isLowStock: product.stockType === StockType.IN_STOCK && product.stock <= threshold,
+      })),
+    }
+  }
+
+  /**
+   * Returns the count of products currently at or below the threshold —
+   * separate endpoint so the sidebar badge query is cheap and doesn't pull
+   * the full inventory payload on every page load.
+   */
+  async countLowStock(threshold = 3): Promise<number> {
+    return this.prismaService.product.count({
+      where: { stockType: StockType.IN_STOCK, stock: { lte: threshold } },
+    })
+  }
+
+  /**
+   * Quick stock update from the inventory page — kept as its own method so
+   * the inline-edit flow doesn't have to round-trip the full product edit
+   * payload (images, SEO fields, dimensions, etc.).
+   */
+  async updateStock(productId: string, newStock: number) {
+    const product = await this.prismaService.product.findUnique({
+      where: { id: productId },
+    })
+
+    if (!product) {
+      throw new NotFoundException(`Product with id "${productId}" not found`)
+    }
+
+    return this.prismaService.product.update({
+      where: { id: productId },
+      data: { stock: newStock },
+      select: { id: true, slug: true, title: true, stock: true, stockType: true },
     })
   }
 }

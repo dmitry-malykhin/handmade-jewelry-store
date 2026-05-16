@@ -1,34 +1,51 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
-import { LayoutDashboard, Package, RotateCcw, ShoppingCart, Tag } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
+import { Boxes, LayoutDashboard, Package, RotateCcw, ShoppingCart, Tag } from 'lucide-react'
 import { Link, usePathname } from '@/i18n/navigation'
 import { cn } from '@/lib/utils'
+import { Badge } from '@/components/ui/badge'
+import { useAuthStore } from '@/store/auth.store'
+import { fetchLowStockCount } from '@/lib/api/products'
 
-interface AdminSidebarProps {
-  locale: string
-}
-
-export function AdminSidebar({ locale }: AdminSidebarProps) {
+export function AdminSidebar() {
   const t = useTranslations('admin')
   const pathname = usePathname()
+  const accessToken = useAuthStore((state) => state.accessToken)
 
+  // Lightweight badge query — separate endpoint returning just { count } so we
+  // don't load the full inventory payload on every admin page navigation.
+  // Refetch every 2 minutes to keep the indicator reasonably fresh as orders
+  // come in. Window-focus refetch covers the "I returned from another tab" case.
+  const { data: lowStockData } = useQuery({
+    queryKey: ['admin-low-stock-count'],
+    queryFn: () => fetchLowStockCount(accessToken ?? ''),
+    enabled: accessToken !== null,
+    staleTime: 2 * 60 * 1000,
+    refetchOnWindowFocus: true,
+  })
+  const lowStockCount = lowStockData?.count ?? 0
+
+  // Hrefs are locale-agnostic — `Link` from `@/i18n/navigation` prepends the
+  // active locale automatically. Including `/${locale}` here produced a
+  // double-locale URL like `/en/en/admin/products` and 404'd.
   const sidebarLinks = [
     {
-      href: `/${locale}/admin`,
+      href: '/admin',
       labelKey: 'navDashboard' as const,
       icon: <LayoutDashboard className="size-4" aria-hidden="true" />,
       // Dashboard is active only on exact /admin path, not on sub-pages
       isActive: pathname === '/admin',
     },
     {
-      href: `/${locale}/admin/products`,
+      href: '/admin/products',
       labelKey: 'navProducts' as const,
       icon: <Package className="size-4" aria-hidden="true" />,
       isActive: pathname.startsWith('/admin/products'),
     },
     {
-      href: `/${locale}/admin/orders`,
+      href: '/admin/orders',
       labelKey: 'navOrders' as const,
       icon: <ShoppingCart className="size-4" aria-hidden="true" />,
       // Match /admin/orders but not /admin/orders/refunds — refunds is its own nav entry
@@ -36,13 +53,20 @@ export function AdminSidebar({ locale }: AdminSidebarProps) {
         pathname.startsWith('/admin/orders') && !pathname.startsWith('/admin/orders/refunds'),
     },
     {
-      href: `/${locale}/admin/orders/refunds`,
+      href: '/admin/orders/refunds',
       labelKey: 'navRefunds' as const,
       icon: <RotateCcw className="size-4" aria-hidden="true" />,
       isActive: pathname.startsWith('/admin/orders/refunds'),
     },
     {
-      href: `/${locale}/admin/categories`,
+      href: '/admin/inventory',
+      labelKey: 'navInventory' as const,
+      icon: <Boxes className="size-4" aria-hidden="true" />,
+      isActive: pathname.startsWith('/admin/inventory'),
+      badgeCount: lowStockCount,
+    },
+    {
+      href: '/admin/categories',
       labelKey: 'navCategories' as const,
       icon: <Tag className="size-4" aria-hidden="true" />,
       isActive: pathname.startsWith('/admin/categories'),
@@ -70,7 +94,14 @@ export function AdminSidebar({ locale }: AdminSidebarProps) {
                 )}
               >
                 {sidebarLink.icon}
-                {t(sidebarLink.labelKey)}
+                <span className="flex-1">{t(sidebarLink.labelKey)}</span>
+                {'badgeCount' in sidebarLink &&
+                  typeof sidebarLink.badgeCount === 'number' &&
+                  sidebarLink.badgeCount > 0 && (
+                    <Badge variant="destructive" className="h-5 min-w-5 px-1.5 text-xs">
+                      {sidebarLink.badgeCount}
+                    </Badge>
+                  )}
               </Link>
             </li>
           ))}

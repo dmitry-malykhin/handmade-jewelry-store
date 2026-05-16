@@ -373,4 +373,113 @@ describe('ProductsService', () => {
       ).rejects.toThrow(NotFoundException)
     })
   })
+
+  // ── findInventory ─────────────────────────────────────────────────────────
+
+  describe('findInventory()', () => {
+    it('returns products with isLowStock=true when IN_STOCK and stock<=threshold', async () => {
+      const lowStockProduct = { ...mockProduct, stock: 2, stockType: 'IN_STOCK' }
+      const safeStockProduct = { ...mockProduct, id: 'prod-2', stock: 10, stockType: 'IN_STOCK' }
+      mockPrismaService.product.findMany.mockResolvedValue([lowStockProduct, safeStockProduct])
+
+      const result = await productsService.findInventory({ threshold: 3 })
+
+      expect(result.threshold).toBe(3)
+      expect(result.data[0]?.isLowStock).toBe(true)
+      expect(result.data[1]?.isLowStock).toBe(false)
+    })
+
+    it('flags MADE_TO_ORDER and ONE_OF_A_KIND as NOT low-stock regardless of stock value', async () => {
+      const madeToOrder = { ...mockProduct, id: 'prod-mto', stock: 0, stockType: 'MADE_TO_ORDER' }
+      const oneOfAKind = { ...mockProduct, id: 'prod-ooak', stock: 0, stockType: 'ONE_OF_A_KIND' }
+      mockPrismaService.product.findMany.mockResolvedValue([madeToOrder, oneOfAKind])
+
+      const result = await productsService.findInventory({ threshold: 3 })
+
+      expect(result.data[0]?.isLowStock).toBe(false)
+      expect(result.data[1]?.isLowStock).toBe(false)
+    })
+
+    it('uses default threshold 3 when not provided', async () => {
+      mockPrismaService.product.findMany.mockResolvedValue([])
+
+      const result = await productsService.findInventory({})
+
+      expect(result.threshold).toBe(3)
+    })
+
+    it('sorts by stock ASC then title ASC', async () => {
+      mockPrismaService.product.findMany.mockResolvedValue([])
+
+      await productsService.findInventory({ threshold: 3 })
+
+      expect(mockPrismaService.product.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orderBy: [{ stock: 'asc' }, { title: 'asc' }],
+        }),
+      )
+    })
+
+    it('filters server-side to IN_STOCK + low-stock when lowStockOnly is true', async () => {
+      mockPrismaService.product.findMany.mockResolvedValue([])
+
+      await productsService.findInventory({ threshold: 5, lowStockOnly: true })
+
+      expect(mockPrismaService.product.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { stockType: 'IN_STOCK', stock: { lte: 5 } },
+        }),
+      )
+    })
+  })
+
+  // ── countLowStock ─────────────────────────────────────────────────────────
+
+  describe('countLowStock()', () => {
+    it('counts only IN_STOCK products at or below the threshold', async () => {
+      mockPrismaService.product.count.mockResolvedValue(2)
+
+      const count = await productsService.countLowStock(3)
+
+      expect(count).toBe(2)
+      expect(mockPrismaService.product.count).toHaveBeenCalledWith({
+        where: { stockType: 'IN_STOCK', stock: { lte: 3 } },
+      })
+    })
+
+    it('defaults the threshold to 3 when not provided', async () => {
+      mockPrismaService.product.count.mockResolvedValue(0)
+
+      await productsService.countLowStock()
+
+      expect(mockPrismaService.product.count).toHaveBeenCalledWith({
+        where: { stockType: 'IN_STOCK', stock: { lte: 3 } },
+      })
+    })
+  })
+
+  // ── updateStock ───────────────────────────────────────────────────────────
+
+  describe('updateStock()', () => {
+    it('updates stock when product exists', async () => {
+      mockPrismaService.product.findUnique.mockResolvedValue(mockProduct)
+      mockPrismaService.product.update.mockResolvedValue({ ...mockProduct, stock: 7 })
+
+      const result = await productsService.updateStock('prod-1', 7)
+
+      expect(result.stock).toBe(7)
+      expect(mockPrismaService.product.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'prod-1' },
+          data: { stock: 7 },
+        }),
+      )
+    })
+
+    it('throws NotFoundException when product id does not exist', async () => {
+      mockPrismaService.product.findUnique.mockResolvedValue(null)
+
+      await expect(productsService.updateStock('missing-id', 5)).rejects.toThrow(NotFoundException)
+    })
+  })
 })

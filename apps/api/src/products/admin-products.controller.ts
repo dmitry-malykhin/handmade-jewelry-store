@@ -15,6 +15,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
 import { RolesGuard } from '../auth/guards/roles.guard'
 import { AdminProductQueryDto } from './dto/admin-product-query.dto'
 import { UpdateProductStatusDto } from './dto/update-product-status.dto'
+import { UpdateStockDto } from './dto/update-stock.dto'
 import { ProductsService } from './products.service'
 
 @Controller('admin/products')
@@ -35,5 +36,11 @@ export class AdminProductsController {
     @Body() updateProductStatusDto: UpdateProductStatusDto,
   ) {
     return this.productsService.updateStatus(productId, updateProductStatusDto.status)
+  }
+
+  @Patch(':id/stock')
+  @HttpCode(HttpStatus.OK)
+  updateStock(@Param('id') productId: string, @Body() updateStockDto: UpdateStockDto) {
+    return this.productsService.updateStock(productId, updateStockDto.stock)
   }
 }
