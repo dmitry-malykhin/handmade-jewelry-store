@@ -147,3 +147,48 @@ export async function updateProductStatus(
     body: JSON.stringify({ status: newStatus }),
   })
 }
+
+export interface InventoryItem extends Product {
+  isLowStock: boolean
+}
+
+export interface InventoryResponse {
+  threshold: number
+  data: InventoryItem[]
+}
+
+export async function fetchAdminInventory(
+  accessToken: string,
+  params: { threshold?: number; lowStockOnly?: boolean } = {},
+): Promise<InventoryResponse> {
+  const searchParams = new URLSearchParams()
+  if (params.threshold !== undefined) searchParams.set('threshold', String(params.threshold))
+  if (params.lowStockOnly) searchParams.set('lowStockOnly', 'true')
+  const queryString = searchParams.toString()
+  return apiClient<InventoryResponse>(
+    `/api/admin/inventory${queryString ? `?${queryString}` : ''}`,
+    { headers: { Authorization: `Bearer ${accessToken}` } },
+  )
+}
+
+export async function fetchLowStockCount(
+  accessToken: string,
+  threshold = 3,
+): Promise<{ count: number }> {
+  return apiClient<{ count: number }>(
+    `/api/admin/inventory/low-stock-count?threshold=${threshold}`,
+    { headers: { Authorization: `Bearer ${accessToken}` } },
+  )
+}
+
+export async function updateAdminProductStock(
+  productId: string,
+  newStock: number,
+  accessToken: string,
+): Promise<Pick<Product, 'id' | 'slug' | 'title' | 'stock' | 'stockType'>> {
+  return apiClient(`/api/admin/products/${productId}/stock`, {
+    method: 'PATCH',
+    headers: { Authorization: `Bearer ${accessToken}` },
+    body: JSON.stringify({ stock: newStock }),
+  })
+}
