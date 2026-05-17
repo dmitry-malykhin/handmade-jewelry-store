@@ -18,6 +18,7 @@ import { OrderQueryDto } from './dto/order-query.dto'
 import { RefundOrderDto } from './dto/refund-order.dto'
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto'
 import { UpdateOrderTrackingDto } from './dto/update-order-tracking.dto'
+import { UpdateProductionDto } from './dto/update-production.dto'
 import { OrdersService } from './orders.service'
 
 @Controller('admin/orders')
@@ -35,6 +36,12 @@ export class AdminOrdersController {
   @Get('refunds')
   findAllRefunds() {
     return this.ordersService.findAllRefunds()
+  }
+
+  // Production queue — placed before :id route so 'production' doesn't match :id
+  @Get('production')
+  findProductionQueue() {
+    return this.ordersService.findProductionQueue()
   }
 
   @Get(':id')
@@ -61,5 +68,11 @@ export class AdminOrdersController {
   @HttpCode(HttpStatus.OK)
   refund(@Param('id') orderId: string, @Body() refundOrderDto: RefundOrderDto) {
     return this.ordersService.refundOrder(orderId, refundOrderDto)
+  }
+
+  @Patch(':id/production')
+  @HttpCode(HttpStatus.OK)
+  updateProduction(@Param('id') orderId: string, @Body() updateProductionDto: UpdateProductionDto) {
+    return this.ordersService.updateProduction(orderId, updateProductionDto)
   }
 }

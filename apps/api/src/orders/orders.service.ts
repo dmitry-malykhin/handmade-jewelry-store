@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common'
-import { OrderStatus, PaymentStatus, Prisma } from '@prisma/client'
+import { OrderStatus, PaymentStatus, Prisma, StockType } from '@prisma/client'
 import { Decimal, InputJsonValue } from '@prisma/client/runtime/library'
 import { AnalyticsService } from '../analytics/analytics.service'
 import { EmailService } from '../email/email.service'
@@ -10,6 +10,7 @@ import { OrderQueryDto } from './dto/order-query.dto'
 import { RefundOrderDto } from './dto/refund-order.dto'
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto'
 import { UpdateOrderTrackingDto } from './dto/update-order-tracking.dto'
+import { UpdateProductionDto } from './dto/update-production.dto'
 import { isValidOrderStatusTransition } from './order-status.transitions'
 
 @Injectable()
@@ -363,4 +364,108 @@ export class OrdersService {
       },
     })
   }
+
+  /**
+   * Production queue for the admin tracker — orders that have at least one
+   * MADE_TO_ORDER item and haven't shipped yet (status PAID or PROCESSING).
+   * Each row is enriched with:
+   *   - `productionDeadlineAt` = order.createdAt + max(productionDays) across
+   *     MADE_TO_ORDER items. A single deadline per order keeps the table
+   *     scan-able even when an order mixes multiple MTO pieces.
+   *   - `maxProductionDays` — surfaced so the UI can show "X day window" too.
+   *
+   * Sorted by deadline ASC so the most urgent piece is first.
+   */
+  async findProductionQueue() {
+    const orders = await this.prismaService.order.findMany({
+      where: {
+        status: { in: [OrderStatus.PAID, OrderStatus.PROCESSING] },
+        items: {
+          some: { product: { stockType: StockType.MADE_TO_ORDER } },
+        },
+      },
+      include: {
+        items: { include: { product: { select: { stockType: true, productionDays: true } } } },
+      },
+    })
+
+    const enriched = orders.map((order) => {
+      const mtoProductionDays = order.items
+        .filter((item) => item.product?.stockType === StockType.MADE_TO_ORDER)
+        .map((item) => item.product?.productionDays ?? 0)
+      const maxProductionDays = mtoProductionDays.length > 0 ? Math.max(...mtoProductionDays) : 0
+      const deadline = new Date(order.createdAt)
+      deadline.setDate(deadline.getDate() + maxProductionDays)
+      return {
+        ...order,
+        maxProductionDays,
+        productionDeadlineAt: deadline.toISOString(),
+      }
+    })
+
+    enriched.sort(
+      (a, b) =>
+        new Date(a.productionDeadlineAt).getTime() - new Date(b.productionDeadlineAt).getTime(),
+    )
+
+    return enriched
+  }
+
+  /**
+   * Sets the production status / notes for an order. Validates the new status
+   * against a tight whitelist — the production flow is QUEUED → IN_PRODUCTION
+   * → READY_TO_SHIP. Skipping back (e.g. READY_TO_SHIP → QUEUED) is forbidden
+   * to prevent accidental clobbering; admins who really need to reset can
+   * change it directly in the DB.
+   */
+  async updateProduction(orderId: string, updateProductionDto: UpdateProductionDto) {
+    const order = await this.prismaService.order.findUnique({
+      where: { id: orderId },
+      select: { id: true, productionStatus: true },
+    })
+
+    if (!order) {
+      throw new NotFoundException(`Order ${orderId} not found`)
+    }
+
+    if (
+      !isValidProductionStatusTransition(
+        order.productionStatus,
+        updateProductionDto.productionStatus,
+      )
+    ) {
+      throw new BadRequestException(
+        `Order ${orderId} cannot transition production status from ${order.productionStatus} to ${updateProductionDto.productionStatus}`,
+      )
+    }
+
+    return this.prismaService.order.update({
+      where: { id: orderId },
+      data: {
+        productionStatus: updateProductionDto.productionStatus,
+        productionNotes: updateProductionDto.productionNotes ?? null,
+      },
+      include: {
+        items: { include: { product: { select: { stockType: true, productionDays: true } } } },
+      },
+    })
+  }
+}
+
+/**
+ * Production status transitions. Linear flow — admins move forward through
+ * QUEUED → IN_PRODUCTION → READY_TO_SHIP. Same-state writes are allowed so
+ * "update note without changing status" works.
+ */
+function isValidProductionStatusTransition(
+  fromStatus: Prisma.OrderGetPayload<{ select: { productionStatus: true } }>['productionStatus'],
+  toStatus: Prisma.OrderGetPayload<{ select: { productionStatus: true } }>['productionStatus'],
+): boolean {
+  if (fromStatus === toStatus) return true
+  if (fromStatus === 'QUEUED' && toStatus === 'IN_PRODUCTION') return true
+  if (fromStatus === 'IN_PRODUCTION' && toStatus === 'READY_TO_SHIP') return true
+  // Allow direct QUEUED → READY_TO_SHIP for trivial pieces the maker finished
+  // immediately (e.g. ready stock that was mis-classified MTO).
+  if (fromStatus === 'QUEUED' && toStatus === 'READY_TO_SHIP') return true
+  return false
 }
