@@ -73,6 +73,12 @@ enum RefundReason {
   OTHER
 }
 
+enum ProductionStatus {
+  QUEUED         // Paid, not yet started — default for orders with MTO items
+  IN_PRODUCTION  // Maker actively crafting the piece
+  READY_TO_SHIP  // Finished, awaiting tracking number / dispatch
+}
+
 // ─── Models ──────────────────────────────────────────────────────────────────
 
 model User {
@@ -204,6 +210,12 @@ model Order {
   refundAmount Decimal?      @db.Decimal(10, 2) // may be less than total (partial refund)
   refundReason RefundReason?
   refundNote   String?       // admin-facing internal note shown in refunds list
+
+  // Production tracking — only meaningful when order contains MADE_TO_ORDER
+  // items. Defaults to QUEUED so the admin /production board surfaces every
+  // newly-paid MTO order without an explicit admin step.
+  productionStatus ProductionStatus @default(QUEUED)
+  productionNotes  String?          // admin-only context ("customer wants extra polish")
 
   // Loyalty points — Post-MVP; schema added now to avoid future migration
   loyaltyPointsUsed   Int @default(0) // 1 point = $0.01

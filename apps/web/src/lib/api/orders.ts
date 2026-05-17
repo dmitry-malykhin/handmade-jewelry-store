@@ -95,6 +95,8 @@ export interface AdminOrderDetail extends OrderDetails {
   refundAmount: number | null
   refundReason: string | null
   refundNote: string | null
+  productionStatus: 'QUEUED' | 'IN_PRODUCTION' | 'READY_TO_SHIP'
+  productionNotes: string | null
   source: string | null
   statusHistory: OrderStatusHistoryEntry[]
   payment: OrderPaymentInfo | null
@@ -235,5 +237,41 @@ export async function refundAdminOrder(
 export async function fetchAdminRefunds(accessToken: string): Promise<AdminOrderDetail[]> {
   return apiClient<AdminOrderDetail[]>('/api/admin/orders/refunds', {
     headers: { Authorization: `Bearer ${accessToken}` },
+  })
+}
+
+export type ProductionStatus = 'QUEUED' | 'IN_PRODUCTION' | 'READY_TO_SHIP'
+
+export interface ProductionQueueItem extends AdminOrderDetail {
+  productionStatus: ProductionStatus
+  productionNotes: string | null
+  /** ISO date — computed deadline = order.createdAt + max(productionDays) across MTO items */
+  productionDeadlineAt: string
+  /** Max productionDays across MTO items in this order, for "X-day window" hints */
+  maxProductionDays: number
+}
+
+export interface UpdateProductionPayload {
+  productionStatus: ProductionStatus
+  productionNotes?: string
+}
+
+export async function fetchAdminProductionQueue(
+  accessToken: string,
+): Promise<ProductionQueueItem[]> {
+  return apiClient<ProductionQueueItem[]>('/api/admin/orders/production', {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  })
+}
+
+export async function updateAdminOrderProduction(
+  orderId: string,
+  payload: UpdateProductionPayload,
+  accessToken: string,
+): Promise<ProductionQueueItem> {
+  return apiClient<ProductionQueueItem>(`/api/admin/orders/${orderId}/production`, {
+    method: 'PATCH',
+    headers: { Authorization: `Bearer ${accessToken}` },
+    body: JSON.stringify(payload),
   })
 }

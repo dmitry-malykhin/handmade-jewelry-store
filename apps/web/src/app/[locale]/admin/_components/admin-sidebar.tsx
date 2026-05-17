@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl'
 import { useQuery } from '@tanstack/react-query'
-import { Boxes, LayoutDashboard, Package, RotateCcw, ShoppingCart, Tag } from 'lucide-react'
+import { Boxes, Hammer, LayoutDashboard, Package, RotateCcw, ShoppingCart, Tag } from 'lucide-react'
 import { Link, usePathname } from '@/i18n/navigation'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
@@ -48,15 +48,23 @@ export function AdminSidebar() {
       href: '/admin/orders',
       labelKey: 'navOrders' as const,
       icon: <ShoppingCart className="size-4" aria-hidden="true" />,
-      // Match /admin/orders but not /admin/orders/refunds — refunds is its own nav entry
+      // Match /admin/orders but not the dedicated sub-routes (refunds, production).
       isActive:
-        pathname.startsWith('/admin/orders') && !pathname.startsWith('/admin/orders/refunds'),
+        pathname.startsWith('/admin/orders') &&
+        !pathname.startsWith('/admin/orders/refunds') &&
+        !pathname.startsWith('/admin/orders/production'),
     },
     {
       href: '/admin/orders/refunds',
       labelKey: 'navRefunds' as const,
       icon: <RotateCcw className="size-4" aria-hidden="true" />,
       isActive: pathname.startsWith('/admin/orders/refunds'),
+    },
+    {
+      href: '/admin/orders/production',
+      labelKey: 'navProduction' as const,
+      icon: <Hammer className="size-4" aria-hidden="true" />,
+      isActive: pathname.startsWith('/admin/orders/production'),
     },
     {
       href: '/admin/inventory',
