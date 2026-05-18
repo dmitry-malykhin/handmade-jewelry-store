@@ -1,11 +1,15 @@
+import { NotFoundException } from '@nestjs/common'
 import { Test, TestingModule } from '@nestjs/testing'
-import { Role } from '@prisma/client'
+import { OrderStatus, Role } from '@prisma/client'
+import { Decimal } from '@prisma/client/runtime/library'
 import { PrismaService } from '../prisma/prisma.service'
 import { UsersService } from './users.service'
 
 const mockPrismaService = {
   user: {
     findUnique: jest.fn(),
+    findMany: jest.fn(),
+    count: jest.fn(),
     create: jest.fn(),
   },
 }
@@ -94,6 +98,166 @@ describe('UsersService', () => {
       const result = await usersService.verifyPassword('wrong_password', hashedPassword)
 
       expect(result).toBe(false)
+    })
+  })
+
+  // ── findAllCustomers ──────────────────────────────────────────────────────
+
+  describe('findAllCustomers()', () => {
+    function buildUser(overrides: Record<string, unknown> = {}) {
+      return {
+        id: 'user-1',
+        email: 'jane@example.com',
+        role: Role.USER,
+        createdAt: new Date('2026-04-01T00:00:00Z'),
+        orders: [],
+        ...overrides,
+      }
+    }
+
+    it('filters out ADMIN users from the customer roster', async () => {
+      mockPrismaService.user.findMany.mockResolvedValueOnce([])
+      mockPrismaService.user.count.mockResolvedValueOnce(0)
+
+      await usersService.findAllCustomers({})
+
+      expect(mockPrismaService.user.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ role: Role.USER }),
+        }),
+      )
+    })
+
+    it('applies case-insensitive email search when provided', async () => {
+      mockPrismaService.user.findMany.mockResolvedValueOnce([])
+      mockPrismaService.user.count.mockResolvedValueOnce(0)
+
+      await usersService.findAllCustomers({ search: 'JANE' })
+
+      expect(mockPrismaService.user.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            email: { contains: 'JANE', mode: 'insensitive' },
+          }),
+        }),
+      )
+    })
+
+    it('computes lifetime value summing revenue-eligible orders minus refunds', async () => {
+      mockPrismaService.user.findMany.mockResolvedValueOnce([
+        buildUser({
+          orders: [
+            {
+              status: OrderStatus.PAID,
+              total: new Decimal('100'),
+              refundAmount: null,
+              createdAt: new Date(),
+            },
+            {
+              status: OrderStatus.PARTIALLY_REFUNDED,
+              total: new Decimal('50'),
+              refundAmount: new Decimal('20'),
+              createdAt: new Date(),
+            },
+            // Cancelled order — does NOT count toward LTV
+            {
+              status: OrderStatus.CANCELLED,
+              total: new Decimal('999'),
+              refundAmount: null,
+              createdAt: new Date(),
+            },
+          ],
+        }),
+      ])
+      mockPrismaService.user.count.mockResolvedValueOnce(1)
+
+      const result = await usersService.findAllCustomers({})
+
+      // 100 + (50 - 20) = 130; cancelled $999 excluded
+      expect(result.data[0]?.lifetimeValueUsd).toBe(130)
+      // totalOrders counts ALL orders, not just revenue ones (visible signal)
+      expect(result.data[0]?.totalOrders).toBe(3)
+    })
+
+    it('returns pagination meta matching the page size', async () => {
+      mockPrismaService.user.findMany.mockResolvedValueOnce([])
+      mockPrismaService.user.count.mockResolvedValueOnce(42)
+
+      const result = await usersService.findAllCustomers({ page: 2, limit: 20 })
+
+      expect(result.meta).toEqual({ totalCount: 42, page: 2, limit: 20, totalPages: 3 })
+    })
+
+    it('records lastOrderAt as the latest order createdAt across all order statuses', async () => {
+      const earlier = new Date('2026-01-01T00:00:00Z')
+      const later = new Date('2026-03-15T00:00:00Z')
+      mockPrismaService.user.findMany.mockResolvedValueOnce([
+        buildUser({
+          orders: [
+            {
+              status: OrderStatus.PAID,
+              total: new Decimal('10'),
+              refundAmount: null,
+              createdAt: earlier,
+            },
+            {
+              status: OrderStatus.PENDING,
+              total: new Decimal('20'),
+              refundAmount: null,
+              createdAt: later,
+            },
+          ],
+        }),
+      ])
+      mockPrismaService.user.count.mockResolvedValueOnce(1)
+
+      const result = await usersService.findAllCustomers({})
+
+      expect(result.data[0]?.lastOrderAt?.toISOString()).toBe(later.toISOString())
+    })
+  })
+
+  // ── findCustomerById ──────────────────────────────────────────────────────
+
+  describe('findCustomerById()', () => {
+    it('throws NotFoundException when user does not exist', async () => {
+      mockPrismaService.user.findUnique.mockResolvedValueOnce(null)
+
+      await expect(usersService.findCustomerById('missing-id')).rejects.toThrow(NotFoundException)
+    })
+
+    it('returns profile with full order history, addresses, and lifetime value', async () => {
+      mockPrismaService.user.findUnique.mockResolvedValueOnce({
+        id: 'user-1',
+        email: 'jane@example.com',
+        role: Role.USER,
+        createdAt: new Date('2026-04-01T00:00:00Z'),
+        orders: [
+          {
+            id: 'o1',
+            status: OrderStatus.DELIVERED,
+            total: new Decimal('200'),
+            refundAmount: null,
+            items: [],
+          },
+          {
+            id: 'o2',
+            status: OrderStatus.REFUNDED,
+            total: new Decimal('50'),
+            refundAmount: new Decimal('50'),
+            items: [],
+          },
+        ],
+        addresses: [{ id: 'a1', isDefault: true }],
+      })
+
+      const result = await usersService.findCustomerById('user-1')
+
+      // REFUNDED status excluded; PARTIALLY_REFUNDED would count net
+      expect(result.lifetimeValueUsd).toBe(200)
+      expect(result.totalOrders).toBe(2)
+      expect(result.addresses).toHaveLength(1)
+      expect(result.orders.map((order) => order.id)).toEqual(['o1', 'o2'])
     })
   })
 })

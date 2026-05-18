@@ -2,7 +2,16 @@
 
 import { useTranslations } from 'next-intl'
 import { useQuery } from '@tanstack/react-query'
-import { Boxes, Hammer, LayoutDashboard, Package, RotateCcw, ShoppingCart, Tag } from 'lucide-react'
+import {
+  Boxes,
+  Hammer,
+  LayoutDashboard,
+  Package,
+  RotateCcw,
+  ShoppingCart,
+  Tag,
+  Users,
+} from 'lucide-react'
 import { Link, usePathname } from '@/i18n/navigation'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
@@ -72,6 +81,12 @@ export function AdminSidebar() {
       icon: <Boxes className="size-4" aria-hidden="true" />,
       isActive: pathname.startsWith('/admin/inventory'),
       badgeCount: lowStockCount,
+    },
+    {
+      href: '/admin/customers',
+      labelKey: 'navCustomers' as const,
+      icon: <Users className="size-4" aria-hidden="true" />,
+      isActive: pathname.startsWith('/admin/customers'),
     },
     {
       href: '/admin/categories',
