@@ -3,6 +3,19 @@
     "title": "Senichka",
     "description": "Joyería artesanal única creada con amor usando materiales de origen ético."
   },
+  "searchPage": {
+    "metaTitle": "Buscar — Senichka",
+    "metaDescription": "Encuentra piezas de joyería artesanal por nombre, material o descripción.",
+    "title": "Buscar",
+    "inputLabel": "Buscar productos",
+    "inputPlaceholder": "Por nombre, material, descripción…",
+    "noQuery": "Escribe para comenzar a buscar en el catálogo",
+    "loading": "Buscando…",
+    "resultsHeading": "Resultados para «{query}»",
+    "noResults": "Sin resultados para «{query}»",
+    "browseAll": "Ver todo el catálogo",
+    "resultsCount": "{count, plural, =0 {Sin resultados} =1 {1 resultado} other {# resultados}}"
+  },
   "navigation": {
     "shop": "Tienda",
     "collections": "Colecciones",

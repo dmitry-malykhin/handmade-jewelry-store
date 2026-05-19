@@ -29,6 +29,13 @@ export class ProductsController {
     return this.productsService.findAll(productQueryDto)
   }
 
+  // Placed before :slug so the literal 'search' segment doesn't get captured
+  // as a slug param.
+  @Get('search')
+  search(@Query('q') query?: string) {
+    return this.productsService.searchProducts(query ?? '')
+  }
+
   @Get(':slug')
   findOne(@Param('slug') productSlug: string) {
     return this.productsService.findOneBySlug(productSlug)

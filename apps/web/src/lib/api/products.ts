@@ -44,6 +44,16 @@ export async function fetchCategories(): Promise<Category[]> {
   return apiClient<Category[]>('/api/categories')
 }
 
+/**
+ * Customer-facing product search. Returns at most 50 matches (the search
+ * endpoint caps server-side); whitespace-only queries return an empty array
+ * without hitting the network.
+ */
+export async function searchProducts(query: string): Promise<Product[]> {
+  if (!query.trim()) return []
+  return apiClient<Product[]>(`/api/products/search?q=${encodeURIComponent(query.trim())}`)
+}
+
 export async function fetchAdminProducts(
   params: AdminProductsQueryParams,
   accessToken: string,

@@ -482,4 +482,58 @@ describe('ProductsService', () => {
       await expect(productsService.updateStock('missing-id', 5)).rejects.toThrow(NotFoundException)
     })
   })
+
+  // ── searchProducts ────────────────────────────────────────────────────────
+
+  describe('searchProducts()', () => {
+    it('returns empty array for empty query (no DB call)', async () => {
+      const result = await productsService.searchProducts('')
+
+      expect(result).toEqual([])
+      expect(mockPrismaService.product.findMany).not.toHaveBeenCalled()
+    })
+
+    it('returns empty array for whitespace-only query', async () => {
+      const result = await productsService.searchProducts('   ')
+
+      expect(result).toEqual([])
+      expect(mockPrismaService.product.findMany).not.toHaveBeenCalled()
+    })
+
+    it('matches ACTIVE products by title, description, or material', async () => {
+      mockPrismaService.product.findMany.mockResolvedValueOnce([])
+
+      await productsService.searchProducts('silver')
+
+      expect(mockPrismaService.product.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: {
+            status: ProductStatus.ACTIVE,
+            OR: [
+              { title: { contains: 'silver', mode: 'insensitive' } },
+              { description: { contains: 'silver', mode: 'insensitive' } },
+              { material: { contains: 'silver', mode: 'insensitive' } },
+            ],
+          },
+          take: 50,
+        }),
+      )
+    })
+
+    it('trims surrounding whitespace from the query before matching', async () => {
+      mockPrismaService.product.findMany.mockResolvedValueOnce([])
+
+      await productsService.searchProducts('  silver ring  ')
+
+      expect(mockPrismaService.product.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            OR: expect.arrayContaining([
+              { title: { contains: 'silver ring', mode: 'insensitive' } },
+            ]),
+          }),
+        }),
+      )
+    })
+  })
 })

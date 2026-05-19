@@ -3,6 +3,19 @@
     "title": "Senichka",
     "description": "Unique handmade jewelry crafted with love using ethically sourced materials."
   },
+  "searchPage": {
+    "metaTitle": "Search — Senichka",
+    "metaDescription": "Find handmade jewelry pieces by name, material, or description.",
+    "title": "Search",
+    "inputLabel": "Search products",
+    "inputPlaceholder": "Search by name, material, description…",
+    "noQuery": "Type to start searching the catalog",
+    "loading": "Searching…",
+    "resultsHeading": "Results for \"{query}\"",
+    "noResults": "No results for \"{query}\"",
+    "browseAll": "Browse all products",
+    "resultsCount": "{count, plural, =0 {No matches} =1 {1 match} other {# matches}}"
+  },
   "navigation": {
     "shop": "Shop",
     "collections": "Collections",

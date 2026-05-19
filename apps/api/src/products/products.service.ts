@@ -83,6 +83,41 @@ export class ProductsService {
     return product
   }
 
+  /**
+   * Customer-facing product search (#99). Matches title / description /
+   * material via case-insensitive `contains` against ACTIVE products only.
+   *
+   * Caps results at 50 — search pages don't paginate; if the customer wants
+   * to see more matches we expect them to refine the query. Empty / whitespace
+   * queries short-circuit to an empty result so the UI can render the "no
+   * query" state without an unnecessary DB roundtrip.
+   *
+   * Note: this uses ILIKE-style matching rather than Postgres tsvector. The
+   * catalogue is small (handmade scale) so the simpler approach wins on
+   * complexity. Switch to `to_tsvector + GIN` once the catalogue passes ~1000
+   * products and ILIKE scans become measurable.
+   */
+  async searchProducts(query: string) {
+    const trimmed = query.trim()
+    if (!trimmed) return []
+
+    return this.prismaService.product.findMany({
+      where: {
+        status: ProductStatus.ACTIVE,
+        OR: [
+          { title: { contains: trimmed, mode: 'insensitive' as const } },
+          { description: { contains: trimmed, mode: 'insensitive' as const } },
+          { material: { contains: trimmed, mode: 'insensitive' as const } },
+        ],
+      },
+      include: { category: { select: { name: true, slug: true } } },
+      // Title matches are intuitively most relevant; orderBy title asc gives
+      // a stable, predictable ranking without the cost of tsvector ranking.
+      orderBy: [{ title: 'asc' }],
+      take: 50,
+    })
+  }
+
   async create(createProductDto: CreateProductDto) {
     return this.prismaService.product.create({
       data: createProductDto,
