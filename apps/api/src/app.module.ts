@@ -10,6 +10,7 @@ import { AuthModule } from './auth/auth.module'
 import { CategoriesModule } from './categories/categories.module'
 import { RequestLoggerMiddleware } from './common/middleware/request-logger.middleware'
 import { ContactModule } from './contact/contact.module'
+import { DiscountsModule } from './discounts/discounts.module'
 import { HealthModule } from './health/health.module'
 import { LoggerModule } from './logger/logger.module'
 import { NewsletterModule } from './newsletter/newsletter.module'
@@ -49,6 +50,7 @@ import { WishlistModule } from './wishlist/wishlist.module'
     PaymentsModule,
     UploadModule,
     ContactModule,
+    DiscountsModule,
     NewsletterModule,
     SiteSettingsModule,
     WishlistModule,

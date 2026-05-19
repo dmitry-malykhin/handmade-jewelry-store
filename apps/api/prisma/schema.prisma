@@ -79,6 +79,11 @@ enum ProductionStatus {
   READY_TO_SHIP  // Finished, awaiting tracking number / dispatch
 }
 
+enum DiscountType {
+  PERCENTAGE   // value is 1-100, applied as percent off subtotal
+  FIXED_AMOUNT // value is in cents, flat $ off
+}
+
 // ─── Models ──────────────────────────────────────────────────────────────────
 
 model User {
@@ -281,6 +286,26 @@ model Wishlist {
   userId   String    @unique // one wishlist per user
   user     User      @relation(fields: [userId], references: [id])
   products Product[] @relation("WishlistProducts")
+}
+
+// Discount / coupon codes (#164). Codes are normalised to UPPERCASE before
+// store + lookup so customer-facing inputs are case-insensitive without
+// needing a Postgres citext column.
+model Discount {
+  id            String       @id @default(cuid())
+  code          String       @unique // UPPERCASE; service normalises on write/read
+  type          DiscountType
+  value         Int          // PERCENTAGE: 1-100, FIXED_AMOUNT: cents
+  minOrderCents Int          @default(0) // 0 = no minimum
+  maxUsages     Int?         // null = unlimited
+  usageCount    Int          @default(0)
+  expiresAt     DateTime?    // null = never expires
+  isActive      Boolean      @default(true)
+  // Soft delete keeps historical orders referencing the code while hiding
+  // it from the admin list and rejecting it at the validate endpoint.
+  deletedAt     DateTime?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
 }
 
 // Singleton table for admin-editable store settings (#171). Enforced via a

@@ -7,6 +7,7 @@ import {
   Hammer,
   LayoutDashboard,
   Package,
+  Percent,
   RotateCcw,
   Settings,
   ShoppingCart,
@@ -94,6 +95,12 @@ export function AdminSidebar() {
       labelKey: 'navCategories' as const,
       icon: <Tag className="size-4" aria-hidden="true" />,
       isActive: pathname.startsWith('/admin/categories'),
+    },
+    {
+      href: '/admin/discounts',
+      labelKey: 'navDiscounts' as const,
+      icon: <Percent className="size-4" aria-hidden="true" />,
+      isActive: pathname.startsWith('/admin/discounts'),
     },
     {
       href: '/admin/settings',
