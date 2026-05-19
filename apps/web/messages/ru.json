@@ -3,6 +3,19 @@
     "title": "Senichka",
     "description": "Уникальные украшения ручной работы из этично добытых материалов."
   },
+  "searchPage": {
+    "metaTitle": "Поиск — Senichka",
+    "metaDescription": "Найдите украшения ручной работы по названию, материалу или описанию.",
+    "title": "Поиск",
+    "inputLabel": "Поиск товаров",
+    "inputPlaceholder": "По названию, материалу, описанию…",
+    "noQuery": "Начните вводить, чтобы искать по каталогу",
+    "loading": "Ищем…",
+    "resultsHeading": "Результаты по запросу «{query}»",
+    "noResults": "Ничего не найдено по запросу «{query}»",
+    "browseAll": "Все товары",
+    "resultsCount": "{count, plural, =0 {Ничего не найдено} =1 {1 совпадение} other {# совпадений}}"
+  },
   "navigation": {
     "shop": "Магазин",
     "collections": "Коллекции",
