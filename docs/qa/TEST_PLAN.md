@@ -56,7 +56,7 @@ A PR cannot merge without **all** of:
 - `pnpm --filter api test` — Jest passes 100%.
 - Build succeeds (`pnpm build`).
 
-Test results are surfaced in the PR via `dorny/test-reporter` reading the `junit.xml` from both runs — failures appear inline on the PR check page, not just as overall green/red.
+Each test job's overall status (`CI / Unit Tests (api)`, `CI / Unit & Component Tests (web)`) appears in the PR check list. JUnit XML is still produced under `apps/{api,web}/reports/junit.xml` for future tooling (artifact upload, Allure, etc.) but is no longer surfaced as a separate PR check — see "Future work" for rationale.
 
 E2E (Playwright) runs only on push to `main`. PR authors should run `pnpm --filter web test:e2e` locally if they touch checkout / payment / auth flows.
 
@@ -107,7 +107,8 @@ Run before every production deploy with a real Stripe test card:
 
 ## 10. Future work (not in #147)
 
-- **Allure Report on GitHub Pages** — historical test stability dashboard. Higher upfront cost (annotating all existing tests) vs marginal day-to-day value over `dorny/test-reporter`. Tracked separately.
+- **Allure Report on GitHub Pages** — historical test stability dashboard. Higher upfront cost (annotating all existing tests) vs marginal day-to-day value. Tracked in #252.
+- **PR-inline test failure details** — previously surfaced via `dorny/test-reporter`; removed because dorny v1 mis-attributes its check runs to whatever workflow first touched the commit (`auto-pr.yml` in our case), producing visually inconsistent check names in the PR. The job's own pass/fail status is enough for now; if we need per-test failure visibility later, upload `junit.xml` as a workflow artifact or migrate to GitHub's job summary API.
 - **MailSlurp E2E for emails** — actually receive the email in a test inbox and assert content. Today we trust the template unit tests + Resend dashboard.
 - **Visual regression** — Percy or Chromatic for product / checkout / email rendering.
 - **Coverage badges** — only after the TC inventory is more complete; otherwise badges encourage padding low-value tests.

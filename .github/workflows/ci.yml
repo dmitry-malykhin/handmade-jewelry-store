@@ -39,11 +39,6 @@ jobs:
   unit-tests-web:
     name: Unit & Component Tests (web)
     runs-on: ubuntu-latest
-    # Required for dorny/test-reporter to comment on PRs with test results
-    permissions:
-      contents: read
-      checks: write
-      pull-requests: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -62,26 +57,13 @@ jobs:
 
       - name: Run Vitest
         # CI env var triggers the junit reporter (see apps/web/vitest.config.ts)
+        # so `apps/web/reports/junit.xml` is produced for future tooling
+        # (download-as-artifact, Allure, etc.) — not consumed in this workflow.
         run: pnpm --filter web test:run
-
-      - name: Surface test results in PR
-        # Runs even on test failure so the PR check page shows which tests failed,
-        # not just the overall exit code. `if: always()` is intentional.
-        if: always()
-        uses: dorny/test-reporter@v1
-        with:
-          name: Web Tests
-          path: apps/web/reports/junit.xml
-          reporter: jest-junit
-          fail-on-error: false
 
   unit-tests-api:
     name: Unit Tests (api)
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      checks: write
-      pull-requests: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -103,15 +85,6 @@ jobs:
 
       - name: Run Jest
         run: pnpm --filter api test
-
-      - name: Surface test results in PR
-        if: always()
-        uses: dorny/test-reporter@v1
-        with:
-          name: API Tests
-          path: apps/api/reports/junit.xml
-          reporter: jest-junit
-          fail-on-error: false
 
   e2e-tests:
     name: E2E Tests (Playwright)
