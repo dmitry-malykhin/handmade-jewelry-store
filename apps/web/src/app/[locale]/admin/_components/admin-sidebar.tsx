@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   Package,
   RotateCcw,
+  Settings,
   ShoppingCart,
   Tag,
   Users,
@@ -93,6 +94,12 @@ export function AdminSidebar() {
       labelKey: 'navCategories' as const,
       icon: <Tag className="size-4" aria-hidden="true" />,
       isActive: pathname.startsWith('/admin/categories'),
+    },
+    {
+      href: '/admin/settings',
+      labelKey: 'navSettings' as const,
+      icon: <Settings className="size-4" aria-hidden="true" />,
+      isActive: pathname.startsWith('/admin/settings'),
     },
   ]
 

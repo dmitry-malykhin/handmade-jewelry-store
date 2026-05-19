@@ -18,6 +18,7 @@ import { PaymentsModule } from './payments/payments.module'
 import { PrismaModule } from './prisma/prisma.module'
 import { ProductsModule } from './products/products.module'
 import { ReviewsModule } from './reviews/reviews.module'
+import { SiteSettingsModule } from './site-settings/site-settings.module'
 import { StripeModule } from './stripe/stripe.module'
 import { UploadModule } from './upload/upload.module'
 import { UsersModule } from './users/users.module'
@@ -49,6 +50,7 @@ import { WishlistModule } from './wishlist/wishlist.module'
     UploadModule,
     ContactModule,
     NewsletterModule,
+    SiteSettingsModule,
     WishlistModule,
     HealthModule,
   ],

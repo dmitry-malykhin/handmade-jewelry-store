@@ -282,3 +282,31 @@ model Wishlist {
   user     User      @relation(fields: [userId], references: [id])
   products Product[] @relation("WishlistProducts")
 }
+
+// Singleton table for admin-editable store settings (#171). Enforced via a
+// fixed id 'default' — service-layer upsert keeps exactly one row regardless
+// of how many times settings are loaded.
+model SiteSettings {
+  id String @id @default("default")
+
+  // General
+  storeName    String @default("Senichka")
+  tagline      String @default("Handmade Beaded Jewelry")
+  contactEmail String @default("")
+  supportEmail String @default("")
+
+  // Social links — nullable so an unset platform shows blank in the form
+  instagramUrl String?
+  pinterestUrl String?
+  facebookUrl  String?
+  tiktokUrl    String?
+
+  // Shipping & returns
+  returnPolicyDays           Int @default(30)
+  estimatedDeliveryMinDays   Int @default(3)
+  estimatedDeliveryMaxDays   Int @default(7)
+  freeShippingThresholdCents Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
