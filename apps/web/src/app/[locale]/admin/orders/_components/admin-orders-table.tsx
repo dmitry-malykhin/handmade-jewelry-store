@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslations } from 'next-intl'
+import { Download } from 'lucide-react'
 import { toast } from 'sonner'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -29,7 +30,12 @@ import {
 } from '@/components/ui/table'
 import { Link } from '@/i18n/navigation'
 import { useAuthStore } from '@/store/auth.store'
-import { fetchAdminOrders, updateAdminOrderStatus, type OrderStatus } from '@/lib/api/orders'
+import {
+  downloadAdminOrdersCsv,
+  fetchAdminOrders,
+  updateAdminOrderStatus,
+  type OrderStatus,
+} from '@/lib/api/orders'
 import { ApiError } from '@/lib/api/client'
 import type { AdminOrdersQueryParams } from '@/lib/api/orders'
 
@@ -80,6 +86,25 @@ export function AdminOrdersTable() {
 
   const [statusFilter, setStatusFilter] = useState<OrderStatus | 'ALL'>('ALL')
   const [currentPage, setCurrentPage] = useState(1)
+  const [isExporting, setIsExporting] = useState(false)
+
+  async function handleExportCsv() {
+    if (!accessToken) return
+    setIsExporting(true)
+    try {
+      // Mirror the active status filter so the export matches what's visible.
+      await downloadAdminOrdersCsv(
+        statusFilter !== 'ALL' ? { status: statusFilter } : {},
+        accessToken,
+      )
+      toast.success(t('exportCsvSuccess'))
+    } catch (error) {
+      const message = error instanceof ApiError ? error.message : t('exportCsvError')
+      toast.error(message)
+    } finally {
+      setIsExporting(false)
+    }
+  }
 
   const queryParams: AdminOrdersQueryParams = {
     page: currentPage,
@@ -114,6 +139,16 @@ export function AdminOrdersTable() {
         <h1 id="orders-heading" className="text-2xl font-semibold text-foreground">
           {t('ordersTitle')}
         </h1>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          disabled={isExporting || !accessToken}
+          onClick={handleExportCsv}
+        >
+          <Download className="mr-2 size-4" aria-hidden="true" />
+          {isExporting ? t('exportCsvInProgress') : t('exportCsvButton')}
+        </Button>
       </div>
 
       <div className="mb-4 flex items-center gap-3">

@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Header,
   HttpCode,
   HttpStatus,
   Param,
@@ -27,6 +28,13 @@ export class AdminProductsController {
   @Get()
   findAll(@Query() adminProductQueryDto: AdminProductQueryDto) {
     return this.productsService.findAllAdmin(adminProductQueryDto)
+  }
+
+  @Get('export')
+  @Header('Content-Type', 'text/csv; charset=utf-8')
+  @Header('Content-Disposition', 'attachment; filename="products-export.csv"')
+  exportCsv() {
+    return this.productsService.exportToCsv()
   }
 
   @Patch(':id/status')

@@ -1,6 +1,7 @@
 import { NotFoundException } from '@nestjs/common'
 import { Test, TestingModule } from '@nestjs/testing'
 import { ProductStatus } from '@prisma/client'
+import { Decimal } from '@prisma/client/runtime/library'
 import { PrismaService } from '../prisma/prisma.service'
 import { BackInStockService } from '../wishlist/back-in-stock.service'
 import { AdminProductQueryDto } from './dto/admin-product-query.dto'
@@ -533,6 +534,85 @@ describe('ProductsService', () => {
             ]),
           }),
         }),
+      )
+    })
+  })
+
+  // ── exportToCsv ───────────────────────────────────────────────────────────
+
+  describe('exportToCsv()', () => {
+    function buildProductForExport(
+      overrides: Record<string, unknown> = {},
+    ): Record<string, unknown> {
+      return {
+        id: 'prod-1',
+        title: 'Silver Ring',
+        sku: 'RING-001',
+        price: new Decimal('68.00'),
+        stock: 5,
+        material: 'Sterling Silver',
+        status: ProductStatus.ACTIVE,
+        category: { name: 'Rings' },
+        createdAt: new Date('2026-05-19T12:30:00Z'),
+        ...overrides,
+      }
+    }
+
+    it('returns just the header row when there are no products', async () => {
+      mockPrismaService.product.findMany.mockResolvedValueOnce([])
+
+      const csv = await productsService.exportToCsv()
+
+      expect(csv).toBe('id,title,sku,price,stock,material,category,status,created_at')
+    })
+
+    it('renders price in USD with two decimals and stock as a plain integer', async () => {
+      mockPrismaService.product.findMany.mockResolvedValueOnce([buildProductForExport()])
+
+      const csv = await productsService.exportToCsv()
+
+      // Row layout: id,title,sku,price,stock,...
+      expect(csv).toContain(',68.00,5,')
+    })
+
+    it('renders createdAt as an ISO 8601 string', async () => {
+      mockPrismaService.product.findMany.mockResolvedValueOnce([buildProductForExport()])
+
+      const csv = await productsService.exportToCsv()
+
+      expect(csv).toContain('2026-05-19T12:30:00.000Z')
+    })
+
+    it('uses an empty cell for missing optional fields (sku, material)', async () => {
+      mockPrismaService.product.findMany.mockResolvedValueOnce([
+        buildProductForExport({ sku: null, material: null }),
+      ])
+
+      const csv = await productsService.exportToCsv()
+      const dataRow = csv.split('\r\n')[1]?.split(',') ?? []
+
+      // sku is column 3, material is column 6 (0-indexed: 2 and 5)
+      expect(dataRow[2]).toBe('')
+      expect(dataRow[5]).toBe('')
+    })
+
+    it('escapes commas in product titles (e.g. "Ring, gold-plated")', async () => {
+      mockPrismaService.product.findMany.mockResolvedValueOnce([
+        buildProductForExport({ title: 'Ring, gold-plated' }),
+      ])
+
+      const csv = await productsService.exportToCsv()
+
+      expect(csv).toContain('"Ring, gold-plated"')
+    })
+
+    it('sorts by createdAt desc — newest first', async () => {
+      mockPrismaService.product.findMany.mockResolvedValueOnce([])
+
+      await productsService.exportToCsv()
+
+      expect(mockPrismaService.product.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ orderBy: { createdAt: 'desc' } }),
       )
     })
   })

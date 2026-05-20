@@ -3,7 +3,16 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslations } from 'next-intl'
-import { ChevronDown, ChevronUp, ChevronsUpDown, Pencil, Plus, Search, Trash2 } from 'lucide-react'
+import {
+  ChevronDown,
+  ChevronUp,
+  ChevronsUpDown,
+  Download,
+  Pencil,
+  Plus,
+  Search,
+  Trash2,
+} from 'lucide-react'
 import { Link } from '@/i18n/navigation'
 import { toast } from 'sonner'
 import type { Product, ProductsResponse, ProductStatus } from '@jewelry/shared'
@@ -34,6 +43,7 @@ import {
 import { useAuthStore } from '@/store/auth.store'
 import {
   deleteAdminProduct,
+  downloadAdminProductsCsv,
   fetchAdminProducts,
   updateProductStatus,
   type AdminProductsQueryParams,
@@ -88,6 +98,21 @@ export function AdminProductsTable() {
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc')
   const [currentPage, setCurrentPage] = useState(1)
   const [productToDelete, setProductToDelete] = useState<ProductTableRow | null>(null)
+  const [isExporting, setIsExporting] = useState(false)
+
+  async function handleExportCsv() {
+    if (!accessToken) return
+    setIsExporting(true)
+    try {
+      await downloadAdminProductsCsv(accessToken)
+      toast.success(t('exportCsvSuccess'))
+    } catch (error) {
+      const message = error instanceof ApiError ? error.message : t('exportCsvError')
+      toast.error(message)
+    } finally {
+      setIsExporting(false)
+    }
+  }
 
   const updateAdminProductsQueries = (
     updater: (currentData: ProductsResponse) => ProductsResponse,
@@ -224,12 +249,24 @@ export function AdminProductsTable() {
         <h1 id="products-heading" className="text-2xl font-semibold text-foreground">
           {t('productsTitle')}
         </h1>
-        <Button asChild size="sm">
-          <Link href="/admin/products/new">
-            <Plus className="mr-2 size-4" aria-hidden="true" />
-            {t('productsNewButton')}
-          </Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={isExporting || !accessToken}
+            onClick={handleExportCsv}
+          >
+            <Download className="mr-2 size-4" aria-hidden="true" />
+            {isExporting ? t('exportCsvInProgress') : t('exportCsvButton')}
+          </Button>
+          <Button asChild size="sm">
+            <Link href="/admin/products/new">
+              <Plus className="mr-2 size-4" aria-hidden="true" />
+              {t('productsNewButton')}
+            </Link>
+          </Button>
+        </div>
       </div>
 
       <div className="mb-4 flex flex-wrap items-center gap-3">

@@ -2,16 +2,70 @@ import { BadRequestException, Injectable, Logger, NotFoundException } from '@nes
 import { OrderStatus, PaymentStatus, Prisma, StockType } from '@prisma/client'
 import { Decimal, InputJsonValue } from '@prisma/client/runtime/library'
 import { AnalyticsService } from '../analytics/analytics.service'
+import { buildCsvDocument } from '../common/csv/csv-formatter'
 import { EmailService } from '../email/email.service'
 import { PrismaService } from '../prisma/prisma.service'
 import { StripeService } from '../stripe/stripe.service'
 import { CreateOrderDto } from './dto/create-order.dto'
+import { OrderExportQueryDto } from './dto/order-export-query.dto'
 import { OrderQueryDto } from './dto/order-query.dto'
 import { RefundOrderDto } from './dto/refund-order.dto'
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto'
 import { UpdateOrderTrackingDto } from './dto/update-order-tracking.dto'
 import { UpdateProductionDto } from './dto/update-production.dto'
 import { isValidOrderStatusTransition } from './order-status.transitions'
+
+const ORDER_EXPORT_HEADERS = [
+  'order_id',
+  'date',
+  'customer_email',
+  'customer_name',
+  'shipping_address',
+  'items',
+  'subtotal',
+  'shipping',
+  'total',
+  'status',
+  'tracking_number',
+] as const
+
+interface ShippingAddressSnapshot {
+  fullName?: string
+  addressLine1?: string
+  addressLine2?: string
+  city?: string
+  state?: string
+  postalCode?: string
+  country?: string
+}
+
+/** Renders the ShippingAddress JSON snapshot into a single CSV cell. */
+function formatShippingAddress(snapshot: unknown): string {
+  if (!snapshot || typeof snapshot !== 'object') return ''
+  const address = snapshot as ShippingAddressSnapshot
+  const streetLines = [address.addressLine1, address.addressLine2].filter(Boolean).join(' ')
+  const cityLine = [address.city, address.state, address.postalCode].filter(Boolean).join(' ')
+  return [streetLines, cityLine, address.country].filter(Boolean).join(', ')
+}
+
+interface OrderItemForExport {
+  productSnapshot: unknown
+  quantity: number
+}
+
+/** Compacts the line items into a single readable cell — "Title × 2 | Title × 1". */
+function formatOrderItems(items: readonly OrderItemForExport[]): string {
+  return items
+    .map((item) => {
+      const snapshot = item.productSnapshot
+      const title =
+        snapshot && typeof snapshot === 'object' && 'title' in snapshot
+          ? String((snapshot as { title: unknown }).title)
+          : '(deleted product)'
+      return `${title} × ${item.quantity}`
+    })
+    .join(' | ')
+}
 
 @Injectable()
 export class OrdersService {
@@ -80,6 +134,55 @@ export class OrdersService {
       }
       throw error
     }
+  }
+
+  /**
+   * Builds a CSV document of every order matching the optional status / date
+   * filters. Returned as a single string so the controller can stream it to
+   * the client with the right `Content-Type` and `Content-Disposition`.
+   *
+   * No pagination here on purpose — an admin invoking "Export" expects the
+   * full result set. We cap exposure by sorting `createdAt desc` so even if
+   * the catalogue ever grows huge the most relevant rows arrive first.
+   */
+  async exportToCsv(query: OrderExportQueryDto): Promise<string> {
+    const { status, from, to } = query
+
+    const whereClause: Prisma.OrderWhereInput = {
+      ...(status && { status }),
+      ...((from || to) && {
+        createdAt: {
+          ...(from && { gte: new Date(from) }),
+          ...(to && { lte: new Date(to) }),
+        },
+      }),
+    }
+
+    const orders = await this.prismaService.order.findMany({
+      where: whereClause,
+      include: { items: true },
+      orderBy: { createdAt: 'desc' },
+    })
+
+    const rows = orders.map((order) => {
+      const shippingAddress = formatShippingAddress(order.shippingAddress)
+      const customerName = (order.shippingAddress as ShippingAddressSnapshot | null)?.fullName ?? ''
+      return [
+        order.id,
+        order.createdAt.toISOString(),
+        order.guestEmail ?? order.userId ?? '',
+        customerName,
+        shippingAddress,
+        formatOrderItems(order.items),
+        order.subtotal.toFixed(2),
+        order.shippingCost.toFixed(2),
+        order.total.toFixed(2),
+        order.status,
+        order.trackingNumber ?? '',
+      ]
+    })
+
+    return buildCsvDocument(ORDER_EXPORT_HEADERS, rows)
   }
 
   async findAll(orderQueryDto: OrderQueryDto) {

@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Header,
   HttpCode,
   HttpStatus,
   Param,
@@ -14,6 +15,7 @@ import { Role } from '@prisma/client'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
 import { RolesGuard } from '../auth/guards/roles.guard'
 import { Roles } from '../common/decorators/roles.decorator'
+import { OrderExportQueryDto } from './dto/order-export-query.dto'
 import { OrderQueryDto } from './dto/order-query.dto'
 import { RefundOrderDto } from './dto/refund-order.dto'
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto'
@@ -30,6 +32,14 @@ export class AdminOrdersController {
   @Get()
   findAll(@Query() orderQueryDto: OrderQueryDto) {
     return this.ordersService.findAll(orderQueryDto)
+  }
+
+  // CSV export — placed before :id route so 'export' doesn't match :id
+  @Get('export')
+  @Header('Content-Type', 'text/csv; charset=utf-8')
+  @Header('Content-Disposition', 'attachment; filename="orders-export.csv"')
+  exportCsv(@Query() orderExportQueryDto: OrderExportQueryDto) {
+    return this.ordersService.exportToCsv(orderExportQueryDto)
   }
 
   // Refunds list — placed before :id route so 'refunds' doesn't match :id
