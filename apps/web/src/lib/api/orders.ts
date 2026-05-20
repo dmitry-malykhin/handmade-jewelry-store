@@ -1,4 +1,5 @@
 import { apiClient } from './client'
+import { downloadCsv } from './csv-download'
 
 export interface ShippingAddress {
   fullName: string
@@ -155,6 +156,36 @@ export async function createOrder(payload: CreateOrderPayload): Promise<CreatedO
   return apiClient<CreatedOrder>('/api/orders', {
     method: 'POST',
     body: JSON.stringify(payload),
+  })
+}
+
+export interface AdminOrdersExportParams {
+  status?: OrderStatus
+  /** ISO 8601 date or datetime — inclusive lower bound on `createdAt`. */
+  from?: string
+  /** ISO 8601 date or datetime — inclusive upper bound on `createdAt`. */
+  to?: string
+}
+
+/**
+ * Triggers a browser download of the admin CSV export. Filters are optional —
+ * an empty params object exports every order.
+ */
+export async function downloadAdminOrdersCsv(
+  params: AdminOrdersExportParams,
+  accessToken: string,
+): Promise<void> {
+  const searchParams = new URLSearchParams()
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      searchParams.set(key, String(value))
+    }
+  })
+  const queryString = searchParams.toString()
+  await downloadCsv({
+    path: `/api/admin/orders/export${queryString ? `?${queryString}` : ''}`,
+    accessToken,
+    filename: 'orders-export',
   })
 }
 

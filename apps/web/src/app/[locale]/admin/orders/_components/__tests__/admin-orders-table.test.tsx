@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@/test-utils'
 import userEvent from '@testing-library/user-event'
 import { AdminOrdersTable } from '../admin-orders-table'
-import { fetchAdminOrders, updateAdminOrderStatus } from '@/lib/api/orders'
+import { downloadAdminOrdersCsv, fetchAdminOrders, updateAdminOrderStatus } from '@/lib/api/orders'
 import { useAuthStore } from '@/store/auth.store'
 
 // jsdom does not implement Pointer Events or scrollIntoView — required by Radix UI Select
@@ -34,6 +34,7 @@ vi.mock('@/i18n/navigation', () => ({
 vi.mock('@/lib/api/orders', () => ({
   fetchAdminOrders: vi.fn(),
   updateAdminOrderStatus: vi.fn(),
+  downloadAdminOrdersCsv: vi.fn(),
 }))
 
 vi.mock('@/store/auth.store', () => ({
@@ -46,6 +47,7 @@ vi.mock('sonner', () => ({
 
 const mockFetchAdminOrders = vi.mocked(fetchAdminOrders)
 const mockUpdateAdminOrderStatus = vi.mocked(updateAdminOrderStatus)
+const mockDownloadAdminOrdersCsv = vi.mocked(downloadAdminOrdersCsv)
 const mockUseAuthStore = vi.mocked(useAuthStore)
 
 const sampleShippingAddress = {
@@ -246,5 +248,44 @@ describe('AdminOrdersTable — status filter', () => {
         'mock-token',
       )
     })
+  })
+})
+
+describe('AdminOrdersTable — Export CSV', () => {
+  it('renders the Export CSV button', async () => {
+    mockFetchAdminOrders.mockResolvedValue(emptyResponse)
+    render(<AdminOrdersTable />)
+    expect(await screen.findByRole('button', { name: /export csv/i })).toBeInTheDocument()
+  })
+
+  it('calls downloadAdminOrdersCsv with empty filters by default', async () => {
+    const user = userEvent.setup()
+    mockFetchAdminOrders.mockResolvedValue(emptyResponse)
+    mockDownloadAdminOrdersCsv.mockResolvedValue(undefined)
+
+    render(<AdminOrdersTable />)
+
+    const exportButton = await screen.findByRole('button', { name: /export csv/i })
+    await user.click(exportButton)
+
+    expect(mockDownloadAdminOrdersCsv).toHaveBeenCalledWith({}, 'mock-token')
+  })
+
+  it('forwards the active status filter to the export call', async () => {
+    const user = userEvent.setup()
+    mockFetchAdminOrders.mockResolvedValue(emptyResponse)
+    mockDownloadAdminOrdersCsv.mockResolvedValue(undefined)
+
+    render(<AdminOrdersTable />)
+
+    const filterTrigger = await screen.findByRole('combobox', {
+      name: /filter by status/i,
+    })
+    await user.click(filterTrigger)
+    await user.click(await screen.findByRole('option', { name: /shipped/i }))
+
+    await user.click(await screen.findByRole('button', { name: /export csv/i }))
+
+    expect(mockDownloadAdminOrdersCsv).toHaveBeenCalledWith({ status: 'SHIPPED' }, 'mock-token')
   })
 })

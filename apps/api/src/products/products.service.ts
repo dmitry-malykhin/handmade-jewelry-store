@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { ProductStatus, StockType } from '@prisma/client'
+import { buildCsvDocument } from '../common/csv/csv-formatter'
 import { PrismaService } from '../prisma/prisma.service'
 import { BackInStockService } from '../wishlist/back-in-stock.service'
 import { CreateProductDto } from './dto/create-product.dto'
@@ -7,6 +8,18 @@ import { AdminProductQueryDto } from './dto/admin-product-query.dto'
 import { InventoryQueryDto } from './dto/inventory-query.dto'
 import { ProductQueryDto, ProductSortField, SortOrder } from './dto/product-query.dto'
 import { UpdateProductDto } from './dto/update-product.dto'
+
+const PRODUCT_EXPORT_HEADERS = [
+  'id',
+  'title',
+  'sku',
+  'price',
+  'stock',
+  'material',
+  'category',
+  'status',
+  'created_at',
+] as const
 
 @Injectable()
 export class ProductsService {
@@ -146,6 +159,32 @@ export class ProductsService {
   async remove(productSlug: string) {
     await this.findOneBySlug(productSlug)
     await this.prismaService.product.delete({ where: { slug: productSlug } })
+  }
+
+  /**
+   * Builds a CSV document of the full product catalogue. No pagination — admin
+   * triggering an export expects every product. Sorted newest-first so the
+   * spreadsheet opens with the most recently added items at the top.
+   */
+  async exportToCsv(): Promise<string> {
+    const products = await this.prismaService.product.findMany({
+      include: { category: { select: { name: true } } },
+      orderBy: { createdAt: 'desc' },
+    })
+
+    const rows = products.map((product) => [
+      product.id,
+      product.title,
+      product.sku ?? '',
+      product.price.toFixed(2),
+      product.stock,
+      product.material ?? '',
+      product.category.name,
+      product.status,
+      product.createdAt.toISOString(),
+    ])
+
+    return buildCsvDocument(PRODUCT_EXPORT_HEADERS, rows)
   }
 
   async findAllAdmin(adminProductQueryDto: AdminProductQueryDto) {

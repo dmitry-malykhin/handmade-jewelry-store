@@ -1,5 +1,6 @@
 import type { Category, Product, ProductsResponse, ProductStatus } from '@jewelry/shared'
 import { apiClient } from './client'
+import { downloadCsv } from './csv-download'
 
 export interface FetchProductsParams {
   page?: number
@@ -52,6 +53,18 @@ export async function fetchCategories(): Promise<Category[]> {
 export async function searchProducts(query: string): Promise<Product[]> {
   if (!query.trim()) return []
   return apiClient<Product[]>(`/api/products/search?q=${encodeURIComponent(query.trim())}`)
+}
+
+/**
+ * Triggers a browser download of the admin product catalogue CSV. No filters —
+ * admin gets the full catalogue every time.
+ */
+export async function downloadAdminProductsCsv(accessToken: string): Promise<void> {
+  await downloadCsv({
+    path: '/api/admin/products/export',
+    accessToken,
+    filename: 'products-export',
+  })
 }
 
 export async function fetchAdminProducts(

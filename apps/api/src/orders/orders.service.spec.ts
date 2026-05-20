@@ -491,6 +491,117 @@ describe('OrdersService', () => {
     })
   })
 
+  // ── exportToCsv ───────────────────────────────────────────────────────────
+
+  describe('exportToCsv()', () => {
+    function buildOrderForExport(overrides: Record<string, unknown> = {}): Record<string, unknown> {
+      return {
+        id: 'order-1',
+        userId: null,
+        guestEmail: 'guest@example.com',
+        status: OrderStatus.PAID,
+        subtotal: new Decimal('99.98'),
+        shippingCost: new Decimal('5.00'),
+        total: new Decimal('104.98'),
+        shippingAddress: {
+          fullName: 'Jane Doe',
+          addressLine1: '123 Main St',
+          city: 'New York',
+          state: 'NY',
+          postalCode: '10001',
+          country: 'US',
+        },
+        trackingNumber: '9400111899223481750000',
+        createdAt: new Date('2026-05-19T12:30:00Z'),
+        items: [
+          { productSnapshot: { title: 'Silver Ring' }, quantity: 2 },
+          { productSnapshot: { title: 'Crystal Bracelet' }, quantity: 1 },
+        ],
+        ...overrides,
+      }
+    }
+
+    it('returns just the header row when no orders match the filters', async () => {
+      mockPrismaService.order.findMany.mockResolvedValueOnce([])
+
+      const csv = await ordersService.exportToCsv({})
+
+      expect(csv).toBe(
+        'order_id,date,customer_email,customer_name,shipping_address,items,subtotal,shipping,total,status,tracking_number',
+      )
+    })
+
+    it('renders monetary fields in USD (not cents) with 2-decimal precision', async () => {
+      mockPrismaService.order.findMany.mockResolvedValueOnce([buildOrderForExport()])
+
+      const csv = await ordersService.exportToCsv({})
+
+      // Spreadsheet apps need plain "99.98", not "9998" cents or "99.9800000".
+      expect(csv).toContain(',99.98,5.00,104.98,')
+    })
+
+    it('renders createdAt as an ISO 8601 string', async () => {
+      mockPrismaService.order.findMany.mockResolvedValueOnce([buildOrderForExport()])
+
+      const csv = await ordersService.exportToCsv({})
+
+      expect(csv).toContain('2026-05-19T12:30:00.000Z')
+    })
+
+    it('joins line items in a single cell as "Title × qty | Title × qty"', async () => {
+      mockPrismaService.order.findMany.mockResolvedValueOnce([buildOrderForExport()])
+
+      const csv = await ordersService.exportToCsv({})
+
+      // The cell contains a `|` (no comma, no quote), so it doesn't need quoting.
+      expect(csv).toContain('Silver Ring × 2 | Crystal Bracelet × 1')
+    })
+
+    it('forwards status + date filters to Prisma', async () => {
+      mockPrismaService.order.findMany.mockResolvedValueOnce([])
+
+      await ordersService.exportToCsv({
+        status: OrderStatus.PAID,
+        from: '2026-05-01',
+        to: '2026-05-31',
+      })
+
+      expect(mockPrismaService.order.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: {
+            status: OrderStatus.PAID,
+            createdAt: {
+              gte: new Date('2026-05-01'),
+              lte: new Date('2026-05-31'),
+            },
+          },
+          orderBy: { createdAt: 'desc' },
+        }),
+      )
+    })
+
+    it('escapes commas in the shipping address so CSV stays valid', async () => {
+      // Comma in the rendered address ("123 Main St, New York NY 10001, US") must
+      // not split the row into extra columns when opened in Excel.
+      mockPrismaService.order.findMany.mockResolvedValueOnce([buildOrderForExport()])
+
+      const csv = await ordersService.exportToCsv({})
+
+      expect(csv).toContain('"123 Main St, New York NY 10001, US"')
+    })
+
+    it('falls back to userId in the email column when guestEmail is null', async () => {
+      mockPrismaService.order.findMany.mockResolvedValueOnce([
+        buildOrderForExport({ guestEmail: null, userId: 'user-42' }),
+      ])
+
+      const csv = await ordersService.exportToCsv({})
+
+      // user-42 should appear in the email column (third field).
+      expect(csv.split('\r\n')[1]?.split(',')[2]).toBe('user-42')
+    })
+  })
+
   // ── findAllRefunds ────────────────────────────────────────────────────────
 
   describe('findAllRefunds()', () => {
