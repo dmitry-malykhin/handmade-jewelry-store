@@ -23,3 +23,4 @@ Closes #
 - [ ] `pnpm build` passes locally
 - [ ] Self-reviewed the diff before opening PR
 - [ ] QA: affected `docs/qa/**.md` test cases updated (or N/A — purely internal change)
+- [ ] Admin help: if a touched admin form added/removed/renamed any field, the matching `docs/admin-help/**.md` is updated in the same PR (or N/A)
