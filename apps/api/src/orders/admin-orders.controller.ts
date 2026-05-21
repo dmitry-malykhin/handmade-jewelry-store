@@ -18,6 +18,7 @@ import { Roles } from '../common/decorators/roles.decorator'
 import { OrderExportQueryDto } from './dto/order-export-query.dto'
 import { OrderQueryDto } from './dto/order-query.dto'
 import { RefundOrderDto } from './dto/refund-order.dto'
+import { RefundsQueryDto } from './dto/refunds-query.dto'
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto'
 import { UpdateOrderTrackingDto } from './dto/update-order-tracking.dto'
 import { UpdateProductionDto } from './dto/update-production.dto'
@@ -44,8 +45,8 @@ export class AdminOrdersController {
 
   // Refunds list — placed before :id route so 'refunds' doesn't match :id
   @Get('refunds')
-  findAllRefunds() {
-    return this.ordersService.findAllRefunds()
+  findAllRefunds(@Query() refundsQueryDto: RefundsQueryDto) {
+    return this.ordersService.findAllRefunds(refundsQueryDto)
   }
 
   // Production queue — placed before :id route so 'production' doesn't match :id
