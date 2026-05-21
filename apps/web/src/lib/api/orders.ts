@@ -265,10 +265,31 @@ export async function refundAdminOrder(
   })
 }
 
-export async function fetchAdminRefunds(accessToken: string): Promise<AdminOrderDetail[]> {
-  return apiClient<AdminOrderDetail[]>('/api/admin/orders/refunds', {
-    headers: { Authorization: `Bearer ${accessToken}` },
+export interface AdminRefundsQueryParams {
+  /** ISO 8601 date or datetime — inclusive lower bound on `refundedAt`. */
+  from?: string
+  /** ISO 8601 date or datetime — inclusive upper bound on `refundedAt`. */
+  to?: string
+  reason?: RefundReason
+  /** Substring match against guest email or registered customer email. */
+  customer?: string
+}
+
+export async function fetchAdminRefunds(
+  params: AdminRefundsQueryParams,
+  accessToken: string,
+): Promise<AdminOrderDetail[]> {
+  const searchParams = new URLSearchParams()
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      searchParams.set(key, String(value))
+    }
   })
+  const queryString = searchParams.toString()
+  return apiClient<AdminOrderDetail[]>(
+    `/api/admin/orders/refunds${queryString ? `?${queryString}` : ''}`,
+    { headers: { Authorization: `Bearer ${accessToken}` } },
+  )
 }
 
 export type ProductionStatus = 'QUEUED' | 'IN_PRODUCTION' | 'READY_TO_SHIP'

@@ -1,15 +1,19 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@/test-utils'
+import userEvent from '@testing-library/user-event'
 import type * as OrdersApiModule from '@/lib/api/orders'
 import { AdminRefundsTable } from '../admin-refunds-table'
 
 const fetchAdminRefundsMock = vi.fn()
+const routerReplaceMock = vi.fn()
+let mockSearchParams = new URLSearchParams()
 
 vi.mock('@/lib/api/orders', async () => {
   const actual = await vi.importActual<typeof OrdersApiModule>('@/lib/api/orders')
   return {
     ...actual,
-    fetchAdminRefunds: () => fetchAdminRefundsMock(),
+    fetchAdminRefunds: (params: OrdersApiModule.AdminRefundsQueryParams, accessToken: string) =>
+      fetchAdminRefundsMock(params, accessToken),
   }
 })
 
@@ -32,6 +36,18 @@ vi.mock('@/i18n/navigation', () => ({
     </a>
   ),
 }))
+
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ replace: routerReplaceMock, push: vi.fn() }),
+  usePathname: () => '/en/admin/orders/refunds',
+  useSearchParams: () => mockSearchParams,
+}))
+
+// jsdom does not implement Radix's pointer-events APIs — required by Select
+window.HTMLElement.prototype.hasPointerCapture = vi.fn()
+window.HTMLElement.prototype.setPointerCapture = vi.fn()
+window.HTMLElement.prototype.releasePointerCapture = vi.fn()
+window.HTMLElement.prototype.scrollIntoView = vi.fn()
 
 const fullRefund = {
   id: 'order_abcdef1234567890',
@@ -56,12 +72,14 @@ const fullRefund = {
   refundNote: null,
 }
 
-describe('AdminRefundsTable', () => {
+describe('AdminRefundsTable — base rendering', () => {
   beforeEach(() => {
     fetchAdminRefundsMock.mockReset()
+    routerReplaceMock.mockReset()
+    mockSearchParams = new URLSearchParams()
   })
 
-  it('renders the empty state when there are no refunds', async () => {
+  it('renders the unfiltered empty state when there are no refunds', async () => {
     fetchAdminRefundsMock.mockResolvedValueOnce([])
 
     render(<AdminRefundsTable />)
@@ -104,8 +122,98 @@ describe('AdminRefundsTable', () => {
     render(<AdminRefundsTable />)
 
     await waitFor(() => expect(screen.getByText('$0.00')).toBeInTheDocument())
-    // 3 dashes: customer email, reason, refundedAt
     const dashes = screen.getAllByText('—')
     expect(dashes.length).toBeGreaterThanOrEqual(3)
+  })
+})
+
+describe('AdminRefundsTable — filters', () => {
+  beforeEach(() => {
+    fetchAdminRefundsMock.mockReset()
+    routerReplaceMock.mockReset()
+    mockSearchParams = new URLSearchParams()
+  })
+
+  it('reads filters from the URL searchParams on first render', async () => {
+    mockSearchParams = new URLSearchParams({
+      from: '2026-05-01',
+      to: '2026-05-31',
+      reason: 'ITEM_DAMAGED',
+      customer: 'alice',
+    })
+    fetchAdminRefundsMock.mockResolvedValueOnce([])
+
+    render(<AdminRefundsTable />)
+
+    await waitFor(() =>
+      expect(fetchAdminRefundsMock).toHaveBeenCalledWith(
+        {
+          from: '2026-05-01',
+          to: '2026-05-31',
+          reason: 'ITEM_DAMAGED',
+          customer: 'alice',
+        },
+        'test-token',
+      ),
+    )
+  })
+
+  it('writes the from-date filter to the URL when changed', async () => {
+    const user = userEvent.setup()
+    fetchAdminRefundsMock.mockResolvedValue([])
+
+    render(<AdminRefundsTable />)
+
+    const fromInput = screen.getByLabelText(/refunded from/i)
+    await user.type(fromInput, '2026-05-01')
+
+    await waitFor(() => {
+      const lastCall = routerReplaceMock.mock.calls.at(-1)?.[0] as string
+      expect(lastCall).toContain('from=2026-05-01')
+    })
+  })
+
+  it('shows the Clear filters button when at least one filter is active', async () => {
+    mockSearchParams = new URLSearchParams({ reason: 'ITEM_DAMAGED' })
+    fetchAdminRefundsMock.mockResolvedValueOnce([])
+
+    render(<AdminRefundsTable />)
+
+    expect(await screen.findByRole('button', { name: /clear filters/i })).toBeInTheDocument()
+  })
+
+  it('hides the Clear filters button when no filters are active', async () => {
+    fetchAdminRefundsMock.mockResolvedValueOnce([])
+
+    render(<AdminRefundsTable />)
+
+    // Wait for at least one async render cycle to settle
+    await waitFor(() => expect(fetchAdminRefundsMock).toHaveBeenCalled())
+    expect(screen.queryByRole('button', { name: /clear filters/i })).not.toBeInTheDocument()
+  })
+
+  it('renders the filtered empty state when no refunds match the active filters', async () => {
+    mockSearchParams = new URLSearchParams({ reason: 'OTHER' })
+    fetchAdminRefundsMock.mockResolvedValueOnce([])
+
+    render(<AdminRefundsTable />)
+
+    expect(await screen.findByText(/no refunds match these filters/i)).toBeInTheDocument()
+  })
+
+  it('clearing filters calls router.replace with the bare pathname', async () => {
+    const user = userEvent.setup()
+    mockSearchParams = new URLSearchParams({ reason: 'ITEM_DAMAGED' })
+    fetchAdminRefundsMock.mockResolvedValue([])
+
+    render(<AdminRefundsTable />)
+
+    const clearButton = await screen.findByRole('button', { name: /clear filters/i })
+    await user.click(clearButton)
+
+    expect(routerReplaceMock).toHaveBeenCalledWith(
+      '/en/admin/orders/refunds',
+      expect.objectContaining({ scroll: false }),
+    )
   })
 })

@@ -605,17 +605,113 @@ describe('OrdersService', () => {
   // ── findAllRefunds ────────────────────────────────────────────────────────
 
   describe('findAllRefunds()', () => {
-    it('queries orders in REFUNDED or PARTIALLY_REFUNDED status ordered by refundedAt desc', async () => {
+    function lastWhereClause(): Record<string, unknown> {
+      const call = mockPrismaService.order.findMany.mock.calls.at(-1)?.[0] as
+        | { where: Record<string, unknown> }
+        | undefined
+      return call?.where ?? {}
+    }
+
+    it('returns all refunded orders ordered by refundedAt desc when no filters', async () => {
       mockPrismaService.order.findMany.mockResolvedValueOnce([])
 
       await ordersService.findAllRefunds()
 
-      expect(mockPrismaService.order.findMany).toHaveBeenCalledWith({
-        where: {
-          OR: [{ status: OrderStatus.REFUNDED }, { status: OrderStatus.PARTIALLY_REFUNDED }],
-        },
-        orderBy: { refundedAt: 'desc' },
-        include: { items: true, payment: true },
+      const where = lastWhereClause()
+      // AND-array always present so the WHERE composes uniformly with filters
+      // tacked on. First leg is the canonical "refunded or partially refunded".
+      expect(where).toEqual({
+        AND: [
+          { OR: [{ status: OrderStatus.REFUNDED }, { status: OrderStatus.PARTIALLY_REFUNDED }] },
+        ],
+      })
+      expect(mockPrismaService.order.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orderBy: { refundedAt: 'desc' },
+          include: { items: true, payment: true },
+        }),
+      )
+    })
+
+    it('applies the from-date filter to refundedAt', async () => {
+      mockPrismaService.order.findMany.mockResolvedValueOnce([])
+
+      await ordersService.findAllRefunds({ from: '2026-05-01' })
+
+      expect(lastWhereClause()).toEqual({
+        AND: [
+          { OR: [{ status: OrderStatus.REFUNDED }, { status: OrderStatus.PARTIALLY_REFUNDED }] },
+          { refundedAt: { gte: new Date('2026-05-01') } },
+        ],
+      })
+    })
+
+    it('applies the to-date filter to refundedAt', async () => {
+      mockPrismaService.order.findMany.mockResolvedValueOnce([])
+
+      await ordersService.findAllRefunds({ to: '2026-05-31' })
+
+      expect(lastWhereClause()).toEqual({
+        AND: [
+          { OR: [{ status: OrderStatus.REFUNDED }, { status: OrderStatus.PARTIALLY_REFUNDED }] },
+          { refundedAt: { lte: new Date('2026-05-31') } },
+        ],
+      })
+    })
+
+    it('applies a single reason filter', async () => {
+      mockPrismaService.order.findMany.mockResolvedValueOnce([])
+
+      await ordersService.findAllRefunds({ reason: 'ITEM_DAMAGED' })
+
+      expect(lastWhereClause()).toEqual({
+        AND: [
+          { OR: [{ status: OrderStatus.REFUNDED }, { status: OrderStatus.PARTIALLY_REFUNDED }] },
+          { refundReason: 'ITEM_DAMAGED' },
+        ],
+      })
+    })
+
+    it('applies the customer filter as case-insensitive substring on guestEmail OR user.email', async () => {
+      mockPrismaService.order.findMany.mockResolvedValueOnce([])
+
+      await ordersService.findAllRefunds({ customer: 'alice' })
+
+      expect(lastWhereClause()).toEqual({
+        AND: [
+          { OR: [{ status: OrderStatus.REFUNDED }, { status: OrderStatus.PARTIALLY_REFUNDED }] },
+          {
+            OR: [
+              { guestEmail: { contains: 'alice', mode: 'insensitive' } },
+              { user: { email: { contains: 'alice', mode: 'insensitive' } } },
+            ],
+          },
+        ],
+      })
+    })
+
+    it('AND-composes all filters when more than one is provided', async () => {
+      mockPrismaService.order.findMany.mockResolvedValueOnce([])
+
+      await ordersService.findAllRefunds({
+        from: '2026-05-01',
+        to: '2026-05-31',
+        reason: 'ITEM_DAMAGED',
+        customer: 'alice',
+      })
+
+      expect(lastWhereClause()).toEqual({
+        AND: [
+          { OR: [{ status: OrderStatus.REFUNDED }, { status: OrderStatus.PARTIALLY_REFUNDED }] },
+          { refundedAt: { gte: new Date('2026-05-01'), lte: new Date('2026-05-31') } },
+          { refundReason: 'ITEM_DAMAGED' },
+          {
+            OR: [
+              { guestEmail: { contains: 'alice', mode: 'insensitive' } },
+              { user: { email: { contains: 'alice', mode: 'insensitive' } } },
+            ],
+          },
+        ],
       })
     })
   })

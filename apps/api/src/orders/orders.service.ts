@@ -10,6 +10,7 @@ import { CreateOrderDto } from './dto/create-order.dto'
 import { OrderExportQueryDto } from './dto/order-export-query.dto'
 import { OrderQueryDto } from './dto/order-query.dto'
 import { RefundOrderDto } from './dto/refund-order.dto'
+import { RefundsQueryDto } from './dto/refunds-query.dto'
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto'
 import { UpdateOrderTrackingDto } from './dto/update-order-tracking.dto'
 import { UpdateProductionDto } from './dto/update-production.dto'
@@ -455,11 +456,40 @@ export class OrdersService {
    * refunded. Used by the admin refunds page; orders without `refundedAt` are
    * excluded so the result is a pure refund ledger.
    */
-  async findAllRefunds() {
+  async findAllRefunds(query: RefundsQueryDto = {}) {
+    const { from, to, reason, customer } = query
+
+    // Customer substring matches either guest email OR the linked user's email.
+    // Wrapping in a nested OR keeps it composable with the AND of other filters.
+    const customerClause: Prisma.OrderWhereInput | undefined = customer
+      ? {
+          OR: [
+            { guestEmail: { contains: customer, mode: 'insensitive' as const } },
+            { user: { email: { contains: customer, mode: 'insensitive' as const } } },
+          ],
+        }
+      : undefined
+
+    const whereClause: Prisma.OrderWhereInput = {
+      AND: [
+        { OR: [{ status: OrderStatus.REFUNDED }, { status: OrderStatus.PARTIALLY_REFUNDED }] },
+        ...(from || to
+          ? [
+              {
+                refundedAt: {
+                  ...(from && { gte: new Date(from) }),
+                  ...(to && { lte: new Date(to) }),
+                },
+              },
+            ]
+          : []),
+        ...(reason ? [{ refundReason: reason }] : []),
+        ...(customerClause ? [customerClause] : []),
+      ],
+    }
+
     return this.prismaService.order.findMany({
-      where: {
-        OR: [{ status: OrderStatus.REFUNDED }, { status: OrderStatus.PARTIALLY_REFUNDED }],
-      },
+      where: whereClause,
       orderBy: { refundedAt: 'desc' },
       include: {
         items: true,
