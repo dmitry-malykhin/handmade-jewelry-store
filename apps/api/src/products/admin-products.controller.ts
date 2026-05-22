@@ -15,6 +15,7 @@ import { Roles } from '../common/decorators/roles.decorator'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
 import { RolesGuard } from '../auth/guards/roles.guard'
 import { AdminProductQueryDto } from './dto/admin-product-query.dto'
+import { BulkProductsActionDto } from './dto/bulk-products-action.dto'
 import { UpdateProductStatusDto } from './dto/update-product-status.dto'
 import { UpdateStockDto } from './dto/update-stock.dto'
 import { ProductsService } from './products.service'
@@ -35,6 +36,13 @@ export class AdminProductsController {
   @Header('Content-Disposition', 'attachment; filename="products-export.csv"')
   exportCsv() {
     return this.productsService.exportToCsv()
+  }
+
+  // Bulk endpoint — placed before :id route so 'bulk' doesn't match :id
+  @Patch('bulk')
+  @HttpCode(HttpStatus.OK)
+  bulkAction(@Body() bulkProductsActionDto: BulkProductsActionDto) {
+    return this.productsService.bulkAction(bulkProductsActionDto)
   }
 
   @Patch(':id/status')

@@ -3,6 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing'
 import { ProductStatus } from '@prisma/client'
 import { Decimal } from '@prisma/client/runtime/library'
 import { PrismaService } from '../prisma/prisma.service'
+import { BulkProductAction } from './dto/bulk-products-action.dto'
 import { BackInStockService } from '../wishlist/back-in-stock.service'
 import { AdminProductQueryDto } from './dto/admin-product-query.dto'
 import { CreateProductDto } from './dto/create-product.dto'
@@ -43,7 +44,9 @@ const mockPrismaService = {
     findUnique: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
+    updateMany: jest.fn(),
     delete: jest.fn(),
+    deleteMany: jest.fn(),
     count: jest.fn(),
   },
 }
@@ -614,6 +617,66 @@ describe('ProductsService', () => {
       expect(mockPrismaService.product.findMany).toHaveBeenCalledWith(
         expect.objectContaining({ orderBy: { createdAt: 'desc' } }),
       )
+    })
+  })
+
+  // ── bulkAction ────────────────────────────────────────────────────────────
+
+  describe('bulkAction()', () => {
+    it('publish action: updateMany sets status to ACTIVE for all ids', async () => {
+      mockPrismaService.product.updateMany.mockResolvedValueOnce({ count: 3 })
+
+      const result = await productsService.bulkAction({
+        ids: ['p1', 'p2', 'p3'],
+        action: BulkProductAction.PUBLISH,
+      })
+
+      expect(mockPrismaService.product.updateMany).toHaveBeenCalledWith({
+        where: { id: { in: ['p1', 'p2', 'p3'] } },
+        data: { status: ProductStatus.ACTIVE },
+      })
+      expect(result).toEqual({ affectedCount: 3 })
+    })
+
+    it('draft action: updateMany sets status to DRAFT', async () => {
+      mockPrismaService.product.updateMany.mockResolvedValueOnce({ count: 2 })
+
+      const result = await productsService.bulkAction({
+        ids: ['p1', 'p2'],
+        action: BulkProductAction.DRAFT,
+      })
+
+      expect(mockPrismaService.product.updateMany).toHaveBeenCalledWith({
+        where: { id: { in: ['p1', 'p2'] } },
+        data: { status: ProductStatus.DRAFT },
+      })
+      expect(result).toEqual({ affectedCount: 2 })
+    })
+
+    it('delete action: deleteMany removes products by id', async () => {
+      mockPrismaService.product.deleteMany.mockResolvedValueOnce({ count: 2 })
+
+      const result = await productsService.bulkAction({
+        ids: ['p1', 'p2'],
+        action: BulkProductAction.DELETE,
+      })
+
+      expect(mockPrismaService.product.deleteMany).toHaveBeenCalledWith({
+        where: { id: { in: ['p1', 'p2'] } },
+      })
+      expect(mockPrismaService.product.updateMany).not.toHaveBeenCalled()
+      expect(result).toEqual({ affectedCount: 2 })
+    })
+
+    it('returns affectedCount=0 when no ids match — caller can warn about stale selection', async () => {
+      mockPrismaService.product.updateMany.mockResolvedValueOnce({ count: 0 })
+
+      const result = await productsService.bulkAction({
+        ids: ['missing'],
+        action: BulkProductAction.PUBLISH,
+      })
+
+      expect(result).toEqual({ affectedCount: 0 })
     })
   })
 })

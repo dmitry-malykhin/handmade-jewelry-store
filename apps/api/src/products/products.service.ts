@@ -3,6 +3,7 @@ import { ProductStatus, StockType } from '@prisma/client'
 import { buildCsvDocument } from '../common/csv/csv-formatter'
 import { PrismaService } from '../prisma/prisma.service'
 import { BackInStockService } from '../wishlist/back-in-stock.service'
+import { BulkProductAction, BulkProductsActionDto } from './dto/bulk-products-action.dto'
 import { CreateProductDto } from './dto/create-product.dto'
 import { AdminProductQueryDto } from './dto/admin-product-query.dto'
 import { InventoryQueryDto } from './dto/inventory-query.dto'
@@ -231,6 +232,32 @@ export class ProductsService {
         totalPages: Math.ceil(totalCount / limit),
       },
     }
+  }
+
+  /**
+   * Apply one action across many products. Returns `{ affectedCount }` —
+   * callers can compare this to `ids.length` to detect partial application
+   * (typically: an id was deleted between the table render and the click).
+   *
+   * No transaction wrapper: each row is independent, and a single failing row
+   * shouldn't strand the others. Prisma's `updateMany`/`deleteMany` already
+   * runs as one SQL statement per call.
+   */
+  async bulkAction(payload: BulkProductsActionDto): Promise<{ affectedCount: number }> {
+    const { ids, action } = payload
+
+    if (action === BulkProductAction.DELETE) {
+      const result = await this.prismaService.product.deleteMany({ where: { id: { in: ids } } })
+      return { affectedCount: result.count }
+    }
+
+    const nextStatus =
+      action === BulkProductAction.PUBLISH ? ProductStatus.ACTIVE : ProductStatus.DRAFT
+    const result = await this.prismaService.product.updateMany({
+      where: { id: { in: ids } },
+      data: { status: nextStatus },
+    })
+    return { affectedCount: result.count }
   }
 
   async updateStatus(productId: string, newStatus: ProductStatus) {
