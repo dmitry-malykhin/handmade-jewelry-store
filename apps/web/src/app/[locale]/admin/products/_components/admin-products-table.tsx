@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslations } from 'next-intl'
 import {
@@ -18,6 +18,14 @@ import { toast } from 'sonner'
 import type { Product, ProductsResponse, ProductStatus } from '@jewelry/shared'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import {
   DropdownMenu,
@@ -42,11 +50,13 @@ import {
 } from '@/components/ui/table'
 import { useAuthStore } from '@/store/auth.store'
 import {
+  bulkUpdateAdminProducts,
   deleteAdminProduct,
   downloadAdminProductsCsv,
   fetchAdminProducts,
   updateProductStatus,
   type AdminProductsQueryParams,
+  type BulkProductAction,
 } from '@/lib/api/products'
 import { ApiError } from '@/lib/api/client'
 import { DeleteProductDialog } from './delete-product-dialog'
@@ -99,6 +109,8 @@ export function AdminProductsTable() {
   const [currentPage, setCurrentPage] = useState(1)
   const [productToDelete, setProductToDelete] = useState<ProductTableRow | null>(null)
   const [isExporting, setIsExporting] = useState(false)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set())
+  const [isBulkDeleteDialogOpen, setIsBulkDeleteDialogOpen] = useState(false)
 
   async function handleExportCsv() {
     if (!accessToken) return
@@ -231,6 +243,86 @@ export function AdminProductsTable() {
     },
   })
 
+  const currentPageProductIds = useMemo(
+    () => data?.data.map((product) => product.id) ?? [],
+    [data?.data],
+  )
+
+  // Selection lives outside the URL: stale ids across page/filter changes are
+  // confusing, so we reset on any queryParams shift.
+  useEffect(() => {
+    setSelectedIds(new Set())
+  }, [debouncedSearch, statusFilter, sortBy, sortOrder, currentPage])
+
+  const selectedOnPageCount = currentPageProductIds.filter((productId) =>
+    selectedIds.has(productId),
+  ).length
+  const allOnPageSelected =
+    currentPageProductIds.length > 0 && selectedOnPageCount === currentPageProductIds.length
+  const someOnPageSelected = selectedOnPageCount > 0 && !allOnPageSelected
+
+  function toggleProductSelection(productId: string) {
+    setSelectedIds((previousSet) => {
+      const nextSet = new Set(previousSet)
+      if (nextSet.has(productId)) {
+        nextSet.delete(productId)
+      } else {
+        nextSet.add(productId)
+      }
+      return nextSet
+    })
+  }
+
+  function toggleSelectAllOnPage() {
+    setSelectedIds((previousSet) => {
+      const nextSet = new Set(previousSet)
+      if (allOnPageSelected) {
+        currentPageProductIds.forEach((productId) => nextSet.delete(productId))
+      } else {
+        currentPageProductIds.forEach((productId) => nextSet.add(productId))
+      }
+      return nextSet
+    })
+  }
+
+  function clearSelection() {
+    setSelectedIds(new Set())
+  }
+
+  const bulkMutation = useMutation({
+    mutationFn: ({ action }: { action: BulkProductAction }) =>
+      bulkUpdateAdminProducts({ ids: Array.from(selectedIds), action }, accessToken ?? ''),
+    onSuccess: (result) => {
+      const requested = selectedIds.size
+      if (result.affectedCount < requested) {
+        toast.success(
+          t('productsBulkActionPartial', {
+            affected: result.affectedCount,
+            requested,
+          }),
+        )
+      } else {
+        toast.success(t('productsBulkActionSuccess', { count: result.affectedCount }))
+      }
+      clearSelection()
+      setIsBulkDeleteDialogOpen(false)
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'products'] })
+    },
+    onError: (error) => {
+      const message = error instanceof ApiError ? error.message : t('productsBulkActionError')
+      toast.error(message)
+    },
+  })
+
+  function handleBulkActionClick(action: BulkProductAction) {
+    if (selectedIds.size === 0) return
+    if (action === 'delete') {
+      setIsBulkDeleteDialogOpen(true)
+      return
+    }
+    bulkMutation.mutate({ action })
+  }
+
   function handleSortClick(field: SortField) {
     if (field === sortBy) {
       setSortOrder((previousOrder) => (previousOrder === 'asc' ? 'desc' : 'asc'))
@@ -305,6 +397,56 @@ export function AdminProductsTable() {
         </Select>
       </div>
 
+      {selectedIds.size > 0 && (
+        <div
+          className="mb-3 flex flex-wrap items-center gap-3 rounded-md border border-border bg-accent/40 px-4 py-2"
+          role="region"
+          aria-label={t('productsBulkSelectedCount', { count: selectedIds.size })}
+        >
+          <span className="text-sm font-medium text-foreground">
+            {t('productsBulkSelectedCount', { count: selectedIds.size })}
+          </span>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              disabled={bulkMutation.isPending}
+              onClick={() => handleBulkActionClick('publish')}
+            >
+              {t('productsBulkActionPublish')}
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              disabled={bulkMutation.isPending}
+              onClick={() => handleBulkActionClick('draft')}
+            >
+              {t('productsBulkActionDraft')}
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="destructive"
+              disabled={bulkMutation.isPending}
+              onClick={() => handleBulkActionClick('delete')}
+            >
+              {t('productsBulkActionDelete')}
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              disabled={bulkMutation.isPending}
+              onClick={clearSelection}
+            >
+              {t('productsBulkActionClear')}
+            </Button>
+          </div>
+        </div>
+      )}
+
       {isProductsLoading ? (
         <p className="text-sm text-muted-foreground">{t('productsLoading')}</p>
       ) : (
@@ -313,6 +455,19 @@ export function AdminProductsTable() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-10">
+                    <input
+                      type="checkbox"
+                      checked={allOnPageSelected}
+                      ref={(node) => {
+                        // Indeterminate state can only be set imperatively.
+                        if (node) node.indeterminate = someOnPageSelected
+                      }}
+                      onChange={toggleSelectAllOnPage}
+                      aria-label={t('productsBulkSelectAllAriaLabel')}
+                      className="size-4 cursor-pointer rounded border-border accent-primary"
+                    />
+                  </TableHead>
                   <TableHead>
                     <button
                       className="flex items-center text-sm font-medium"
@@ -362,7 +517,7 @@ export function AdminProductsTable() {
                 {data?.data.length === 0 && (
                   <TableRow>
                     <TableCell
-                      colSpan={7}
+                      colSpan={8}
                       className="py-8 text-center text-sm text-muted-foreground"
                     >
                       {t('productsEmpty')}
@@ -370,7 +525,19 @@ export function AdminProductsTable() {
                   </TableRow>
                 )}
                 {data?.data.map((product) => (
-                  <TableRow key={product.id}>
+                  <TableRow
+                    key={product.id}
+                    data-state={selectedIds.has(product.id) ? 'selected' : undefined}
+                  >
+                    <TableCell className="w-10">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.has(product.id)}
+                        onChange={() => toggleProductSelection(product.id)}
+                        aria-label={t('productsBulkSelectRowAriaLabel', { title: product.title })}
+                        className="size-4 cursor-pointer rounded border-border accent-primary"
+                      />
+                    </TableCell>
                     <TableCell>
                       <div>
                         <p className="font-medium text-foreground">{product.title}</p>
@@ -503,6 +670,41 @@ export function AdminProductsTable() {
         }}
         isPending={deleteMutation.isPending}
       />
+
+      <Dialog
+        open={isBulkDeleteDialogOpen}
+        onOpenChange={(open) => {
+          if (bulkMutation.isPending) return
+          setIsBulkDeleteDialogOpen(open)
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {t('productsBulkDeleteModalTitle', { count: selectedIds.size })}
+            </DialogTitle>
+            <DialogDescription>{t('productsBulkDeleteModalDescription')}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsBulkDeleteDialogOpen(false)}
+              disabled={bulkMutation.isPending}
+            >
+              {t('productsBulkDeleteCancel')}
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={() => bulkMutation.mutate({ action: 'delete' })}
+              disabled={bulkMutation.isPending}
+            >
+              {t('productsBulkDeleteConfirm')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </section>
   )
 }

@@ -159,6 +159,33 @@ export async function deleteAdminProduct(productSlug: string, accessToken: strin
   })
 }
 
+export type BulkProductAction = 'publish' | 'draft' | 'delete'
+
+export interface BulkProductsActionPayload {
+  ids: string[]
+  action: BulkProductAction
+}
+
+export interface BulkProductsActionResult {
+  affectedCount: number
+}
+
+/**
+ * Apply one action to many products at once. Returns the number of rows the
+ * server actually touched — useful when the selection went stale between
+ * render and click.
+ */
+export async function bulkUpdateAdminProducts(
+  payload: BulkProductsActionPayload,
+  accessToken: string,
+): Promise<BulkProductsActionResult> {
+  return apiClient<BulkProductsActionResult>('/api/admin/products/bulk', {
+    method: 'PATCH',
+    headers: { Authorization: `Bearer ${accessToken}` },
+    body: JSON.stringify(payload),
+  })
+}
+
 export async function updateProductStatus(
   productId: string,
   newStatus: ProductStatus,
