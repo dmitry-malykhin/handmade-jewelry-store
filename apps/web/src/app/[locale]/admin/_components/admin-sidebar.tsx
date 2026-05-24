@@ -11,6 +11,7 @@ import {
   RotateCcw,
   Settings,
   ShoppingCart,
+  Star,
   Tag,
   Users,
 } from 'lucide-react'
@@ -89,6 +90,12 @@ export function AdminSidebar() {
       labelKey: 'navCustomers' as const,
       icon: <Users className="size-4" aria-hidden="true" />,
       isActive: pathname.startsWith('/admin/customers'),
+    },
+    {
+      href: '/admin/reviews',
+      labelKey: 'navReviews' as const,
+      icon: <Star className="size-4" aria-hidden="true" />,
+      isActive: pathname.startsWith('/admin/reviews'),
     },
     {
       href: '/admin/categories',

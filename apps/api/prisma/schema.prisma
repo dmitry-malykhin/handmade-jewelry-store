@@ -268,17 +268,34 @@ model Payment {
   createdAt DateTime      @default(now())
 }
 
+// Moderation lifecycle: PENDING (new) → APPROVED (visible on product page)
+// or HIDDEN (spam/abusive — never shown). Only APPROVED reviews count in the
+// public list; aggregates on Product (avgRating, reviewCount) follow the same
+// rule so a hidden review immediately stops contributing to the average.
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  HIDDEN
+}
+
 model Review {
-  id        String   @id @default(cuid())
-  rating    Int      // 1–5 stars
-  comment   String?
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  productId String
-  product   Product  @relation(fields: [productId], references: [id])
-  createdAt DateTime @default(now())
+  id              String       @id @default(cuid())
+  rating          Int          // 1–5 stars
+  comment         String?
+  status          ReviewStatus @default(PENDING)
+  // Seller (admin) reply shown publicly under the customer review. Optional —
+  // most reviews don't need a reply. `sellerRepliedAt` is set on first save
+  // and updated on subsequent edits to support an "edited X days ago" hint.
+  sellerReply     String?
+  sellerRepliedAt DateTime?
+  userId          String
+  user            User         @relation(fields: [userId], references: [id])
+  productId       String
+  product         Product      @relation(fields: [productId], references: [id])
+  createdAt       DateTime     @default(now())
 
   @@unique([userId, productId]) // one review per user per product
+  @@index([status])             // admin filter by status
 }
 
 model Wishlist {

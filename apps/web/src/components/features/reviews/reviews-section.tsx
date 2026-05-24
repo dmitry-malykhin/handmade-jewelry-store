@@ -167,6 +167,18 @@ export function ReviewsSection({
                   <StarRating value={review.rating} size="sm" />
                 </header>
                 {review.comment && <p className="mt-3 text-sm text-foreground">{review.comment}</p>}
+                {review.sellerReply && (
+                  // Indented + label-prefixed reply so customers can quickly tell
+                  // it's the store's response, not the reviewer's.
+                  <aside className="mt-4 rounded-md border-l-2 border-primary bg-muted/40 p-3">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      {t('sellerReplyLabel')}
+                    </p>
+                    <p className="mt-1 whitespace-pre-wrap text-sm text-foreground">
+                      {review.sellerReply}
+                    </p>
+                  </aside>
+                )}
               </article>
             </li>
           ))}

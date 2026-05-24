@@ -5,10 +5,13 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common'
-import { OrderStatus, Prisma } from '@prisma/client'
+import { OrderStatus, Prisma, ReviewStatus } from '@prisma/client'
 import { PrismaService } from '../prisma/prisma.service'
+import { AdminReviewsQueryDto } from './dto/admin-reviews-query.dto'
 import { CreateReviewDto } from './dto/create-review.dto'
 import { ReviewQueryDto } from './dto/review-query.dto'
+import { SellerReplyDto } from './dto/seller-reply.dto'
+import { UpdateReviewStatusDto } from './dto/update-review-status.dto'
 
 const REVIEWABLE_STATUSES: OrderStatus[] = [OrderStatus.DELIVERED]
 
@@ -48,8 +51,10 @@ export class ReviewsService {
           },
         })
 
+        // Aggregates reflect only APPROVED reviews so a PENDING or HIDDEN
+        // review never inflates the public rating until an admin acts on it.
         const aggregate = await tx.review.aggregate({
-          where: { productId: dto.productId },
+          where: { productId: dto.productId, status: ReviewStatus.APPROVED },
           _avg: { rating: true },
           _count: true,
         })
@@ -88,7 +93,8 @@ export class ReviewsService {
     const skip = (page - 1) * limit
 
     const reviews = await this.prismaService.review.findMany({
-      where: { productId: product.id },
+      // Public list only shows APPROVED — PENDING/HIDDEN are admin-only.
+      where: { productId: product.id, status: ReviewStatus.APPROVED },
       include: { user: { select: { email: true } } },
       orderBy: { createdAt: 'desc' },
       skip,
@@ -108,6 +114,8 @@ export class ReviewsService {
         rating: review.rating,
         comment: review.comment,
         displayName,
+        sellerReply: review.sellerReply,
+        sellerRepliedAt: review.sellerRepliedAt,
         createdAt: review.createdAt,
       }
     })
@@ -157,5 +165,91 @@ export class ReviewsService {
       hasReviewed: Boolean(existingReview),
       canReview: Boolean(purchasedItem) && !existingReview,
     }
+  }
+
+  // ── Admin moderation ──────────────────────────────────────────────────────
+
+  async findAllForAdmin(query: AdminReviewsQueryDto) {
+    const { status, rating, page = 1, limit = 20 } = query
+    const skip = (page - 1) * limit
+
+    const whereClause: Prisma.ReviewWhereInput = {
+      ...(status && { status }),
+      ...(rating !== undefined && { rating }),
+    }
+
+    const [reviews, totalCount] = await Promise.all([
+      this.prismaService.review.findMany({
+        where: whereClause,
+        include: {
+          user: { select: { email: true } },
+          product: { select: { id: true, slug: true, title: true, images: true } },
+        },
+        // Newest first so the admin sees pending moderation work up top.
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      this.prismaService.review.count({ where: whereClause }),
+    ])
+
+    return {
+      data: reviews,
+      meta: { totalCount, page, limit, totalPages: Math.ceil(totalCount / limit) },
+    }
+  }
+
+  /**
+   * Approve or hide a review. Status change recomputes the product's
+   * avgRating + reviewCount in the same transaction so the public surfaces
+   * stay consistent — e.g. hiding a 5-star review immediately drops it from
+   * the average.
+   */
+  async updateStatusForAdmin(reviewId: string, dto: UpdateReviewStatusDto) {
+    const review = await this.prismaService.review.findUnique({ where: { id: reviewId } })
+    if (!review) {
+      throw new NotFoundException(`Review with id "${reviewId}" not found`)
+    }
+
+    return this.prismaService.$transaction(async (tx) => {
+      const updated = await tx.review.update({
+        where: { id: reviewId },
+        data: { status: dto.status },
+      })
+
+      const aggregate = await tx.review.aggregate({
+        where: { productId: review.productId, status: ReviewStatus.APPROVED },
+        _avg: { rating: true },
+        _count: true,
+      })
+
+      await tx.product.update({
+        where: { id: review.productId },
+        data: {
+          avgRating: aggregate._avg.rating ?? 0,
+          reviewCount: aggregate._count,
+        },
+      })
+
+      return updated
+    })
+  }
+
+  async setSellerReply(reviewId: string, dto: SellerReplyDto) {
+    const review = await this.prismaService.review.findUnique({
+      where: { id: reviewId },
+      select: { id: true },
+    })
+    if (!review) {
+      throw new NotFoundException(`Review with id "${reviewId}" not found`)
+    }
+
+    return this.prismaService.review.update({
+      where: { id: reviewId },
+      data: {
+        sellerReply: dto.reply,
+        sellerRepliedAt: new Date(),
+      },
+    })
   }
 }
