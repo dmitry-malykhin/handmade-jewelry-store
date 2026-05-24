@@ -5,6 +5,9 @@ export interface ProductReview {
   rating: number
   comment: string | null
   displayName: string
+  /** Seller's public reply, null when no reply has been posted. */
+  sellerReply: string | null
+  sellerRepliedAt: string | null
   createdAt: string
 }
 
@@ -74,5 +77,81 @@ export async function fetchReviewEligibility(
 ): Promise<ReviewEligibility> {
   return apiClient<ReviewEligibility>(`/api/reviews/eligibility?productId=${productId}`, {
     headers: { Authorization: `Bearer ${accessToken}` },
+  })
+}
+
+// ── Admin moderation ────────────────────────────────────────────────────────
+
+export type ReviewStatus = 'PENDING' | 'APPROVED' | 'HIDDEN'
+
+export interface AdminReviewProduct {
+  id: string
+  slug: string
+  title: string
+  images: string[]
+}
+
+export interface AdminReview {
+  id: string
+  rating: number
+  comment: string | null
+  status: ReviewStatus
+  sellerReply: string | null
+  sellerRepliedAt: string | null
+  createdAt: string
+  user: { email: string }
+  product: AdminReviewProduct
+}
+
+export interface AdminReviewsResponse {
+  data: AdminReview[]
+  meta: { totalCount: number; page: number; limit: number; totalPages: number }
+}
+
+export interface AdminReviewsQueryParams {
+  status?: ReviewStatus
+  rating?: number
+  page?: number
+  limit?: number
+}
+
+export async function fetchAdminReviews(
+  params: AdminReviewsQueryParams,
+  accessToken: string,
+): Promise<AdminReviewsResponse> {
+  const searchParams = new URLSearchParams()
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      searchParams.set(key, String(value))
+    }
+  })
+  const queryString = searchParams.toString()
+  return apiClient<AdminReviewsResponse>(
+    `/api/admin/reviews${queryString ? `?${queryString}` : ''}`,
+    { headers: { Authorization: `Bearer ${accessToken}` } },
+  )
+}
+
+export async function updateAdminReviewStatus(
+  reviewId: string,
+  status: ReviewStatus,
+  accessToken: string,
+): Promise<AdminReview> {
+  return apiClient<AdminReview>(`/api/admin/reviews/${reviewId}`, {
+    method: 'PATCH',
+    headers: { Authorization: `Bearer ${accessToken}` },
+    body: JSON.stringify({ status }),
+  })
+}
+
+export async function replyToAdminReview(
+  reviewId: string,
+  reply: string,
+  accessToken: string,
+): Promise<AdminReview> {
+  return apiClient<AdminReview>(`/api/admin/reviews/${reviewId}/reply`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${accessToken}` },
+    body: JSON.stringify({ reply }),
   })
 }

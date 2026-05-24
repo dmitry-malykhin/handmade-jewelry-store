@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common'
 import { Test, TestingModule } from '@nestjs/testing'
-import { OrderStatus, Prisma } from '@prisma/client'
+import { OrderStatus, Prisma, ReviewStatus } from '@prisma/client'
 import { PrismaService } from '../prisma/prisma.service'
 import { ReviewsService } from './reviews.service'
 
@@ -16,7 +16,9 @@ const mockPrismaService = {
     create: jest.fn(),
     findMany: jest.fn(),
     findUnique: jest.fn(),
+    update: jest.fn(),
     aggregate: jest.fn(),
+    count: jest.fn(),
   },
   $transaction: jest.fn(),
 }
@@ -214,6 +216,134 @@ describe('ReviewsService', () => {
       const result = await reviewsService.checkReviewEligibility('user-1', 'prod-1')
 
       expect(result).toEqual({ hasPurchased: true, hasReviewed: true, canReview: false })
+    })
+  })
+
+  // ── Admin moderation ──────────────────────────────────────────────────────
+
+  describe('findAllForAdmin', () => {
+    it('forwards status + rating filters to Prisma with AND-equivalent object spread', async () => {
+      mockPrismaService.review.findMany.mockResolvedValue([])
+      mockPrismaService.review.count.mockResolvedValue(0)
+
+      await reviewsService.findAllForAdmin({ status: ReviewStatus.PENDING, rating: 1 })
+
+      expect(mockPrismaService.review.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { status: ReviewStatus.PENDING, rating: 1 },
+          orderBy: { createdAt: 'desc' },
+        }),
+      )
+    })
+
+    it('returns paginated meta with totalPages computed from totalCount/limit', async () => {
+      mockPrismaService.review.findMany.mockResolvedValue([])
+      mockPrismaService.review.count.mockResolvedValue(45)
+
+      const result = await reviewsService.findAllForAdmin({ page: 1, limit: 20 })
+
+      expect(result.meta).toEqual({ totalCount: 45, page: 1, limit: 20, totalPages: 3 })
+    })
+
+    it('returns an empty where when no filters are provided', async () => {
+      mockPrismaService.review.findMany.mockResolvedValue([])
+      mockPrismaService.review.count.mockResolvedValue(0)
+
+      await reviewsService.findAllForAdmin({})
+
+      expect(mockPrismaService.review.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ where: {} }),
+      )
+    })
+  })
+
+  describe('updateStatusForAdmin', () => {
+    it('throws NotFoundException when the review does not exist', async () => {
+      mockPrismaService.review.findUnique.mockResolvedValue(null)
+
+      await expect(
+        reviewsService.updateStatusForAdmin('missing', { status: ReviewStatus.APPROVED }),
+      ).rejects.toThrow(NotFoundException)
+    })
+
+    it('recomputes product avgRating + reviewCount from APPROVED reviews only', async () => {
+      mockPrismaService.review.findUnique.mockResolvedValue({
+        id: 'review-1',
+        productId: 'prod-1',
+      })
+
+      const txMock = {
+        review: {
+          update: jest.fn().mockResolvedValue({ id: 'review-1', status: ReviewStatus.HIDDEN }),
+          aggregate: jest.fn().mockResolvedValue({ _avg: { rating: 4.5 }, _count: 2 }),
+        },
+        product: { update: jest.fn().mockResolvedValue({}) },
+      }
+      mockPrismaService.$transaction.mockImplementation(async (callback) => callback(txMock))
+
+      await reviewsService.updateStatusForAdmin('review-1', { status: ReviewStatus.HIDDEN })
+
+      expect(txMock.review.aggregate).toHaveBeenCalledWith({
+        where: { productId: 'prod-1', status: ReviewStatus.APPROVED },
+        _avg: { rating: true },
+        _count: true,
+      })
+      expect(txMock.product.update).toHaveBeenCalledWith({
+        where: { id: 'prod-1' },
+        data: { avgRating: 4.5, reviewCount: 2 },
+      })
+    })
+
+    it('resets avgRating to 0 when no APPROVED reviews remain', async () => {
+      mockPrismaService.review.findUnique.mockResolvedValue({
+        id: 'review-1',
+        productId: 'prod-1',
+      })
+
+      const txMock = {
+        review: {
+          update: jest.fn().mockResolvedValue({}),
+          // Prisma returns _avg: { rating: null } when there are zero rows.
+          aggregate: jest.fn().mockResolvedValue({ _avg: { rating: null }, _count: 0 }),
+        },
+        product: { update: jest.fn().mockResolvedValue({}) },
+      }
+      mockPrismaService.$transaction.mockImplementation(async (callback) => callback(txMock))
+
+      await reviewsService.updateStatusForAdmin('review-1', { status: ReviewStatus.HIDDEN })
+
+      expect(txMock.product.update).toHaveBeenCalledWith({
+        where: { id: 'prod-1' },
+        data: { avgRating: 0, reviewCount: 0 },
+      })
+    })
+  })
+
+  describe('setSellerReply', () => {
+    it('throws NotFoundException when the review does not exist', async () => {
+      mockPrismaService.review.findUnique.mockResolvedValue(null)
+
+      await expect(reviewsService.setSellerReply('missing', { reply: 'Thanks!' })).rejects.toThrow(
+        NotFoundException,
+      )
+    })
+
+    it('saves the reply text and stamps sellerRepliedAt with a fresh Date', async () => {
+      mockPrismaService.review.findUnique.mockResolvedValue({ id: 'review-1' })
+      mockPrismaService.review.update.mockResolvedValue({
+        id: 'review-1',
+        sellerReply: 'Thanks for your feedback!',
+      })
+
+      await reviewsService.setSellerReply('review-1', { reply: 'Thanks for your feedback!' })
+
+      expect(mockPrismaService.review.update).toHaveBeenCalledWith({
+        where: { id: 'review-1' },
+        data: {
+          sellerReply: 'Thanks for your feedback!',
+          sellerRepliedAt: expect.any(Date),
+        },
+      })
     })
   })
 })
