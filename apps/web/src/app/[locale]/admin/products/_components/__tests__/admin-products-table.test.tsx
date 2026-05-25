@@ -151,7 +151,19 @@ describe('AdminProductsTable — bulk selection', () => {
 })
 
 describe('AdminProductsTable — bulk actions', () => {
-  it('Publish calls bulkUpdateAdminProducts with the selected ids and action=publish', async () => {
+  it('Publish opens confirmation dialog without calling the API yet (#267)', async () => {
+    const user = userEvent.setup()
+    render(<AdminProductsTable />)
+
+    await screen.findByText('Ring A')
+    await user.click(screen.getByRole('checkbox', { name: /select ring a/i }))
+    await user.click(screen.getByRole('button', { name: /^publish$/i }))
+
+    expect(await screen.findByRole('dialog')).toBeInTheDocument()
+    expect(mockBulkUpdateAdminProducts).not.toHaveBeenCalled()
+  })
+
+  it('Publish confirmation triggers the bulk API call', async () => {
     const user = userEvent.setup()
     mockBulkUpdateAdminProducts.mockResolvedValueOnce({ affectedCount: 1 })
 
@@ -161,6 +173,10 @@ describe('AdminProductsTable — bulk actions', () => {
     await user.click(screen.getByRole('checkbox', { name: /select ring a/i }))
     await user.click(screen.getByRole('button', { name: /^publish$/i }))
 
+    const dialog = await screen.findByRole('dialog')
+    // Confirm button inside the dialog uses the "Publish" action label
+    await user.click(within(dialog).getByRole('button', { name: /^publish$/i }))
+
     await waitFor(() => {
       expect(mockBulkUpdateAdminProducts).toHaveBeenCalledWith(
         { ids: ['prod-a'], action: 'publish' },
@@ -169,7 +185,7 @@ describe('AdminProductsTable — bulk actions', () => {
     })
   })
 
-  it('Move to draft calls bulk action with action=draft', async () => {
+  it('Move to draft confirmation triggers the bulk API call', async () => {
     const user = userEvent.setup()
     mockBulkUpdateAdminProducts.mockResolvedValueOnce({ affectedCount: 2 })
 
@@ -178,6 +194,9 @@ describe('AdminProductsTable — bulk actions', () => {
     await screen.findByText('Ring A')
     await user.click(screen.getByRole('checkbox', { name: /select all products/i }))
     await user.click(screen.getByRole('button', { name: /move to draft/i }))
+
+    const dialog = await screen.findByRole('dialog')
+    await user.click(within(dialog).getByRole('button', { name: /move to draft/i }))
 
     await waitFor(() => {
       expect(mockBulkUpdateAdminProducts).toHaveBeenCalledWith(

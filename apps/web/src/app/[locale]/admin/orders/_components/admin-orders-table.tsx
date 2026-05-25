@@ -7,6 +7,7 @@ import { Download } from 'lucide-react'
 import { toast } from 'sonner'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { ConfirmDialog } from '@/components/admin/confirm-dialog'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -38,6 +39,7 @@ import {
 } from '@/lib/api/orders'
 import { ApiError } from '@/lib/api/client'
 import type { AdminOrdersQueryParams } from '@/lib/api/orders'
+import { getStatusConfirmCopy, requiresStatusConfirmation } from '../_lib/status-confirm'
 
 // Transitions whitelist mirrors the backend state machine
 const ALLOWED_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
@@ -87,6 +89,10 @@ export function AdminOrdersTable() {
   const [statusFilter, setStatusFilter] = useState<OrderStatus | 'ALL'>('ALL')
   const [currentPage, setCurrentPage] = useState(1)
   const [isExporting, setIsExporting] = useState(false)
+  const [pendingTransition, setPendingTransition] = useState<{
+    orderId: string
+    newStatus: OrderStatus
+  } | null>(null)
 
   async function handleExportCsv() {
     if (!accessToken) return
@@ -124,12 +130,27 @@ export function AdminOrdersTable() {
     onSuccess: (updatedOrder) => {
       void queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] })
       toast.success(t('ordersStatusUpdateSuccess', { id: updatedOrder.id.slice(-8) }))
+      setPendingTransition(null)
     },
     onError: (error) => {
       const message = error instanceof ApiError ? error.message : t('ordersStatusUpdateError')
       toast.error(message)
     },
   })
+
+  // Same gate as the order detail page: side-effect transitions confirm,
+  // others fire instantly.
+  function handleStatusChange(orderId: string, newStatus: OrderStatus) {
+    if (requiresStatusConfirmation(newStatus)) {
+      setPendingTransition({ orderId, newStatus })
+      return
+    }
+    statusMutation.mutate({ orderId, newStatus })
+  }
+
+  const pendingTransitionCopy = pendingTransition
+    ? getStatusConfirmCopy(pendingTransition.newStatus)
+    : null
 
   const totalPages = data?.meta.totalPages ?? 1
 
@@ -231,12 +252,7 @@ export function AdminOrdersTable() {
                               {allowedNextStatuses.map((nextStatus) => (
                                 <DropdownMenuItem
                                   key={nextStatus}
-                                  onClick={() =>
-                                    statusMutation.mutate({
-                                      orderId: order.id,
-                                      newStatus: nextStatus,
-                                    })
-                                  }
+                                  onClick={() => handleStatusChange(order.id, nextStatus)}
                                 >
                                   {t('ordersStatusChangeTo', {
                                     status: t(
@@ -305,6 +321,23 @@ export function AdminOrdersTable() {
           )}
         </>
       )}
+
+      <ConfirmDialog
+        open={pendingTransition !== null && pendingTransitionCopy !== null}
+        onClose={() => setPendingTransition(null)}
+        onConfirm={() => {
+          if (pendingTransition) statusMutation.mutate(pendingTransition)
+        }}
+        isPending={statusMutation.isPending}
+        confirmVariant={pendingTransitionCopy?.variant ?? 'default'}
+        title={
+          pendingTransitionCopy && pendingTransition
+            ? t(pendingTransitionCopy.titleKey, { id: pendingTransition.orderId.slice(-8) })
+            : ''
+        }
+        description={pendingTransitionCopy ? t(pendingTransitionCopy.descriptionKey) : ''}
+        confirmLabel={pendingTransitionCopy ? t(pendingTransitionCopy.actionKey) : undefined}
+      />
     </section>
   )
 }

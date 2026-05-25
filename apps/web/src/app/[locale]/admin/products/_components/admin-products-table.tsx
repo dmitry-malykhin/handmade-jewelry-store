@@ -18,14 +18,7 @@ import { toast } from 'sonner'
 import type { Product, ProductsResponse, ProductStatus } from '@jewelry/shared'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { ConfirmDialog } from '@/components/admin/confirm-dialog'
 import { Input } from '@/components/ui/input'
 import {
   DropdownMenu,
@@ -110,7 +103,9 @@ export function AdminProductsTable() {
   const [productToDelete, setProductToDelete] = useState<ProductTableRow | null>(null)
   const [isExporting, setIsExporting] = useState(false)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set())
-  const [isBulkDeleteDialogOpen, setIsBulkDeleteDialogOpen] = useState(false)
+  // One field for all three bulk-confirm dialogs (publish/draft/delete) — the
+  // value drives both the visibility and the action to fire on confirm.
+  const [pendingBulkAction, setPendingBulkAction] = useState<BulkProductAction | null>(null)
 
   async function handleExportCsv() {
     if (!accessToken) return
@@ -305,7 +300,7 @@ export function AdminProductsTable() {
         toast.success(t('productsBulkActionSuccess', { count: result.affectedCount }))
       }
       clearSelection()
-      setIsBulkDeleteDialogOpen(false)
+      setPendingBulkAction(null)
       void queryClient.invalidateQueries({ queryKey: ['admin', 'products'] })
     },
     onError: (error) => {
@@ -314,13 +309,16 @@ export function AdminProductsTable() {
     },
   })
 
+  // Every bulk action now confirms — publish/draft used to skip the dialog,
+  // but a 50-product misclick on Publish is silent and irreversible enough to
+  // warrant the same speed bump as Delete.
   function handleBulkActionClick(action: BulkProductAction) {
     if (selectedIds.size === 0) return
-    if (action === 'delete') {
-      setIsBulkDeleteDialogOpen(true)
-      return
-    }
-    bulkMutation.mutate({ action })
+    setPendingBulkAction(action)
+  }
+
+  function handleBulkActionConfirm() {
+    if (pendingBulkAction) bulkMutation.mutate({ action: pendingBulkAction })
   }
 
   function handleSortClick(field: SortField) {
@@ -671,40 +669,41 @@ export function AdminProductsTable() {
         isPending={deleteMutation.isPending}
       />
 
-      <Dialog
-        open={isBulkDeleteDialogOpen}
-        onOpenChange={(open) => {
-          if (bulkMutation.isPending) return
-          setIsBulkDeleteDialogOpen(open)
-        }}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {t('productsBulkDeleteModalTitle', { count: selectedIds.size })}
-            </DialogTitle>
-            <DialogDescription>{t('productsBulkDeleteModalDescription')}</DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setIsBulkDeleteDialogOpen(false)}
-              disabled={bulkMutation.isPending}
-            >
-              {t('productsBulkDeleteCancel')}
-            </Button>
-            <Button
-              type="button"
-              variant="destructive"
-              onClick={() => bulkMutation.mutate({ action: 'delete' })}
-              disabled={bulkMutation.isPending}
-            >
-              {t('productsBulkDeleteConfirm')}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ConfirmDialog
+        open={pendingBulkAction !== null}
+        onClose={() => setPendingBulkAction(null)}
+        onConfirm={handleBulkActionConfirm}
+        isPending={bulkMutation.isPending}
+        confirmVariant={pendingBulkAction === 'delete' ? 'destructive' : 'default'}
+        title={
+          pendingBulkAction === 'delete'
+            ? t('productsBulkDeleteModalTitle', { count: selectedIds.size })
+            : pendingBulkAction === 'publish'
+              ? t('productsBulkConfirmPublishTitle', { count: selectedIds.size })
+              : pendingBulkAction === 'draft'
+                ? t('productsBulkConfirmDraftTitle', { count: selectedIds.size })
+                : ''
+        }
+        description={
+          pendingBulkAction === 'delete'
+            ? t('productsBulkDeleteModalDescription')
+            : pendingBulkAction === 'publish'
+              ? t('productsBulkConfirmPublishDescription')
+              : pendingBulkAction === 'draft'
+                ? t('productsBulkConfirmDraftDescription')
+                : ''
+        }
+        confirmLabel={
+          pendingBulkAction === 'delete'
+            ? t('productsBulkDeleteConfirm')
+            : pendingBulkAction === 'publish'
+              ? t('productsBulkConfirmPublishAction')
+              : pendingBulkAction === 'draft'
+                ? t('productsBulkConfirmDraftAction')
+                : t('confirmDialogConfirm')
+        }
+        cancelLabel={t('productsBulkDeleteCancel')}
+      />
     </section>
   )
 }

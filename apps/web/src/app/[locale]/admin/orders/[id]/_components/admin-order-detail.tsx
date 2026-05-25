@@ -8,6 +8,7 @@ import { toast } from 'sonner'
 import { ArrowLeft, Package, Truck } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { ConfirmDialog } from '@/components/admin/confirm-dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
@@ -36,6 +37,7 @@ import {
   type UpdateOrderTrackingPayload,
 } from '@/lib/api/orders'
 import { ApiError } from '@/lib/api/client'
+import { getStatusConfirmCopy, requiresStatusConfirmation } from '../../_lib/status-confirm'
 import { RefundOrderModal } from './refund-order-modal'
 
 interface AdminOrderDetailProps {
@@ -453,6 +455,7 @@ export function AdminOrderDetail({ orderId }: AdminOrderDetailProps) {
   const queryClient = useQueryClient()
   const accessToken = useAuthStore((state) => state.accessToken)
   const [isRefundModalOpen, setIsRefundModalOpen] = useState(false)
+  const [pendingStatus, setPendingStatus] = useState<OrderStatus | null>(null)
 
   const { data: order, isPending: isOrderLoading } = useQuery({
     queryKey: ['admin', 'orders', orderId],
@@ -467,12 +470,26 @@ export function AdminOrderDetail({ orderId }: AdminOrderDetailProps) {
       queryClient.setQueryData(['admin', 'orders', orderId], updatedOrder)
       void queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] })
       toast.success(t('ordersStatusUpdateSuccess', { id: orderId.slice(-8) }))
+      setPendingStatus(null)
     },
     onError: (error) => {
       const message = error instanceof ApiError ? error.message : t('ordersStatusUpdateError')
       toast.error(message)
     },
   })
+
+  // Status transitions with customer-visible side effects (email / loyalty
+  // credit / terminal CANCELLED) go through ConfirmDialog. Reversible
+  // silent-to-customer transitions fire immediately.
+  function handleStatusChange(newStatus: OrderStatus) {
+    if (requiresStatusConfirmation(newStatus)) {
+      setPendingStatus(newStatus)
+      return
+    }
+    statusMutation.mutate(newStatus)
+  }
+
+  const pendingStatusCopy = pendingStatus ? getStatusConfirmCopy(pendingStatus) : null
 
   const trackingMutation = useMutation({
     mutationFn: (payload: UpdateOrderTrackingPayload) =>
@@ -527,7 +544,7 @@ export function AdminOrderDetail({ orderId }: AdminOrderDetailProps) {
             <ShippingAddressCard order={order} />
             <StatusUpdateSection
               order={order}
-              onStatusChange={(newStatus) => statusMutation.mutate(newStatus)}
+              onStatusChange={handleStatusChange}
               isUpdating={statusMutation.isPending}
             />
           </div>
@@ -573,6 +590,19 @@ export function AdminOrderDetail({ orderId }: AdminOrderDetailProps) {
           <p className="text-sm text-muted-foreground">{t('orderDetailNotFound')}</p>
         </div>
       )}
+
+      <ConfirmDialog
+        open={pendingStatus !== null && pendingStatusCopy !== null}
+        onClose={() => setPendingStatus(null)}
+        onConfirm={() => {
+          if (pendingStatus) statusMutation.mutate(pendingStatus)
+        }}
+        isPending={statusMutation.isPending}
+        confirmVariant={pendingStatusCopy?.variant ?? 'default'}
+        title={pendingStatusCopy ? t(pendingStatusCopy.titleKey, { id: orderId.slice(-8) }) : ''}
+        description={pendingStatusCopy ? t(pendingStatusCopy.descriptionKey) : ''}
+        confirmLabel={pendingStatusCopy ? t(pendingStatusCopy.actionKey) : undefined}
+      />
     </div>
   )
 }

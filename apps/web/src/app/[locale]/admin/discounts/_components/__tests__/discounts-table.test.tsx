@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor } from '@/test-utils'
+import { render, screen, waitFor, within } from '@/test-utils'
 import userEvent from '@testing-library/user-event'
 import type * as DiscountsApiModule from '@/lib/api/discounts'
 import { DiscountsTable } from '../discounts-table'
@@ -134,7 +134,19 @@ describe('DiscountsTable', () => {
     expect(clipboardWriteMock).toHaveBeenCalledWith('WELCOME10')
   })
 
-  it('calls deleteAdminDiscount after confirm', async () => {
+  it('opens confirmation dialog without calling delete', async () => {
+    fetchAdminDiscountsMock.mockResolvedValueOnce([buildDiscount()])
+
+    render(<DiscountsTable />)
+
+    await waitFor(() => expect(screen.getByText('WELCOME10')).toBeInTheDocument())
+    await userEvent.click(screen.getByRole('button', { name: /Delete code WELCOME10/i }))
+
+    expect(await screen.findByRole('dialog')).toBeInTheDocument()
+    expect(deleteAdminDiscountMock).not.toHaveBeenCalled()
+  })
+
+  it('calls deleteAdminDiscount after dialog confirmation', async () => {
     fetchAdminDiscountsMock.mockResolvedValueOnce([buildDiscount()])
     deleteAdminDiscountMock.mockResolvedValueOnce(undefined)
 
@@ -142,6 +154,12 @@ describe('DiscountsTable', () => {
 
     await waitFor(() => expect(screen.getByText('WELCOME10')).toBeInTheDocument())
     await userEvent.click(screen.getByRole('button', { name: /Delete code WELCOME10/i }))
+
+    const dialog = await screen.findByRole('dialog')
+    // The destructive primary button inside the dialog is labelled "Delete"
+    // (the row trash button uses "Delete code …" aria-label).
+    const confirmButton = within(dialog).getByRole('button', { name: /^delete$/i })
+    await userEvent.click(confirmButton)
 
     await waitFor(() =>
       expect(deleteAdminDiscountMock).toHaveBeenCalledWith('disc-1', 'test-token'),
