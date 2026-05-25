@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor } from '@/test-utils'
+import { render, screen, waitFor, within } from '@/test-utils'
 import userEvent from '@testing-library/user-event'
 import { AdminOrdersTable } from '../admin-orders-table'
 import { downloadAdminOrdersCsv, fetchAdminOrders, updateAdminOrderStatus } from '@/lib/api/orders'
@@ -202,7 +202,7 @@ describe('AdminOrdersTable — status transitions', () => {
     ).not.toBeInTheDocument()
   })
 
-  it('calls updateAdminOrderStatus with correct args when transition selected', async () => {
+  it('calls updateAdminOrderStatus immediately for silent transitions (PENDING → PAID)', async () => {
     const user = userEvent.setup()
     mockFetchAdminOrders.mockResolvedValue(singlePageResponse)
     mockUpdateAdminOrderStatus.mockResolvedValue({ ...sampleOrder, status: 'PAID' } as never)
@@ -217,10 +217,53 @@ describe('AdminOrdersTable — status transitions', () => {
     const paidOption = await screen.findByRole('menuitem', { name: /paid/i })
     await user.click(paidOption)
 
+    // PENDING → PAID has no customer side effects, so it must not gate on a dialog
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     await waitFor(() => {
       expect(mockUpdateAdminOrderStatus).toHaveBeenCalledWith(
         'order-00000001',
         { status: 'PAID' },
+        'mock-token',
+      )
+    })
+  })
+
+  it('opens ConfirmDialog before CANCELLED — destructive transition (#267)', async () => {
+    const user = userEvent.setup()
+    mockFetchAdminOrders.mockResolvedValue(singlePageResponse)
+
+    render(<AdminOrdersTable />)
+
+    const statusButton = await screen.findByRole('button', {
+      name: /change status for order 00000001/i,
+    })
+    await user.click(statusButton)
+    await user.click(await screen.findByRole('menuitem', { name: /cancelled/i }))
+
+    expect(await screen.findByRole('dialog')).toBeInTheDocument()
+    expect(mockUpdateAdminOrderStatus).not.toHaveBeenCalled()
+  })
+
+  it('dialog confirm for CANCELLED triggers the API call', async () => {
+    const user = userEvent.setup()
+    mockFetchAdminOrders.mockResolvedValue(singlePageResponse)
+    mockUpdateAdminOrderStatus.mockResolvedValue({ ...sampleOrder, status: 'CANCELLED' } as never)
+
+    render(<AdminOrdersTable />)
+
+    const statusButton = await screen.findByRole('button', {
+      name: /change status for order 00000001/i,
+    })
+    await user.click(statusButton)
+    await user.click(await screen.findByRole('menuitem', { name: /cancelled/i }))
+
+    const dialog = await screen.findByRole('dialog')
+    await user.click(within(dialog).getByRole('button', { name: /cancel order/i }))
+
+    await waitFor(() => {
+      expect(mockUpdateAdminOrderStatus).toHaveBeenCalledWith(
+        'order-00000001',
+        { status: 'CANCELLED' },
         'mock-token',
       )
     })

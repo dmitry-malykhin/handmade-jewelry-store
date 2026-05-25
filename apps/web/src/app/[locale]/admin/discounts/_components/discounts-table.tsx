@@ -7,6 +7,7 @@ import { toast } from 'sonner'
 import { Copy, Plus, Trash2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { ConfirmDialog } from '@/components/admin/confirm-dialog'
 import { Switch } from '@/components/ui/switch'
 import {
   Table,
@@ -53,6 +54,7 @@ export function DiscountsTable() {
   const accessToken = useAuthStore((state) => state.accessToken)
   const queryClient = useQueryClient()
   const [isCreateOpen, setIsCreateOpen] = useState(false)
+  const [discountToDelete, setDiscountToDelete] = useState<Discount | null>(null)
 
   const { data: discounts, isPending } = useQuery({
     queryKey: ['admin-discounts'],
@@ -85,8 +87,16 @@ export function DiscountsTable() {
   }
 
   function handleDelete(discount: Discount) {
-    if (!confirm(t('discountsDeleteConfirm', { code: discount.code }))) return
-    deleteMutation.mutate(discount.id)
+    setDiscountToDelete(discount)
+  }
+
+  function handleDeleteConfirm() {
+    if (!discountToDelete) return
+    deleteMutation.mutate(discountToDelete.id, {
+      onSuccess: () => setDiscountToDelete(null),
+      // On error, keep the dialog open so the toast doesn't get lost and the
+      // admin can decide to cancel or retry.
+    })
   }
 
   return (
@@ -198,6 +208,16 @@ export function DiscountsTable() {
       )}
 
       <CreateDiscountModal isOpen={isCreateOpen} onClose={() => setIsCreateOpen(false)} />
+
+      <ConfirmDialog
+        open={discountToDelete !== null}
+        onClose={() => setDiscountToDelete(null)}
+        onConfirm={handleDeleteConfirm}
+        isPending={deleteMutation.isPending}
+        title={t('discountsDeleteTitle', { code: discountToDelete?.code ?? '' })}
+        description={t('discountsDeleteDescription')}
+        confirmLabel={t('discountsDeleteAction')}
+      />
     </section>
   )
 }
