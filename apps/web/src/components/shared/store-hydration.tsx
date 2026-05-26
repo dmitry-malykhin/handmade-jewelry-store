@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { useCartStore } from '@/store'
 import { useAuthStore } from '@/store/auth.store'
+import { useCurrencyStore } from '@/store/currency.store'
 import { useMeasurementStore } from '@/store/measurement.store'
 import { useWishlistStore } from '@/store/wishlist.store'
 
@@ -20,6 +21,7 @@ export function StoreHydration() {
     useCartStore.persist.rehydrate()
     useAuthStore.persist.rehydrate()
     useMeasurementStore.persist.rehydrate()
+    useCurrencyStore.persist.rehydrate()
     useWishlistStore.persist.rehydrate()
   }, [])
 

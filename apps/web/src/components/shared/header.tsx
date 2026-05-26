@@ -5,6 +5,7 @@ import { Link } from '@/i18n/navigation'
 import { Button } from '@/components/ui/button'
 import { NavLinks } from './nav-links'
 import { MobileNav } from './mobile-nav'
+import { CurrencySwitcher } from './currency-switcher'
 import { LanguageSwitcher } from './language-switcher'
 import { ThemeToggle } from './theme-toggle'
 import { CartIconButton } from './cart-icon-button'
@@ -58,8 +59,9 @@ export function Header() {
           {/* Theme toggle — visible on both desktop and mobile */}
           <ThemeToggle />
 
-          {/* Desktop language switcher — hidden on mobile (MobileNav handles it) */}
-          <div className="hidden md:flex">
+          {/* Desktop currency + language switchers — hidden on mobile */}
+          <div className="hidden items-center md:flex">
+            <CurrencySwitcher />
             <LanguageSwitcher />
           </div>
 

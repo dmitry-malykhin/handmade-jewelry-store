@@ -81,6 +81,10 @@
     "ctaButton": "Shop the Collection",
     "imageAlt": "Handcrafted jewelry being made in a small studio"
   },
+  "currencySwitcher": {
+    "triggerAriaLabel": "Display currency: {currency}. Click to change.",
+    "approximateNote": "Prices in non-USD currencies are approximate — checkout charges in USD."
+  },
   "header": {
     "logoLabel": "Senichka — Handmade Beaded Jewelry — home",
     "search": "Search",

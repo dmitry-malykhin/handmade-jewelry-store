@@ -8,6 +8,7 @@ import { toast } from 'sonner'
 import { Link } from '@/i18n/navigation'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { DisplayPrice } from '@/components/shared/display-price'
 import { AddToCartButton } from '@/components/features/cart/add-to-cart-button'
 import { BuyNowButton } from '@/components/features/cart/buy-now-button'
 import { useAuthStore } from '@/store/auth.store'
@@ -112,7 +113,7 @@ export function WishlistManager() {
   return (
     <ul role="list" className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {products.map((product) => {
-        const formattedPrice = parseFloat(product.price).toFixed(2)
+        const priceUsd = parseFloat(product.price)
         const primaryImage = product.images[0] ?? '/placeholder-product.jpg'
         // Issue #231 — handmade pieces are always orderable. stock=0 means "the
         // master will craft it after the order is paid", regardless of stockType.
@@ -199,9 +200,10 @@ export function WishlistManager() {
                   <p className="line-clamp-1 text-xs text-muted-foreground">{product.material}</p>
                 )}
 
-                <p className="text-base font-semibold text-foreground">
-                  <data value={formattedPrice}>${formattedPrice}</data>
-                </p>
+                <DisplayPrice
+                  amountUsd={priceUsd}
+                  className="text-base font-semibold text-foreground"
+                />
 
                 <div className="mt-auto flex flex-col gap-2 pt-2">
                   {isMadeOnDemand && (

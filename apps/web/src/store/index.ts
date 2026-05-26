@@ -4,6 +4,8 @@ export { useUserStore, useCurrentUser, useIsAuthenticated } from './user.store'
 
 export { useMeasurementStore } from './measurement.store'
 
+export { useCurrencyStore } from './currency.store'
+
 export {
   useCookieConsentStore,
   useHasCookieDecision,

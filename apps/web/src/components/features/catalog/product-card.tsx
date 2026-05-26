@@ -5,6 +5,7 @@ import { Link } from '@/i18n/navigation'
 import { Badge } from '@/components/ui/badge'
 import { AddToCartButton } from '@/components/features/cart/add-to-cart-button'
 import { WishlistButton } from '@/components/features/wishlist/wishlist-button'
+import { DisplayPrice } from '@/components/shared/display-price'
 
 interface ProductCardProps {
   product: Product
@@ -15,7 +16,7 @@ export async function ProductCard({ product, isPriority = false }: ProductCardPr
   const t = await getTranslations('catalog')
 
   const primaryImage = product.images[0] ?? '/placeholder-product.jpg'
-  const formattedPrice = parseFloat(product.price).toFixed(2)
+  const priceUsd = parseFloat(product.price)
   // Issue #231 — handmade pieces are always orderable. Even an originally
   // one-of-a-kind sold piece can be re-crafted with a similar stone.
   const isMadeOnDemand = product.stock === 0
@@ -66,9 +67,7 @@ export async function ProductCard({ product, isPriority = false }: ProductCardPr
         )}
 
         <div className="mt-auto flex items-center justify-between pt-2">
-          <p className="text-base font-semibold text-foreground">
-            <data value={formattedPrice}>${formattedPrice}</data>
-          </p>
+          <DisplayPrice amountUsd={priceUsd} className="text-base font-semibold text-foreground" />
           <AddToCartButton product={product} />
         </div>
       </div>
