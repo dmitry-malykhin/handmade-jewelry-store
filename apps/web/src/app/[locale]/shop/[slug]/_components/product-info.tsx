@@ -7,6 +7,7 @@ import { SHIPPING_OPTIONS } from '@/app/[locale]/checkout/_lib/shipping-options'
 import { formatLatestDeliveryDate } from '@/app/[locale]/checkout/_lib/format-eta'
 import { calculateInstallmentPreview } from '@/lib/installment-preview'
 import { STUDIO_NAME, STUDIO_CITY } from '@/lib/studio'
+import { DisplayPrice } from '@/components/shared/display-price'
 import { ProductDimensions } from './product-dimensions'
 
 interface ProductInfoProps {
@@ -23,7 +24,7 @@ if (!STANDARD_SHIPPING) {
 export async function ProductInfo({ product }: ProductInfoProps) {
   const t = await getTranslations('productDetail')
 
-  const formattedPrice = parseFloat(product.price).toFixed(2)
+  const priceUsd = parseFloat(product.price)
   const isReadyToShip = product.stock === 1
   // Issue #231 — handmade is always orderable. ONE_OF_A_KIND that's been sold
   // shows a special copy variant ("we can craft a similar one") but the customer
@@ -84,9 +85,7 @@ export async function ProductInfo({ product }: ProductInfoProps) {
       )}
 
       {/* Price */}
-      <p className="text-3xl font-bold text-foreground">
-        <data value={formattedPrice}>${formattedPrice}</data>
-      </p>
+      <DisplayPrice amountUsd={priceUsd} className="text-3xl font-bold text-foreground" />
 
       {/* BNPL installment preview — shown when total is in Afterpay's
           eligibility range ($35–$1000). Pure marketing signal; Stripe Payment

@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Link } from '@/i18n/navigation'
 import { searchProducts } from '@/lib/api/products'
+import { DisplayPrice } from '@/components/shared/display-price'
 import { highlightMatch } from '@/lib/search/highlight-match'
 
 const SEARCH_DEBOUNCE_MS = 300
@@ -139,9 +140,10 @@ export function SearchResults({ initialQuery }: SearchResultsProps) {
                         ),
                       )}
                     </h2>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      ${parseFloat(product.price).toFixed(2)}
-                    </p>
+                    <DisplayPrice
+                      amountUsd={parseFloat(product.price)}
+                      className="mt-1 text-sm text-muted-foreground"
+                    />
                   </div>
                 </Link>
               </li>

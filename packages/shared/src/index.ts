@@ -3,6 +3,13 @@
 export type { MeasurementSystem, ConvertedLength } from './measurementConverter'
 export { convertLength, convertDimensions } from './measurementConverter'
 
+export type { DisplayCurrency } from './formatCurrencyPrice'
+export {
+  SUPPORTED_DISPLAY_CURRENCIES,
+  isDisplayCurrency,
+  formatCurrencyPrice,
+} from './formatCurrencyPrice'
+
 // ── Products ──────────────────────────────────────────────────────────────────
 
 export type StockType = 'IN_STOCK' | 'MADE_TO_ORDER' | 'ONE_OF_A_KIND'
