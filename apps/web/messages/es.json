@@ -240,6 +240,16 @@
     "learnMore": "Más información"
   },
   "checkoutPage": {
+    "loyalty": {
+      "heading": "Aplicar puntos de lealtad",
+      "balance": "Tienes {balance} puntos ({dollars})",
+      "maxRedeemable": "Máximo en este pedido: {max} puntos ({dollars} de descuento)",
+      "inputLabel": "Puntos a canjear",
+      "apply": "Aplicar",
+      "applyMax": "Aplicar máximo",
+      "remove": "Quitar",
+      "applied": "Aplicando {points} puntos ({dollars} de descuento)"
+    },
     "metaTitle": "Finalizar pedido",
     "metaDescription": "Introduce tu dirección de envío y datos de contacto para completar el pedido.",
     "stepsLabel": "Pasos del pago",
@@ -903,6 +913,7 @@
       "overview": "Resumen",
       "orders": "Pedidos",
       "wishlist": "Favoritos",
+      "loyalty": "Recompensas",
       "addresses": "Direcciones",
       "settings": "Configuración"
     },
@@ -1030,6 +1041,24 @@
       "shipsAfterCrafting": "El maestro la elaborará tras tu pedido — unos {days} días hábiles.",
       "soldOutTitle": "Vendida — pieza única",
       "soldOutNotice": "Esta pieza única ya tiene dueño y no se puede repetir."
+    },
+    "loyalty": {
+      "metaTitle": "Recompensas — Programa de lealtad",
+      "metaDescription": "Gana 1 punto por cada $1 gastado. Canjea en el pago.",
+      "title": "Recompensas",
+      "description": "Gana 1 punto por cada $1 en pedidos entregados. Canjea puntos en el pago para ahorrar en futuras compras.",
+      "balanceLabel": "Tu saldo",
+      "pointsUnit": "puntos",
+      "balanceWorth": "Equivale a {dollars} de descuento en tu próximo pedido",
+      "howItWorks": "100 puntos = $1.00 de descuento. Los puntos se acreditan al entregar el pedido.",
+      "transactionsTitle": "Actividad reciente",
+      "transactionsEmpty": "Sin actividad todavía — tus primeros puntos aparecerán aquí.",
+      "transactionsLoading": "Cargando…",
+      "transactionType": {
+        "EARNED": "Ganado",
+        "SPENT": "Canjeado",
+        "REVERSED": "Revertido"
+      }
     }
   },
   "productReviews": {

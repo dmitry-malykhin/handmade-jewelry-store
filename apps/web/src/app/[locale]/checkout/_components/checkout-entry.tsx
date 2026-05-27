@@ -10,6 +10,7 @@ import { trackCheckoutStarted } from '@/lib/analytics/posthog'
 import { CheckoutAddressForm } from './checkout-address-form'
 import { CheckoutShippingMethodForm } from './checkout-shipping-method-form'
 import { CheckoutPaymentForm } from './checkout-payment-form'
+import { LoyaltyRedeemSection } from './loyalty-redeem-section'
 import type { CheckoutAddressFormValues } from './checkout-address-schema'
 import type { ShippingOption } from '../_lib/shipping-options'
 
@@ -22,6 +23,8 @@ interface CheckoutFlowState {
   addressValues: CheckoutAddressFormValues | null
   selectedShippingOption: ShippingOption | null
   resolvedShippingCost: number
+  /** Loyalty points the user applied on the shipping step (#124). */
+  loyaltyPointsToRedeem: number
 }
 
 export function CheckoutEntry() {
@@ -37,6 +40,7 @@ export function CheckoutEntry() {
     addressValues: null,
     selectedShippingOption: null,
     resolvedShippingCost: 0,
+    loyaltyPointsToRedeem: 0,
   })
 
   // Fire checkout_started once per checkout session — only after the cart is
@@ -102,10 +106,19 @@ export function CheckoutEntry() {
 
     if (flowState.step === 2) {
       return (
-        <CheckoutShippingMethodForm
-          onNext={handleShippingMethodCompleted}
-          onBack={handleBackToAddressForm}
-        />
+        <div className="space-y-6">
+          <LoyaltyRedeemSection
+            subtotalUsd={cartSubtotal}
+            appliedPoints={flowState.loyaltyPointsToRedeem}
+            onAppliedPointsChange={(points) =>
+              setFlowState((prev) => ({ ...prev, loyaltyPointsToRedeem: points }))
+            }
+          />
+          <CheckoutShippingMethodForm
+            onNext={handleShippingMethodCompleted}
+            onBack={handleBackToAddressForm}
+          />
+        </div>
       )
     }
 
@@ -115,6 +128,7 @@ export function CheckoutEntry() {
           addressValues={flowState.addressValues}
           shippingCost={flowState.resolvedShippingCost}
           selectedShippingOption={flowState.selectedShippingOption ?? undefined}
+          loyaltyPointsToRedeem={flowState.loyaltyPointsToRedeem}
           onBack={handleBackToShippingMethod}
         />
       )

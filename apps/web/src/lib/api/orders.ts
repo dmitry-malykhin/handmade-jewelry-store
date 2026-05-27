@@ -32,6 +32,8 @@ export interface CreateOrderPayload {
   subtotal: number
   shippingCost: number
   total: number
+  /** Loyalty points the buyer chose to redeem (#124). Server clamps. */
+  loyaltyPointsToRedeem?: number
   source?: string
 }
 

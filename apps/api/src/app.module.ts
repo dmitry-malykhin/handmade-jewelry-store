@@ -14,6 +14,7 @@ import { CurrencyModule } from './currency/currency.module'
 import { DiscountsModule } from './discounts/discounts.module'
 import { HealthModule } from './health/health.module'
 import { LoggerModule } from './logger/logger.module'
+import { LoyaltyModule } from './loyalty/loyalty.module'
 import { NewsletterModule } from './newsletter/newsletter.module'
 import { OrdersModule } from './orders/orders.module'
 import { PaymentsModule } from './payments/payments.module'
@@ -53,6 +54,7 @@ import { WishlistModule } from './wishlist/wishlist.module'
     ContactModule,
     CurrencyModule,
     DiscountsModule,
+    LoyaltyModule,
     NewsletterModule,
     SiteSettingsModule,
     WishlistModule,

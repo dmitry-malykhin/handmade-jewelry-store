@@ -4,6 +4,7 @@ import { OrderStatus } from '@prisma/client'
 import { Decimal } from '@prisma/client/runtime/library'
 import { AnalyticsService } from '../analytics/analytics.service'
 import { EmailService } from '../email/email.service'
+import { LoyaltyService } from '../loyalty/loyalty.service'
 import { PrismaService } from '../prisma/prisma.service'
 import { StripeService } from '../stripe/stripe.service'
 import { CreateOrderDto } from './dto/create-order.dto'
@@ -74,6 +75,13 @@ const mockAnalyticsService = {
   trackPaymentSucceeded: jest.fn(),
 }
 
+const mockLoyaltyService = {
+  getBalance: jest.fn().mockResolvedValue({ balance: 0 }),
+  awardForDelivered: jest.fn().mockResolvedValue(0),
+  reverseForCancellationOrRefund: jest.fn().mockResolvedValue(0),
+  spendForCheckout: jest.fn().mockResolvedValue(undefined),
+}
+
 describe('OrdersService', () => {
   let ordersService: OrdersService
 
@@ -85,6 +93,7 @@ describe('OrdersService', () => {
         { provide: EmailService, useValue: mockEmailService },
         { provide: StripeService, useValue: mockStripeService },
         { provide: AnalyticsService, useValue: mockAnalyticsService },
+        { provide: LoyaltyService, useValue: mockLoyaltyService },
       ],
     }).compile()
 

@@ -240,6 +240,16 @@
     "learnMore": "Learn More"
   },
   "checkoutPage": {
+    "loyalty": {
+      "heading": "Apply loyalty points",
+      "balance": "You have {balance} points ({dollars})",
+      "maxRedeemable": "Max redeemable on this order: {max} points ({dollars} off)",
+      "inputLabel": "Points to redeem",
+      "apply": "Apply",
+      "applyMax": "Apply max",
+      "remove": "Remove",
+      "applied": "Applying {points} points ({dollars} off)"
+    },
     "metaTitle": "Checkout",
     "metaDescription": "Enter your shipping address and contact details to complete your order.",
     "stepsLabel": "Checkout steps",
@@ -903,6 +913,7 @@
       "overview": "Overview",
       "orders": "Orders",
       "wishlist": "Wishlist",
+      "loyalty": "Rewards",
       "addresses": "Addresses",
       "settings": "Settings"
     },
@@ -1030,6 +1041,24 @@
       "shipsAfterCrafting": "Ships after the master crafts your piece — about {days} business days.",
       "soldOutTitle": "Sold — one of a kind",
       "soldOutNotice": "This unique piece has been claimed and cannot be remade."
+    },
+    "loyalty": {
+      "metaTitle": "Rewards — Loyalty Points",
+      "metaDescription": "Earn 1 point per $1 spent. Redeem at checkout.",
+      "title": "Loyalty rewards",
+      "description": "Earn 1 point for every $1 spent on delivered orders. Redeem points at checkout to save on future purchases.",
+      "balanceLabel": "Your balance",
+      "pointsUnit": "points",
+      "balanceWorth": "Worth {dollars} off your next order",
+      "howItWorks": "100 points = $1.00 off. Points credit when your order is delivered.",
+      "transactionsTitle": "Recent activity",
+      "transactionsEmpty": "No loyalty activity yet — your first earned points will appear here.",
+      "transactionsLoading": "Loading…",
+      "transactionType": {
+        "EARNED": "Earned",
+        "SPENT": "Redeemed",
+        "REVERSED": "Reversed"
+      }
     }
   },
   "productReviews": {

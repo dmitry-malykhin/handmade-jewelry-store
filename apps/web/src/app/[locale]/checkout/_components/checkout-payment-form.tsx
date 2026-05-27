@@ -19,6 +19,8 @@ interface CheckoutPaymentFormProps {
   addressValues: CheckoutAddressFormValues
   shippingCost: number
   selectedShippingOption?: ShippingOption
+  /** Loyalty points the user opted to redeem on the previous step. */
+  loyaltyPointsToRedeem?: number
   onBack: () => void
 }
 
@@ -26,16 +28,22 @@ export function CheckoutPaymentForm({
   addressValues,
   shippingCost,
   selectedShippingOption,
+  loyaltyPointsToRedeem = 0,
   onBack,
 }: CheckoutPaymentFormProps) {
   const t = useTranslations('checkoutPage')
   const locale = useLocale()
   const checkoutTotalPrice = useCheckoutTotalPrice()
-  const totalInCents = Math.round((checkoutTotalPrice + shippingCost) * 100)
+  const loyaltyDiscountUsd = loyaltyPointsToRedeem / 100
+  const totalInCents = Math.max(
+    0,
+    Math.round((checkoutTotalPrice + shippingCost - loyaltyDiscountUsd) * 100),
+  )
 
   const { orderId, clientSecret, isLoading, error } = useInitiateCheckout(
     addressValues,
     shippingCost,
+    loyaltyPointsToRedeem,
   )
 
   const [isSubmitting, setIsSubmitting] = useState(false)

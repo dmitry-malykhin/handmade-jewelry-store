@@ -59,6 +59,12 @@ vi.mock('../checkout-payment-form', () => ({
   ),
 }))
 
+// LoyaltyRedeemSection renders on the shipping step for authenticated users.
+// Stub it out — these tests focus on CheckoutEntry's step routing, not loyalty.
+vi.mock('../loyalty-redeem-section', () => ({
+  LoyaltyRedeemSection: () => <div data-testid="loyalty-redeem-section" />,
+}))
+
 // Reset auth state between tests so the skip-gateway behaviour is deterministic.
 beforeEach(() => {
   useAuthStore.getState().clearTokens()
