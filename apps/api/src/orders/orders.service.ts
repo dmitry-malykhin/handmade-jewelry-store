@@ -4,6 +4,7 @@ import { Decimal, InputJsonValue } from '@prisma/client/runtime/library'
 import { AnalyticsService } from '../analytics/analytics.service'
 import { buildCsvDocument } from '../common/csv/csv-formatter'
 import { EmailService } from '../email/email.service'
+import { LoyaltyService } from '../loyalty/loyalty.service'
 import { PrismaService } from '../prisma/prisma.service'
 import { StripeService } from '../stripe/stripe.service'
 import { CreateOrderDto } from './dto/create-order.dto'
@@ -77,44 +78,84 @@ export class OrdersService {
     private readonly emailService: EmailService,
     private readonly stripeService: StripeService,
     private readonly analyticsService: AnalyticsService,
+    private readonly loyaltyService: LoyaltyService,
   ) {}
 
   async create(createOrderDto: CreateOrderDto) {
-    const { items, shippingAddress, userId, guestEmail, subtotal, shippingCost, total, source } =
-      createOrderDto
+    const {
+      items,
+      shippingAddress,
+      userId,
+      guestEmail,
+      subtotal,
+      shippingCost,
+      total,
+      loyaltyPointsToRedeem,
+      source,
+    } = createOrderDto
+
+    // ── Loyalty redemption: server-side validation + total adjustment ──────
+    // The client sends a candidate `loyaltyPointsToRedeem`; we re-verify
+    // against the actual balance and the per-order cap (50% of subtotal) and
+    // recalculate `total` on the server. Anything the client sent in `total`
+    // for the discounted amount is overwritten by our calculation.
+    let pointsToRedeem = 0
+    let adjustedTotal = total
+    if (userId && loyaltyPointsToRedeem && loyaltyPointsToRedeem > 0) {
+      const { balance } = await this.loyaltyService.getBalance(userId)
+      const maxRedeemable = Math.floor(subtotal * 100 * 0.5)
+      pointsToRedeem = Math.min(loyaltyPointsToRedeem, balance, maxRedeemable)
+      if (pointsToRedeem > 0) {
+        const redemptionUsd = pointsToRedeem / 100
+        adjustedTotal = Math.max(0, Number((total - redemptionUsd).toFixed(2)))
+      }
+    }
 
     try {
-      const order = await this.prismaService.order.create({
-        data: {
-          userId: userId ?? null,
-          guestEmail: guestEmail ?? null,
-          subtotal,
-          shippingCost,
-          total,
-          shippingAddress: shippingAddress as unknown as InputJsonValue,
-          source: source ?? 'web',
-          status: OrderStatus.PENDING,
-          items: {
-            create: items.map((orderItem) => ({
-              productId: orderItem.productId,
-              quantity: orderItem.quantity,
-              price: orderItem.price,
-              productSnapshot: orderItem.productSnapshot,
-            })),
-          },
-          // Record initial PENDING status in history for full audit trail
-          statusHistory: {
-            create: {
-              fromStatus: null,
-              toStatus: OrderStatus.PENDING,
-              createdBy: userId ?? guestEmail ?? 'guest',
+      const order = await this.prismaService.$transaction(async (tx) => {
+        const created = await tx.order.create({
+          data: {
+            userId: userId ?? null,
+            guestEmail: guestEmail ?? null,
+            subtotal,
+            shippingCost,
+            total: adjustedTotal,
+            loyaltyPointsUsed: pointsToRedeem,
+            shippingAddress: shippingAddress as unknown as InputJsonValue,
+            source: source ?? 'web',
+            status: OrderStatus.PENDING,
+            items: {
+              create: items.map((orderItem) => ({
+                productId: orderItem.productId,
+                quantity: orderItem.quantity,
+                price: orderItem.price,
+                productSnapshot: orderItem.productSnapshot,
+              })),
+            },
+            // Record initial PENDING status in history for full audit trail
+            statusHistory: {
+              create: {
+                fromStatus: null,
+                toStatus: OrderStatus.PENDING,
+                createdBy: userId ?? guestEmail ?? 'guest',
+              },
             },
           },
-        },
-        include: {
-          items: true,
-          statusHistory: true,
-        },
+          include: {
+            items: true,
+            statusHistory: true,
+          },
+        })
+
+        if (pointsToRedeem > 0 && userId) {
+          await this.loyaltyService.spendForCheckout(tx, {
+            userId,
+            orderId: created.id,
+            points: pointsToRedeem,
+          })
+        }
+
+        return created
       })
 
       return order
@@ -251,23 +292,41 @@ export class OrdersService {
       )
     }
 
-    const updatedOrder = await this.prismaService.order.update({
-      where: { id: orderId },
-      data: {
-        status: updateOrderStatusDto.status,
-        statusHistory: {
-          create: {
-            fromStatus: order.status,
-            toStatus: updateOrderStatusDto.status,
-            note: updateOrderStatusDto.note,
-            createdBy: 'admin',
+    // Wrap status update + loyalty bookkeeping in one transaction. Either both
+    // commit or neither does — a half-finished DELIVERED transition that
+    // didn't credit points would be visible (and confusing) on the account
+    // page until manually fixed.
+    const updatedOrder = await this.prismaService.$transaction(async (tx) => {
+      const next = await tx.order.update({
+        where: { id: orderId },
+        data: {
+          status: updateOrderStatusDto.status,
+          statusHistory: {
+            create: {
+              fromStatus: order.status,
+              toStatus: updateOrderStatusDto.status,
+              note: updateOrderStatusDto.note,
+              createdBy: 'admin',
+            },
           },
         },
-      },
-      include: {
-        items: true,
-        statusHistory: { orderBy: { createdAt: 'asc' } },
-      },
+        include: {
+          items: true,
+          statusHistory: { orderBy: { createdAt: 'asc' } },
+        },
+      })
+
+      // Loyalty hooks — only the transitions that actually move points fire
+      // here. Both helpers are idempotent and bail when there's nothing to do
+      // (guest order, points already awarded, etc.).
+      if (updateOrderStatusDto.status === OrderStatus.DELIVERED) {
+        await this.loyaltyService.awardForDelivered(tx, next)
+      }
+      if (updateOrderStatusDto.status === OrderStatus.CANCELLED) {
+        await this.loyaltyService.reverseForCancellationOrRefund(tx, next)
+      }
+
+      return next
     })
 
     if (updateOrderStatusDto.status === OrderStatus.SHIPPED) {
@@ -389,7 +448,7 @@ export class OrdersService {
         data: { status: newPaymentStatus },
       })
 
-      return transaction.order.update({
+      const next = await transaction.order.update({
         where: { id: orderId },
         data: {
           status: newOrderStatus,
@@ -414,6 +473,13 @@ export class OrdersService {
           statusHistory: { orderBy: { createdAt: 'asc' } },
         },
       })
+
+      // Reverse any loyalty points earned at DELIVERED. Symmetric to the
+      // award path — same transaction so balance stays consistent with the
+      // payment + order state.
+      await this.loyaltyService.reverseForCancellationOrRefund(transaction, next)
+
+      return next
     })
 
     this.logger.log(

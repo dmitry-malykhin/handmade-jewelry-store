@@ -4,12 +4,12 @@ import { useTranslations } from 'next-intl'
 import { Link, usePathname } from '@/i18n/navigation'
 import { cn } from '@/lib/utils'
 
-// Issue #234 — loyalty link removed until the loyalty system actually ships
-// (#124). Premium brand cannot afford 404s on a public navigation entry.
+// Loyalty link re-added with #124 — the loyalty system now ships.
 const ACCOUNT_LINKS = [
   { href: '/account', key: 'overview' },
   { href: '/account/orders', key: 'orders' },
   { href: '/account/wishlist', key: 'wishlist' },
+  { href: '/account/loyalty', key: 'loyalty' },
   { href: '/account/addresses', key: 'addresses' },
   { href: '/account/settings', key: 'settings' },
 ] as const

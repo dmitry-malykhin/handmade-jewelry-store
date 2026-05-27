@@ -7,16 +7,29 @@ import type { CheckoutAddressFormValues } from '../_components/checkout-address-
  * expected by POST /api/orders. Separates email (contact only) from the
  * shipping address snapshot stored on the order.
  */
+interface BuildOrderPayloadOptions {
+  /** Logged-in user id (when present). Loyalty redemption requires a user. */
+  userId?: string
+  /** Loyalty points the buyer chose to redeem (#124). Server clamps. */
+  loyaltyPointsToRedeem?: number
+}
+
 export function buildOrderPayload(
   cartItems: CartItem[],
   formValues: CheckoutAddressFormValues,
   shippingCost: number,
+  options: BuildOrderPayloadOptions = {},
 ): CreateOrderPayload {
   const { email, ...shippingAddress } = formValues
 
   const subtotal = cartItems.reduce((sum, cartItem) => sum + cartItem.price * cartItem.quantity, 0)
+  const loyaltyDiscountUsd = (options.loyaltyPointsToRedeem ?? 0) / 100
+  // Server re-validates against the user's real balance; this is the visible
+  // expected total we send up-front for analytics + display consistency.
+  const total = Math.max(0, Number((subtotal + shippingCost - loyaltyDiscountUsd).toFixed(2)))
 
   return {
+    userId: options.userId,
     guestEmail: email,
     items: cartItems.map((cartItem) => ({
       productId: cartItem.productId,
@@ -31,7 +44,10 @@ export function buildOrderPayload(
     shippingAddress,
     subtotal,
     shippingCost,
-    total: subtotal + shippingCost,
+    total,
+    ...(options.loyaltyPointsToRedeem
+      ? { loyaltyPointsToRedeem: options.loyaltyPointsToRedeem }
+      : {}),
     source: 'web',
   }
 }

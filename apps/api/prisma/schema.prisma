@@ -94,13 +94,43 @@ model User {
   // Hashed password reset token — cleared after use or expiry (1h window)
   passwordResetToken   String?
   passwordResetTokenAt DateTime?
+  // Loyalty points balance (#124). 1 point = $0.01 USD. Earned at DELIVERED,
+  // reversed on CANCELLED/REFUNDED, spent at checkout. The canonical truth
+  // lives here — LoyaltyTransaction is the audit log.
+  loyaltyBalance       Int            @default(0)
   refreshTokens        RefreshToken[]
   orders               Order[]
   reviews              Review[]
   wishlist             Wishlist?
   addresses            Address[]
+  loyaltyTransactions  LoyaltyTransaction[]
   createdAt            DateTime       @default(now())
   updatedAt            DateTime       @updatedAt
+}
+
+// Audit log of every loyalty point movement (#124). Append-only — we never
+// edit or delete rows; a corrected mistake becomes a REVERSED entry. The
+// sum of `points` across all rows for a user must equal User.loyaltyBalance.
+enum LoyaltyTransactionType {
+  EARNED   // Awarded when an order transitions to DELIVERED
+  SPENT    // Used at checkout to reduce order total
+  REVERSED // Awarded points clawed back on CANCELLED / REFUNDED orders
+}
+
+model LoyaltyTransaction {
+  id        String                 @id @default(cuid())
+  userId    String
+  user      User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Signed integer. Positive for EARNED, negative for SPENT and REVERSED so
+  // SUM(points) = current balance without per-row sign arithmetic.
+  points    Int
+  type      LoyaltyTransactionType
+  orderId   String?                // null only for future manual admin adjustments
+  // Human-readable note shown in the account page transaction list.
+  note      String?
+  createdAt DateTime               @default(now())
+
+  @@index([userId, createdAt])
 }
 
 // Saved shipping addresses for returning customers.
