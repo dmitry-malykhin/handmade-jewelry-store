@@ -35,6 +35,7 @@ const TEST_USER = {
   role: Role.USER,
   passwordResetToken: null,
   passwordResetTokenAt: null,
+  loyaltyBalance: 0,
   createdAt: new Date(),
   updatedAt: new Date(),
 }

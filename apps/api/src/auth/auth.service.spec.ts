@@ -25,6 +25,7 @@ const mockUser = {
   role: Role.USER,
   passwordResetToken: null,
   passwordResetTokenAt: null,
+  loyaltyBalance: 0,
   createdAt: new Date(),
   updatedAt: new Date(),
 }
