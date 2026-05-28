@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl'
 import { useQuery } from '@tanstack/react-query'
 import {
+  BarChart3,
   Boxes,
   Hammer,
   LayoutDashboard,
@@ -49,6 +50,12 @@ export function AdminSidebar() {
       icon: <LayoutDashboard className="size-4" aria-hidden="true" />,
       // Dashboard is active only on exact /admin path, not on sub-pages
       isActive: pathname === '/admin',
+    },
+    {
+      href: '/admin/analytics',
+      labelKey: 'navAnalytics' as const,
+      icon: <BarChart3 className="size-4" aria-hidden="true" />,
+      isActive: pathname.startsWith('/admin/analytics'),
     },
     {
       href: '/admin/products',
