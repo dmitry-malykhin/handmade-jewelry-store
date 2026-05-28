@@ -19,6 +19,8 @@ const ADMIN_HELP_ROUTES: Array<{ pattern: RegExp; slug: string }> = [
 
   { pattern: /^\/admin\/inventory$/, slug: 'products/inventory' },
 
+  { pattern: /^\/admin\/analytics$/, slug: 'analytics' },
+
   { pattern: /^\/admin\/customers\/[^/]+$/, slug: 'customers/profile' },
   { pattern: /^\/admin\/customers$/, slug: 'customers/overview' },
 

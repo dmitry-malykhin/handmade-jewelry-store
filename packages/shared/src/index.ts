@@ -134,3 +134,43 @@ export interface RevenueStats {
   avgOrderValueCents: number
   chartData: RevenueChartDataPoint[]
 }
+
+/** Top-products analytics row (#166). One per product, ranked by revenue desc. */
+export interface TopProductRow {
+  productId: string
+  slug: string
+  title: string
+  image: string | null
+  unitsSold: number
+  revenueCents: number
+  avgRating: number
+  reviewCount: number
+}
+
+export type OrderStatusForBreakdown =
+  | 'PENDING'
+  | 'PAID'
+  | 'PROCESSING'
+  | 'SHIPPED'
+  | 'DELIVERED'
+  | 'CANCELLED'
+  | 'REFUNDED'
+  | 'PARTIALLY_REFUNDED'
+
+/** Status → count for the donut chart on /admin/analytics. */
+export interface OrderStatusBreakdownRow {
+  status: OrderStatusForBreakdown
+  count: number
+}
+
+/** Topline business metrics on /admin/analytics — period-scoped. */
+export interface KeyMetrics {
+  /** Customers with their first paid order inside the period. */
+  newCustomers: number
+  /** Customers with ≥2 paid orders ever, at least one inside the period. */
+  returningCustomers: number
+  /** Percentage 0-100. (refundedOrders / paidOrders) × 100 inside the period. */
+  refundRatePercent: number
+  /** Mean of (deliveredAt − createdAt) days for orders DELIVERED inside the period. */
+  avgDaysOrderToDelivery: number
+}

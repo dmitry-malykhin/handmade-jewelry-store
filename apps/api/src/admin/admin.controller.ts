@@ -5,6 +5,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
 import { RolesGuard } from '../auth/guards/roles.guard'
 import { AdminService } from './admin.service'
 import { RevenueQueryDto } from './dto/revenue-query.dto'
+import { TopProductsQueryDto } from './dto/top-products-query.dto'
 
 @Controller('admin')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -22,5 +23,26 @@ export class AdminController {
   @HttpCode(HttpStatus.OK)
   getRevenueStats(@Query() revenueQueryDto: RevenueQueryDto) {
     return this.adminService.getRevenueStats(revenueQueryDto.period ?? '30d')
+  }
+
+  @Get('analytics/products/top')
+  @HttpCode(HttpStatus.OK)
+  getTopProducts(@Query() topProductsQueryDto: TopProductsQueryDto) {
+    return this.adminService.getTopProducts(
+      topProductsQueryDto.period ?? '30d',
+      topProductsQueryDto.limit ?? 10,
+    )
+  }
+
+  @Get('analytics/orders/status-breakdown')
+  @HttpCode(HttpStatus.OK)
+  getOrderStatusBreakdown(@Query() revenueQueryDto: RevenueQueryDto) {
+    return this.adminService.getOrderStatusBreakdown(revenueQueryDto.period ?? '30d')
+  }
+
+  @Get('analytics/key-metrics')
+  @HttpCode(HttpStatus.OK)
+  getKeyMetrics(@Query() revenueQueryDto: RevenueQueryDto) {
+    return this.adminService.getKeyMetrics(revenueQueryDto.period ?? '30d')
   }
 }

@@ -63,6 +63,10 @@ describe('getHelpSlugForPath — customers, categories, discounts, settings', ()
   it('maps /admin (root) to getting-started', () => {
     expect(getHelpSlugForPath('/admin')).toBe('getting-started')
   })
+
+  it('maps /admin/analytics to analytics', () => {
+    expect(getHelpSlugForPath('/admin/analytics')).toBe('analytics')
+  })
 })
 
 describe('getHelpSlugForPath — unknown paths', () => {
