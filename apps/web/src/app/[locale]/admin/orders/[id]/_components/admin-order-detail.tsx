@@ -38,6 +38,7 @@ import {
 } from '@/lib/api/orders'
 import { ApiError } from '@/lib/api/client'
 import { getStatusConfirmCopy, requiresStatusConfirmation } from '../../_lib/status-confirm'
+import { LabelPurchaseSection } from './label-purchase-section'
 import { RefundOrderModal } from './refund-order-modal'
 
 interface AdminOrderDetailProps {
@@ -548,6 +549,8 @@ export function AdminOrderDetail({ orderId }: AdminOrderDetailProps) {
               isUpdating={statusMutation.isPending}
             />
           </div>
+
+          <LabelPurchaseSection order={order} />
 
           <TrackingSection
             order={order}

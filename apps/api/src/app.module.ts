@@ -21,6 +21,7 @@ import { PaymentsModule } from './payments/payments.module'
 import { PrismaModule } from './prisma/prisma.module'
 import { ProductsModule } from './products/products.module'
 import { ReviewsModule } from './reviews/reviews.module'
+import { ShippingModule } from './shipping/shipping.module'
 import { SiteSettingsModule } from './site-settings/site-settings.module'
 import { StripeModule } from './stripe/stripe.module'
 import { UploadModule } from './upload/upload.module'
@@ -56,6 +57,7 @@ import { WishlistModule } from './wishlist/wishlist.module'
     DiscountsModule,
     LoyaltyModule,
     NewsletterModule,
+    ShippingModule,
     SiteSettingsModule,
     WishlistModule,
     HealthModule,

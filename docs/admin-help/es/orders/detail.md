@@ -40,6 +40,29 @@ Estructura de arriba abajo:
 - **Caso límite**: Guardar el número en un pedido ya enviado actualiza
   el número sin reenviar email — útil si tipeaste mal.
 
+### Etiqueta de envío (EasyPost)
+- **Para qué**: Comprar una etiqueta real del transportista sin salir
+  del pedido.
+- **Cuándo aparece**: Solo en pedidos `PAID` o `PROCESSING` que aún no
+  tienen etiqueta. Después de comprarla, el formulario se reemplaza por
+  un enlace «Descargar PDF de etiqueta».
+- **Insignia de modo**: `Dry run` significa que no hay `EASYPOST_API_KEY`
+  configurada — el sistema fabrica una URL y número de tracking falsos
+  para probar el flujo. `Live` significa que el próximo clic cuesta
+  dinero real. Mira siempre la insignia antes de comprar.
+- **Transportista**: Las mismas 4 opciones que el seguimiento manual.
+  El transportista elegido aquí se escribe automáticamente en el pedido.
+- **Switch de seguro**: Solo aparece para pedidos ≥ $100. Activarlo
+  asegura el paquete por el total del pedido. No hay UI para seguro
+  parcial; si necesitas un monto específico, usa el portal del
+  transportista directamente.
+- **Efecto**: Un clic escribe shipment id, tracker id, número de
+  seguimiento, URL de etiqueta y seguro en el pedido. El estado **no**
+  pasa a `Enviado` — primero entrega el paquete, luego sube el estado
+  a mano. Cuando el transportista marque la entrega, el webhook de
+  EasyPost transiciona el pedido a `DELIVERED` automáticamente (lo que
+  dispara el crédito de fidelidad y el email).
+
 ### Botón de reembolso
 - **Para qué**: Reembolso total o parcial vía Stripe.
 - **Cuándo aparece**: Solo cuando `payment.status` es `SUCCEEDED` o

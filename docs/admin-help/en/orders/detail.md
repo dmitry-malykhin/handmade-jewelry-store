@@ -38,6 +38,27 @@ Layout — top to bottom:
 - **Edge case**: Saving on an already-shipped order updates the number
   without re-firing the email — useful if you typo'd.
 
+### Shipping label (EasyPost)
+- **Purpose**: Buy a real carrier label without leaving the order page.
+- **When it shows**: Only on `PAID` or `PROCESSING` orders that don't already
+  have a label. Once purchased, the form is replaced by a "Download label"
+  link.
+- **Mode badge**: `Dry run` means there's no `EASYPOST_API_KEY` configured —
+  the system fabricates a fake label URL + tracking number so the UI flow
+  can be tested. `Live` means the next click costs real money. Always check
+  the badge before purchasing.
+- **Carrier**: Same four options as manual tracking. The carrier chosen
+  here is written back to the order automatically.
+- **Insurance toggle**: Only shown for orders ≥ $100. Toggling on insures
+  the parcel for the order total. There is no partial-insurance UI; if you
+  want a custom amount, use the carrier's portal directly.
+- **Consequences**: One click writes shipment id, tracker id, tracking
+  number, label URL and insurance to the order. Status does NOT advance to
+  `SHIPPED` — drop the label in the mailbox first, then bump status by
+  hand. When the carrier marks the package delivered, the EasyPost webhook
+  transitions the order to `DELIVERED` automatically (which triggers
+  loyalty credit + email).
+
 ### Refund button
 - **Purpose**: Issue a full or partial refund via Stripe.
 - **When it shows**: Only when `payment.status` is `SUCCEEDED` or
