@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 import { render } from '@/test-utils'
@@ -10,6 +10,11 @@ vi.mock('@/lib/api/orders', () => ({
   fetchAdminOrderById: vi.fn(),
   updateAdminOrderStatus: vi.fn(),
   updateAdminOrderTracking: vi.fn(),
+}))
+
+vi.mock('@/lib/api/admin-shipping', () => ({
+  fetchShippingStatus: vi.fn().mockResolvedValue({ isLiveMode: false }),
+  purchaseAdminShippingLabel: vi.fn(),
 }))
 
 vi.mock('@/store/auth.store', () => ({
@@ -82,6 +87,10 @@ const mockOrder: AdminOrderDetailType = {
   cancelNote: null,
   refundedAt: null,
   refundAmount: null,
+  easypostShipmentId: null,
+  easypostTrackerId: null,
+  labelUrl: null,
+  shippingInsuranceCents: 0,
   source: 'web',
   payment: {
     id: 'pay-1',
@@ -222,8 +231,12 @@ describe('AdminOrderDetail — tracking', () => {
 
   it('renders tracking form with carrier select and tracking number input', async () => {
     render(<AdminOrderDetail orderId="clorder1234567890" />)
-    expect(await screen.findByLabelText('Tracking number')).toBeInTheDocument()
-    expect(screen.getByLabelText('Carrier')).toBeInTheDocument()
+    const trackingInput = await screen.findByLabelText('Tracking number')
+    expect(trackingInput).toBeInTheDocument()
+    // The label-purchase section also has a "Carrier" label — scope to the
+    // tracking <section> to assert this specifically.
+    const trackingSection = trackingInput.closest('section') as HTMLElement
+    expect(within(trackingSection).getByLabelText('Carrier')).toBeInTheDocument()
   })
 
   it('submit button is disabled when tracking number is empty', async () => {
@@ -243,13 +256,18 @@ describe('AdminOrderDetail — tracking', () => {
     mockUpdateAdminOrderTracking.mockResolvedValue(updatedOrder)
 
     render(<AdminOrderDetail orderId="clorder1234567890" />)
-    await screen.findByLabelText('Tracking number')
+    const trackingInput = await screen.findByLabelText('Tracking number')
 
-    // Select carrier via Radix Select
-    await user.click(screen.getByRole('combobox'))
+    // Scope to the tracking section — the LabelPurchaseSection has its own
+    // carrier select with the same label text, so an unscoped getByRole would
+    // match both.
+    const trackingSection = trackingInput.closest('section') as HTMLElement
+    const trackingCarrierTrigger = within(trackingSection).getByRole('combobox')
+
+    await user.click(trackingCarrierTrigger)
     await user.click(await screen.findByRole('option', { name: 'USPS' }))
 
-    await user.type(screen.getByLabelText('Tracking number'), '9400111899223481750000')
+    await user.type(trackingInput, '9400111899223481750000')
     await user.click(screen.getByRole('button', { name: 'Save tracking' }))
 
     await waitFor(() => {

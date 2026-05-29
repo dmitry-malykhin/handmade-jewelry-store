@@ -103,6 +103,11 @@ export interface AdminOrderDetail extends OrderDetails {
   source: string | null
   statusHistory: OrderStatusHistoryEntry[]
   payment: OrderPaymentInfo | null
+  // EasyPost (#125)
+  easypostShipmentId: string | null
+  easypostTrackerId: string | null
+  labelUrl: string | null
+  shippingInsuranceCents: number
 }
 
 export interface UpdateOrderTrackingPayload {

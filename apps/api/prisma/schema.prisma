@@ -235,6 +235,14 @@ model Order {
   estimatedDeliveryAt DateTime?
   deliveredAt         DateTime?
 
+  // EasyPost (#125) — populated when admin clicks "Purchase Label". In dry-run
+  // mode (no EASYPOST_API_KEY) the mock client still fills these so the UI
+  // exercises the same code paths as the live integration.
+  easypostShipmentId      String? // Shipment object id from EasyPost
+  easypostTrackerId       String? // Tracker id used by webhook callbacks
+  labelUrl                String? // PDF/PNG URL of the purchased shipping label
+  shippingInsuranceCents  Int     @default(0) // 0 = no insurance purchased
+
   // Cancellation
   cancelledAt  DateTime?
   cancelReason CancelReason?
