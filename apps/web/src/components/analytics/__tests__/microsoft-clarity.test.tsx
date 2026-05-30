@@ -1,6 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render } from '@/test-utils'
 import { MicrosoftClarity } from '@/components/analytics/microsoft-clarity'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 let mockConsent = false
 
@@ -16,6 +21,13 @@ vi.mock('next/script', () => ({
     </script>
   ),
 }))
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/components/analytics')
+  await $allureSubSuite('microsoft-clarity')
+  await $allureSeverity('normal')
+})
 
 describe('MicrosoftClarity', () => {
   beforeEach(() => {

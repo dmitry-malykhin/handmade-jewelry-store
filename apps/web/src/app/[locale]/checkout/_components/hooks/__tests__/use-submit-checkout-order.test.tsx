@@ -4,6 +4,11 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
 import { useSubmitCheckoutOrder } from '../use-submit-checkout-order'
 import type { CheckoutAddressFormValues } from '../../checkout-address-schema'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const mockRouterPush = vi.fn()
 
@@ -55,6 +60,13 @@ function createQueryClientWrapper() {
     return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   }
 }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/locale')
+  await $allureSubSuite('use-submit-checkout-order')
+  await $allureSeverity('normal')
+})
 
 describe('useSubmitCheckoutOrder()', () => {
   beforeEach(() => {

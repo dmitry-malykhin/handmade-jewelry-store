@@ -59,7 +59,18 @@ jobs:
         # CI env var triggers the junit reporter (see apps/web/vitest.config.ts)
         # so `apps/web/reports/junit.xml` is produced for future tooling
         # (download-as-artifact, Allure, etc.) — not consumed in this workflow.
+        # The same env var enables the allure-vitest reporter; allure-results/
+        # is uploaded below so the `allure-publish` job can stitch it together.
         run: pnpm --filter web test:run
+
+      - name: Upload web Allure results
+        if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results-web
+          path: apps/web/allure-results
+          retention-days: 1
+          if-no-files-found: ignore
 
   unit-tests-api:
     name: Unit Tests (api)
@@ -85,6 +96,15 @@ jobs:
 
       - name: Run Jest
         run: pnpm --filter api test
+
+      - name: Upload api Allure results
+        if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results-api
+          path: apps/api/allure-results
+          retention-days: 1
+          if-no-files-found: ignore
 
   e2e-tests:
     name: E2E Tests (Playwright)
@@ -120,3 +140,96 @@ jobs:
           name: playwright-report
           path: apps/web/playwright-report/
           retention-days: 7
+
+      - name: Upload e2e Allure results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results-e2e
+          path: apps/web/allure-results
+          retention-days: 1
+          if-no-files-found: ignore
+
+  allure-publish:
+    name: Publish Allure dashboard to GitHub Pages
+    needs: [unit-tests-web, unit-tests-api, e2e-tests]
+    # Run only on push to main — the dashboard tracks historical trends and
+    # there's no value rebuilding it on every PR. `if: always()` lets us
+    # publish even when one of the test jobs failed (the report shows the
+    # failures, which is the whole point).
+    if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Download web allure results
+        uses: actions/download-artifact@v4
+        with:
+          name: allure-results-web
+          path: allure-results
+        continue-on-error: true
+
+      - name: Download api allure results
+        uses: actions/download-artifact@v4
+        with:
+          name: allure-results-api
+          path: allure-results
+        continue-on-error: true
+
+      - name: Download e2e allure results
+        uses: actions/download-artifact@v4
+        with:
+          name: allure-results-e2e
+          path: allure-results
+        continue-on-error: true
+
+      - name: Skip if no allure-results were uploaded
+        id: check
+        run: |
+          if [ -d allure-results ] && [ "$(ls -A allure-results 2>/dev/null)" ]; then
+            echo "has_results=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_results=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Fetch existing gh-pages history
+        if: steps.check.outputs.has_results == 'true'
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: gh-pages-existing
+        continue-on-error: true
+
+      # Allure's trend graph requires the prior `history/` folder to be copied
+      # back into `allure-results/` before generating. Missing history is OK
+      # on the first run — the trend will just start empty.
+      - name: Restore Allure history
+        if: steps.check.outputs.has_results == 'true'
+        run: |
+          if [ -d gh-pages-existing/history ]; then
+            cp -r gh-pages-existing/history allure-results/history
+          fi
+
+      - name: Generate Allure HTML report
+        if: steps.check.outputs.has_results == 'true'
+        run: npx -y allure-commandline generate allure-results --clean -o allure-report
+
+      - name: Deploy to gh-pages
+        if: steps.check.outputs.has_results == 'true'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: allure-report
+          publish_branch: gh-pages
+          force_orphan: false
+          user_name: github-actions[bot]
+          user_email: github-actions[bot]@users.noreply.github.com
+          commit_message: 'chore: publish Allure dashboard for ${{ github.sha }}'

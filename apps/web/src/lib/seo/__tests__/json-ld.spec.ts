@@ -4,6 +4,11 @@ import {
   generateBreadcrumbJsonLd,
   generateOrganizationJsonLd,
 } from '../json-ld'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const baseProduct = {
   title: 'Sterling Silver Moonstone Ring',
@@ -17,6 +22,13 @@ const baseProduct = {
   avgRating: 4.5,
   reviewCount: 12,
 }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/lib/seo')
+  await $allureSubSuite('json-ld')
+  await $allureSeverity('normal')
+})
 
 describe('generateProductJsonLd', () => {
   it('sets correct @context and @type for Schema.org Product', () => {

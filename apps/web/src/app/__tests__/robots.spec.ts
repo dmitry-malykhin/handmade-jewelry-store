@@ -1,5 +1,17 @@
 import { describe, it, expect } from 'vitest'
 import robots from '../robots'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/__tests__')
+  await $allureSubSuite('robots')
+  await $allureSeverity('normal')
+})
 
 describe('robots', () => {
   it('allows all user agents', () => {

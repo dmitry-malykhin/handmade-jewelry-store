@@ -2,6 +2,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { createPaymentIntent } from '../payments'
 import { ApiError } from '../client'
 import * as client from '../client'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 vi.mock('../client', async (importOriginal) => {
   const actual = (await importOriginal()) as typeof client
@@ -9,6 +14,13 @@ vi.mock('../client', async (importOriginal) => {
     ...actual,
     apiClient: vi.fn(),
   }
+})
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/lib/api')
+  await $allureSubSuite('payments')
+  await $allureSeverity('normal')
 })
 
 describe('createPaymentIntent', () => {

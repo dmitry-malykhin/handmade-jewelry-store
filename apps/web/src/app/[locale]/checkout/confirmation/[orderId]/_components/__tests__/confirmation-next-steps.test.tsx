@@ -2,6 +2,11 @@ import { render, screen } from '@testing-library/react'
 import { NextIntlClientProvider } from 'next-intl'
 import messages from '../../../../../../../../messages/en.json'
 import { ConfirmationNextSteps } from '../confirmation-next-steps'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 function renderWithIntl(component: React.ReactNode) {
   return render(
@@ -10,6 +15,13 @@ function renderWithIntl(component: React.ReactNode) {
     </NextIntlClientProvider>,
   )
 }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/locale')
+  await $allureSubSuite('confirmation-next-steps')
+  await $allureSeverity('normal')
+})
 
 describe('ConfirmationNextSteps', () => {
   it('renders the section heading', () => {

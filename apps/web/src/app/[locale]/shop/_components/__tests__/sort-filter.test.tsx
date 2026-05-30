@@ -2,11 +2,23 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@/test-utils'
 import userEvent from '@testing-library/user-event'
 import { SortFilter } from '../filters/sort-filter'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const mockOnSortChange = vi.fn()
 
 beforeEach(() => {
   mockOnSortChange.mockClear()
+})
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/locale')
+  await $allureSubSuite('sort-filter')
+  await $allureSeverity('normal')
 })
 
 describe('SortFilter — rendering', () => {

@@ -5,6 +5,11 @@ import { PrismaService } from '../prisma/prisma.service'
 import { EASYPOST_CLIENT } from './easypost-client.token'
 import type { EasyPostClient } from './easypost-client.interface'
 import { ShippingService } from './shipping.service'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const completeAddress = {
   fullName: 'Maya Quinn',
@@ -27,6 +32,13 @@ function buildOrder(overrides: Partial<Record<string, unknown>> = {}) {
     ...overrides,
   }
 }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('api/shipping')
+  await $allureSubSuite('shipping.service')
+  await $allureSeverity('normal')
+})
 
 describe('ShippingService', () => {
   let shippingService: ShippingService

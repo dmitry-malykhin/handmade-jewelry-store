@@ -1,6 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { CategoriesController } from './categories.controller'
 import { CategoriesService } from './categories.service'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const mockCategories = [
   { id: 'cat-1', name: 'Bracelets', slug: 'bracelets' },
@@ -10,6 +15,13 @@ const mockCategories = [
 const mockCategoriesService = {
   findAll: jest.fn().mockResolvedValue(mockCategories),
 }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('api/categories')
+  await $allureSubSuite('categories.controller')
+  await $allureSeverity('normal')
+})
 
 describe('CategoriesController', () => {
   let categoriesController: CategoriesController

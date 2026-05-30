@@ -2,6 +2,11 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { CheckoutPaymentForm } from '../checkout-payment-form'
 import type { CheckoutAddressFormValues } from '../checkout-address-schema'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 vi.mock('next-intl', () => ({
   useTranslations: () => (key: string) => key,
@@ -57,6 +62,13 @@ const mockAddressValues: CheckoutAddressFormValues = {
   country: 'US',
   phone: '',
 }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/locale')
+  await $allureSubSuite('checkout-payment-form')
+  await $allureSeverity('normal')
+})
 
 describe('CheckoutPaymentForm', () => {
   it('shows step 3 in the progress indicator', () => {

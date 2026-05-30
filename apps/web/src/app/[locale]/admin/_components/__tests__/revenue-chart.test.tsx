@@ -3,6 +3,11 @@ import { render, screen, waitFor } from '@/test-utils'
 import userEvent from '@testing-library/user-event'
 import { RevenueChart } from '../revenue-chart'
 import * as adminApi from '@/lib/api/admin'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 vi.mock('@/lib/api/admin', () => ({
   fetchAdminRevenueStats: vi.fn(),
@@ -63,6 +68,13 @@ const revenueStatsWithData = {
 
 beforeEach(() => {
   vi.clearAllMocks()
+})
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/locale')
+  await $allureSubSuite('revenue-chart')
+  await $allureSeverity('normal')
 })
 
 describe('RevenueChart — rendering', () => {

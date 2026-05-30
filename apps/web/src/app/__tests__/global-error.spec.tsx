@@ -7,6 +7,18 @@ vi.mock('@sentry/nextjs', () => ({
 
 import * as Sentry from '@sentry/nextjs'
 import GlobalError from '../global-error'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/__tests__')
+  await $allureSubSuite('global-error')
+  await $allureSeverity('normal')
+})
 
 describe('GlobalError', () => {
   const mockReset = vi.fn()

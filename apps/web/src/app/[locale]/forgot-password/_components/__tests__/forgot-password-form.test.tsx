@@ -3,6 +3,11 @@ import { render, screen, waitFor } from '@/test-utils'
 import userEvent from '@testing-library/user-event'
 import { ForgotPasswordForm } from '../forgot-password-form'
 import * as authApi from '@/lib/api/auth'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 vi.mock('@/lib/api/auth', () => ({
   forgotPassword: vi.fn(),
@@ -28,6 +33,13 @@ const mockForgotPassword = vi.mocked(authApi.forgotPassword)
 
 beforeEach(() => {
   vi.clearAllMocks()
+})
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/locale')
+  await $allureSubSuite('forgot-password-form')
+  await $allureSeverity('normal')
 })
 
 describe('ForgotPasswordForm — rendering', () => {

@@ -34,6 +34,11 @@ vi.mock('next/navigation', () => ({
 }))
 
 import { useSearchParams } from 'next/navigation'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 const mockUseSearchParams = vi.mocked(useSearchParams)
 
 const mockResetPassword = vi.mocked(authApi.resetPassword)
@@ -47,6 +52,13 @@ function setupSearchParamsWith(token: string | null) {
     get: (key: string) => (key === 'token' ? token : null),
   } as ReturnType<typeof useSearchParams>)
 }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/locale')
+  await $allureSubSuite('reset-password-form')
+  await $allureSeverity('normal')
+})
 
 describe('ResetPasswordForm — invalid token', () => {
   it('shows error state and back link when token is missing', () => {

@@ -2,6 +2,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@/test-utils'
 import type * as OrdersApiModule from '@/lib/api/orders'
 import { RefundOrderModal } from '../refund-order-modal'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 vi.mock('@/lib/api/orders', async () => {
   const actual = await vi.importActual<typeof OrdersApiModule>('@/lib/api/orders')
@@ -14,6 +19,13 @@ vi.mock('@/store/auth.store', () => ({
   useAuthStore: (selector: (state: { accessToken: string | null }) => unknown) =>
     selector({ accessToken: 'test-token' }),
 }))
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/locale')
+  await $allureSubSuite('refund-order-modal')
+  await $allureSeverity('normal')
+})
 
 describe('RefundOrderModal', () => {
   beforeEach(() => {

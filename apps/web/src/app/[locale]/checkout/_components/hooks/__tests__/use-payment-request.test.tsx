@@ -1,6 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderHook, act, waitFor } from '@testing-library/react'
 import { usePaymentRequest } from '../use-payment-request'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const mockRouterPush = vi.fn()
 
@@ -33,6 +38,13 @@ const defaultParams = {
   orderId: 'order_abc',
   locale: 'en',
 }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/locale')
+  await $allureSubSuite('use-payment-request')
+  await $allureSeverity('normal')
+})
 
 describe('usePaymentRequest', () => {
   beforeEach(() => {

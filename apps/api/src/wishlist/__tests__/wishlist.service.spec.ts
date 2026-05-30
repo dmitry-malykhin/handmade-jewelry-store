@@ -2,6 +2,11 @@ import { NotFoundException } from '@nestjs/common'
 import { Test, TestingModule } from '@nestjs/testing'
 import { PrismaService } from '../../prisma/prisma.service'
 import { WishlistService } from '../wishlist.service'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const mockPrismaService = {
   product: { findUnique: jest.fn(), findMany: jest.fn() },
@@ -12,6 +17,13 @@ const mockPrismaService = {
     update: jest.fn(),
   },
 }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('api/wishlist')
+  await $allureSubSuite('wishlist.service')
+  await $allureSeverity('normal')
+})
 
 describe('WishlistService', () => {
   let service: WishlistService

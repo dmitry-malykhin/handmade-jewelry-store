@@ -5,6 +5,11 @@ import type Stripe from 'stripe'
 import { PrismaService } from '../prisma/prisma.service'
 import { StripeService } from '../stripe/stripe.service'
 import { PaymentsService } from './payments.service'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const ORDER_ID = 'order_test_123'
 const STRIPE_INTENT_ID = 'pi_test_abc'
@@ -24,6 +29,13 @@ const buildMockPaymentIntent = (overrides: Partial<Stripe.PaymentIntent> = {}) =
     client_secret: CLIENT_SECRET,
     ...overrides,
   }) as Stripe.PaymentIntent
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('api/payments')
+  await $allureSubSuite('payments.service')
+  await $allureSeverity('normal')
+})
 
 describe('PaymentsService', () => {
   let paymentsService: PaymentsService

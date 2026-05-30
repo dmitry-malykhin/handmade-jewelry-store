@@ -2,9 +2,21 @@ import { ConfigService } from '@nestjs/config'
 import { Test, TestingModule } from '@nestjs/testing'
 import Stripe from 'stripe'
 import { StripeService } from './stripe.service'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const FAKE_STRIPE_SECRET_KEY = 'sk_test_fake_key'
 const FAKE_WEBHOOK_SECRET = 'whsec_fake_secret'
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('api/stripe')
+  await $allureSubSuite('stripe.service')
+  await $allureSeverity('normal')
+})
 
 describe('StripeService', () => {
   let stripeService: StripeService

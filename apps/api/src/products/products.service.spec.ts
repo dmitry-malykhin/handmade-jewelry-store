@@ -10,6 +10,11 @@ import { CreateProductDto } from './dto/create-product.dto'
 import { ProductQueryDto, ProductSortField, SortOrder } from './dto/product-query.dto'
 import { UpdateProductDto } from './dto/update-product.dto'
 import { ProductsService } from './products.service'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const mockProduct = {
   id: 'prod-1',
@@ -52,6 +57,13 @@ const mockPrismaService = {
 }
 
 const mockBackInStockService = { notifyForProduct: jest.fn() }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('api/products')
+  await $allureSubSuite('products.service')
+  await $allureSeverity('normal')
+})
 
 describe('ProductsService', () => {
   let productsService: ProductsService

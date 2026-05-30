@@ -1,5 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { AnalyticsService } from './analytics.service'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const mockCapture = jest.fn()
 const mockShutdown = jest.fn().mockResolvedValue(undefined)
@@ -19,6 +24,13 @@ async function buildService(): Promise<AnalyticsService> {
   }).compile()
   return moduleRef.get(AnalyticsService)
 }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('api/analytics')
+  await $allureSubSuite('analytics.service')
+  await $allureSeverity('normal')
+})
 
 describe('AnalyticsService', () => {
   beforeEach(() => {

@@ -11,7 +11,11 @@ export default defineConfig({
   retries: isCI ? 2 : 0,
   // Limit workers on CI to avoid resource contention
   workers: isCI ? 1 : undefined,
-  reporter: isCI ? 'github' : 'html',
+  // CI emits GitHub annotations AND allure-results so the gh-pages workflow
+  // can publish the historical dashboard. Local keeps the friendly HTML.
+  reporter: isCI
+    ? [['github'], ['allure-playwright', { outputFolder: './allure-results', detail: true }]]
+    : 'html',
 
   use: {
     baseURL: 'http://localhost:3000',

@@ -2,6 +2,11 @@ import { render, screen } from '@testing-library/react'
 import { NextIntlClientProvider } from 'next-intl'
 import messages from '../../../../../../../../messages/en.json'
 import { PaymentFailedContent } from '../payment-failed-content'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const ORDER_ID = 'cmn9h19k8000i1djemmcs10tz'
 
@@ -12,6 +17,13 @@ function renderWithIntl(component: React.ReactNode) {
     </NextIntlClientProvider>,
   )
 }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/locale')
+  await $allureSubSuite('payment-failed-content')
+  await $allureSeverity('normal')
+})
 
 describe('PaymentFailedContent — payment failed', () => {
   it('displays the payment failed heading', () => {

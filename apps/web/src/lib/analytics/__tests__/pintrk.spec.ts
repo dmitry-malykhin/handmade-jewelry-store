@@ -1,5 +1,17 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { trackPinPageVisit, trackPinAddToCart, trackPinCheckout } from '../pintrk'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/lib/analytics')
+  await $allureSubSuite('pintrk')
+  await $allureSeverity('normal')
+})
 
 describe('pintrk analytics helpers', () => {
   const mockPintrk = vi.fn()

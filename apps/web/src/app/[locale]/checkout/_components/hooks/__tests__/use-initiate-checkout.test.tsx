@@ -4,6 +4,11 @@ import { useInitiateCheckout } from '../use-initiate-checkout'
 import * as ordersApi from '@/lib/api/orders'
 import * as paymentsApi from '@/lib/api/payments'
 import type { CheckoutAddressFormValues } from '../../checkout-address-schema'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 vi.mock('@/store/cart.store', () => ({
   useCheckoutItems: () => [
@@ -37,6 +42,13 @@ const mockAddressValues: CheckoutAddressFormValues = {
   country: 'US',
   phone: '',
 }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/locale')
+  await $allureSubSuite('use-initiate-checkout')
+  await $allureSeverity('normal')
+})
 
 describe('useInitiateCheckout', () => {
   beforeEach(() => {

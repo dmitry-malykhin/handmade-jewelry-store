@@ -2,6 +2,18 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen, within } from '@/test-utils'
 import userEvent from '@testing-library/user-event'
 import { ConfirmDialog } from '../confirm-dialog'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/components/admin')
+  await $allureSubSuite('confirm-dialog')
+  await $allureSeverity('normal')
+})
 
 describe('ConfirmDialog — rendering', () => {
   it('does not render dialog content when closed', () => {

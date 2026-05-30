@@ -9,6 +9,11 @@ import { PrismaService } from '../prisma/prisma.service'
 import { StripeService } from '../stripe/stripe.service'
 import { CreateOrderDto } from './dto/create-order.dto'
 import { OrdersService } from './orders.service'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const mockShippingAddress = {
   fullName: 'Jane Doe',
@@ -81,6 +86,13 @@ const mockLoyaltyService = {
   reverseForCancellationOrRefund: jest.fn().mockResolvedValue(0),
   spendForCheckout: jest.fn().mockResolvedValue(undefined),
 }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('api/orders')
+  await $allureSubSuite('orders.service')
+  await $allureSeverity('normal')
+})
 
 describe('OrdersService', () => {
   let ordersService: OrdersService

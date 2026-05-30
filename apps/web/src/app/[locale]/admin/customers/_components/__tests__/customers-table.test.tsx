@@ -3,6 +3,11 @@ import { render, screen, waitFor } from '@/test-utils'
 import userEvent from '@testing-library/user-event'
 import type * as CustomersApiModule from '@/lib/api/customers'
 import { CustomersTable } from '../customers-table'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const fetchAdminCustomersMock = vi.fn()
 
@@ -53,6 +58,13 @@ function buildResponse(overrides: Record<string, unknown> = {}) {
     ...overrides,
   }
 }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/locale')
+  await $allureSubSuite('customers-table')
+  await $allureSeverity('normal')
+})
 
 describe('CustomersTable', () => {
   beforeEach(() => {

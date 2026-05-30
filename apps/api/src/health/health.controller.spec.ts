@@ -2,6 +2,11 @@ import { Test, TestingModule } from '@nestjs/testing'
 import { HealthCheckService } from '@nestjs/terminus'
 import { HealthController } from './health.controller'
 import { PrismaService } from '../prisma/prisma.service'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const mockPrismaService = {
   $queryRaw: jest.fn(),
@@ -10,6 +15,13 @@ const mockPrismaService = {
 const mockHealthCheckService = {
   check: jest.fn(),
 }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('api/health')
+  await $allureSubSuite('health.controller')
+  await $allureSeverity('normal')
+})
 
 describe('HealthController', () => {
   let healthController: HealthController

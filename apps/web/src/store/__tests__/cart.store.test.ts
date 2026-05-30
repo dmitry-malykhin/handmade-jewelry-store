@@ -9,6 +9,11 @@ import {
   useIsExpressCheckout,
 } from '@/store/cart.store'
 import { renderHook, act } from '@testing-library/react'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 // Snapshot of product data as it would arrive when adding to cart
 const mockRing = {
@@ -35,6 +40,13 @@ beforeEach(() => {
 })
 
 // ── addItem ────────────────────────────────────────────────────────────────────
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/store/__tests__')
+  await $allureSubSuite('cart.store')
+  await $allureSeverity('normal')
+})
 
 describe('addItem()', () => {
   it('adds a new product to the cart with quantity 1', () => {

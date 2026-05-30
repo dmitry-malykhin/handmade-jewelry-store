@@ -1,8 +1,20 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { CurrencyService } from '../currency.service'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const ORIGINAL_API_KEY = process.env.EXCHANGE_RATE_API_KEY
 const ORIGINAL_FETCH = global.fetch
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('api/currency')
+  await $allureSubSuite('currency.service')
+  await $allureSeverity('normal')
+})
 
 describe('CurrencyService', () => {
   let currencyService: CurrencyService

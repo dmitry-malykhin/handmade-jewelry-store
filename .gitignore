@@ -30,6 +30,12 @@ coverage
 reports/
 apps/*/reports/
 
+# Allure raw results + generated HTML report (#252). Produced only on CI
+# under env CI=1; published to gh-pages branch by the `allure-publish` job.
+allure-results/
+allure-report/
+apps/*/allure-results/
+
 # Grunt intermediate storage (https://gruntjs.com/creating-plugins#storing-task-files)
 .grunt
 

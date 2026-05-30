@@ -1,5 +1,17 @@
 import { Role } from '@prisma/client'
 import { ROLES_KEY, Roles } from './roles.decorator'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('api/common')
+  await $allureSubSuite('roles.decorator')
+  await $allureSeverity('normal')
+})
 
 describe('Roles decorator', () => {
   it('sets roles metadata on a handler', () => {

@@ -1,6 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { ProductImageGallery } from '../product-image-gallery'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 vi.mock('next/image', () => ({
   // next/image mock for tests — native <img> is intentional here, not production code
@@ -31,6 +36,13 @@ vi.mock('next-intl', () => ({
 }))
 
 const twoImages = ['https://cdn.example.com/ring-1.jpg', 'https://cdn.example.com/ring-2.jpg']
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/locale')
+  await $allureSubSuite('product-image-gallery')
+  await $allureSeverity('normal')
+})
 
 describe('ProductImageGallery', () => {
   beforeEach(() => {

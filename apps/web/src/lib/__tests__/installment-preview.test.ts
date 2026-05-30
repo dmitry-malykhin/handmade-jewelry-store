@@ -1,5 +1,17 @@
 import { describe, it, expect } from 'vitest'
 import { calculateInstallmentPreview } from '../installment-preview'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/lib/__tests__')
+  await $allureSubSuite('installment-preview')
+  await $allureSeverity('normal')
+})
 
 describe('calculateInstallmentPreview()', () => {
   it('returns null when below Afterpay minimum ($35)', () => {

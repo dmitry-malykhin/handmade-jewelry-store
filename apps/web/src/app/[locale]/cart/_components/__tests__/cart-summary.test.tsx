@@ -2,6 +2,11 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { render, screen, act } from '@/test-utils'
 import { CartSummary } from '../cart-summary'
 import { useCartStore } from '@/store'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 vi.mock('@/i18n/navigation', () => ({
   Link: ({ children, ...props }: { children: React.ReactNode; [key: string]: unknown }) => (
@@ -11,6 +16,13 @@ vi.mock('@/i18n/navigation', () => ({
 
 beforeEach(() => {
   useCartStore.setState({ items: [] })
+})
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/locale')
+  await $allureSubSuite('cart-summary')
+  await $allureSeverity('normal')
 })
 
 describe('CartSummary — empty cart', () => {

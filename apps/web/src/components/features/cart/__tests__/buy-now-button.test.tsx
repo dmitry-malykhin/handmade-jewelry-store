@@ -4,6 +4,11 @@ import { render, screen } from '@/test-utils'
 import { BuyNowButton } from '../buy-now-button'
 import type { AddToCartProduct } from '../add-to-cart-button'
 import { useCartStore } from '@/store'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 // Capture every push() call from the i18n router
 const pushMock = vi.fn()
@@ -36,6 +41,13 @@ const permanentlySoldOutProduct: AddToCartProduct = {
 beforeEach(() => {
   pushMock.mockClear()
   useCartStore.setState({ items: [], expressItem: null })
+})
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/components/features')
+  await $allureSubSuite('buy-now-button')
+  await $allureSeverity('normal')
 })
 
 describe('BuyNowButton', () => {

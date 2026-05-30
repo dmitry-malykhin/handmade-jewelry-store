@@ -1,5 +1,17 @@
 import { describe, it, expect } from 'vitest'
 import { loadHelpContent, resolveHelpDocPath } from '../load-help-content'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/lib/admin-help')
+  await $allureSubSuite('load-help-content')
+  await $allureSeverity('normal')
+})
 
 describe('resolveHelpDocPath — valid locale + slug', () => {
   it('resolves a single-segment slug under en/', () => {

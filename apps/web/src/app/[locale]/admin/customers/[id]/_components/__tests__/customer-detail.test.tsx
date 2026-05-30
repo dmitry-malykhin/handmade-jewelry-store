@@ -2,6 +2,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@/test-utils'
 import type * as CustomersApiModule from '@/lib/api/customers'
 import { CustomerDetail } from '../customer-detail'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const fetchAdminCustomerByIdMock = vi.fn()
 
@@ -66,6 +71,13 @@ function buildCustomer(overrides: Record<string, unknown> = {}) {
     ...overrides,
   }
 }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/locale')
+  await $allureSubSuite('customer-detail')
+  await $allureSeverity('normal')
+})
 
 describe('CustomerDetail', () => {
   beforeEach(() => {

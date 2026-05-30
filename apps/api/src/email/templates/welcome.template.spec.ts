@@ -1,6 +1,18 @@
 import { buildWelcomeEmail } from './welcome.template'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const ORIGINAL_FRONTEND_URL = process.env.FRONTEND_URL
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('api/email')
+  await $allureSubSuite('welcome.template')
+  await $allureSeverity('normal')
+})
 
 describe('buildWelcomeEmail', () => {
   afterEach(() => {

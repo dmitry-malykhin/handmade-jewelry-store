@@ -4,6 +4,11 @@ import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { server } from '@/test-utils/msw/server'
 import { ContactForm } from '../contact-form'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const VALID_FORM = {
   name: 'Jane Smith',
@@ -11,6 +16,13 @@ const VALID_FORM = {
   subject: 'Order question',
   message: 'I have a question about my recent order.',
 }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/locale')
+  await $allureSubSuite('contact-form')
+  await $allureSeverity('normal')
+})
 
 describe('ContactForm — rendering', () => {
   it('renders all four fields', () => {

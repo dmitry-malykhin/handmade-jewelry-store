@@ -8,6 +8,11 @@ import {
   updateAdminReviewStatus,
   type AdminReview,
 } from '@/lib/api/reviews'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 // Radix Select needs these jsdom-missing APIs
 window.HTMLElement.prototype.hasPointerCapture = vi.fn()
@@ -59,6 +64,13 @@ beforeEach(() => {
     data: [pendingReview],
     meta: { totalCount: 1, page: 1, limit: 20, totalPages: 1 },
   })
+})
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/locale')
+  await $allureSubSuite('admin-reviews-table')
+  await $allureSeverity('normal')
 })
 
 describe('AdminReviewsTable — rendering', () => {

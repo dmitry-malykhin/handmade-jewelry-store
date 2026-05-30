@@ -4,6 +4,11 @@ import { ProductQueryDto } from './dto/product-query.dto'
 import { UpdateProductDto } from './dto/update-product.dto'
 import { ProductsController } from './products.controller'
 import { ProductsService } from './products.service'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const mockProductsService = {
   findAll: jest.fn(),
@@ -12,6 +17,13 @@ const mockProductsService = {
   update: jest.fn(),
   remove: jest.fn(),
 }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('api/products')
+  await $allureSubSuite('products.controller')
+  await $allureSeverity('normal')
+})
 
 describe('ProductsController', () => {
   let productsController: ProductsController

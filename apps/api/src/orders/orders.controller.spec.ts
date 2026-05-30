@@ -5,6 +5,11 @@ import { OrderQueryDto } from './dto/order-query.dto'
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto'
 import { OrdersController } from './orders.controller'
 import { OrdersService } from './orders.service'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const mockOrdersService = {
   create: jest.fn(),
@@ -39,6 +44,13 @@ const mockOrder = {
   status: OrderStatus.PENDING,
   total: 54.99,
 }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('api/orders')
+  await $allureSubSuite('orders.controller')
+  await $allureSeverity('normal')
+})
 
 describe('OrdersController', () => {
   let ordersController: OrdersController

@@ -3,6 +3,11 @@ import { render, screen, waitFor } from '@/test-utils'
 import userEvent from '@testing-library/user-event'
 import type * as ProductsApiModule from '@/lib/api/products'
 import { InventoryTable } from '../inventory-table'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const fetchAdminInventoryMock = vi.fn()
 const updateAdminProductStockMock = vi.fn()
@@ -49,6 +54,13 @@ const baseProduct = {
   createdAt: '',
   updatedAt: '',
 }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/locale')
+  await $allureSubSuite('inventory-table')
+  await $allureSeverity('normal')
+})
 
 describe('InventoryTable', () => {
   beforeEach(() => {

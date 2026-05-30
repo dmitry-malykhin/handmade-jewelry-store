@@ -2,6 +2,18 @@ import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { ProductCardSkeleton } from './product-card-skeleton'
 import { ProductGridSkeleton } from './product-grid-skeleton'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/components/features')
+  await $allureSubSuite('product-card-skeleton')
+  await $allureSeverity('normal')
+})
 
 describe('ProductCardSkeleton', () => {
   it('renders with aria-hidden to exclude from accessibility tree', () => {

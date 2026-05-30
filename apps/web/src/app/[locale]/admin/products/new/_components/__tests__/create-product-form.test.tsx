@@ -5,6 +5,11 @@ import { CreateProductForm } from '../create-product-form'
 import { createAdminProduct } from '@/lib/api/products'
 import { useAuthStore } from '@/store/auth.store'
 import type { Category } from '@jewelry/shared'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 vi.mock('@/lib/api/products', () => ({
   createAdminProduct: vi.fn(),
@@ -71,6 +76,13 @@ beforeEach(() => {
 afterEach(() => {
   // Ensure fake timers are always restored so they don't leak into other tests
   vi.useRealTimers()
+})
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/locale')
+  await $allureSubSuite('create-product-form')
+  await $allureSeverity('normal')
 })
 
 describe('CreateProductForm — rendering', () => {

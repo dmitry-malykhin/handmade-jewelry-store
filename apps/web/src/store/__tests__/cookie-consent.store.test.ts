@@ -1,5 +1,10 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { useCookieConsentStore } from '../cookie-consent.store'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 function getStore() {
   return useCookieConsentStore.getState()
@@ -11,6 +16,13 @@ function resetStore() {
     preferences: { analytics: false, marketing: false },
   })
 }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/store/__tests__')
+  await $allureSubSuite('cookie-consent.store')
+  await $allureSeverity('normal')
+})
 
 describe('useCookieConsentStore — initial state', () => {
   beforeEach(resetStore)

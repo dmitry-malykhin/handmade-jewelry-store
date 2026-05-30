@@ -1,5 +1,17 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { useWishlistStore } from '../wishlist.store'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/store/__tests__')
+  await $allureSubSuite('wishlist.store')
+  await $allureSeverity('normal')
+})
 
 describe('wishlist.store', () => {
   beforeEach(() => {

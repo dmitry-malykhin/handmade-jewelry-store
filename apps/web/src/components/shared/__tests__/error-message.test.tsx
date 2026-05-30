@@ -2,12 +2,24 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@/test-utils'
 import userEvent from '@testing-library/user-event'
 import { ErrorMessage } from '../error-message'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 vi.mock('@/i18n/navigation', () => ({
   Link: ({ href, children }: { href: string; children: React.ReactNode }) => (
     <a href={href}>{children}</a>
   ),
 }))
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/components/shared')
+  await $allureSubSuite('error-message')
+  await $allureSeverity('normal')
+})
 
 describe('ErrorMessage', () => {
   it('renders generic heading', () => {

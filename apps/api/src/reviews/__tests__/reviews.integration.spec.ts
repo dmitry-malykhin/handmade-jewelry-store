@@ -26,6 +26,11 @@ import { PrismaService } from '../../prisma/prisma.service'
 import { UsersService } from '../../users/users.service'
 import { ReviewsController } from '../reviews.controller'
 import { ReviewsService } from '../reviews.service'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const VALID_JWT_SECRET = 'test-secret-for-integration'
 const TEST_USER = {
@@ -55,6 +60,13 @@ const mockPrismaService = {
 }
 
 const mockUsersService = { findById: jest.fn() }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('api/reviews')
+  await $allureSubSuite('reviews.integration')
+  await $allureSeverity('normal')
+})
 
 describe('Reviews HTTP integration', () => {
   let app: INestApplication

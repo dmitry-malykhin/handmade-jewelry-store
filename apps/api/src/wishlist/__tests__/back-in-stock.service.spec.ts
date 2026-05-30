@@ -2,6 +2,11 @@ import { Test, TestingModule } from '@nestjs/testing'
 import { EmailService } from '../../email/email.service'
 import { PrismaService } from '../../prisma/prisma.service'
 import { BackInStockService } from '../back-in-stock.service'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const mockPrismaService = {
   product: { findUnique: jest.fn() },
@@ -11,6 +16,13 @@ const mockPrismaService = {
 const mockEmailService = {
   sendBackInStock: jest.fn(),
 }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('api/wishlist')
+  await $allureSubSuite('back-in-stock.service')
+  await $allureSeverity('normal')
+})
 
 describe('BackInStockService', () => {
   let service: BackInStockService

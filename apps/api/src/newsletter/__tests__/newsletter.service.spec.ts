@@ -1,6 +1,18 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { KlaviyoNewsletterClient } from '../klaviyo-newsletter.client'
 import { NewsletterService } from '../newsletter.service'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('api/newsletter')
+  await $allureSubSuite('newsletter.service')
+  await $allureSeverity('normal')
+})
 
 describe('NewsletterService', () => {
   let service: NewsletterService

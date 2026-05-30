@@ -1,5 +1,10 @@
 import { describe, it, expect, vi } from 'vitest'
 import { size, contentType, runtime } from '../apple-icon'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 vi.mock('next/og', () => ({
   ImageResponse: class MockImageResponse {
@@ -10,6 +15,13 @@ vi.mock('next/og', () => ({
     ) {}
   },
 }))
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/__tests__')
+  await $allureSubSuite('apple-icon')
+  await $allureSeverity('normal')
+})
 
 describe('apple-icon', () => {
   it('exports edge runtime', () => {

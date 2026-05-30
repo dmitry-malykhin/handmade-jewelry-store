@@ -1,6 +1,11 @@
 import { act, render, screen } from '@testing-library/react'
 import { useAuthStore } from '@/store/auth.store'
 import { AdminAuthGuard } from '../admin-auth-guard'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const mockRouterReplace = vi.fn()
 
@@ -20,6 +25,13 @@ function mockAuthState(isAuthenticated: boolean, role: string | null) {
     return selector(state as Parameters<typeof selector>[0])
   })
 }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/locale')
+  await $allureSubSuite('admin-auth-guard')
+  await $allureSeverity('normal')
+})
 
 describe('AdminAuthGuard', () => {
   beforeEach(() => {

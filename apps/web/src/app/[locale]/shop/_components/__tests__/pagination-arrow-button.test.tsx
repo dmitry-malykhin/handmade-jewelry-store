@@ -1,6 +1,11 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { PaginationArrowButton } from '../pagination-arrow-button'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 vi.mock('@/i18n/navigation', () => ({
   Link: ({
@@ -19,6 +24,13 @@ vi.mock('@/i18n/navigation', () => ({
     </a>
   ),
 }))
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/locale')
+  await $allureSubSuite('pagination-arrow-button')
+  await $allureSeverity('normal')
+})
 
 describe('PaginationArrowButton — active (href provided)', () => {
   it('renders a link when href is provided', () => {

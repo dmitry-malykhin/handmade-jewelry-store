@@ -1,6 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { UploadController } from './upload.controller'
 import { UploadService } from './upload.service'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const mockPresignedUrlResponse = {
   uploadUrl: 'https://bucket.s3.amazonaws.com/products/uuid.jpg?X-Amz-Signature=abc',
@@ -10,6 +15,13 @@ const mockPresignedUrlResponse = {
 const mockUploadService = {
   generatePresignedUrl: jest.fn(),
 }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('api/upload')
+  await $allureSubSuite('upload.controller')
+  await $allureSeverity('normal')
+})
 
 describe('UploadController', () => {
   let uploadController: UploadController

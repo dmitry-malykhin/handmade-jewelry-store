@@ -1,5 +1,17 @@
 import { describe, it, expect } from 'vitest'
 import { RING_SIZES, findUsSizeByDiameter } from '../ring-sizes'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/lib/__tests__')
+  await $allureSubSuite('ring-sizes')
+  await $allureSeverity('normal')
+})
 
 describe('RING_SIZES table integrity', () => {
   it('contains 19 entries covering US 4–13 in 0.5 increments', () => {

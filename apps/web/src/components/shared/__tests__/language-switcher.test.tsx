@@ -2,6 +2,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@/test-utils'
 import userEvent from '@testing-library/user-event'
 import { LanguageSwitcher } from '@/components/shared/language-switcher'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const mockReplace = vi.fn()
 
@@ -27,6 +32,13 @@ vi.mock('next-intl', async (importOriginal) => {
 
 beforeEach(() => {
   mockReplace.mockClear()
+})
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/components/shared')
+  await $allureSubSuite('language-switcher')
+  await $allureSeverity('normal')
 })
 
 describe('LanguageSwitcher', () => {

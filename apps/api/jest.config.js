@@ -14,6 +14,9 @@ module.exports = {
   },
   // jest-junit emits a JUnit-format XML so CI (dorny/test-reporter) can show
   // per-PR test results. Default reporter stays on for local readable output.
+  // jest-allure2-reporter generates Allure native results — only on CI to
+  // keep local `pnpm test` snappy. The gh-pages workflow merges its
+  // allure-results/ with the web package and publishes the dashboard.
   reporters: [
     'default',
     [
@@ -27,5 +30,8 @@ module.exports = {
         ancestorSeparator: ' > ',
       },
     ],
+    ...(process.env.CI
+      ? [['jest-allure2-reporter', { resultsDir: '<rootDir>/../allure-results' }]]
+      : []),
   ],
 }

@@ -1,5 +1,17 @@
 import { describe, it, expect } from 'vitest'
 import { getHelpSlugForPath } from '../path-to-help-slug'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/lib/admin-help')
+  await $allureSubSuite('path-to-help-slug')
+  await $allureSeverity('normal')
+})
 
 describe('getHelpSlugForPath — products', () => {
   it('maps /admin/products to products/overview', () => {

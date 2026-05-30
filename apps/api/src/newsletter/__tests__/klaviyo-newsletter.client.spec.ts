@@ -2,6 +2,18 @@ import { ServiceUnavailableException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { Test, TestingModule } from '@nestjs/testing'
 import { KlaviyoNewsletterClient } from '../klaviyo-newsletter.client'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('api/newsletter')
+  await $allureSubSuite('klaviyo-newsletter.client')
+  await $allureSeverity('normal')
+})
 
 describe('KlaviyoNewsletterClient', () => {
   const env = new Map<string, string | undefined>()

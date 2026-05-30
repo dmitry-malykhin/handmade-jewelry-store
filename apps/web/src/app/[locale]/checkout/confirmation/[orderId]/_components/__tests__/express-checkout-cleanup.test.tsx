@@ -5,6 +5,11 @@ import { useCartStore } from '@/store'
 import { useAuthStore } from '@/store/auth.store'
 import { useWishlistStore } from '@/store/wishlist.store'
 import * as wishlistApi from '@/lib/api/wishlist'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const sampleProduct = {
   productId: 'prod-1',
@@ -23,6 +28,13 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.restoreAllMocks()
+})
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/locale')
+  await $allureSubSuite('express-checkout-cleanup')
+  await $allureSeverity('normal')
 })
 
 describe('ExpressCheckoutCleanup', () => {

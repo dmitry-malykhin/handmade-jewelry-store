@@ -6,6 +6,18 @@ import {
   klaviyoStartedCheckout,
   klaviyoPlacedOrder,
 } from '../klaviyo'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/lib/analytics')
+  await $allureSubSuite('klaviyo')
+  await $allureSeverity('normal')
+})
 
 describe('klaviyo analytics helpers', () => {
   let queue: Array<[string, ...unknown[]]>

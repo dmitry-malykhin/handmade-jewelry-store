@@ -6,6 +6,11 @@ import {
   formatLatestDeliveryDate,
 } from '../format-eta'
 import type { ShippingOption } from '../shipping-options'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const baseCartItem = {
   productId: 'p',
@@ -23,6 +28,13 @@ const standardShipping: ShippingOption = {
   baseCost: 5.99,
   freeThreshold: 50,
 }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/locale')
+  await $allureSubSuite('format-eta')
+  await $allureSeverity('normal')
+})
 
 describe('findLongestProductionDays()', () => {
   it('returns 0 for an empty cart', () => {

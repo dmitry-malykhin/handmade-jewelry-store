@@ -2,6 +2,11 @@ import 'reflect-metadata'
 import { validate } from 'class-validator'
 import { plainToInstance } from 'class-transformer'
 import { CreateOrderDto, OrderItemDto } from '../create-order.dto'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 // Issue #227 — every handmade piece is unique. The order DTO must reject:
 //   1. quantity > 1 on a single line item
@@ -30,6 +35,13 @@ function buildBaseOrder(items: Partial<OrderItemDto>[]): unknown {
     total: 49.99,
   }
 }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('api/orders')
+  await $allureSubSuite('create-order.dto')
+  await $allureSeverity('normal')
+})
 
 describe('OrderItemDto quantity validation', () => {
   it('accepts quantity = 1', async () => {

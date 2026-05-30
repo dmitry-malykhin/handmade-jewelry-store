@@ -2,6 +2,11 @@ import { Test, TestingModule } from '@nestjs/testing'
 import { Role } from '@prisma/client'
 import { AuthController } from './auth.controller'
 import { AuthService } from './auth.service'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const mockUser = {
   id: 'user_test_1',
@@ -24,6 +29,13 @@ const mockAuthService = {
   refreshTokens: jest.fn(),
   logout: jest.fn(),
 }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('api/auth')
+  await $allureSubSuite('auth.controller')
+  await $allureSeverity('normal')
+})
 
 describe('AuthController', () => {
   let authController: AuthController

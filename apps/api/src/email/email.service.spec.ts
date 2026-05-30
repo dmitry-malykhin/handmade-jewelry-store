@@ -1,6 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { ConfigService } from '@nestjs/config'
 import { EmailService } from './email.service'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const mockResendEmailsSend = jest.fn()
 
@@ -30,6 +35,13 @@ const mockOrderConfirmationData = {
     country: 'US',
   },
 }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('api/email')
+  await $allureSubSuite('email.service')
+  await $allureSeverity('normal')
+})
 
 describe('EmailService', () => {
   let emailService: EmailService

@@ -4,6 +4,11 @@ import userEvent from '@testing-library/user-event'
 import { AdminOrdersTable } from '../admin-orders-table'
 import { downloadAdminOrdersCsv, fetchAdminOrders, updateAdminOrderStatus } from '@/lib/api/orders'
 import { useAuthStore } from '@/store/auth.store'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 // jsdom does not implement Pointer Events or scrollIntoView — required by Radix UI Select
 window.HTMLElement.prototype.hasPointerCapture = vi.fn()
@@ -93,6 +98,13 @@ beforeEach(() => {
   mockUseAuthStore.mockImplementation((selector) =>
     selector({ accessToken: 'mock-token' } as Parameters<typeof selector>[0]),
   )
+})
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/locale')
+  await $allureSubSuite('admin-orders-table')
+  await $allureSeverity('normal')
 })
 
 describe('AdminOrdersTable — rendering', () => {

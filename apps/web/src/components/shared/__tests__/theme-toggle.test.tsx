@@ -10,9 +10,21 @@ vi.mock('next-themes', () => ({
 }))
 
 import { useTheme } from 'next-themes'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 beforeEach(() => {
   mockSetTheme.mockClear()
+})
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/components/shared')
+  await $allureSubSuite('theme-toggle')
+  await $allureSeverity('normal')
 })
 
 describe('ThemeToggle — light mode', () => {

@@ -6,8 +6,20 @@ import Stripe from 'stripe'
 import { StripeWebhooksController } from './stripe-webhooks.controller'
 import { StripeService } from './stripe.service'
 import { StripeWebhooksService } from './stripe-webhooks.service'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const FAKE_STRIPE_SIGNATURE = 't=1234,v1=abcdef'
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('api/stripe')
+  await $allureSubSuite('stripe-webhooks.controller')
+  await $allureSeverity('normal')
+})
 
 describe('StripeWebhooksController', () => {
   let stripeWebhooksController: StripeWebhooksController

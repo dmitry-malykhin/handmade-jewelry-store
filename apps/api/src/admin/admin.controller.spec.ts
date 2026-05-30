@@ -4,6 +4,11 @@ import { AdminController } from './admin.controller'
 import { AdminService } from './admin.service'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
 import { RolesGuard } from '../auth/guards/roles.guard'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const mockAdminService = {
   getStats: jest.fn(),
@@ -11,6 +16,13 @@ const mockAdminService = {
 
 const mockJwtAuthGuard = { canActivate: jest.fn().mockReturnValue(true) }
 const mockRolesGuard = { canActivate: jest.fn().mockReturnValue(true) }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('api/admin')
+  await $allureSubSuite('admin.controller')
+  await $allureSeverity('normal')
+})
 
 describe('AdminController', () => {
   let adminController: AdminController

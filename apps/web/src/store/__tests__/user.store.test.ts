@@ -2,6 +2,11 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { useUserStore, useCurrentUser, useIsAuthenticated } from '@/store/user.store'
 import { renderHook, act } from '@testing-library/react'
 import type { UserProfile } from '@jewelry/shared'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const mockUser: UserProfile = {
   id: 'user-1',
@@ -25,6 +30,13 @@ beforeEach(() => {
 })
 
 // ── setUser ────────────────────────────────────────────────────────────────────
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/store/__tests__')
+  await $allureSubSuite('user.store')
+  await $allureSeverity('normal')
+})
 
 describe('setUser()', () => {
   it('sets the authenticated user profile', () => {

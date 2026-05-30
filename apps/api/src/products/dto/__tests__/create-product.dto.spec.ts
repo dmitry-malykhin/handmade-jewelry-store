@@ -2,6 +2,11 @@ import 'reflect-metadata'
 import { validate } from 'class-validator'
 import { plainToInstance } from 'class-transformer'
 import { CreateProductDto } from '../create-product.dto'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 function buildDto(overrides: Partial<CreateProductDto> = {}): CreateProductDto {
   return plainToInstance(CreateProductDto, {
@@ -17,6 +22,13 @@ function buildDto(overrides: Partial<CreateProductDto> = {}): CreateProductDto {
 }
 
 // Issue #227 — every handmade piece is unique. Stock is binary, 0 or 1.
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('api/products')
+  await $allureSubSuite('create-product.dto')
+  await $allureSeverity('normal')
+})
+
 describe('CreateProductDto stock validation', () => {
   it('accepts stock = 0 with productionDays >= 1 (made on order)', async () => {
     const errors = await validate(buildDto({ stock: 0, productionDays: 3 }))

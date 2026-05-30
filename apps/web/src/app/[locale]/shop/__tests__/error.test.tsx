@@ -1,12 +1,24 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@/test-utils'
 import CatalogError from '../error'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 vi.mock('@/i18n/navigation', () => ({
   Link: ({ href, children }: { href: string; children: React.ReactNode }) => (
     <a href={href}>{children}</a>
   ),
 }))
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/locale')
+  await $allureSubSuite('error')
+  await $allureSeverity('normal')
+})
 
 describe('CatalogError boundary', () => {
   it('renders generic error heading', () => {

@@ -1,9 +1,21 @@
 import { buildShippingNotificationEmail } from './shipping-notification.template'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const baseData = {
   recipientEmail: 'jane@example.com',
   orderId: 'order_abcdef1234567890',
 }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('api/email')
+  await $allureSubSuite('shipping-notification.template')
+  await $allureSeverity('normal')
+})
 
 describe('buildShippingNotificationEmail', () => {
   // TC-EMAIL-006 — with tracking number

@@ -1,4 +1,9 @@
 import { buildOrderConfirmationEmail, OrderConfirmationData } from './order-confirmation.template'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const baseAddress: OrderConfirmationData['shippingAddress'] = {
   fullName: 'Jane Doe',
@@ -18,6 +23,13 @@ const baseData: OrderConfirmationData = {
   total: 54.99,
   shippingAddress: baseAddress,
 }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('api/email')
+  await $allureSubSuite('order-confirmation.template')
+  await $allureSeverity('normal')
+})
 
 describe('buildOrderConfirmationEmail', () => {
   // TC-EMAIL-001 — happy path: subject and core fields render

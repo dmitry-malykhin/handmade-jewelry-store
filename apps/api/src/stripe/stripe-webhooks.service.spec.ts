@@ -6,6 +6,11 @@ import { AnalyticsService } from '../analytics/analytics.service'
 import { EmailService } from '../email/email.service'
 import { PrismaService } from '../prisma/prisma.service'
 import { StripeWebhooksService } from './stripe-webhooks.service'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const ORDER_ID = 'order_test_123'
 const PAYMENT_ID = 'payment_test_abc'
@@ -61,6 +66,13 @@ const buildMockCharge = (overrides: Partial<Stripe.Charge> = {}) =>
     amount_refunded: 4998,
     ...overrides,
   }) as unknown as Stripe.Charge
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('api/stripe')
+  await $allureSubSuite('stripe-webhooks.service')
+  await $allureSeverity('normal')
+})
 
 describe('StripeWebhooksService', () => {
   let stripeWebhooksService: StripeWebhooksService

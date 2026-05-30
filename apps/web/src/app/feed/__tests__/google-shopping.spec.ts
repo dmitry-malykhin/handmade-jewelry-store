@@ -1,9 +1,21 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const mockFetchProducts = vi.fn()
 vi.mock('@/lib/api/products', () => ({
   fetchProducts: (...args: unknown[]) => mockFetchProducts(...args),
 }))
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/feed')
+  await $allureSubSuite('google-shopping')
+  await $allureSeverity('normal')
+})
 
 describe('Google Shopping Feed', () => {
   beforeEach(() => {

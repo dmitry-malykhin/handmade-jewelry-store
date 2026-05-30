@@ -3,6 +3,11 @@ import { render, screen, waitFor } from '@/test-utils'
 import { DisplayPrice } from '../display-price'
 import { useCurrencyStore } from '@/store/currency.store'
 import { fetchExchangeRates } from '@/lib/api/exchange-rates'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 vi.mock('@/lib/api/exchange-rates', () => ({
   fetchExchangeRates: vi.fn(),
@@ -13,6 +18,13 @@ const mockFetchExchangeRates = vi.mocked(fetchExchangeRates)
 beforeEach(() => {
   useCurrencyStore.setState({ displayCurrency: 'USD' })
   mockFetchExchangeRates.mockReset()
+})
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/components/shared')
+  await $allureSubSuite('display-price')
+  await $allureSeverity('normal')
 })
 
 describe('DisplayPrice — USD (no conversion)', () => {

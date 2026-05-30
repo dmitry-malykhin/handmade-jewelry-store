@@ -4,6 +4,18 @@ import {
   FREE_SHIPPING_THRESHOLD,
   calculateShippingCost,
 } from '../shipping-options'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/locale')
+  await $allureSubSuite('shipping-options')
+  await $allureSeverity('normal')
+})
 
 describe('SHIPPING_OPTIONS', () => {
   it('contains standard and express options', () => {

@@ -5,6 +5,11 @@ import { render } from '@/test-utils'
 import { LabelPurchaseSection } from '../label-purchase-section'
 import * as adminShipping from '@/lib/api/admin-shipping'
 import type { AdminOrderDetail } from '@/lib/api/orders'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 vi.mock('@/lib/api/admin-shipping', () => ({
   fetchShippingStatus: vi.fn(),
@@ -70,6 +75,13 @@ const mockPurchaseLabel = vi.mocked(adminShipping.purchaseAdminShippingLabel)
 beforeEach(() => {
   vi.clearAllMocks()
   mockFetchShippingStatus.mockResolvedValue({ isLiveMode: false })
+})
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/locale')
+  await $allureSubSuite('label-purchase-section')
+  await $allureSeverity('normal')
 })
 
 describe('LabelPurchaseSection — render gating', () => {

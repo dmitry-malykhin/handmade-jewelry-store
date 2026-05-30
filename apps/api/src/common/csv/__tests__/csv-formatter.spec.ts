@@ -1,4 +1,16 @@
 import { buildCsvDocument, buildCsvRow, escapeCsvCell } from '../csv-formatter'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('api/common')
+  await $allureSubSuite('csv-formatter')
+  await $allureSeverity('normal')
+})
 
 describe('escapeCsvCell', () => {
   it('returns plain values untouched', () => {

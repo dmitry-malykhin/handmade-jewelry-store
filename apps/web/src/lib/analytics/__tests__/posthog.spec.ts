@@ -7,6 +7,11 @@ import {
   trackCheckoutStarted,
   trackOrderPlaced,
 } from '../posthog'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const captureMock = vi.fn()
 
@@ -16,6 +21,13 @@ vi.mock('posthog-js', () => {
     capture: (...args: unknown[]) => captureMock(...args),
   }
   return { default: instance }
+})
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/lib/analytics')
+  await $allureSubSuite('posthog')
+  await $allureSeverity('normal')
 })
 
 describe('decodeAuthUser', () => {

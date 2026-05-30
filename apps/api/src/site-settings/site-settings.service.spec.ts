@@ -2,6 +2,11 @@ import { BadRequestException } from '@nestjs/common'
 import { Test, TestingModule } from '@nestjs/testing'
 import { PrismaService } from '../prisma/prisma.service'
 import { SiteSettingsService } from './site-settings.service'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const mockPrismaService = {
   siteSettings: {
@@ -27,6 +32,13 @@ const baseSettings = {
   createdAt: new Date(),
   updatedAt: new Date(),
 }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('api/site-settings')
+  await $allureSubSuite('site-settings.service')
+  await $allureSeverity('normal')
+})
 
 describe('SiteSettingsService', () => {
   let siteSettingsService: SiteSettingsService

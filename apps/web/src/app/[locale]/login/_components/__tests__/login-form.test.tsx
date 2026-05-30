@@ -4,6 +4,11 @@ import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { server } from '@/test-utils/msw/server'
 import { LoginForm } from '../login-form'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const mockRouterPush = vi.fn()
 
@@ -43,6 +48,13 @@ async function getMockSetTokens() {
 
 beforeEach(() => {
   mockRouterPush.mockClear()
+})
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/locale')
+  await $allureSubSuite('login-form')
+  await $allureSeverity('normal')
 })
 
 describe('LoginForm — rendering', () => {

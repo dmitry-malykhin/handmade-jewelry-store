@@ -1,8 +1,20 @@
 import { describe, it, expect } from 'vitest'
 import { calculateEstimatedDelivery, formatDeliveryRange } from '../calculate-estimated-delivery'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 // Fixed Monday 2026-03-30 as the base date for deterministic tests
 const MONDAY = new Date('2026-03-30T10:00:00.000Z')
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/locale')
+  await $allureSubSuite('calculate-estimated-delivery')
+  await $allureSeverity('normal')
+})
 
 describe('calculateEstimatedDelivery', () => {
   it('adds business days skipping weekends for standard shipping (5–7 days from Monday)', () => {

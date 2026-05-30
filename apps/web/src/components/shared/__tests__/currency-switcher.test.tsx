@@ -3,6 +3,11 @@ import { render, screen } from '@/test-utils'
 import userEvent from '@testing-library/user-event'
 import { CurrencySwitcher } from '../currency-switcher'
 import { useCurrencyStore } from '@/store/currency.store'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 // Radix DropdownMenu needs these jsdom-missing APIs
 window.HTMLElement.prototype.hasPointerCapture = vi.fn()
@@ -12,6 +17,13 @@ window.HTMLElement.prototype.scrollIntoView = vi.fn()
 
 beforeEach(() => {
   useCurrencyStore.setState({ displayCurrency: 'USD' })
+})
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/components/shared')
+  await $allureSubSuite('currency-switcher')
+  await $allureSeverity('normal')
 })
 
 describe('CurrencySwitcher', () => {

@@ -2,6 +2,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { useCookieConsentStore } from '@/store/cookie-consent.store'
 import { CookieBanner } from '../cookie-banner'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 vi.mock('next-intl', () => ({
   useTranslations: () => (key: string) => key,
@@ -48,6 +53,13 @@ function suppressPersistRehydrate() {
   // persist.rehydrate() is called on mount — stub it to prevent test noise
   vi.spyOn(useCookieConsentStore.persist, 'rehydrate').mockImplementation(() => Promise.resolve())
 }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/components/shared')
+  await $allureSubSuite('cookie-banner')
+  await $allureSeverity('normal')
+})
 
 describe('CookieBanner — visibility', () => {
   beforeEach(() => {

@@ -2,6 +2,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@/test-utils'
 import userEvent from '@testing-library/user-event'
 import { MobileNav } from '@/components/shared/mobile-nav'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const mockReplace = vi.fn()
 
@@ -38,6 +43,13 @@ vi.mock('next-themes', () => ({
 
 beforeEach(() => {
   mockReplace.mockClear()
+})
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/components/shared')
+  await $allureSubSuite('mobile-nav')
+  await $allureSeverity('normal')
 })
 
 describe('MobileNav', () => {

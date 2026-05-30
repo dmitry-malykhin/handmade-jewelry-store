@@ -2,6 +2,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@/test-utils'
 import { OrderStatusBreakdown } from '../order-status-breakdown'
 import * as adminApi from '@/lib/api/admin'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 vi.mock('@/lib/api/admin', () => ({
   fetchAdminOrderStatusBreakdown: vi.fn(),
@@ -39,6 +44,13 @@ const mockFetchBreakdown = vi.mocked(adminApi.fetchAdminOrderStatusBreakdown)
 
 beforeEach(() => {
   vi.clearAllMocks()
+})
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/locale')
+  await $allureSubSuite('order-status-breakdown')
+  await $allureSeverity('normal')
 })
 
 describe('OrderStatusBreakdown', () => {
