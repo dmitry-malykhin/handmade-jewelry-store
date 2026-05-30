@@ -1,5 +1,17 @@
 import { describe, it, expect } from 'vitest'
 import { formatCurrencyPrice, isDisplayCurrency } from '@jewelry/shared'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/lib/__tests__')
+  await $allureSubSuite('formatCurrencyPrice')
+  await $allureSeverity('normal')
+})
 
 describe('formatCurrencyPrice', () => {
   it('renders USD as "$X.XX" with two decimals', () => {

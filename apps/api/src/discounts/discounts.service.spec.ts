@@ -3,6 +3,11 @@ import { Test, TestingModule } from '@nestjs/testing'
 import { DiscountType, Prisma } from '@prisma/client'
 import { PrismaService } from '../prisma/prisma.service'
 import { DiscountsService, computeDiscountAmountCents } from './discounts.service'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const mockPrismaService = {
   discount: {
@@ -30,6 +35,13 @@ function buildDiscount(overrides: Record<string, unknown> = {}) {
     ...overrides,
   }
 }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('api/discounts')
+  await $allureSubSuite('discounts.service')
+  await $allureSeverity('normal')
+})
 
 describe('DiscountsService', () => {
   let discountsService: DiscountsService

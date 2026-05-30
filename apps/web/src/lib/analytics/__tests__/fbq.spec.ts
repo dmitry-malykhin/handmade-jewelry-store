@@ -5,6 +5,18 @@ import {
   trackFbInitiateCheckout,
   trackFbPurchase,
 } from '../fbq'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/lib/analytics')
+  await $allureSubSuite('fbq')
+  await $allureSeverity('normal')
+})
 
 describe('fbq analytics helpers', () => {
   const mockFbq = vi.fn()

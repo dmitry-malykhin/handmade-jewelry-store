@@ -9,13 +9,19 @@ export default defineConfig({
     environment: 'jsdom',
     // Makes describe/it/expect available globally — no need to import in every file
     globals: true,
-    // Runs before each test file — sets up jest-dom matchers and MSW server
-    setupFiles: ['./vitest.setup.ts'],
+    // `allure-vitest/setup` ships the allure-vitest runtime — must come
+    // first so `await allure.suite(...)` resolves inside every beforeAll /
+    // beforeEach in the project.
+    setupFiles: ['allure-vitest/setup', './vitest.setup.ts'],
     include: ['src/**/__tests__/**/*.{test,spec}.{ts,tsx}'],
     exclude: ['node_modules', '.next'],
-    // CI reads junit.xml via dorny/test-reporter to surface per-PR test results.
-    // Local dev keeps the default human-readable reporter; junit is additive.
-    reporters: process.env.CI ? ['default', 'junit'] : ['default'],
+    // CI reads junit.xml via dorny/test-reporter for per-PR test results.
+    // Allure additionally writes allure-results/ — consumed by the gh-pages
+    // workflow to build the historical dashboard. Allure runs only on CI to
+    // keep local `pnpm test` fast.
+    reporters: process.env.CI
+      ? ['default', 'junit', ['allure-vitest/reporter', { resultsDir: './allure-results' }]]
+      : ['default'],
     outputFile: { junit: './reports/junit.xml' },
     coverage: {
       provider: 'v8',

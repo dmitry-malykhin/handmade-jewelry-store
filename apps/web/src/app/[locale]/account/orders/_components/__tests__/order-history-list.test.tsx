@@ -20,6 +20,11 @@ vi.mock('@/store/auth.store', () => ({
 }))
 
 import { OrderHistoryList } from '../order-history-list'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 function renderWithIntl(ui: React.ReactElement) {
   return render(
@@ -55,6 +60,13 @@ const sampleOrder = {
   createdAt: '2026-04-20T10:00:00.000Z',
   updatedAt: '2026-04-20T10:00:00.000Z',
 }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/locale')
+  await $allureSubSuite('order-history-list')
+  await $allureSeverity('normal')
+})
 
 describe('OrderHistoryList', () => {
   beforeEach(() => {

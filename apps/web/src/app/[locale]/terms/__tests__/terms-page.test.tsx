@@ -2,6 +2,11 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import messages from '../../../../../messages/en.json'
 import TermsPage from '../page'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 // next-intl/server: handles both string and { namespace, locale } call forms
 vi.mock('next-intl/server', () => ({
@@ -24,6 +29,13 @@ async function renderTermsPage() {
   const jsx = await TermsPage({ params: Promise.resolve({ locale: 'en' }) })
   return render(jsx)
 }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/locale')
+  await $allureSubSuite('terms-page')
+  await $allureSeverity('normal')
+})
 
 describe('TermsPage — metadata', () => {
   it('renders the page title heading', async () => {

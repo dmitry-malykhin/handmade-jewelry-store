@@ -1,5 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { PrismaService } from './prisma.service'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 // jest.mock is hoisted to the top of the file before any variable declarations.
 // The class must be defined inside the factory to avoid "Cannot access before initialization".
@@ -12,6 +17,13 @@ jest.mock('@prisma/client', () => {
     $on = jest.fn()
   }
   return { PrismaClient: MockPrismaClient }
+})
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('api/prisma')
+  await $allureSubSuite('prisma.service')
+  await $allureSeverity('normal')
 })
 
 describe('PrismaService', () => {

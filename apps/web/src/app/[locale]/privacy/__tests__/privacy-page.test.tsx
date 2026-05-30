@@ -2,6 +2,11 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import messages from '../../../../../messages/en.json'
 import PrivacyPage from '../page'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 vi.mock('next-intl/server', () => ({
   getTranslations: async (namespaceOrOptions: string | { namespace: string; locale?: string }) => {
@@ -17,6 +22,13 @@ async function renderPrivacyPage() {
   const jsx = await PrivacyPage({ params: Promise.resolve({ locale: 'en' }) })
   return render(jsx)
 }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/locale')
+  await $allureSubSuite('privacy-page')
+  await $allureSeverity('normal')
+})
 
 describe('PrivacyPage — structure', () => {
   it('renders the page title heading', async () => {

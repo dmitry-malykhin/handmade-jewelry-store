@@ -4,6 +4,18 @@ import { render, screen, waitFor } from '@/test-utils'
 import { NewsletterForm } from '../newsletter-form'
 import * as newsletterApi from '@/lib/api/newsletter'
 import { ApiError } from '@/lib/api/client'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/components/features')
+  await $allureSubSuite('newsletter-form')
+  await $allureSeverity('normal')
+})
 
 describe('NewsletterForm', () => {
   beforeEach(() => {

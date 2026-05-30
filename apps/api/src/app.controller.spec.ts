@@ -1,6 +1,18 @@
 import { Test, type TestingModule } from '@nestjs/testing'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('api/app.controller.spec.ts')
+  await $allureSubSuite('app.controller')
+  await $allureSeverity('normal')
+})
 
 describe('AppController', () => {
   let appController: AppController

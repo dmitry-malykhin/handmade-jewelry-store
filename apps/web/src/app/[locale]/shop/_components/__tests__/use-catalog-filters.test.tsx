@@ -1,6 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 import { useCatalogFilters } from '../hooks/use-catalog-filters'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const mockRouterPush = vi.fn()
 let mockSearchParamsStore: Record<string, string> = {}
@@ -17,6 +22,13 @@ vi.mock('next/navigation', () => ({
 beforeEach(() => {
   mockRouterPush.mockClear()
   mockSearchParamsStore = {}
+})
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/locale')
+  await $allureSubSuite('use-catalog-filters')
+  await $allureSeverity('normal')
 })
 
 describe('useCatalogFilters — derived state from URL params', () => {

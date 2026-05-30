@@ -2,6 +2,11 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { CheckoutPaymentRequestButton } from '../checkout-payment-request-button'
 import type { PaymentRequest } from '@stripe/stripe-js'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 vi.mock('next-intl', () => ({
   useTranslations: () => (key: string) => key,
@@ -20,6 +25,13 @@ vi.mock('@stripe/react-stripe-js', () => ({
 }))
 
 const mockPaymentRequest = {} as PaymentRequest
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/locale')
+  await $allureSubSuite('checkout-payment-request-button')
+  await $allureSeverity('normal')
+})
 
 describe('CheckoutPaymentRequestButton', () => {
   it('renders the Stripe PaymentRequestButtonElement', () => {

@@ -1,8 +1,20 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { render, screen, waitFor } from '@/test-utils'
 import { HelpDrawer } from '../help-drawer'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const noop = vi.fn()
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/components/admin')
+  await $allureSubSuite('help-drawer')
+  await $allureSeverity('normal')
+})
 
 describe('HelpDrawer — lazy fetch', () => {
   beforeEach(() => {

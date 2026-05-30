@@ -17,6 +17,11 @@ vi.mock('@/store/auth.store', () => ({
 
 import { toast } from 'sonner'
 import { ChangePasswordForm } from '../change-password-form'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 function renderWithIntl(ui: React.ReactElement) {
   return render(
@@ -25,6 +30,13 @@ function renderWithIntl(ui: React.ReactElement) {
     </NextIntlClientProvider>,
   )
 }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/locale')
+  await $allureSubSuite('change-password-form')
+  await $allureSeverity('normal')
+})
 
 describe('ChangePasswordForm', () => {
   beforeEach(() => {

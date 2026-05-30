@@ -7,6 +7,11 @@ import {
   seedUsers,
   seedWishlist,
 } from '../../prisma/seed'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 // PrismaClient mock must be defined inside the factory to avoid hoisting issues.
 // Using a class mock to preserve the prototype chain.
@@ -34,6 +39,13 @@ function buildMockPrismaClient() {
 
 afterEach(() => {
   jest.clearAllMocks()
+})
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('api/prisma')
+  await $allureSubSuite('seed')
+  await $allureSeverity('normal')
 })
 
 describe('hashPasswordForSeed', () => {

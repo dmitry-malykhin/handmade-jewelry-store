@@ -2,6 +2,11 @@ import { ConflictException, NotFoundException } from '@nestjs/common'
 import { Test, TestingModule } from '@nestjs/testing'
 import { PrismaService } from '../prisma/prisma.service'
 import { CategoriesService } from './categories.service'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const mockPrismaService = {
   category: {
@@ -13,6 +18,13 @@ const mockPrismaService = {
     delete: jest.fn(),
   },
 }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('api/categories')
+  await $allureSubSuite('categories.service')
+  await $allureSeverity('normal')
+})
 
 describe('CategoriesService', () => {
   let categoriesService: CategoriesService

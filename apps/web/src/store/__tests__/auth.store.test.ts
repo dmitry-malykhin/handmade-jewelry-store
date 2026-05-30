@@ -1,5 +1,10 @@
 import { act, renderHook } from '@testing-library/react'
 import { useAuthStore } from '../auth.store'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 // Minimal valid JWT with payload { sub: 'user-1', email: 'test@test.com', role: 'ADMIN' }
 // Header: {"alg":"HS256","typ":"JWT"}, Payload: {"sub":"user-1","email":"test@test.com","role":"ADMIN"}
@@ -28,6 +33,13 @@ beforeEach(() => {
     isAuthenticated: false,
     role: null,
   })
+})
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/store/__tests__')
+  await $allureSubSuite('auth.store')
+  await $allureSeverity('normal')
 })
 
 describe('useAuthStore', () => {

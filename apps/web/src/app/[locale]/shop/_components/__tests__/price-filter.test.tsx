@@ -2,6 +2,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@/test-utils'
 import userEvent from '@testing-library/user-event'
 import { PriceFilter } from '../filters/price-filter'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const mockOnMinPriceChange = vi.fn()
 const mockOnMaxPriceChange = vi.fn()
@@ -9,6 +14,13 @@ const mockOnMaxPriceChange = vi.fn()
 beforeEach(() => {
   mockOnMinPriceChange.mockClear()
   mockOnMaxPriceChange.mockClear()
+})
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/locale')
+  await $allureSubSuite('price-filter')
+  await $allureSeverity('normal')
 })
 
 describe('PriceFilter — rendering', () => {

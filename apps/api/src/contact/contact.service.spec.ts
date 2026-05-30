@@ -1,12 +1,24 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { EmailService } from '../email/email.service'
 import { ContactService } from './contact.service'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const mockSendContactMessage = jest.fn().mockResolvedValue(undefined)
 
 const mockEmailService = {
   sendContactMessage: mockSendContactMessage,
 }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('api/contact')
+  await $allureSubSuite('contact.service')
+  await $allureSeverity('normal')
+})
 
 describe('ContactService', () => {
   let contactService: ContactService

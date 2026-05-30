@@ -4,6 +4,11 @@ import userEvent from '@testing-library/user-event'
 import { CartItemRow } from '../cart-item-row'
 import { useCartStore } from '@/store'
 import type { CartItem } from '@jewelry/shared'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 vi.mock('@/i18n/navigation', () => ({
   Link: ({ children, ...props }: { children: React.ReactNode; [key: string]: unknown }) => (
@@ -33,6 +38,13 @@ const madeToOrderCartItem: CartItem = {
 
 beforeEach(() => {
   useCartStore.setState({ items: [ringCartItem] })
+})
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/locale')
+  await $allureSubSuite('cart-item-row')
+  await $allureSeverity('normal')
 })
 
 describe('CartItemRow — rendering', () => {

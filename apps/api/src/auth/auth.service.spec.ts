@@ -8,6 +8,11 @@ import { EmailService } from '../email/email.service'
 import { PrismaService } from '../prisma/prisma.service'
 import { UsersService } from '../users/users.service'
 import { AuthService } from './auth.service'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const mockBcryptHash = jest.fn().mockResolvedValue('hashed_value')
 const mockBcryptCompare = jest.fn()
@@ -76,6 +81,13 @@ const mockPrismaService = {
   },
   $transaction: jest.fn(),
 }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('api/auth')
+  await $allureSubSuite('auth.service')
+  await $allureSeverity('normal')
+})
 
 describe('AuthService', () => {
   let authService: AuthService

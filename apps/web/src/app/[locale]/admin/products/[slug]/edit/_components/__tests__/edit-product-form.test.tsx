@@ -5,6 +5,11 @@ import { EditProductForm } from '../edit-product-form'
 import { updateAdminProduct } from '@/lib/api/products'
 import { useAuthStore } from '@/store/auth.store'
 import type { Category, Product } from '@jewelry/shared'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 vi.mock('@/lib/api/products', () => ({
   updateAdminProduct: vi.fn(),
@@ -70,6 +75,13 @@ beforeEach(() => {
   window.HTMLElement.prototype.setPointerCapture = vi.fn()
   window.HTMLElement.prototype.releasePointerCapture = vi.fn()
   window.HTMLElement.prototype.scrollIntoView = vi.fn()
+})
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/locale')
+  await $allureSubSuite('edit-product-form')
+  await $allureSeverity('normal')
 })
 
 describe('EditProductForm', () => {

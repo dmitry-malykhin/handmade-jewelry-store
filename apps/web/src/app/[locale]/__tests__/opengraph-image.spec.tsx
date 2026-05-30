@@ -1,6 +1,11 @@
 import { describe, it, expect, vi } from 'vitest'
 import messages from '../../../../messages/en.json'
 import { size, contentType, runtime } from '../opengraph-image'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 vi.mock('next/og', () => ({
   ImageResponse: class MockImageResponse {
@@ -19,6 +24,13 @@ vi.mock('next-intl/server', () => ({
     return (key: string) => ns[key] ?? key
   },
 }))
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/locale')
+  await $allureSubSuite('opengraph-image')
+  await $allureSeverity('normal')
+})
 
 describe('locale opengraph-image', () => {
   it('exports edge runtime', () => {

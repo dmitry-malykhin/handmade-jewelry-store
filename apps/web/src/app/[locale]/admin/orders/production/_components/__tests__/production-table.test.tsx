@@ -2,6 +2,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@/test-utils'
 import type * as OrdersApiModule from '@/lib/api/orders'
 import { ProductionTable } from '../production-table'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const DAY_MS = 24 * 60 * 60 * 1000
 function daysFromNow(days: number): string {
@@ -74,6 +79,13 @@ function buildQueueItem(overrides: Record<string, unknown> = {}) {
     ...overrides,
   }
 }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/locale')
+  await $allureSubSuite('production-table')
+  await $allureSeverity('normal')
+})
 
 describe('ProductionTable', () => {
   beforeEach(() => {

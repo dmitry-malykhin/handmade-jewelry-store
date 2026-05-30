@@ -107,8 +107,61 @@ Run before every production deploy with a real Stripe test card:
 
 ## 10. Future work (not in #147)
 
-- **Allure Report on GitHub Pages** — historical test stability dashboard. Higher upfront cost (annotating all existing tests) vs marginal day-to-day value. Tracked in #252.
+- **Allure Report on GitHub Pages** — ✅ delivered in #252 (Phase 2). Every test file emits Allure metadata (`suite`, `subSuite`, `severity`) via a top-of-file `beforeEach`. CI uploads `allure-results/` from web/api/e2e jobs; the `allure-publish` job merges them, generates HTML and pushes to `gh-pages`. See section 11 below for ops.
 - **PR-inline test failure details** — previously surfaced via `dorny/test-reporter`; removed because dorny v1 mis-attributes its check runs to whatever workflow first touched the commit (`auto-pr.yml` in our case), producing visually inconsistent check names in the PR. The job's own pass/fail status is enough for now; if we need per-test failure visibility later, upload `junit.xml` as a workflow artifact or migrate to GitHub's job summary API.
 - **MailSlurp E2E for emails** — actually receive the email in a test inbox and assert content. Today we trust the template unit tests + Resend dashboard.
 - **Visual regression** — Percy or Chromatic for product / checkout / email rendering.
 - **Coverage badges** — only after the TC inventory is more complete; otherwise badges encourage padding low-value tests.
+
+## 11. Allure dashboard ops
+
+**Live URL:** `https://<owner>.github.io/handmade-jewelry-store/` (configured under repo Settings → Pages: source = `gh-pages` branch, root).
+
+**Refresh trigger:** Pushes to `main`. PR builds do not regenerate the dashboard.
+
+**What lives where:**
+
+| Package    | Reporter             | Output dir              |
+| ---------- | -------------------- | ----------------------- |
+| apps/api   | jest-allure2-reporter | `apps/api/allure-results` |
+| apps/web   | allure-vitest        | `apps/web/allure-results` |
+| apps/web (e2e) | allure-playwright | `apps/web/allure-results` (same dir; merged in CI) |
+
+The `allure-publish` job in `.github/workflows/ci.yml`:
+1. Downloads `allure-results-{web,api,e2e}` artifacts into a single `allure-results/`.
+2. Restores `history/` from the existing `gh-pages` branch (preserves trend data — first run has none).
+3. Runs `allure-commandline generate` to build HTML.
+4. Pushes the HTML to `gh-pages` via `peaceiris/actions-gh-pages`.
+
+**Local rebuild (when you want to preview without pushing):**
+
+```bash
+# 1. Run tests with CI=1 to enable the allure reporters
+CI=1 pnpm --filter web test:run
+CI=1 pnpm --filter api test
+# (e2e optional — needs Playwright browsers installed)
+CI=1 pnpm --filter web test:e2e
+
+# 2. Merge results into one folder and generate HTML
+mkdir -p allure-results
+cp -r apps/web/allure-results/* allure-results/ 2>/dev/null || true
+cp -r apps/api/allure-results/* allure-results/ 2>/dev/null || true
+npx allure-commandline generate allure-results --clean -o allure-report
+
+# 3. Open the report in a browser
+npx allure-commandline open allure-report
+```
+
+**Annotation pattern (every test file):**
+
+```ts
+import { suite as $allureSuite, subSuite as $allureSubSuite, severity as $allureSeverity } from 'allure-js-commons'
+
+beforeEach(async () => {
+  await $allureSuite('api/orders')
+  await $allureSubSuite('orders.service')
+  await $allureSeverity('normal')
+})
+```
+
+Playwright tests use `test.beforeEach` instead of the global `beforeEach`. The codemod that originally added these is in `scripts/annotate-tests-for-allure.mjs` — re-run it after adding new test files (it's idempotent).

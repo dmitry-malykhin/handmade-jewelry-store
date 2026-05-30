@@ -1,6 +1,18 @@
 import { describe, it, expect } from 'vitest'
 import { render } from '@/test-utils'
 import ShopLoading from '../loading'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/locale')
+  await $allureSubSuite('loading')
+  await $allureSeverity('normal')
+})
 
 describe('ShopLoading skeleton', () => {
   it('renders animated skeleton blocks', () => {

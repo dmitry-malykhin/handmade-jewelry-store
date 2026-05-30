@@ -1,5 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import * as productsApi from '@/lib/api/products'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 vi.mock('@/lib/api/products', () => ({
   fetchProducts: vi.fn(),
@@ -18,6 +23,13 @@ const mockCategory = { slug: 'rings' }
 
 beforeEach(() => {
   vi.clearAllMocks()
+})
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/__tests__')
+  await $allureSubSuite('sitemap')
+  await $allureSeverity('normal')
 })
 
 describe('sitemap', () => {

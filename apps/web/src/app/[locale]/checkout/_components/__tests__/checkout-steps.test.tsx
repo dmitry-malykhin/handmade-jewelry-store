@@ -1,10 +1,22 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { CheckoutSteps } from '../checkout-steps'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 vi.mock('next-intl', () => ({
   useTranslations: () => (key: string) => key,
 }))
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/locale')
+  await $allureSubSuite('checkout-steps')
+  await $allureSeverity('normal')
+})
 
 describe('CheckoutSteps', () => {
   it('renders all 3 step numbers', () => {

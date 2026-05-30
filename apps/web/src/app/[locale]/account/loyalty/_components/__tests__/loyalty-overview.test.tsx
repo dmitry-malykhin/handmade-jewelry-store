@@ -3,6 +3,11 @@ import { render, screen, waitFor } from '@/test-utils'
 import { LoyaltyOverview } from '../loyalty-overview'
 import { fetchLoyaltyBalance, fetchLoyaltyTransactions } from '@/lib/api/loyalty'
 import { useAuthStore } from '@/store/auth.store'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 vi.mock('@/lib/api/loyalty', () => ({
   fetchLoyaltyBalance: vi.fn(),
@@ -20,6 +25,13 @@ beforeEach(() => {
     isAuthenticated: true,
     role: 'USER',
   })
+})
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/locale')
+  await $allureSubSuite('loyalty-overview')
+  await $allureSeverity('normal')
 })
 
 describe('LoyaltyOverview', () => {

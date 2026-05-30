@@ -1,5 +1,17 @@
 import { describe, it, expect } from 'vitest'
 import { cn } from '@/lib/utils'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/lib/__tests__')
+  await $allureSubSuite('utils')
+  await $allureSeverity('normal')
+})
 
 describe('cn()', () => {
   it('returns a single class name unchanged', () => {

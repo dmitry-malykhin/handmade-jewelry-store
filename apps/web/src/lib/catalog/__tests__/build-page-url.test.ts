@@ -1,5 +1,17 @@
 import { describe, it, expect } from 'vitest'
 import { buildPageUrl } from '../build-page-url'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/lib/catalog')
+  await $allureSubSuite('build-page-url')
+  await $allureSeverity('normal')
+})
 
 describe('buildPageUrl()', () => {
   it('returns /shop with no query string when page is 1 and no filters', () => {

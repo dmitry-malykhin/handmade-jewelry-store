@@ -8,6 +8,11 @@ import { Test, TestingModule } from '@nestjs/testing'
 import { OrderStatus, Prisma, ReviewStatus } from '@prisma/client'
 import { PrismaService } from '../prisma/prisma.service'
 import { ReviewsService } from './reviews.service'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const mockPrismaService = {
   product: { findUnique: jest.fn(), update: jest.fn() },
@@ -29,6 +34,13 @@ const sampleProduct = {
   avgRating: 4.5,
   reviewCount: 2,
 }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('api/reviews')
+  await $allureSubSuite('reviews.service')
+  await $allureSeverity('normal')
+})
 
 describe('ReviewsService', () => {
   let reviewsService: ReviewsService

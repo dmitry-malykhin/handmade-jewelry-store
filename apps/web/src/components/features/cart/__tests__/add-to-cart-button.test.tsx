@@ -4,6 +4,11 @@ import userEvent from '@testing-library/user-event'
 import { AddToCartButton } from '../add-to-cart-button'
 import { useCartStore } from '@/store'
 import type { Product } from '@jewelry/shared'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 // Stub the i18n Link so the test doesn't drag in next/navigation transitively.
 vi.mock('@/i18n/navigation', () => ({
@@ -52,6 +57,13 @@ const permanentlySoldOutProduct: Product = {
 
 beforeEach(() => {
   useCartStore.setState({ items: [] })
+})
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/components/features')
+  await $allureSubSuite('add-to-cart-button')
+  await $allureSeverity('normal')
 })
 
 describe('AddToCartButton — product not in cart', () => {

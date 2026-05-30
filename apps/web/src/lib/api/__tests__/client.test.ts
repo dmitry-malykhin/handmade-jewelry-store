@@ -2,6 +2,18 @@ import { describe, it, expect } from 'vitest'
 import { http, HttpResponse } from 'msw'
 import { apiClient, ApiError } from '@/lib/api/client'
 import { server } from '@/test-utils/msw/server'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/lib/api')
+  await $allureSubSuite('client')
+  await $allureSeverity('normal')
+})
 
 describe('ApiError', () => {
   it('stores the HTTP status code', () => {

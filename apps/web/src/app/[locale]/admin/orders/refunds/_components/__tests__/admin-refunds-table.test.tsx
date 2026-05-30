@@ -3,6 +3,11 @@ import { render, screen, waitFor } from '@/test-utils'
 import userEvent from '@testing-library/user-event'
 import type * as OrdersApiModule from '@/lib/api/orders'
 import { AdminRefundsTable } from '../admin-refunds-table'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const fetchAdminRefundsMock = vi.fn()
 const routerReplaceMock = vi.fn()
@@ -71,6 +76,13 @@ const fullRefund = {
   refundReason: 'ITEM_DAMAGED',
   refundNote: null,
 }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/locale')
+  await $allureSubSuite('admin-refunds-table')
+  await $allureSeverity('normal')
+})
 
 describe('AdminRefundsTable — base rendering', () => {
   beforeEach(() => {

@@ -4,6 +4,11 @@ import userEvent from '@testing-library/user-event'
 import { ProductImageUpload } from '../product-image-upload'
 import { requestPresignedUrl, uploadFileToS3 } from '@/lib/api/upload'
 import { useAuthStore } from '@/store/auth.store'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 vi.mock('@/lib/api/upload', () => ({
   requestPresignedUrl: vi.fn(),
@@ -41,6 +46,13 @@ beforeEach(() => {
     publicUrl: 'https://s3.amazonaws.com/bucket/products/uuid.jpg',
   })
   mockUploadFileToS3.mockResolvedValue(undefined)
+})
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/locale')
+  await $allureSubSuite('product-image-upload')
+  await $allureSeverity('normal')
 })
 
 describe('ProductImageUpload — rendering', () => {

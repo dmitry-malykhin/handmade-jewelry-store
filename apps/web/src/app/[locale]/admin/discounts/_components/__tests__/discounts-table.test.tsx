@@ -3,6 +3,11 @@ import { render, screen, waitFor, within } from '@/test-utils'
 import userEvent from '@testing-library/user-event'
 import type * as DiscountsApiModule from '@/lib/api/discounts'
 import { DiscountsTable } from '../discounts-table'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const fetchAdminDiscountsMock = vi.fn()
 const updateAdminDiscountMock = vi.fn()
@@ -47,6 +52,13 @@ function buildDiscount(
     ...overrides,
   }
 }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/locale')
+  await $allureSubSuite('discounts-table')
+  await $allureSeverity('normal')
+})
 
 describe('DiscountsTable', () => {
   beforeEach(() => {

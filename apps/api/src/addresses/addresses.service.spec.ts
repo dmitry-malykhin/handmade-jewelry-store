@@ -2,6 +2,11 @@ import { ForbiddenException, NotFoundException } from '@nestjs/common'
 import { Test, TestingModule } from '@nestjs/testing'
 import { PrismaService } from '../prisma/prisma.service'
 import { AddressesService } from './addresses.service'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const baseAddress = {
   id: 'addr-1',
@@ -32,6 +37,13 @@ const mockPrismaService = {
   },
   $transaction: jest.fn(),
 }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('api/addresses')
+  await $allureSubSuite('addresses.service')
+  await $allureSeverity('normal')
+})
 
 describe('AddressesService', () => {
   let addressesService: AddressesService

@@ -8,6 +8,18 @@ import {
   trackSignUp,
   trackPageView,
 } from '../gtag'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/lib/analytics')
+  await $allureSubSuite('gtag')
+  await $allureSeverity('normal')
+})
 
 describe('gtag analytics helpers', () => {
   const mockGtag = vi.fn()

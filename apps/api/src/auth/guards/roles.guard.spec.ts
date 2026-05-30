@@ -2,6 +2,11 @@ import { ExecutionContext } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 import { Role } from '@prisma/client'
 import { RolesGuard } from './roles.guard'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 function buildMockExecutionContext(userRole: Role | null): ExecutionContext {
   return {
@@ -14,6 +19,13 @@ function buildMockExecutionContext(userRole: Role | null): ExecutionContext {
     }),
   } as unknown as ExecutionContext
 }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('api/auth')
+  await $allureSubSuite('roles.guard')
+  await $allureSeverity('normal')
+})
 
 describe('RolesGuard', () => {
   let rolesGuard: RolesGuard

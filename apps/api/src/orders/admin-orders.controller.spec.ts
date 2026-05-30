@@ -3,6 +3,11 @@ import { OrderStatus } from '@prisma/client'
 import { AdminOrdersController } from './admin-orders.controller'
 import { OrdersService } from './orders.service'
 import { OrderQueryDto } from './dto/order-query.dto'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const mockOrderSummary = {
   id: 'order-uuid-1',
@@ -22,6 +27,13 @@ const mockOrdersService = {
   updateStatus: jest.fn(),
   updateTracking: jest.fn(),
 }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('api/orders')
+  await $allureSubSuite('admin-orders.controller')
+  await $allureSeverity('normal')
+})
 
 describe('AdminOrdersController', () => {
   let adminOrdersController: AdminOrdersController

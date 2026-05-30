@@ -2,6 +2,11 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { CheckoutOrderSummary } from '../checkout-order-summary'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 vi.mock('next-intl', () => ({
   useTranslations: () => (key: string, params?: Record<string, unknown>) => {
@@ -43,6 +48,13 @@ vi.mock('@/store/cart.store', () => ({
 }))
 
 const EXPLICIT_SHIPPING_COST = 9.99
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/locale')
+  await $allureSubSuite('checkout-order-summary')
+  await $allureSeverity('normal')
+})
 
 describe('CheckoutOrderSummary', () => {
   it('renders all cart item titles', () => {

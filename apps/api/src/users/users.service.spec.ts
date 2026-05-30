@@ -4,6 +4,11 @@ import { OrderStatus, Role } from '@prisma/client'
 import { Decimal } from '@prisma/client/runtime/library'
 import { PrismaService } from '../prisma/prisma.service'
 import { UsersService } from './users.service'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const mockPrismaService = {
   user: {
@@ -13,6 +18,13 @@ const mockPrismaService = {
     create: jest.fn(),
   },
 }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('api/users')
+  await $allureSubSuite('users.service')
+  await $allureSeverity('normal')
+})
 
 describe('UsersService', () => {
   let usersService: UsersService

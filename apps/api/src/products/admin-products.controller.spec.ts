@@ -3,6 +3,11 @@ import { ProductStatus } from '@prisma/client'
 import { AdminProductQueryDto } from './dto/admin-product-query.dto'
 import { AdminProductsController } from './admin-products.controller'
 import { ProductsService } from './products.service'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const mockProductsResponse = {
   data: [
@@ -22,6 +27,13 @@ const mockProductsService = {
   findAllAdmin: jest.fn(),
   updateStatus: jest.fn(),
 }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('api/products')
+  await $allureSubSuite('admin-products.controller')
+  await $allureSeverity('normal')
+})
 
 describe('AdminProductsController', () => {
   let adminProductsController: AdminProductsController

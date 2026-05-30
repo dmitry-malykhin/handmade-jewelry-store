@@ -16,6 +16,11 @@ import { PrismaService } from '../../prisma/prisma.service'
 import { UsersService } from '../../users/users.service'
 import { WishlistController } from '../wishlist.controller'
 import { WishlistService } from '../wishlist.service'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const VALID_JWT_SECRET = 'test-secret-for-integration'
 const TEST_USER = {
@@ -41,6 +46,13 @@ const mockPrismaService = {
 }
 
 const mockUsersService = { findById: jest.fn() }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('api/wishlist')
+  await $allureSubSuite('wishlist.integration')
+  await $allureSeverity('normal')
+})
 
 describe('Wishlist HTTP integration', () => {
   let app: INestApplication

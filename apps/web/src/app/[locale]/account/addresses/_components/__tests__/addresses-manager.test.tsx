@@ -21,6 +21,11 @@ vi.mock('@/store/auth.store', () => ({
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
 
 import { AddressesManager } from '../addresses-manager'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 function renderWithIntl(ui: React.ReactElement) {
   return render(
@@ -44,6 +49,13 @@ const sampleAddress = {
   createdAt: '2026-04-20T10:00:00.000Z',
   updatedAt: '2026-04-20T10:00:00.000Z',
 }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/locale')
+  await $allureSubSuite('addresses-manager')
+  await $allureSeverity('normal')
+})
 
 describe('AddressesManager', () => {
   beforeEach(() => {

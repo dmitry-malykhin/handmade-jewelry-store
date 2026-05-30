@@ -4,6 +4,11 @@ import userEvent from '@testing-library/user-event'
 import { ProductDimensions } from '../product-dimensions'
 import { useMeasurementStore } from '@/store/measurement.store'
 import type { Product } from '@jewelry/shared'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const necklaceProduct: Pick<
   Product,
@@ -28,6 +33,13 @@ const productWithNoMeasurements: typeof necklaceProduct = {
 
 beforeEach(() => {
   useMeasurementStore.setState({ measurementSystem: 'imperial' })
+})
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/locale')
+  await $allureSubSuite('product-dimensions')
+  await $allureSeverity('normal')
 })
 
 describe('ProductDimensions — rendering', () => {

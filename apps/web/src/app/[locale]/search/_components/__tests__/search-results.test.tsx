@@ -3,6 +3,11 @@ import { render, screen, waitFor } from '@/test-utils'
 import userEvent from '@testing-library/user-event'
 import type * as ProductsApiModule from '@/lib/api/products'
 import { SearchResults } from '../search-results'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const searchProductsMock = vi.fn()
 const routerReplaceMock = vi.fn()
@@ -54,6 +59,13 @@ function buildProduct(overrides: Record<string, unknown> = {}) {
     ...overrides,
   }
 }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/locale')
+  await $allureSubSuite('search-results')
+  await $allureSeverity('normal')
+})
 
 describe('SearchResults', () => {
   beforeEach(() => {

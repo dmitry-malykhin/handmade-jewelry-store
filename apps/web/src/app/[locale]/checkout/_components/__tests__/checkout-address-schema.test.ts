@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest'
 import { checkoutAddressSchema } from '../checkout-address-schema'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const validAddress = {
   email: 'jane@example.com',
@@ -9,6 +14,13 @@ const validAddress = {
   postalCode: '10001',
   country: 'US',
 }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/locale')
+  await $allureSubSuite('checkout-address-schema')
+  await $allureSeverity('normal')
+})
 
 describe('checkoutAddressSchema', () => {
   it('accepts a valid address with required fields only', () => {

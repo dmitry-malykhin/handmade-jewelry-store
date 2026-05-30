@@ -5,6 +5,11 @@ import { render } from '@/test-utils'
 import { AdminOrderDetail } from '../admin-order-detail'
 import * as ordersApi from '@/lib/api/orders'
 import type { AdminOrderDetail as AdminOrderDetailType } from '@/lib/api/orders'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 vi.mock('@/lib/api/orders', () => ({
   fetchAdminOrderById: vi.fn(),
@@ -126,6 +131,13 @@ window.HTMLElement.prototype.hasPointerCapture = vi.fn()
 window.HTMLElement.prototype.setPointerCapture = vi.fn()
 window.HTMLElement.prototype.releasePointerCapture = vi.fn()
 window.HTMLElement.prototype.scrollIntoView = vi.fn()
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/locale')
+  await $allureSubSuite('admin-order-detail')
+  await $allureSeverity('normal')
+})
 
 describe('AdminOrderDetail — rendering', () => {
   beforeEach(() => {

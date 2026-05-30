@@ -1,6 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { AdminService } from './admin.service'
 import { PrismaService } from '../prisma/prisma.service'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const mockPrismaService = {
   product: { count: jest.fn(), findMany: jest.fn() },
@@ -15,6 +20,13 @@ const mockPrismaService = {
     findMany: jest.fn(),
   },
 }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('api/admin')
+  await $allureSubSuite('admin.service')
+  await $allureSeverity('normal')
+})
 
 describe('AdminService', () => {
   let adminService: AdminService

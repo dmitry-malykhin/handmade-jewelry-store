@@ -1,6 +1,18 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { StarRating } from '../star-rating'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/components/features')
+  await $allureSubSuite('star-rating')
+  await $allureSeverity('normal')
+})
 
 describe('StarRating', () => {
   it('renders read-only mode with aria-label showing the value', () => {

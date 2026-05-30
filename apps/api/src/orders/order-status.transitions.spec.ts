@@ -3,6 +3,18 @@ import {
   ALLOWED_ORDER_STATUS_TRANSITIONS,
   isValidOrderStatusTransition,
 } from './order-status.transitions'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('api/orders')
+  await $allureSubSuite('order-status.transitions')
+  await $allureSeverity('normal')
+})
 
 describe('isValidOrderStatusTransition', () => {
   describe('allowed transitions (happy path)', () => {

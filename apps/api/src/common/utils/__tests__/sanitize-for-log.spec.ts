@@ -1,4 +1,16 @@
 import { sanitizeForLog } from '../sanitize-for-log'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('api/common')
+  await $allureSubSuite('sanitize-for-log')
+  await $allureSeverity('normal')
+})
 
 describe('sanitizeForLog', () => {
   it('redacts password field', () => {

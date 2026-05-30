@@ -1,5 +1,10 @@
 import { describe, it, expect, vi } from 'vitest'
 import { size, contentType, runtime, alt } from '../twitter-image'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 vi.mock('next/og', () => ({
   ImageResponse: class MockImageResponse {
@@ -10,6 +15,13 @@ vi.mock('next/og', () => ({
     ) {}
   },
 }))
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/__tests__')
+  await $allureSubSuite('twitter-image')
+  await $allureSeverity('normal')
+})
 
 describe('twitter-image', () => {
   it('exports edge runtime', () => {

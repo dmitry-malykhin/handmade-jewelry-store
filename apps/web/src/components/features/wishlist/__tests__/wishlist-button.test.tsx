@@ -6,6 +6,18 @@ import { useWishlistStore } from '@/store/wishlist.store'
 import { useAuthStore } from '@/store/auth.store'
 import * as wishlistApi from '@/lib/api/wishlist'
 import { ApiError } from '@/lib/api/client'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/components/features')
+  await $allureSubSuite('wishlist-button')
+  await $allureSeverity('normal')
+})
 
 describe('WishlistButton', () => {
   beforeEach(() => {

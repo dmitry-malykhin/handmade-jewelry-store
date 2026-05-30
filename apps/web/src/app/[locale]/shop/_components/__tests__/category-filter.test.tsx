@@ -3,6 +3,11 @@ import { render, screen } from '@/test-utils'
 import userEvent from '@testing-library/user-event'
 import { CategoryFilter } from '../filters/category-filter'
 import type { Category } from '@jewelry/shared'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const mockOnCategoryChange = vi.fn()
 
@@ -14,6 +19,13 @@ const sampleCategories: Category[] = [
 
 beforeEach(() => {
   mockOnCategoryChange.mockClear()
+})
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/locale')
+  await $allureSubSuite('category-filter')
+  await $allureSeverity('normal')
 })
 
 describe('CategoryFilter — rendering', () => {

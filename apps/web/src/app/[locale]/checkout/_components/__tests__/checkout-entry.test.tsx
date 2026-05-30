@@ -4,6 +4,11 @@ import userEvent from '@testing-library/user-event'
 import type { ReactNode } from 'react'
 import { CheckoutEntry } from '../checkout-entry'
 import { useAuthStore } from '@/store/auth.store'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 vi.mock('next-intl', () => ({
   useTranslations: () => (key: string) => key,
@@ -68,6 +73,13 @@ vi.mock('../loyalty-redeem-section', () => ({
 // Reset auth state between tests so the skip-gateway behaviour is deterministic.
 beforeEach(() => {
   useAuthStore.getState().clearTokens()
+})
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/locale')
+  await $allureSubSuite('checkout-entry')
+  await $allureSeverity('normal')
 })
 
 describe('CheckoutEntry — gateway screen', () => {

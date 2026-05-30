@@ -2,6 +2,18 @@ import { validate } from 'class-validator'
 import { plainToInstance } from 'class-transformer'
 import { RegisterDto } from '../register.dto'
 import { ResetPasswordDto } from '../reset-password.dto'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('api/auth')
+  await $allureSubSuite('password-strength.dto')
+  await $allureSeverity('normal')
+})
 
 describe('RegisterDto password strength validation', () => {
   function buildRegisterDto(password: string) {

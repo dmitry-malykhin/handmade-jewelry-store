@@ -1,4 +1,16 @@
 import { buildRefundProcessedEmail } from './refund-processed.template'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('api/email')
+  await $allureSubSuite('refund-processed.template')
+  await $allureSeverity('normal')
+})
 
 describe('buildRefundProcessedEmail', () => {
   // TC-EMAIL-009 — full refund happy path

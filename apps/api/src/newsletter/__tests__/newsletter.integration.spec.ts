@@ -9,6 +9,18 @@ import * as request from 'supertest'
 import { KlaviyoNewsletterClient } from '../klaviyo-newsletter.client'
 import { NewsletterController } from '../newsletter.controller'
 import { NewsletterService } from '../newsletter.service'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('api/newsletter')
+  await $allureSubSuite('newsletter.integration')
+  await $allureSeverity('normal')
+})
 
 describe('Newsletter HTTP integration', () => {
   let app: INestApplication

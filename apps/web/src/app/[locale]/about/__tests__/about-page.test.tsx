@@ -2,6 +2,11 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import messages from '../../../../../messages/en.json'
 import AboutPage from '../page'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 // next-intl/server — getTranslations accepts either a namespace string or { locale, namespace }
 vi.mock('next-intl/server', () => ({
@@ -24,6 +29,13 @@ async function renderAboutPage() {
   const jsx = await AboutPage({ params: Promise.resolve({ locale: 'en' }) })
   return render(jsx)
 }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/locale')
+  await $allureSubSuite('about-page')
+  await $allureSeverity('normal')
+})
 
 describe('AboutPage — structure', () => {
   it('renders the hero heading', async () => {

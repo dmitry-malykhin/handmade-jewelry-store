@@ -2,6 +2,11 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { CheckoutShippingMethodForm } from '../checkout-shipping-method-form'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 vi.mock('next-intl', () => ({
   useTranslations: () => (key: string, params?: Record<string, unknown>) => {
@@ -23,6 +28,13 @@ vi.mock('../checkout-steps', () => ({
     <div data-testid="checkout-steps" data-step={currentStep} />
   ),
 }))
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/locale')
+  await $allureSubSuite('checkout-shipping-method-form')
+  await $allureSeverity('normal')
+})
 
 describe('CheckoutShippingMethodForm', () => {
   it('renders both shipping options', () => {

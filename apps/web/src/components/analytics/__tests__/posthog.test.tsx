@@ -2,6 +2,11 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render } from '@/test-utils'
 import { PostHogAnalytics } from '@/components/analytics/posthog'
 import posthog from 'posthog-js'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 // Mutable hook return values — each test seeds the values via the mocked
 // modules before rendering. Keeps imports clean and avoids per-test imports.
@@ -49,6 +54,13 @@ vi.mock('posthog-js', () => {
     debug: () => {},
   }
   return { default: instance }
+})
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/components/analytics')
+  await $allureSubSuite('posthog')
+  await $allureSeverity('normal')
 })
 
 describe('PostHogAnalytics', () => {

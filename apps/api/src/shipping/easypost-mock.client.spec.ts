@@ -1,4 +1,16 @@
 import { EasypostMockClient } from './easypost-mock.client'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('api/shipping')
+  await $allureSubSuite('easypost-mock.client')
+  await $allureSeverity('normal')
+})
 
 describe('EasypostMockClient', () => {
   let easypostMockClient: EasypostMockClient

@@ -1,5 +1,17 @@
 import { describe, it, expect } from 'vitest'
 import { highlightMatch } from '../highlight-match'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/lib/search')
+  await $allureSubSuite('highlight-match')
+  await $allureSeverity('normal')
+})
 
 describe('highlightMatch()', () => {
   it('returns a single non-match segment when query is empty', () => {

@@ -3,6 +3,11 @@ import { NextIntlClientProvider } from 'next-intl'
 import messages from '../../../../../../../../messages/en.json'
 import type { OrderItem } from '@/lib/api/orders'
 import { ConfirmationOrderItems } from '../confirmation-order-items'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const mockOrderItems: OrderItem[] = [
   {
@@ -36,6 +41,13 @@ function renderWithIntl(component: React.ReactNode) {
     </NextIntlClientProvider>,
   )
 }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/locale')
+  await $allureSubSuite('confirmation-order-items')
+  await $allureSeverity('normal')
+})
 
 describe('ConfirmationOrderItems', () => {
   it('renders all order items', () => {

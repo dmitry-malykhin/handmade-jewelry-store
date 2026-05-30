@@ -3,6 +3,11 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { CheckoutPaymentPlaceholder } from '../checkout-payment-placeholder'
 import type { CheckoutAddressFormValues } from '../checkout-address-schema'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 vi.mock('next-intl', () => ({
   useTranslations: () => (key: string) => key,
@@ -38,6 +43,13 @@ const mockAddressValues: CheckoutAddressFormValues = {
   country: 'US',
   phone: '',
 }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/locale')
+  await $allureSubSuite('checkout-payment-placeholder')
+  await $allureSeverity('normal')
+})
 
 describe('CheckoutPaymentPlaceholder', () => {
   it('shows step 3 in progress indicator', () => {

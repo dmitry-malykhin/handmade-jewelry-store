@@ -2,6 +2,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { CatalogFiltersMobile } from '../catalog-filters-mobile'
 import type { Category } from '@jewelry/shared'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 vi.mock('next-intl', () => ({
   useTranslations: () => (key: string) => key,
@@ -23,6 +28,13 @@ const mockCategories: Category[] = [
   { id: '1', name: 'Rings', slug: 'rings', description: null, imageUrl: null },
   { id: '2', name: 'Necklaces', slug: 'necklaces', description: null, imageUrl: null },
 ]
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/locale')
+  await $allureSubSuite('catalog-filters-mobile')
+  await $allureSeverity('normal')
+})
 
 describe('CatalogFiltersMobile — trigger button', () => {
   it('renders the filters button', () => {

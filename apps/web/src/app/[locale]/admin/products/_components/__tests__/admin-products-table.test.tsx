@@ -8,6 +8,11 @@ import {
   updateProductStatus,
   deleteAdminProduct,
 } from '@/lib/api/products'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 // Radix UI components inside the table need these jsdom-missing APIs
 window.HTMLElement.prototype.hasPointerCapture = vi.fn()
@@ -94,6 +99,13 @@ beforeEach(() => {
   // Suppress unused-import warnings — these are mocked for table internals.
   void mockUpdateProductStatus
   void mockDeleteAdminProduct
+})
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/locale')
+  await $allureSubSuite('admin-products-table')
+  await $allureSeverity('normal')
 })
 
 describe('AdminProductsTable — bulk selection', () => {

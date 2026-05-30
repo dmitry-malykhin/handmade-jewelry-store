@@ -4,6 +4,11 @@ import { Test, TestingModule } from '@nestjs/testing'
 import { S3Client } from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { UploadService } from './upload.service'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 jest.mock('@aws-sdk/s3-request-presigner', () => ({
   getSignedUrl: jest.fn(),
@@ -47,6 +52,13 @@ async function buildUploadService(extraConfig: Record<string, string> = {}) {
   }).compile()
   return module.get<UploadService>(UploadService)
 }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('api/upload')
+  await $allureSubSuite('upload.service')
+  await $allureSeverity('normal')
+})
 
 describe('UploadService', () => {
   let uploadService: UploadService

@@ -1,10 +1,22 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError } from '../client'
 import { downloadCsv } from '../csv-download'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const originalCreateObjectURL = URL.createObjectURL
 const originalRevokeObjectURL = URL.revokeObjectURL
 const originalFetch = global.fetch
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/lib/api')
+  await $allureSubSuite('csv-download')
+  await $allureSeverity('normal')
+})
 
 describe('downloadCsv', () => {
   beforeEach(() => {

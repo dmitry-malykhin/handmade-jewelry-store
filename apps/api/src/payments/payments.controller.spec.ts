@@ -1,8 +1,20 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { PaymentsController } from './payments.controller'
 import { PaymentsService } from './payments.service'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const CLIENT_SECRET = 'pi_test_secret_xyz'
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('api/payments')
+  await $allureSubSuite('payments.controller')
+  await $allureSeverity('normal')
+})
 
 describe('PaymentsController', () => {
   let paymentsController: PaymentsController

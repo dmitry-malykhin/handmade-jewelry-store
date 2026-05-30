@@ -1,5 +1,10 @@
 import { RequestLoggerMiddleware } from '../request-logger.middleware'
 import type { Request, Response } from 'express'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 function buildMockRequest(overrides: Partial<Request> = {}): Request {
   return {
@@ -23,6 +28,13 @@ function buildMockResponse(): Response & { finishListeners: Array<() => void> } 
     finishListeners,
   } as unknown as Response & { finishListeners: Array<() => void> }
 }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('api/common')
+  await $allureSubSuite('request-logger.middleware')
+  await $allureSeverity('normal')
+})
 
 describe('RequestLoggerMiddleware', () => {
   let middleware: RequestLoggerMiddleware

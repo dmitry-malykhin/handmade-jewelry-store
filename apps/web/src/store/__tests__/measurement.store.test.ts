@@ -1,8 +1,20 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { useMeasurementStore } from '../measurement.store'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 beforeEach(() => {
   useMeasurementStore.setState({ measurementSystem: 'imperial' })
+})
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/store/__tests__')
+  await $allureSubSuite('measurement.store')
+  await $allureSeverity('normal')
 })
 
 describe('useMeasurementStore — initial state', () => {

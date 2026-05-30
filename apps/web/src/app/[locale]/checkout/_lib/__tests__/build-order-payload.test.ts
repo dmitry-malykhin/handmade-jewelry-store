@@ -4,6 +4,11 @@ import { buildOrderPayload } from '../build-order-payload'
 
 const CHECKOUT_SHIPPING_COST = 9.99
 import type { CheckoutAddressFormValues } from '../../_components/checkout-address-schema'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const mockCartItems: CartItem[] = [
   {
@@ -32,6 +37,13 @@ const mockFormValues: CheckoutAddressFormValues = {
   postalCode: '10001',
   country: 'US',
 }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/locale')
+  await $allureSubSuite('build-order-payload')
+  await $allureSeverity('normal')
+})
 
 describe('buildOrderPayload()', () => {
   it('maps cart items to order items with productSnapshot', () => {

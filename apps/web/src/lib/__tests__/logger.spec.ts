@@ -1,4 +1,16 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/lib/__tests__')
+  await $allureSubSuite('logger')
+  await $allureSeverity('normal')
+})
 
 describe('logger (server-side)', () => {
   let consoleLogSpy: ReturnType<typeof vi.spyOn>

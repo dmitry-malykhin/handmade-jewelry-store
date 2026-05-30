@@ -3,6 +3,11 @@ import { render, screen, waitFor } from '@/test-utils'
 import userEvent from '@testing-library/user-event'
 import type * as SiteSettingsApiModule from '@/lib/api/site-settings'
 import { SettingsForm } from '../settings-form'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 const fetchAdminSiteSettingsMock = vi.fn()
 const updateAdminSiteSettingsMock = vi.fn()
@@ -47,6 +52,13 @@ const baseSettings = {
   createdAt: '2026-01-01T00:00:00Z',
   updatedAt: '2026-01-01T00:00:00Z',
 }
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/app/locale')
+  await $allureSubSuite('settings-form')
+  await $allureSeverity('normal')
+})
 
 describe('SettingsForm', () => {
   beforeEach(() => {

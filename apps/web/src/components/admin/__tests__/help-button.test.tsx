@@ -1,6 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { render, screen, fireEvent } from '@/test-utils'
 import { HelpButton } from '../help-button'
+import {
+  suite as $allureSuite,
+  subSuite as $allureSubSuite,
+  severity as $allureSeverity,
+} from 'allure-js-commons'
 
 // HelpDrawer fetches /api/admin-help/{slug} on open. We stub the network so
 // these tests stay focused on the trigger / shortcut behaviour.
@@ -10,6 +15,13 @@ beforeEach(() => {
     status: 200,
     text: () => Promise.resolve('# Help'),
   }) as typeof fetch
+})
+
+beforeEach(async () => {
+  if (!process.env.CI) return
+  await $allureSuite('web/components/admin')
+  await $allureSubSuite('help-button')
+  await $allureSeverity('normal')
 })
 
 describe('HelpButton — render', () => {
