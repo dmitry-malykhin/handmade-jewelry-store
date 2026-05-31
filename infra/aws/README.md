@@ -59,27 +59,31 @@ aws configure   # provide IAM access key, secret, region (us-east-1)
 
 Best for: re-runs in fresh AWS accounts (e.g. company sandbox → prod).
 
+### Path C — Terraform / OpenTofu (recommended for new accounts)
+
+```bash
+cd infrastructure/
+cp terraform.tfvars.example terraform.tfvars
+$EDITOR terraform.tfvars
+tofu init
+tofu plan -out=tf.plan
+tofu apply tf.plan
+```
+
+Same resource shape as Paths A and B; full instructions in
+[`infrastructure/README.md`](../../infrastructure/README.md). Delivered in
+#102.
+
+Best for: reproducible, reviewable infra. Skip the bash scripts entirely
+on greenfield accounts.
+
 ## What this **does not** do
 
-- ❌ ECS Fargate cluster + task definitions (#82 — separate)
-- ❌ ALB / target groups (#82 — depends on networking + ECS)
+- ❌ ECS Fargate cluster + task definitions (#82 — separate; Terraform module
+  is included in `infrastructure/modules/compute/`)
+- ❌ ALB / target groups (#82 — depends on networking + ECS; same Terraform module)
 - ❌ Custom domain on CloudFront (`cdn.senichka.com`) — Phase 2 in #77 runbook, requires #43 (domain setup)
 - ❌ OIDC federation for GitHub Actions (uses access keys for now) — post-MVP improvement, see #81 runbook
-- ❌ Terraform state — Terraform migration is post-MVP (#102)
-
-## Why bash + JSON, not Terraform?
-
-Per [docs/12_PLAN_PERSONAL.md](../../docs/12_PLAN_PERSONAL.md) and the project
-roadmap, Terraform is **post-MVP** (#102). For first-launch we use AWS Console
-and CLI scripts because:
-
-1. **Single deployer** — solo project, no team coordination needed
-2. **Provider-specific** — until we add multi-cloud or multi-environment, IaC overhead exceeds value
-3. **Easier debugging** — when something breaks, click around the AWS console; with Terraform you'd be reading state files
-4. **Fast launch path** — bash + console is 1 hour; Terraform setup with state backend is 4–6 hours
-
-When the store has revenue and a second engineer joins, #102 migrates these
-runbooks + scripts into Terraform modules.
 
 ## Cost summary
 
