@@ -25,3 +25,6 @@ docs
 # Playwright test artifacts
 apps/web/test-results
 apps/web/playwright-report
+
+# Terraform / OpenTofu provider cache (#102). Auto-downloaded; not our code.
+infrastructure/.terraform

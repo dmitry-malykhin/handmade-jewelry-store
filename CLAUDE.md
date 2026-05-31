@@ -42,6 +42,7 @@ Read the relevant document(s) **before writing code** for that task:
 | **Observability stack overview**          | [docs/13_OBSERVABILITY_OVERVIEW.md](docs/13_OBSERVABILITY_OVERVIEW.md) — tool comparison, zero-budget stack decision                                                                                                |
 | **AWS infra / Deployment / Staging**      | [docs/17_STAGING_ENVIRONMENTS.md](docs/17_STAGING_ENVIRONMENTS.md) — staging strategy, Fly.io + Neon (pre-revenue), AWS shared ALB (post-revenue)                                                                   |
 | **AWS networking / VPC / RDS setup**      | [docs/runbooks/aws-networking-setup.md](docs/runbooks/aws-networking-setup.md) + [infra/aws/](infra/aws/) — VPC, subnets, SGs, IAM roles, RDS, Secrets Manager                                                      |
+| **Terraform / IaC for AWS**               | [docs/runbooks/terraform-aws-setup.md](docs/runbooks/terraform-aws-setup.md) + [infrastructure/](infrastructure/) — codified VPC, RDS, ECS, ALB, S3+CloudFront, Route53, alarms                                     |
 | **AWS CloudFront / S3 / CDN setup**       | [docs/runbooks/aws-cloudfront-s3-setup.md](docs/runbooks/aws-cloudfront-s3-setup.md) + [infra/aws/s3/](infra/aws/s3/) + [infra/aws/cloudfront/](infra/aws/cloudfront/) — bucket, OAC, CDN, cache invalidation       |
 | **Vercel frontend hosting**               | [docs/runbooks/vercel-setup.md](docs/runbooks/vercel-setup.md) + [apps/web/vercel.json](apps/web/vercel.json) — project setup, env vars, preview deploys, custom domain                                             |
 | **AWS ECR / Container registry**          | [docs/runbooks/aws-ecr-setup.md](docs/runbooks/aws-ecr-setup.md) + [infra/aws/ecr/](infra/aws/ecr/) — ECR repo, lifecycle, GitHub Actions IAM user                                                                  |
@@ -253,7 +254,9 @@ Always include issue number at the end.
 | W9 — Infra & Observability | Planned | Docker (#40), AWS (#76-#82), CI/CD (#78, #79), Sentry (#88), Logging (#121), UptimeRobot (#122), Staging (#127, #128) |
 | W10 — Launch prep          | Planned | Cookie consent (#107), Privacy/ToS (#105, #106), Mobile (#39), Tests (#45), README (#46)                              |
 
-**POST-MVP** (after first revenue): Analytics (#90, #94, #119, #120), Klaviyo (#95), Shopping (#92, #93), Multi-currency (#123), Reviews (#98), Wishlist (#97), Search (#99), AWS staging (#129), Terraform (#102)
+**POST-MVP** (after first revenue): Analytics (#90, #94, #119, #120), Klaviyo (#95), Shopping (#92, #93), Multi-currency (#123), Reviews (#98), Wishlist (#97), Search (#99), AWS staging (#129)
+
+Terraform IaC (#102) — codified AWS stack lives in [`infrastructure/`](infrastructure/) (VPC, RDS, ECS, ALB, S3+CloudFront, Route53, CloudWatch alarms). Use this path on any greenfield AWS account; the `infra/aws/*.sh` scripts remain available for ad-hoc setups.
 
 **Rule:** one Issue In Progress at a time. Finish → merge → next.
 Full ordered task list: [docs/12_PLAN_PERSONAL.md](docs/12_PLAN_PERSONAL.md)

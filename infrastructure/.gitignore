@@ -1,0 +1,19 @@
+# Terraform state is per-environment and may contain secrets — keep out of git.
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+
+# .terraform/ holds downloaded provider binaries — re-downloadable.
+.terraform/
+.terraform.lock.hcl.bak
+
+# Local CLI state — `terraform init` artefacts and provider caches.
+.terraform.tfstate.lock.info
+
+# Actual variable values (incl. domain, account-specific overrides). The
+# example file is committed; the real one stays local.
+terraform.tfvars
+*.auto.tfvars
+
+# Plan outputs may capture sensitive diffs.
+*.tfplan
