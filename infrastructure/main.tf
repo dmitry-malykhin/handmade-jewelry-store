@@ -77,14 +77,14 @@ module "observability" {
   count  = var.alarm_email != "" ? 1 : 0
   source = "./modules/observability"
 
-  project_name     = var.project_name
-  alarm_email      = var.alarm_email
-  ecs_cluster_name = module.compute.ecs_cluster_name
-  ecs_service_name = module.compute.ecs_service_name
-  db_instance_id   = module.database.db_instance_id
-  # ALB metric dimensions want the ARN suffix, not the full ARN. We pull it
-  # from the dns_name by trimming everything after the first ".".
-  alb_arn_suffix = trim(replace(module.compute.alb_dns_name, ".elb.amazonaws.com", ""), ".")
+  project_name                = var.project_name
+  alarm_email                 = var.alarm_email
+  ecs_cluster_name            = module.compute.ecs_cluster_name
+  ecs_service_name            = module.compute.ecs_service_name
+  ecs_service_desired_count   = var.ecs_desired_count
+  db_instance_id              = module.database.db_instance_id
+  alb_arn_suffix              = module.compute.alb_arn_suffix
+  alb_target_group_arn_suffix = module.compute.target_group_arn_suffix
 }
 
 module "deploy_iam" {

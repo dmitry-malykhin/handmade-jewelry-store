@@ -124,3 +124,77 @@ resource "aws_cloudwatch_metric_alarm" "alb_5xx_rate_high" {
   ok_actions         = [aws_sns_topic.alarms.arn]
   treat_missing_data = "notBreaching"
 }
+
+# ────────────────────────────────────────────────────────────────────────────
+# Extra alarms — caught a few times in past projects, cheap to add upfront.
+# ────────────────────────────────────────────────────────────────────────────
+
+# RDS connection-pool pressure. db.t3.micro tops out around 85 connections;
+# Prisma + multiple Fargate tasks can blow through that during a deploy
+# (old + new tasks both open pools). 60% is the warning band — anything
+# over usually means we need a pgbouncer in front or a bigger instance.
+resource "aws_cloudwatch_metric_alarm" "rds_connections_high" {
+  alarm_name          = "${var.project_name}-rds-connections-high"
+  alarm_description   = "RDS connection count > 60% of pool"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = 2
+  metric_name         = "DatabaseConnections"
+  namespace           = "AWS/RDS"
+  period              = 300
+  statistic           = "Average"
+  threshold           = ceil(var.rds_max_connections * 0.6)
+
+  dimensions = {
+    DBInstanceIdentifier = var.db_instance_id
+  }
+
+  alarm_actions = [aws_sns_topic.alarms.arn]
+  ok_actions    = [aws_sns_topic.alarms.arn]
+}
+
+# Service health: running tasks < desired. Detects crash-loops and image-pull
+# failures that the deploy workflow's wait-for-stability doesn't catch when
+# they happen mid-day (rolled back deploy, OOM kill, etc.).
+resource "aws_cloudwatch_metric_alarm" "ecs_running_below_desired" {
+  alarm_name          = "${var.project_name}-ecs-running-below-desired"
+  alarm_description   = "ECS service has fewer running tasks than desired"
+  comparison_operator = "LessThanThreshold"
+  evaluation_periods  = 2
+  metric_name         = "RunningTaskCount"
+  namespace           = "ECS/ContainerInsights"
+  period              = 60
+  statistic           = "Minimum"
+  threshold           = var.ecs_service_desired_count
+
+  dimensions = {
+    ClusterName = var.ecs_cluster_name
+    ServiceName = var.ecs_service_name
+  }
+
+  alarm_actions      = [aws_sns_topic.alarms.arn]
+  ok_actions         = [aws_sns_topic.alarms.arn]
+  treat_missing_data = "breaching" # missing data on this metric = something's wrong
+}
+
+# Last-line-of-defense: ALB target group has zero healthy hosts. Catches the
+# case where every task is failing health checks but ECS hasn't given up yet.
+resource "aws_cloudwatch_metric_alarm" "alb_no_healthy_hosts" {
+  alarm_name          = "${var.project_name}-alb-no-healthy-hosts"
+  alarm_description   = "ALB target group has zero healthy hosts — site is effectively down"
+  comparison_operator = "LessThanThreshold"
+  evaluation_periods  = 1
+  metric_name         = "HealthyHostCount"
+  namespace           = "AWS/ApplicationELB"
+  period              = 60
+  statistic           = "Minimum"
+  threshold           = 1
+
+  dimensions = {
+    LoadBalancer = var.alb_arn_suffix
+    TargetGroup  = var.alb_target_group_arn_suffix
+  }
+
+  alarm_actions      = [aws_sns_topic.alarms.arn]
+  ok_actions         = [aws_sns_topic.alarms.arn]
+  treat_missing_data = "breaching"
+}

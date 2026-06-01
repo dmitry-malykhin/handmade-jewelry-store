@@ -25,6 +25,16 @@ output "alb_zone_id" {
   value       = aws_lb.api.zone_id
 }
 
+output "alb_arn_suffix" {
+  description = "ALB ARN suffix — required by CloudWatch metric dimensions."
+  value       = aws_lb.api.arn_suffix
+}
+
+output "target_group_arn_suffix" {
+  description = "Target group ARN suffix — required by per-target-group CloudWatch metrics."
+  value       = aws_lb_target_group.api.arn_suffix
+}
+
 output "task_execution_role_arn" {
   value = aws_iam_role.task_execution.arn
 }
