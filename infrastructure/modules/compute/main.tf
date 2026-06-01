@@ -351,3 +351,55 @@ resource "aws_ecs_service" "api" {
 
   depends_on = [aws_lb_listener.http]
 }
+
+# ────────────────────────────────────────────────────────────────────────────
+# Auto-scaling. Issue #82 — "scale out when CPU > 70%". Target tracking
+# is the simpler model: AWS computes the math, we just declare the target.
+# Scales between `desired_count` (floor) and `max_capacity` (ceiling).
+# ────────────────────────────────────────────────────────────────────────────
+
+resource "aws_appautoscaling_target" "ecs_api" {
+  service_namespace  = "ecs"
+  resource_id        = "service/${aws_ecs_cluster.this.name}/${aws_ecs_service.api.name}"
+  scalable_dimension = "ecs:service:DesiredCount"
+  min_capacity       = var.desired_count
+  max_capacity       = var.autoscale_max_capacity
+}
+
+resource "aws_appautoscaling_policy" "ecs_cpu_target_tracking" {
+  name               = "${var.project_name}-cpu-target-tracking"
+  policy_type        = "TargetTrackingScaling"
+  service_namespace  = aws_appautoscaling_target.ecs_api.service_namespace
+  resource_id        = aws_appautoscaling_target.ecs_api.resource_id
+  scalable_dimension = aws_appautoscaling_target.ecs_api.scalable_dimension
+
+  target_tracking_scaling_policy_configuration {
+    predefined_metric_specification {
+      predefined_metric_type = "ECSServiceAverageCPUUtilization"
+    }
+
+    target_value       = var.autoscale_cpu_target_percent
+    scale_in_cooldown  = 300 # wait 5 min before removing a task — avoids flap
+    scale_out_cooldown = 60  # add tasks aggressively when load spikes
+  }
+}
+
+# A second target-tracking policy on memory. Either metric crossing target
+# triggers scale-out; both must stay below to scale in.
+resource "aws_appautoscaling_policy" "ecs_memory_target_tracking" {
+  name               = "${var.project_name}-memory-target-tracking"
+  policy_type        = "TargetTrackingScaling"
+  service_namespace  = aws_appautoscaling_target.ecs_api.service_namespace
+  resource_id        = aws_appautoscaling_target.ecs_api.resource_id
+  scalable_dimension = aws_appautoscaling_target.ecs_api.scalable_dimension
+
+  target_tracking_scaling_policy_configuration {
+    predefined_metric_specification {
+      predefined_metric_type = "ECSServiceAverageMemoryUtilization"
+    }
+
+    target_value       = var.autoscale_memory_target_percent
+    scale_in_cooldown  = 300
+    scale_out_cooldown = 60
+  }
+}

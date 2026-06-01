@@ -23,6 +23,12 @@ ecs_task_memory    = "512"
 ecs_desired_count  = 1
 api_container_port = 4000
 
+# Auto-scaling — keep fleet average around the target %, with a ceiling so
+# a runaway scale can't 10× the bill.
+ecs_autoscale_max_capacity          = 4
+ecs_autoscale_cpu_target_percent    = 70
+ecs_autoscale_memory_target_percent = 75
+
 # DNS — leave domain_name empty to skip ACM + Route53 entirely.
 # manage_dns_in_aws = false means you'll keep DNS in your existing provider
 # (Cloudflare etc.) and validate ACM certificates manually.

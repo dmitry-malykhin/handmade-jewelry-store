@@ -76,6 +76,24 @@ variable "ecs_desired_count" {
   default     = 1
 }
 
+variable "ecs_autoscale_max_capacity" {
+  description = "Upper bound on Fargate tasks the auto-scaler can spin up. Caps runaway cost."
+  type        = number
+  default     = 4
+}
+
+variable "ecs_autoscale_cpu_target_percent" {
+  description = "Average CPU % the auto-scaler keeps the fleet around. 70 means add a task once we cross 70%."
+  type        = number
+  default     = 70
+}
+
+variable "ecs_autoscale_memory_target_percent" {
+  description = "Average memory % target for the auto-scaler."
+  type        = number
+  default     = 75
+}
+
 variable "api_container_port" {
   description = "Port the NestJS app listens on inside the container (see apps/api/src/main.ts)."
   type        = number

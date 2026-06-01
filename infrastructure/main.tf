@@ -48,19 +48,22 @@ module "dns" {
 module "compute" {
   source = "./modules/compute"
 
-  project_name              = var.project_name
-  vpc_id                    = module.networking.vpc_id
-  public_subnet_ids         = module.networking.public_subnet_ids
-  private_subnet_ids        = module.networking.private_subnet_ids
-  alb_security_group_id     = module.networking.alb_security_group_id
-  ecs_security_group_id     = module.networking.ecs_security_group_id
-  container_port            = var.api_container_port
-  task_cpu                  = var.ecs_task_cpu
-  task_memory               = var.ecs_task_memory
-  desired_count             = var.ecs_desired_count
-  domain_name               = var.domain_name
-  acm_certificate_arn       = try(module.dns[0].api_certificate_arn, "")
-  db_credentials_secret_arn = module.database.db_credentials_secret_arn
+  project_name                    = var.project_name
+  vpc_id                          = module.networking.vpc_id
+  public_subnet_ids               = module.networking.public_subnet_ids
+  private_subnet_ids              = module.networking.private_subnet_ids
+  alb_security_group_id           = module.networking.alb_security_group_id
+  ecs_security_group_id           = module.networking.ecs_security_group_id
+  container_port                  = var.api_container_port
+  task_cpu                        = var.ecs_task_cpu
+  task_memory                     = var.ecs_task_memory
+  desired_count                   = var.ecs_desired_count
+  autoscale_max_capacity          = var.ecs_autoscale_max_capacity
+  autoscale_cpu_target_percent    = var.ecs_autoscale_cpu_target_percent
+  autoscale_memory_target_percent = var.ecs_autoscale_memory_target_percent
+  domain_name                     = var.domain_name
+  acm_certificate_arn             = try(module.dns[0].api_certificate_arn, "")
+  db_credentials_secret_arn       = module.database.db_credentials_secret_arn
 }
 
 module "cdn" {
