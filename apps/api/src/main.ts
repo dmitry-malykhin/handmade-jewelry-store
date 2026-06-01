@@ -7,8 +7,14 @@ import { HttpAdapterHost, NestFactory } from '@nestjs/core'
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston'
 import { ProxyAgent, setGlobalDispatcher } from 'undici'
 import { AppModule } from './app.module'
+import { assertProductionEnv } from './common/config/required-env'
 import { HttpExceptionFilter } from './common/filters/http-exception.filter'
 import { SentryGlobalFilter } from '@sentry/nestjs/setup'
+
+// Fail fast on missing required env vars in production. A boot-time crash
+// is preferable to a half-started app exploding inside a controller later.
+// No-op in development / test.
+assertProductionEnv()
 
 // Node 22's built-in fetch (undici) does not honour HTTP(S)_PROXY env vars by default.
 // Local dev behind a corporate / personal VPN proxy needs an explicit dispatcher,

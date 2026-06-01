@@ -306,6 +306,8 @@
     "payNow": "Pagar {amount}",
     "paymentLoading": "Preparando el formulario de pago…",
     "initiateCheckoutError": "No se pudo inicializar el pago. Vuelve atrás e inténtalo de nuevo.",
+    "paymentUnavailableTitle": "Los pagos no están disponibles temporalmente",
+    "paymentUnavailableDescription": "No pudimos cargar el formulario de pago. Actualiza la página o inténtalo en unos minutos. El equipo ya fue notificado.",
     "craftingLine": "Elaboración: hasta {days} días hábiles",
     "shippingLineStandard": "Envío: 5–7 días hábiles estándar",
     "shippingLineExpress": "Envío: 2–3 días hábiles exprés",

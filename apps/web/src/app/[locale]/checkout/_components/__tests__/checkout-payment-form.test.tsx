@@ -35,6 +35,17 @@ vi.mock('@stripe/stripe-js', () => ({
   loadStripe: vi.fn().mockResolvedValue(null),
 }))
 
+// The component imports stripePromise from @/lib/stripe at module load. In the
+// test environment NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY is unset, so the real
+// helper would return null and the component would render the "payments
+// unavailable" banner. Mock with a non-null promise so the success path
+// (Elements rendering) is exercised.
+vi.mock('@/lib/stripe', () => ({
+  stripePromise: Promise.resolve({ __mockStripe: true }),
+  isStripeConfigured: () => true,
+  getStripePromise: () => Promise.resolve({ __mockStripe: true }),
+}))
+
 vi.mock('@stripe/react-stripe-js', () => ({
   Elements: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="stripe-elements">{children}</div>
