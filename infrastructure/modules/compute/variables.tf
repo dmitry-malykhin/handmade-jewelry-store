@@ -71,3 +71,9 @@ variable "autoscale_memory_target_percent" {
   type        = number
   default     = 75
 }
+
+variable "log_retention_days" {
+  description = "How long ECS task logs are kept in CloudWatch. 30 = default; #89 suggests 7 for cost-conscious deploys (~30% storage cost saving)."
+  type        = number
+  default     = 30
+}
