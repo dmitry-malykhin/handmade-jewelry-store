@@ -16,9 +16,9 @@ export function Footer() {
       groupKey: 'shopGroup',
       links: [
         { key: 'allJewelry', href: '/shop' },
-        { key: 'rings', href: '/shop/rings' },
-        { key: 'necklaces', href: '/shop/necklaces' },
-        { key: 'earrings', href: '/shop/earrings' },
+        { key: 'rings', href: '/shop?categorySlug=rings' },
+        { key: 'necklaces', href: '/shop?categorySlug=necklaces' },
+        { key: 'earrings', href: '/shop?categorySlug=earrings' },
       ],
     },
     {
@@ -31,12 +31,7 @@ export function Footer() {
     },
     {
       groupKey: 'supportGroup',
-      links: [
-        { key: 'faq', href: '/faq' },
-        { key: 'shipping', href: '/shipping' },
-        { key: 'careGuide', href: '/care' },
-        { key: 'sizeGuide', href: '/size-guide' },
-      ],
+      links: [{ key: 'sizeGuide', href: '/ring-size-guide' }],
     },
   ] as const
 

@@ -18,7 +18,6 @@
   },
   "navigation": {
     "shop": "Tienda",
-    "collections": "Colecciones",
     "about": "Nosotros",
     "contact": "Contacto",
     "ringSizeGuide": "Guía de tallas"
@@ -152,9 +151,6 @@
     "aboutUs": "Sobre nosotros",
     "ourStory": "Nuestra historia",
     "contact": "Contacto",
-    "faq": "Preguntas frecuentes",
-    "shipping": "Envío y devoluciones",
-    "careGuide": "Guía de cuidado",
     "sizeGuide": "Guía de tallas",
     "copyright": "Senichka. Todos los derechos reservados.",
     "privacy": "Política de privacidad",

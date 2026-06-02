@@ -11,7 +11,6 @@ import { LOCALES } from './language-switcher'
 
 const NAV_LINKS = [
   { key: 'navigation.shop', href: '/shop' },
-  { key: 'navigation.collections', href: '/collections' },
   { key: 'navigation.about', href: '/about' },
   { key: 'navigation.contact', href: '/contact' },
 ] as const
