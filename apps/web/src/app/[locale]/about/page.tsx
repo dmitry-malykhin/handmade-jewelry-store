@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 import { Button } from '@/components/ui/button'
 
 interface AboutPageProps {
@@ -47,7 +47,7 @@ export default async function AboutPage({ params }: AboutPageProps) {
 
       <div className="mx-auto max-w-4xl px-4 py-16 sm:px-6">
         {/* Brand Story */}
-        <article className="mb-20">
+        <article id="story" className="mb-20 scroll-mt-24">
           <h2 className="mb-6 text-2xl font-semibold text-foreground">{t('storyTitle')}</h2>
           <div className="space-y-4 text-muted-foreground">
             <p>{t('storyParagraph1')}</p>

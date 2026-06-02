@@ -19,8 +19,8 @@ vi.mock('next-intl/server', () => ({
   setRequestLocale: vi.fn(),
 }))
 
-vi.mock('next/link', () => ({
-  default: ({ href, children }: { href: string; children: React.ReactNode }) => (
+vi.mock('@/i18n/navigation', () => ({
+  Link: ({ href, children }: { href: string; children: React.ReactNode }) => (
     <a href={href}>{children}</a>
   ),
 }))

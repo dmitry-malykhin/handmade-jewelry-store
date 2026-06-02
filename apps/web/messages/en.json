@@ -18,7 +18,6 @@
   },
   "navigation": {
     "shop": "Shop",
-    "collections": "Collections",
     "about": "About",
     "contact": "Contact",
     "ringSizeGuide": "Ring size guide"
@@ -152,9 +151,6 @@
     "aboutUs": "About Us",
     "ourStory": "Our Story",
     "contact": "Contact",
-    "faq": "FAQ",
-    "shipping": "Shipping & Returns",
-    "careGuide": "Care Guide",
     "sizeGuide": "Size Guide",
     "copyright": "Senichka. All rights reserved.",
     "privacy": "Privacy Policy",

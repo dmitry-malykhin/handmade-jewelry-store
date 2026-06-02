@@ -11,7 +11,6 @@ export function NavLinks() {
 
   const links = [
     { key: 'shop', href: '/shop' },
-    { key: 'collections', href: '/collections' },
     { key: 'about', href: '/about' },
     { key: 'contact', href: '/contact' },
   ] as const
