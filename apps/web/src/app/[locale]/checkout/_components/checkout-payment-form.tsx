@@ -1,10 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { loadStripe } from '@stripe/stripe-js'
 import { Elements } from '@stripe/react-stripe-js'
 import { useLocale, useTranslations } from 'next-intl'
 import { useCheckoutTotalPrice } from '@/store/cart.store'
+import { stripePromise } from '@/lib/stripe'
 import { CheckoutOrderSummary } from './checkout-order-summary'
 import { CheckoutSteps } from './checkout-steps'
 import { CheckoutStripeForm } from './checkout-stripe-form'
@@ -12,8 +12,8 @@ import { useInitiateCheckout } from './hooks/use-initiate-checkout'
 import type { ShippingOption } from '../_lib/shipping-options'
 import type { CheckoutAddressFormValues } from './checkout-address-schema'
 
-// loadStripe is called outside the component to avoid re-creating the Stripe object on each render
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? '')
+// stripePromise is loaded once at module level via the shared helper, which
+// throws in production if the publishable key is missing — see lib/stripe.ts.
 
 interface CheckoutPaymentFormProps {
   addressValues: CheckoutAddressFormValues
@@ -78,7 +78,19 @@ export function CheckoutPaymentForm({
             </div>
           )}
 
-          {clientSecret && orderId && (
+          {clientSecret && orderId && stripePromise === null && (
+            <div
+              role="alert"
+              className="rounded-lg border border-destructive bg-destructive/10 p-4"
+            >
+              <p className="text-sm font-medium text-destructive">{t('paymentUnavailableTitle')}</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {t('paymentUnavailableDescription')}
+              </p>
+            </div>
+          )}
+
+          {clientSecret && orderId && stripePromise !== null && (
             <Elements
               stripe={stripePromise}
               options={{

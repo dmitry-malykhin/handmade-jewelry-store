@@ -139,4 +139,95 @@ describe('EmailService', () => {
       )
     })
   })
+
+  describe('sendContactMessage()', () => {
+    it('routes the message to STORE_OWNER_EMAIL from ConfigService.getOrThrow', async () => {
+      mockResendEmailsSend.mockResolvedValueOnce({ error: null })
+
+      await emailService.sendContactMessage({
+        senderName: 'Buyer',
+        senderEmail: 'buyer@example.com',
+        subject: 'Question',
+        message: 'Hi!',
+      })
+
+      expect(mockResendEmailsSend).toHaveBeenCalledWith(
+        expect.objectContaining({
+          to: 're_test_key', // mock returns this for any getOrThrow key
+          reply_to: 'buyer@example.com',
+        }),
+      )
+    })
+
+    it('throws when STORE_OWNER_EMAIL is missing (no silent fallback)', async () => {
+      const configService = {
+        get: jest.fn().mockReturnValue('re_test_key'),
+        getOrThrow: jest.fn().mockImplementation((key: string) => {
+          if (key === 'STORE_OWNER_EMAIL') {
+            throw new Error(`Configuration key "${key}" does not exist`)
+          }
+          return 're_test_key'
+        }),
+      }
+      const module = await Test.createTestingModule({
+        providers: [EmailService, { provide: ConfigService, useValue: configService }],
+      }).compile()
+      const service = module.get<EmailService>(EmailService)
+
+      await expect(
+        service.sendContactMessage({
+          senderName: 'Buyer',
+          senderEmail: 'buyer@example.com',
+          subject: 'Question',
+          message: 'Hi!',
+        }),
+      ).rejects.toThrow(/STORE_OWNER_EMAIL/)
+
+      expect(mockResendEmailsSend).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('FROM address', () => {
+    it('uses RESEND_FROM_ADDRESS when configured', async () => {
+      const configService = {
+        get: jest.fn().mockImplementation((key: string) => {
+          if (key === 'RESEND_FROM_ADDRESS') return 'orders@senichka.com'
+          return 're_test_key'
+        }),
+        getOrThrow: jest.fn().mockReturnValue('owner@senichka.com'),
+      }
+      const module = await Test.createTestingModule({
+        providers: [EmailService, { provide: ConfigService, useValue: configService }],
+      }).compile()
+      const service = module.get<EmailService>(EmailService)
+      mockResendEmailsSend.mockResolvedValueOnce({ error: null })
+
+      await service.sendOrderConfirmation(mockOrderConfirmationData)
+
+      expect(mockResendEmailsSend).toHaveBeenCalledWith(
+        expect.objectContaining({ from: 'orders@senichka.com' }),
+      )
+    })
+
+    it('falls back to onboarding@resend.dev when RESEND_FROM_ADDRESS is unset', async () => {
+      const configService = {
+        get: jest.fn().mockImplementation((key: string) => {
+          if (key === 'RESEND_FROM_ADDRESS') return undefined
+          return 're_test_key'
+        }),
+        getOrThrow: jest.fn().mockReturnValue('owner@senichka.com'),
+      }
+      const module = await Test.createTestingModule({
+        providers: [EmailService, { provide: ConfigService, useValue: configService }],
+      }).compile()
+      const service = module.get<EmailService>(EmailService)
+      mockResendEmailsSend.mockResolvedValueOnce({ error: null })
+
+      await service.sendOrderConfirmation(mockOrderConfirmationData)
+
+      expect(mockResendEmailsSend).toHaveBeenCalledWith(
+        expect.objectContaining({ from: 'onboarding@resend.dev' }),
+      )
+    })
+  })
 })

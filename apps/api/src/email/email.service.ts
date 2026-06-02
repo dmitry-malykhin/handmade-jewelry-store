@@ -27,19 +27,25 @@ import {
   type BackInStockEmailData,
 } from './templates/back-in-stock.template'
 
-// TODO: replace with verified domain address after DNS setup (e.g. orders@yourdomain.com)
-const FROM_ADDRESS = 'onboarding@resend.dev'
+// Resend's onboarding domain — accepted for testing, but flagged as spam by
+// most receivers. Production MUST set RESEND_FROM_ADDRESS to a verified
+// domain address (e.g. `orders@senichka.com`). The startup validator in
+// `common/config/required-env.ts` enforces this in NODE_ENV=production.
+const DEV_FALLBACK_FROM_ADDRESS = 'onboarding@resend.dev'
 
 @Injectable()
 export class EmailService {
   private readonly logger = new Logger(EmailService.name)
   private readonly resend: Resend
+  private readonly fromAddress: string
 
   constructor(private readonly configService: ConfigService) {
     // In dev/test environments RESEND_API_KEY may be absent — Resend SDK accepts any string
     // and all failures are caught in send(), so the app starts and emails silently no-op.
     const apiKey = this.configService.get<string>('RESEND_API_KEY') ?? 'dev_no_op'
     this.resend = new Resend(apiKey)
+    this.fromAddress =
+      this.configService.get<string>('RESEND_FROM_ADDRESS') ?? DEV_FALLBACK_FROM_ADDRESS
   }
 
   async sendOrderConfirmation(data: OrderConfirmationData): Promise<void> {
@@ -74,8 +80,12 @@ export class EmailService {
 
   async sendContactMessage(data: ContactMessageEmailData): Promise<void> {
     const { subject, html } = buildContactMessageEmail(data)
+    // STORE_OWNER_EMAIL must be set — without it contact-form messages would
+    // silently route to the placeholder owner@example.com. The required-env
+    // validator enforces it in production; here we throw to surface the
+    // misconfig immediately if dev forgot to set it.
+    const ownerEmail = this.configService.getOrThrow<string>('STORE_OWNER_EMAIL')
     // Reply-To set to the sender so the store owner can reply directly from their inbox
-    const ownerEmail = this.configService.get<string>('STORE_OWNER_EMAIL') ?? 'owner@example.com'
     await this.send({ to: ownerEmail, subject, html, replyTo: data.senderEmail })
   }
 
@@ -87,7 +97,7 @@ export class EmailService {
   }): Promise<void> {
     try {
       const { error } = await this.resend.emails.send({
-        from: FROM_ADDRESS,
+        from: this.fromAddress,
         to: params.to,
         subject: params.subject,
         html: params.html,

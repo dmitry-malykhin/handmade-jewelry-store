@@ -306,6 +306,8 @@
     "payNow": "Pay {amount}",
     "paymentLoading": "Preparing payment form…",
     "initiateCheckoutError": "Could not initialize payment. Please go back and try again.",
+    "paymentUnavailableTitle": "Payments are temporarily unavailable",
+    "paymentUnavailableDescription": "We could not load the payment form. Please refresh the page or try again in a few minutes. The team has been notified.",
     "craftingLine": "Crafting: up to {days} business days",
     "shippingLineStandard": "Shipping: 5–7 business days standard",
     "shippingLineExpress": "Shipping: 2–3 business days express",
