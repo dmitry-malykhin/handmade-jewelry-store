@@ -24,7 +24,7 @@ export async function ProductCard({ product, isPriority = false }: ProductCardPr
   return (
     <article className="group relative flex flex-col overflow-hidden rounded-lg border border-border bg-card transition-shadow hover:shadow-md">
       <WishlistButton productId={product.id} variant="card" />
-      <Link href={`/shop/${product.slug}`} aria-label={product.title}>
+      <Link href={`/products/${product.slug}`} aria-label={product.title}>
         <figure className="relative aspect-square overflow-hidden bg-accent/10">
           <Image
             src={primaryImage}
@@ -49,7 +49,7 @@ export async function ProductCard({ product, isPriority = false }: ProductCardPr
           </Badge>
         )}
 
-        <Link href={`/shop/${product.slug}`}>
+        <Link href={`/products/${product.slug}`}>
           <h2 className="line-clamp-2 text-sm font-medium text-foreground transition-colors hover:text-primary">
             {product.title}
           </h2>

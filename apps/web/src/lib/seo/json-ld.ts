@@ -103,7 +103,7 @@ export function generateProductJsonLd(product: ProductJsonLdProps) {
       priceCurrency: 'USD',
       availability:
         product.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
-      url: `${SITE_URL}/shop/${product.slug}`,
+      url: `${SITE_URL}/products/${product.slug}`,
     },
   }
 }

@@ -162,9 +162,6 @@
     "metaTitle": "Все украшения",
     "metaDescription": "Просматривайте полную коллекцию украшений ручной работы — колье, браслеты, серьги и многое другое.",
     "title": "Все украшения",
-    "breadcrumbHome": "Главная",
-    "breadcrumbShop": "Магазин",
-    "breadcrumbLabel": "Навигация по странице",
     "productsCount": "{count} товаров",
     "productListLabel": "Список товаров",
     "emptyTitle": "Товары не найдены",
@@ -399,7 +396,6 @@
   "productDetail": {
     "breadcrumbLabel": "Расположение страницы товара",
     "breadcrumbHome": "Главная",
-    "breadcrumbShop": "Магазин",
     "imageAlt": "фото {index}",
     "thumbnailsLabel": "Миниатюры фотографий товара",
     "thumbnailAlt": "Фото {index}",

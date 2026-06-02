@@ -162,9 +162,6 @@
     "metaTitle": "Toda la joyería",
     "metaDescription": "Explora nuestra colección completa de joyería artesanal — collares, pulseras, pendientes y más.",
     "title": "Toda la joyería",
-    "breadcrumbHome": "Inicio",
-    "breadcrumbShop": "Tienda",
-    "breadcrumbLabel": "Ubicación en la página",
     "productsCount": "{count} productos",
     "productListLabel": "Lista de productos",
     "emptyTitle": "No se encontraron productos",
@@ -399,7 +396,6 @@
   "productDetail": {
     "breadcrumbLabel": "Ubicación de la página del producto",
     "breadcrumbHome": "Inicio",
-    "breadcrumbShop": "Tienda",
     "imageAlt": "foto {index}",
     "thumbnailsLabel": "Miniaturas de fotos del producto",
     "thumbnailAlt": "Foto {index}",

@@ -16,7 +16,7 @@ vi.mock('next-intl', () => ({
 vi.mock('next/navigation', () => ({
   useSearchParams: () => new URLSearchParams(),
   useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
-  usePathname: () => '/en/shop',
+  usePathname: () => '/en',
 }))
 
 // CatalogFilters uses useSearchParams internally — stub it to prevent hook errors

@@ -108,7 +108,7 @@ export default async function ConfirmationPage({ params, searchParams }: Confirm
 
         <div className="flex justify-center pt-2">
           <Button asChild size="lg">
-            <Link href="/shop">{t('continueShopping')}</Link>
+            <Link href="/">{t('continueShopping')}</Link>
           </Button>
         </div>
       </div>

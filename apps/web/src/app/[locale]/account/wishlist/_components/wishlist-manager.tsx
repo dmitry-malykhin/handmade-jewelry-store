@@ -104,7 +104,7 @@ export function WishlistManager() {
           <p className="text-sm text-muted-foreground">{t('emptyDescription')}</p>
         </div>
         <Button asChild>
-          <Link href="/shop">{t('emptyCta')}</Link>
+          <Link href="/">{t('emptyCta')}</Link>
         </Button>
       </div>
     )
@@ -137,7 +137,7 @@ export function WishlistManager() {
                 <X className="size-4" aria-hidden="true" />
               </button>
 
-              <Link href={`/shop/${product.slug}`} aria-label={product.title}>
+              <Link href={`/products/${product.slug}`} aria-label={product.title}>
                 <figure className="relative aspect-square overflow-hidden bg-accent/10">
                   <Image
                     src={primaryImage}
@@ -176,7 +176,7 @@ export function WishlistManager() {
                   )}
                 </div>
 
-                <Link href={`/shop/${product.slug}`}>
+                <Link href={`/products/${product.slug}`}>
                   <h3 className="line-clamp-2 text-sm font-medium text-foreground hover:text-primary">
                     {product.title}
                   </h3>

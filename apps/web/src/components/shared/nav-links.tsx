@@ -10,7 +10,7 @@ export function NavLinks() {
   const t = useTranslations('navigation')
 
   const links = [
-    { key: 'shop', href: '/shop' },
+    { key: 'shop', href: '/' },
     { key: 'about', href: '/about' },
     { key: 'contact', href: '/contact' },
   ] as const

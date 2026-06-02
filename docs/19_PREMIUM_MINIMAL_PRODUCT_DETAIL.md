@@ -302,7 +302,7 @@ Pattern:
 | Файл | Что меняется | Сложность |
 |---|---|---|
 | `apps/web/src/lib/constants/studio.ts` (NEW) | `STUDIO_NAME`, `STUDIO_CITY` константы | XS |
-| `apps/web/src/app/[locale]/shop/[slug]/_components/product-info.tsx` | Stock indicator: dot + text · Trust block · Maker line · Concrete delivery date | M |
+| `apps/web/src/app/[locale]/products/[slug]/_components/product-info.tsx` | Stock indicator: dot + text · Trust block · Maker line · Concrete delivery date | M |
 | `apps/web/src/app/[locale]/checkout/_lib/format-eta.ts` | Optional: `formatLatestDeliveryDate(option, productionDays)` helper | XS |
 | `apps/web/messages/{en,ru,es}.json` | ~10 новых i18n ключей | S |
 
@@ -386,7 +386,7 @@ export function formatLatestDeliveryDate(productionDays: number, option: Shippin
 
 ## 8. Метрики успеха
 
-Замеры через 30 дней после релиза + первого организического трафика, baseline = аналитика после первых 1000 visits на /shop/[slug].
+Замеры через 30 дней после релиза + первого организического трафика, baseline = аналитика после первых 1000 visits на /products/[slug].
 
 | Метрика | Где смотреть | Целевое значение |
 |---|---|---|

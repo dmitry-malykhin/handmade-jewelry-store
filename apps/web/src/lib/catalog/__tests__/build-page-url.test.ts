@@ -14,22 +14,22 @@ beforeEach(async () => {
 })
 
 describe('buildPageUrl()', () => {
-  it('returns /shop with no query string when page is 1 and no filters', () => {
-    expect(buildPageUrl({}, 1)).toBe('/shop')
+  it('returns / with no query string when page is 1 and no filters', () => {
+    expect(buildPageUrl({}, 1)).toBe('/')
   })
 
-  it('omits the page param on page 1 to keep /shop as the canonical URL', () => {
-    // SEO: /shop and /shop?page=1 must not be two separate indexed URLs
+  it('omits the page param on page 1 to keep / as the canonical URL', () => {
+    // SEO: / and /?page=1 must not be two separate indexed URLs
     const urlWithPage1 = buildPageUrl({}, 1)
     expect(urlWithPage1).not.toContain('page=')
   })
 
   it('adds page=2 when target page is 2', () => {
-    expect(buildPageUrl({}, 2)).toBe('/shop?page=2')
+    expect(buildPageUrl({}, 2)).toBe('/?page=2')
   })
 
   it('adds page=5 when target page is 5', () => {
-    expect(buildPageUrl({}, 5)).toBe('/shop?page=5')
+    expect(buildPageUrl({}, 5)).toBe('/?page=5')
   })
 
   it('preserves existing filter params alongside the page number', () => {

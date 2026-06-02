@@ -77,7 +77,7 @@ describe('Google Shopping Feed', () => {
     expect(xml).toContain('<g:mpn>SKU-001</g:mpn>')
     expect(xml).toContain('<g:material>Czech Glass Beads</g:material>')
     expect(xml).toContain('<g:shipping_weight>25 g</g:shipping_weight>')
-    expect(xml).toContain('/en/shop/beaded-bracelet')
+    expect(xml).toContain('/en/products/beaded-bracelet')
   })
 
   it('filters out non-ACTIVE products', async () => {

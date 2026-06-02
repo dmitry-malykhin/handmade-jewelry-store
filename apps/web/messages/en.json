@@ -162,9 +162,6 @@
     "metaTitle": "All Jewelry",
     "metaDescription": "Browse our full collection of handmade jewelry — necklaces, bracelets, earrings and more.",
     "title": "All Jewelry",
-    "breadcrumbHome": "Home",
-    "breadcrumbShop": "Shop",
-    "breadcrumbLabel": "Page location",
     "productsCount": "{count} products",
     "productListLabel": "Product list",
     "emptyTitle": "No products found",
@@ -399,7 +396,6 @@
   "productDetail": {
     "breadcrumbLabel": "Product page location",
     "breadcrumbHome": "Home",
-    "breadcrumbShop": "Shop",
     "imageAlt": "photo {index}",
     "thumbnailsLabel": "Product photo thumbnails",
     "thumbnailAlt": "Photo {index}",

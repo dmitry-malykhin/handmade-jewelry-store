@@ -16,7 +16,7 @@ vi.mock('next/navigation', () => ({
     get: (key: string) => mockSearchParamsStore[key] ?? null,
     toString: () => new URLSearchParams(mockSearchParamsStore).toString(),
   }),
-  usePathname: () => '/en/shop',
+  usePathname: () => '/en',
 }))
 
 beforeEach(() => {
@@ -215,6 +215,6 @@ describe('useCatalogFilters — clearFilters()', () => {
       result.current.clearFilters()
     })
 
-    expect(mockRouterPush).toHaveBeenCalledWith('/en/shop')
+    expect(mockRouterPush).toHaveBeenCalledWith('/en')
   })
 })

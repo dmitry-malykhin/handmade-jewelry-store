@@ -34,25 +34,25 @@ beforeEach(async () => {
 
 describe('PaginationArrowButton — active (href provided)', () => {
   it('renders a link when href is provided', () => {
-    render(<PaginationArrowButton href="/shop?page=2" ariaLabel="Next page" symbol="→" />)
+    render(<PaginationArrowButton href="/?page=2" ariaLabel="Next page" symbol="→" />)
 
     expect(screen.getByRole('link', { name: 'Next page' })).toBeInTheDocument()
   })
 
   it('link points to the provided href', () => {
-    render(<PaginationArrowButton href="/shop?page=2" ariaLabel="Next page" symbol="→" />)
+    render(<PaginationArrowButton href="/?page=2" ariaLabel="Next page" symbol="→" />)
 
-    expect(screen.getByRole('link', { name: 'Next page' })).toHaveAttribute('href', '/shop?page=2')
+    expect(screen.getByRole('link', { name: 'Next page' })).toHaveAttribute('href', '/?page=2')
   })
 
   it('renders the ← symbol for the previous button', () => {
-    render(<PaginationArrowButton href="/shop" ariaLabel="Previous page" symbol="←" />)
+    render(<PaginationArrowButton href="/" ariaLabel="Previous page" symbol="←" />)
 
     expect(screen.getByRole('link', { name: 'Previous page' })).toHaveTextContent('←')
   })
 
   it('renders the → symbol for the next button', () => {
-    render(<PaginationArrowButton href="/shop?page=3" ariaLabel="Next page" symbol="→" />)
+    render(<PaginationArrowButton href="/?page=3" ariaLabel="Next page" symbol="→" />)
 
     expect(screen.getByRole('link', { name: 'Next page' })).toHaveTextContent('→')
   })

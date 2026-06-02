@@ -104,11 +104,11 @@ describe('gtag analytics helpers', () => {
   })
 
   it('trackPageView sends page_view event', () => {
-    trackPageView('/en/shop', 'Shop — Senichka')
+    trackPageView('/en', 'Home — Senichka')
 
     expect(mockGtag).toHaveBeenCalledWith('event', 'page_view', {
-      page_path: '/en/shop',
-      page_title: 'Shop — Senichka',
+      page_path: '/en',
+      page_title: 'Home — Senichka',
     })
   })
 

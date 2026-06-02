@@ -33,12 +33,13 @@ describe('buildWelcomeEmail', () => {
   it('uses FRONTEND_URL for the Explore CTA when set', () => {
     process.env.FRONTEND_URL = 'https://senichka.com'
     const { html } = buildWelcomeEmail({ recipientEmail: 'jane@example.com' })
-    expect(html).toContain('href="https://senichka.com/shop"')
+    // Catalog lives at locale root (#280) — explore CTA points to /
+    expect(html).toContain('href="https://senichka.com/"')
   })
 
   it('falls back to the local dev URL when FRONTEND_URL is absent', () => {
     delete process.env.FRONTEND_URL
     const { html } = buildWelcomeEmail({ recipientEmail: 'jane@example.com' })
-    expect(html).toContain('href="http://localhost:3001/shop"')
+    expect(html).toContain('href="http://localhost:3001/"')
   })
 })

@@ -9,7 +9,7 @@ export function buildBackInStockEmail(data: BackInStockEmailData): {
   subject: string
   html: string
 } {
-  const productUrl = `${process.env['FRONTEND_URL'] ?? 'http://localhost:3001'}/shop/${data.productSlug}`
+  const productUrl = `${process.env['FRONTEND_URL'] ?? 'http://localhost:3001'}/products/${data.productSlug}`
 
   return {
     subject: `Back in stock: ${data.productTitle}`,

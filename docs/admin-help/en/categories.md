@@ -7,7 +7,7 @@ page (`Rings`, `Necklaces`, `Bracelets`, etc.).
 
 Each product belongs to exactly **one** category. Categories appear in
 storefront navigation, breadcrumbs, and product JSON-LD. Their `slug` is
-part of the canonical URL: `/shop?categorySlug=rings`.
+part of the canonical URL: `/?categorySlug=rings`.
 
 Use this page to:
 

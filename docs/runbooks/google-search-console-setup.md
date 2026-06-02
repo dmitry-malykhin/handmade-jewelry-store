@@ -44,7 +44,7 @@
 1. GSC → **Pages** (Indexing → Pages)
 2. Убедиться что нет ошибок **Error** (красные)
 3. **Excluded** — нормально для /admin/, /checkout/, /cart/ (robots.txt блокирует)
-4. **Valid** — должны быть: homepage, /shop, product pages
+4. **Valid** — должны быть: homepage (= catalog после #280), /products/<slug>, /ring-size-guide. Любые `/shop*` помечены **Redirected** (301 → новый URL) — это нормально, со временем заместятся
 
 ---
 

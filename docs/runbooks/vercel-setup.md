@@ -123,10 +123,11 @@ curl -I https://senichka-web-<hash>.vercel.app/_next/static/<chunk>.js
 # Cache-Control: public, max-age=31536000, immutable
 
 # Open browser, проверь:
-# 1. Главная страница загружается
-# 2. /shop — каталог (упадёт если NEXT_PUBLIC_API_URL смотрит в недоступный API — это OK для dev)
-# 3. Переключение языка работает (EN/RU/ES)
-# 4. Theme toggle (light/dark)
+# 1. Главная страница загружается (это и есть каталог после #280)
+# 2. /shop → 301 → / (старый URL редиректит)
+# 3. /products/<slug> — страница товара
+# 4. Переключение языка работает (EN/RU/ES)
+# 5. Theme toggle (light/dark)
 ```
 
 ### Шаг 5 — Preview deployments
@@ -231,7 +232,7 @@ vercel dev  # или next start
 |---|---|---|
 | Build fails: `Cannot find module '@jewelry/shared'` | Vercel install запустился из `apps/web/`, не из root — packages/shared не установился | Проверь `installCommand` в vercel.json — должен быть `cd ../.. && pnpm install` |
 | Build fails: `Turbo: command not found` | Vercel не нашёл pnpm/turbo | Vercel должен auto-detect pnpm из `pnpm-lock.yaml`. Если нет — добавь `"corepack": true` в Project Settings |
-| Preview URL отвечает 404 на /shop | API недоступен (нет NEXT_PUBLIC_API_URL или невалидный) | В Vercel Settings → Environment Variables → проверь NEXT_PUBLIC_API_URL для Preview scope |
+| Preview URL отвечает 404 / пустой каталог на главной | API недоступен (нет NEXT_PUBLIC_API_URL или невалидный) | В Vercel Settings → Environment Variables → проверь NEXT_PUBLIC_API_URL для Preview scope |
 | `Strict-Transport-Security` header не виден | Vercel deployment ещё не пересобрался после vercel.json | Force redeploy: dashboard → Deployments → ⋯ → Redeploy |
 | Custom domain в "Pending DNS configuration" >1 час | DNS records не добавлены или неверны | `dig senichka.com A` должен показать `76.76.21.21`. Проверь в DNS provider |
 | Build success но "loading..." бесконечно при открытии URL | NEXT_PUBLIC_API_URL смотрит в localhost (build cached с dev value) | Update env var → redeploy |

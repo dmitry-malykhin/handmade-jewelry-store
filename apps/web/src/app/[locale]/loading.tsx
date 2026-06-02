@@ -1,21 +1,15 @@
 import { ProductGridSkeleton } from '@/components/features/catalog/product-grid-skeleton'
 
-// Mirrors CatalogPage layout to prevent CLS:
-//   CatalogHeader (header.mb-8: breadcrumb ol.mb-4 + h1.text-3xl + p.text-sm.mt-2)
+// Mirrors HomePage (catalog) layout to prevent CLS:
+//   CatalogHeader (header.mb-8: h1.text-3xl + p.text-sm.mt-2 — no breadcrumb since home is the catalog)
 //   + flex.gap-8 { aside.w-64 filters | main products }
 // Filters: 3 fieldsets (CategoryFilter mb-6, PriceFilter mb-6, SortFilter mb-6)
 //   each with legend.mb-3.text-sm and content (radio list / inputs / select)
-export default function ShopLoading() {
+export default function HomeLoading() {
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* CatalogHeader: header.mb-8 */}
+      {/* CatalogHeader: header.mb-8 (no breadcrumb on home) */}
       <header className="mb-8">
-        {/* Breadcrumb: ol.mb-4.flex.items-center.gap-2.text-sm */}
-        <div className="mb-4 flex items-center gap-2">
-          <div className="h-4 w-10 animate-pulse rounded bg-skeleton-base" />
-          <div className="h-4 w-2 animate-pulse rounded bg-skeleton-base" />
-          <div className="h-4 w-10 animate-pulse rounded bg-skeleton-base" />
-        </div>
         {/* h1.text-3xl.font-bold */}
         <div className="h-9 w-48 animate-pulse rounded bg-skeleton-base" />
         {/* p.mt-2.text-sm (products count) */}

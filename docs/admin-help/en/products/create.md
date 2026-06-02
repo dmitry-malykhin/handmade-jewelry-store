@@ -24,7 +24,7 @@ metadata.
 - **Recommended**: One canonical name per design — don't append "(2024)".
 
 ### Slug
-- **Purpose**: URL fragment after `/shop/`. Auto-generated from title after
+- **Purpose**: URL fragment after `/products/`. Auto-generated from title after
   ~400ms if left blank.
 - **How to fill**: lowercase, hyphens, no diacritics. Example
   `sterling-silver-moonstone-ring`.

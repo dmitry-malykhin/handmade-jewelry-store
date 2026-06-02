@@ -15,10 +15,10 @@ export function Footer() {
     {
       groupKey: 'shopGroup',
       links: [
-        { key: 'allJewelry', href: '/shop' },
-        { key: 'rings', href: '/shop?categorySlug=rings' },
-        { key: 'necklaces', href: '/shop?categorySlug=necklaces' },
-        { key: 'earrings', href: '/shop?categorySlug=earrings' },
+        { key: 'allJewelry', href: '/' },
+        { key: 'rings', href: '/?categorySlug=rings' },
+        { key: 'necklaces', href: '/?categorySlug=necklaces' },
+        { key: 'earrings', href: '/?categorySlug=earrings' },
       ],
     },
     {

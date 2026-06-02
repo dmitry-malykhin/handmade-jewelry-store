@@ -27,12 +27,9 @@ describe('EmptyCart', () => {
     expect(screen.getByRole('heading', { name: /your cart is empty/i })).toBeInTheDocument()
   })
 
-  it('renders a link to the shop', () => {
+  it('renders a link to the catalog (home)', () => {
     render(<EmptyCart />)
 
-    expect(screen.getByRole('link', { name: /continue shopping/i })).toHaveAttribute(
-      'href',
-      '/shop',
-    )
+    expect(screen.getByRole('link', { name: /continue shopping/i })).toHaveAttribute('href', '/')
   })
 })

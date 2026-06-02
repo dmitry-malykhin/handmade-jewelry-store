@@ -21,14 +21,6 @@ export async function ProductDetail({ product }: ProductDetailProps) {
               {t('breadcrumbHome')}
             </Link>
           </li>
-          <li aria-hidden="true" className="select-none">
-            /
-          </li>
-          <li>
-            <Link href="/shop" className="hover:text-foreground">
-              {t('breadcrumbShop')}
-            </Link>
-          </li>
           {product.category && (
             <>
               <li aria-hidden="true" className="select-none">
@@ -36,7 +28,7 @@ export async function ProductDetail({ product }: ProductDetailProps) {
               </li>
               <li>
                 <Link
-                  href={`/shop?categorySlug=${product.category.slug}`}
+                  href={`/?categorySlug=${product.category.slug}`}
                   className="hover:text-foreground"
                 >
                   {product.category.name}

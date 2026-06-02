@@ -55,11 +55,11 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
     },
     // canonical prevents duplicate content across locales and filter combinations
     alternates: {
-      canonical: `/${locale}/shop/${slug}`,
+      canonical: `/${locale}/products/${slug}`,
       languages: {
-        en: `/en/shop/${slug}`,
-        ru: `/ru/shop/${slug}`,
-        es: `/es/shop/${slug}`,
+        en: `/en/products/${slug}`,
+        ru: `/ru/products/${slug}`,
+        es: `/es/products/${slug}`,
       },
     },
   }
@@ -93,16 +93,15 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   const breadcrumbJsonLd = generateBreadcrumbJsonLd([
     { name: t('breadcrumbHome'), href: `/${locale}` },
-    { name: t('breadcrumbShop'), href: `/${locale}/shop` },
     ...(product.category
       ? [
           {
             name: product.category.name,
-            href: `/${locale}/shop?categorySlug=${product.category.slug}`,
+            href: `/${locale}?categorySlug=${product.category.slug}`,
           },
         ]
       : []),
-    { name: product.title, href: `/${locale}/shop/${slug}` },
+    { name: product.title, href: `/${locale}/products/${slug}` },
   ])
 
   return (

@@ -24,7 +24,7 @@ function mapAvailability(stock: number, stockType: string): string {
 
 function buildProductEntry(product: Product): string {
   const price = parseFloat(product.price).toFixed(2)
-  const productUrl = `${SITE_URL}/en/shop/${product.slug}`
+  const productUrl = `${SITE_URL}/en/products/${product.slug}`
   const imageUrl = product.images[0] ?? ''
   const availability = mapAvailability(product.stock, product.stockType)
 

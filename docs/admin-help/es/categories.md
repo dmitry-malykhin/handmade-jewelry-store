@@ -8,7 +8,7 @@ filtran en la página de tienda (`Anillos`, `Collares`, `Pulseras`, …).
 Cada producto pertenece exactamente a **una** categoría. Las categorías
 aparecen en la navegación de la tienda, breadcrumbs, y JSON-LD del
 producto. Su `slug` es parte de la URL canónica:
-`/shop?categorySlug=rings`.
+`/?categorySlug=rings`.
 
 Usa esta página para:
 

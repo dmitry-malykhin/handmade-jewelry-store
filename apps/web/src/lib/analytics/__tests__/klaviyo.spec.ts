@@ -56,7 +56,7 @@ describe('klaviyo analytics helpers', () => {
           ProductName: 'Beaded Bracelet',
           Price: 45,
           ImageURL: 'https://cdn.example.com/img.jpg',
-          URL: '/shop/beaded-bracelet',
+          URL: '/products/beaded-bracelet',
         },
       ],
     ])

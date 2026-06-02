@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@/test-utils'
-import CatalogError from '../error'
+import LocaleError from '../error'
 import {
   suite as $allureSuite,
   subSuite as $allureSubSuite,
@@ -20,15 +20,17 @@ beforeEach(async () => {
   await $allureSeverity('normal')
 })
 
-describe('CatalogError boundary', () => {
+// After #280 the catalog moved to /, so the root [locale]/error.tsx boundary
+// catches both catalog errors and any other page error under [locale]/.
+describe('LocaleError boundary (root /[locale]/error.tsx)', () => {
   it('renders generic error heading', () => {
-    render(<CatalogError reset={vi.fn()} />)
+    render(<LocaleError reset={vi.fn()} />)
     expect(screen.getByText('Something went wrong')).toBeInTheDocument()
   })
 
-  it('renders catalog-specific error description', () => {
-    render(<CatalogError reset={vi.fn()} />)
-    expect(screen.getByText('Could not load products. Please try again.')).toBeInTheDocument()
+  it('renders the generic page-level error description', () => {
+    render(<LocaleError reset={vi.fn()} />)
+    expect(screen.getByText('Something went wrong while loading this page.')).toBeInTheDocument()
   })
 
   it('renders retry button that calls reset', async () => {
@@ -36,14 +38,14 @@ describe('CatalogError boundary', () => {
       userEvent: m.default,
     }))
     const handleReset = vi.fn()
-    render(<CatalogError reset={handleReset} />)
+    render(<LocaleError reset={handleReset} />)
 
     await user.setup().click(screen.getByRole('button', { name: 'Try again' }))
     expect(handleReset).toHaveBeenCalledOnce()
   })
 
   it('renders home link', () => {
-    render(<CatalogError reset={vi.fn()} />)
+    render(<LocaleError reset={vi.fn()} />)
     expect(screen.getByRole('link', { name: 'Go to homepage' })).toBeInTheDocument()
   })
 })
