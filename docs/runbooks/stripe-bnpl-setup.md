@@ -38,7 +38,7 @@
 |---|---|
 | [`apps/api/src/payments/payments.service.ts`](../../apps/api/src/payments/payments.service.ts) | `payment_method_types: ['card', 'klarna', 'afterpay_clearpay']` в PaymentIntent.create |
 | [`apps/web/src/lib/installment-preview.ts`](../../apps/web/src/lib/installment-preview.ts) | Helper `calculateInstallmentPreview(totalUsd) → { amount, count } \| null` (eligibility window $35–$1000) |
-| [`apps/web/src/app/[locale]/shop/[slug]/_components/product-info.tsx`](../../apps/web/src/app/[locale]/shop/[slug]/_components/product-info.tsx) | "Or 4 payments of $X" под ценой (когда eligible) |
+| [`apps/web/src/app/[locale]/products/[slug]/_components/product-info.tsx`](../../apps/web/src/app/[locale]/products/[slug]/_components/product-info.tsx) | "Or 4 payments of $X" под ценой (когда eligible) |
 | [`apps/web/src/app/[locale]/checkout/_components/checkout-order-summary.tsx`](../../apps/web/src/app/[locale]/checkout/_components/checkout-order-summary.tsx) | Same preview в order summary |
 | `apps/web/messages/{en,ru,es}.json` | i18n keys: `productDetail.installmentPreview`, `checkoutPage.installmentPreview` |
 

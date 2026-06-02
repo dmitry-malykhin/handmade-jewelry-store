@@ -43,11 +43,11 @@ describe('sitemap', () => {
     const { default: sitemap } = await import('../sitemap')
     const result = await sitemap()
 
-    // 3 locales × 3 static pages (home + shop + ring-size-guide)
-    expect(result.length).toBe(9)
+    // 3 locales × 2 static pages (home/catalog + ring-size-guide); /shop removed in #280
+    expect(result.length).toBe(6)
   })
 
-  it('includes home and shop entries for each locale', async () => {
+  it('includes the locale root (home = catalog) for each locale', async () => {
     mockFetchProducts.mockResolvedValue({
       data: [],
       meta: { totalCount: 0, totalPages: 1, page: 1, limit: 1000 },
@@ -58,10 +58,12 @@ describe('sitemap', () => {
     const result = await sitemap()
 
     const urls = result.map((entry) => entry.url)
-    expect(urls.some((url) => url.includes('/en'))).toBe(true)
-    expect(urls.some((url) => url.includes('/ru'))).toBe(true)
-    expect(urls.some((url) => url.includes('/es'))).toBe(true)
-    expect(urls.some((url) => url.includes('/en/shop'))).toBe(true)
+    // Locale roots present
+    expect(urls.some((url) => url.endsWith('/en'))).toBe(true)
+    expect(urls.some((url) => url.endsWith('/ru'))).toBe(true)
+    expect(urls.some((url) => url.endsWith('/es'))).toBe(true)
+    // /shop is gone after #280 — must not appear anywhere
+    expect(urls.some((url) => url.includes('/shop'))).toBe(false)
   })
 
   it('adds product pages for each locale when products are returned', async () => {
@@ -105,8 +107,8 @@ describe('sitemap', () => {
     const { default: sitemap } = await import('../sitemap')
     const result = await sitemap()
 
-    // Only 3 locales × 3 static pages (home + shop + ring-size-guide), no product/category
-    expect(result.length).toBe(9)
+    // Only 3 locales × 2 static pages (home/catalog + ring-size-guide); /shop removed in #280
+    expect(result.length).toBe(6)
     expect(result.every((entry) => !entry.url.includes('silver-moonstone-ring'))).toBe(true)
   })
 

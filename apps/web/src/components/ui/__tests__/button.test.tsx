@@ -124,13 +124,13 @@ describe('Button', () => {
   it('renders as an <a> element when asChild is used with <a>', () => {
     render(
       <Button asChild>
-        <a href="/shop">Shop Now</a>
+        <a href="/">Shop Now</a>
       </Button>,
     )
 
     const link = screen.getByRole('link', { name: 'Shop Now' })
     expect(link).toBeInTheDocument()
     expect(link.tagName).toBe('A')
-    expect(link).toHaveAttribute('href', '/shop')
+    expect(link).toHaveAttribute('href', '/')
   })
 })

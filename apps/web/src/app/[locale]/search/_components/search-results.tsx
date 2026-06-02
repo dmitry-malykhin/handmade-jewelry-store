@@ -94,7 +94,7 @@ export function SearchResults({ initialQuery }: SearchResultsProps) {
             {t('noResults', { query: debouncedQuery })}
           </p>
           <Link
-            href="/shop"
+            href="/"
             className="inline-block text-sm text-primary underline-offset-4 hover:underline"
           >
             {t('browseAll')} →
@@ -111,7 +111,7 @@ export function SearchResults({ initialQuery }: SearchResultsProps) {
             {results.map((product) => (
               <li key={product.id}>
                 <Link
-                  href={`/shop/${product.slug}`}
+                  href={`/products/${product.slug}`}
                   className="group block overflow-hidden rounded-lg border border-border bg-card transition-shadow hover:shadow-md"
                 >
                   <div className="relative aspect-square overflow-hidden bg-accent/10">

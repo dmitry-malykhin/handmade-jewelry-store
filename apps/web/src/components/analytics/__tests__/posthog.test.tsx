@@ -12,7 +12,7 @@ import {
 // modules before rendering. Keeps imports clean and avoids per-test imports.
 let mockConsent = false
 let mockAccessToken: string | null = null
-let mockPathname = '/en/shop'
+let mockPathname = '/en'
 let mockSearchParams = new URLSearchParams()
 
 vi.mock('next/navigation', () => ({
@@ -73,7 +73,7 @@ describe('PostHogAnalytics', () => {
     optInMock.mockClear()
     mockConsent = false
     mockAccessToken = null
-    mockPathname = '/en/shop'
+    mockPathname = '/en'
     mockSearchParams = new URLSearchParams()
     ;(posthog as unknown as { __loaded: boolean }).__loaded = false
   })
@@ -100,7 +100,7 @@ describe('PostHogAnalytics', () => {
         autocapture: false,
       }),
     )
-    expect(captureMock).toHaveBeenCalledWith('$pageview', { $current_url: '/en/shop' })
+    expect(captureMock).toHaveBeenCalledWith('$pageview', { $current_url: '/en' })
   })
 
   it('includes search params in the captured pageview URL', () => {
@@ -109,7 +109,7 @@ describe('PostHogAnalytics', () => {
     render(<PostHogAnalytics apiKey="phc_test" />)
 
     expect(captureMock).toHaveBeenCalledWith('$pageview', {
-      $current_url: '/en/shop?categorySlug=rings',
+      $current_url: '/en?categorySlug=rings',
     })
   })
 

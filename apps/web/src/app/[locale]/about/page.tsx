@@ -129,7 +129,7 @@ export default async function AboutPage({ params }: AboutPageProps) {
         <section className="rounded-xl bg-accent/30 px-8 py-12 text-center">
           <h2 className="mb-4 text-2xl font-semibold text-foreground">{t('ctaTitle')}</h2>
           <Button asChild size="lg">
-            <Link href="/shop">{t('ctaButton')}</Link>
+            <Link href="/">{t('ctaButton')}</Link>
           </Button>
         </section>
       </div>

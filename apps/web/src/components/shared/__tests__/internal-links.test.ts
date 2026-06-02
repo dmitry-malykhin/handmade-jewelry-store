@@ -19,6 +19,9 @@ const KNOWN_DEAD_ROUTES = [
   '/shipping',
   '/care',
   '/size-guide',
+  // /shop family — removed in #280 (catalog moved to /, product detail to /products/[slug]).
+  // Direct refs in navigation would hit the 301 redirect chain; block them in source.
+  '/shop',
   '/shop/rings',
   '/shop/necklaces',
   '/shop/earrings',
@@ -80,5 +83,23 @@ describe('shared navigation — internal links', () => {
   it('placeholder-product.jpg asset is committed', () => {
     const placeholder = resolve(repoRoot, 'apps/web/public/placeholder-product.jpg')
     expect(existsSync(placeholder)).toBe(true)
+  })
+
+  it('product detail lives at /products/[slug] (#280)', () => {
+    const productPage = resolve(appDir, 'products/[slug]/page.tsx')
+    expect(existsSync(productPage)).toBe(true)
+  })
+
+  it('next.config declares 301 redirects from old /shop URLs (#280)', () => {
+    const config = readFileSync(resolve(repoRoot, 'apps/web/next.config.ts'), 'utf8')
+    // Catalog: /:locale/shop → /:locale
+    expect(config).toMatch(/source:\s*['"]\/:locale\(en\|ru\|es\)\/shop['"]/)
+    expect(config).toMatch(/destination:\s*['"]\/:locale['"]/)
+    // Product detail: /:locale/shop/:slug → /:locale/products/:slug
+    expect(config).toMatch(/source:\s*['"]\/:locale\(en\|ru\|es\)\/shop\/:slug['"]/)
+    expect(config).toMatch(/destination:\s*['"]\/:locale\/products\/:slug['"]/)
+    // Both must be permanent (301, not 307)
+    const redirectsBlock = config.match(/async redirects\(\)[\s\S]+?^\s{2}\},/m)?.[0] ?? ''
+    expect(redirectsBlock).toContain('permanent: true')
   })
 })

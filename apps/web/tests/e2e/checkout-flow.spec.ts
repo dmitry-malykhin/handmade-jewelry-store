@@ -10,7 +10,7 @@ test.describe('Add to cart → Checkout flow', () => {
   })
 
   test('can browse shop and see product cards', async ({ page }) => {
-    await page.goto('/en/shop')
+    await page.goto('/en')
 
     const productGrid = page.getByRole('list', { name: /product/i })
     await expect(productGrid).toBeVisible()
@@ -20,7 +20,7 @@ test.describe('Add to cart → Checkout flow', () => {
   })
 
   test('can add a product to cart from the shop page', async ({ page }) => {
-    await page.goto('/en/shop')
+    await page.goto('/en')
 
     const addToCartButton = page.getByRole('button', { name: /add to cart/i }).first()
     await expect(addToCartButton).toBeVisible()
@@ -31,7 +31,7 @@ test.describe('Add to cart → Checkout flow', () => {
   })
 
   test('cart page shows added items', async ({ page }) => {
-    await page.goto('/en/shop')
+    await page.goto('/en')
 
     // Add first product
     await page
@@ -48,7 +48,7 @@ test.describe('Add to cart → Checkout flow', () => {
   })
 
   test('can increase and decrease item quantity in cart', async ({ page }) => {
-    await page.goto('/en/shop')
+    await page.goto('/en')
     await page
       .getByRole('button', { name: /add to cart/i })
       .first()
@@ -71,7 +71,7 @@ test.describe('Add to cart → Checkout flow', () => {
   })
 
   test('can remove item from cart', async ({ page }) => {
-    await page.goto('/en/shop')
+    await page.goto('/en')
     await page
       .getByRole('button', { name: /add to cart/i })
       .first()
@@ -91,7 +91,7 @@ test.describe('Add to cart → Checkout flow', () => {
   })
 
   test('cart summary shows subtotal and checkout button', async ({ page }) => {
-    await page.goto('/en/shop')
+    await page.goto('/en')
     await page
       .getByRole('button', { name: /add to cart/i })
       .first()
@@ -107,7 +107,7 @@ test.describe('Add to cart → Checkout flow', () => {
   })
 
   test('proceeds to checkout and shows guest/sign-in options', async ({ page }) => {
-    await page.goto('/en/shop')
+    await page.goto('/en')
     await page
       .getByRole('button', { name: /add to cart/i })
       .first()
@@ -125,7 +125,7 @@ test.describe('Add to cart → Checkout flow', () => {
   })
 
   test('guest checkout shows address form with all required fields', async ({ page }) => {
-    await page.goto('/en/shop')
+    await page.goto('/en')
     await page
       .getByRole('button', { name: /add to cart/i })
       .first()
@@ -144,7 +144,7 @@ test.describe('Add to cart → Checkout flow', () => {
   })
 
   test('address form validates required fields on submit', async ({ page }) => {
-    await page.goto('/en/shop')
+    await page.goto('/en')
     await page
       .getByRole('button', { name: /add to cart/i })
       .first()
@@ -161,7 +161,7 @@ test.describe('Add to cart → Checkout flow', () => {
   })
 
   test('can fill address form and proceed to shipping method', async ({ page }) => {
-    await page.goto('/en/shop')
+    await page.goto('/en')
     await page
       .getByRole('button', { name: /add to cart/i })
       .first()
@@ -186,7 +186,7 @@ test.describe('Add to cart → Checkout flow', () => {
   })
 
   test('order summary sidebar is visible during checkout', async ({ page }) => {
-    await page.goto('/en/shop')
+    await page.goto('/en')
     await page
       .getByRole('button', { name: /add to cart/i })
       .first()

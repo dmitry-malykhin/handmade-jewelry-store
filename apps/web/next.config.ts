@@ -23,6 +23,24 @@ const nextConfig: NextConfig = {
   async headers() {
     return [{ source: '/(.*)', headers: securityHeaders }]
   },
+  async redirects() {
+    // 301 redirects from the old /shop URL space to the new layout (#280).
+    // Catalog moved from /shop to / (home is the catalog); product detail moved
+    // from /shop/[slug] to /products/[slug]. Locale-prefixed because routing
+    // segments live under [locale].
+    return [
+      {
+        source: '/:locale(en|ru|es)/shop',
+        destination: '/:locale',
+        permanent: true,
+      },
+      {
+        source: '/:locale(en|ru|es)/shop/:slug',
+        destination: '/:locale/products/:slug',
+        permanent: true,
+      },
+    ]
+  },
   images: {
     // dangerouslyAllowSVG required because placehold.co returns SVG format
     dangerouslyAllowSVG: true,

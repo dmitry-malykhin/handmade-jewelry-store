@@ -288,7 +288,7 @@ export function formatProductionLine(productionDays: number, t: TranslateFn): st
 
 | Файл | Изменение | Сложность |
 |---|---|---|
-| `apps/web/src/app/[locale]/shop/[slug]/_components/product-info.tsx` | Заменить single-line ETA на 2-line блок (main + helper) | Средняя |
+| `apps/web/src/app/[locale]/products/[slug]/_components/product-info.tsx` | Заменить single-line ETA на 2-line блок (main + helper) | Средняя |
 | `apps/web/src/app/[locale]/cart/_components/cart-item-row.tsx` | Убрать shipping упоминание, оставить только production-копи | Малая |
 | `apps/web/src/app/[locale]/checkout/_components/checkout-order-summary.tsx` | Single-line "Estimated delivery" → 3-line breakdown | Средняя |
 | `apps/web/src/app/[locale]/checkout/_lib/format-eta.ts` (новый) | Helper-утилиты | Малая |

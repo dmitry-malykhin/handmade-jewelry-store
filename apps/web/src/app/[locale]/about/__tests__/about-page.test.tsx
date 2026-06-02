@@ -82,9 +82,9 @@ describe('AboutPage — structure', () => {
     expect(screen.getByRole('heading', { name: 'What We Believe', level: 2 })).toBeInTheDocument()
   })
 
-  it('renders the Shop CTA link pointing to /shop', async () => {
+  it('renders the Shop CTA link pointing to / (catalog home)', async () => {
     await renderAboutPage()
     const ctaLink = screen.getByRole('link', { name: 'Shop the Collection' })
-    expect(ctaLink).toHaveAttribute('href', '/shop')
+    expect(ctaLink).toHaveAttribute('href', '/')
   })
 })

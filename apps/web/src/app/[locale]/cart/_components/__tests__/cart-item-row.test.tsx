@@ -66,7 +66,7 @@ describe('CartItemRow — rendering', () => {
 
     const links = screen.getAllByRole('link')
     expect(links.length).toBeGreaterThan(0)
-    expect(links[0]).toHaveAttribute('href', '/shop/silver-ring')
+    expect(links[0]).toHaveAttribute('href', '/products/silver-ring')
   })
 
   it('shows "Ready to ship today" copy when productionDays is 0', () => {

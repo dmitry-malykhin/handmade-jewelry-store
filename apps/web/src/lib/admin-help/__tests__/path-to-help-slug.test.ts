@@ -83,7 +83,7 @@ describe('getHelpSlugForPath — customers, categories, discounts, settings', ()
 
 describe('getHelpSlugForPath — unknown paths', () => {
   it('returns null for a non-admin path', () => {
-    expect(getHelpSlugForPath('/shop')).toBeNull()
+    expect(getHelpSlugForPath('/cart')).toBeNull()
   })
 
   it('returns null for an unmapped admin subpath', () => {

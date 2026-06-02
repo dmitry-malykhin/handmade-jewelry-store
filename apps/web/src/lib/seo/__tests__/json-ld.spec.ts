@@ -92,9 +92,9 @@ describe('generateProductJsonLd', () => {
     expect(result.aggregateRating).toBeUndefined()
   })
 
-  it('builds the product URL using slug', () => {
+  it('builds the product URL using /products/<slug> (post #280)', () => {
     const result = generateProductJsonLd(baseProduct)
-    expect(result.offers.url).toContain('/shop/sterling-silver-moonstone-ring')
+    expect(result.offers.url).toContain('/products/sterling-silver-moonstone-ring')
   })
 })
 
@@ -109,8 +109,8 @@ describe('generateBreadcrumbJsonLd', () => {
   it('assigns correct 1-based position to each breadcrumb item', () => {
     const result = generateBreadcrumbJsonLd([
       { name: 'Home', href: '/en' },
-      { name: 'Shop', href: '/en/shop' },
-      { name: 'Ring', href: '/en/shop/ring' },
+      { name: 'Rings', href: '/en?categorySlug=rings' },
+      { name: 'Ring', href: '/en/products/ring' },
     ])
 
     expect(result.itemListElement[0].position).toBe(1)
@@ -119,9 +119,9 @@ describe('generateBreadcrumbJsonLd', () => {
   })
 
   it('builds full URLs from relative hrefs', () => {
-    const result = generateBreadcrumbJsonLd([{ name: 'Shop', href: '/en/shop' }])
+    const result = generateBreadcrumbJsonLd([{ name: 'Home', href: '/en' }])
 
-    expect(result.itemListElement[0].item).toContain('/en/shop')
+    expect(result.itemListElement[0].item).toContain('/en')
   })
 })
 

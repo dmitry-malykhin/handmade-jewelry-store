@@ -25,14 +25,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const staticEntries: MetadataRoute.Sitemap = routing.locales.flatMap((locale) => [
     {
+      // Home is the catalog (#280) — daily change frequency, highest priority
       url: `${SITE_URL}/${locale}`,
-      changeFrequency: 'weekly',
-      priority: 1.0,
-    },
-    {
-      url: `${SITE_URL}/${locale}/shop`,
       changeFrequency: 'daily',
-      priority: 0.9,
+      priority: 1.0,
     },
     {
       // Issue #118 — high-SEO-value evergreen content; rarely changes.
@@ -41,7 +37,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.6,
     },
     ...categories.map((category) => ({
-      url: `${SITE_URL}/${locale}/shop?categorySlug=${category.slug}`,
+      url: `${SITE_URL}/${locale}?categorySlug=${category.slug}`,
       changeFrequency: 'weekly' as const,
       priority: 0.7,
     })),
@@ -49,7 +45,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const productEntries: MetadataRoute.Sitemap = products.flatMap((product) =>
     routing.locales.map((locale) => ({
-      url: `${SITE_URL}/${locale}/shop/${product.slug}`,
+      url: `${SITE_URL}/${locale}/products/${product.slug}`,
       lastModified: new Date(product.updatedAt),
       changeFrequency: 'weekly' as const,
       priority: 0.8,

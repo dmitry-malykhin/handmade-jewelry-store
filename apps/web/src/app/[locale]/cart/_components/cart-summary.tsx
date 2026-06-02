@@ -79,7 +79,7 @@ export function CartSummary() {
       </Button>
 
       <Button variant="ghost" className="mt-2 w-full" size="lg" asChild>
-        <Link href="/shop">{t('continueShopping')}</Link>
+        <Link href="/">{t('continueShopping')}</Link>
       </Button>
 
       <p className="mt-4 text-center text-xs text-muted-foreground">{t('secureCheckout')}</p>

@@ -44,7 +44,7 @@ export function klaviyoViewedProduct(product: ProductItem): void {
       ProductName: product.title,
       Price: product.price,
       ImageURL: product.image,
-      URL: `/shop/${product.slug}`,
+      URL: `/products/${product.slug}`,
     },
   ])
 }

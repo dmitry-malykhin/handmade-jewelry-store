@@ -16,7 +16,7 @@ export function EmptyCart() {
         <p className="text-sm text-muted-foreground">{t('emptyDescription')}</p>
       </div>
       <Button asChild>
-        <Link href="/shop">{t('continueShopping')}</Link>
+        <Link href="/">{t('continueShopping')}</Link>
       </Button>
     </div>
   )

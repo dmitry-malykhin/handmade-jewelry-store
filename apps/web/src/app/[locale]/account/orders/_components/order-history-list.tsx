@@ -69,7 +69,7 @@ export function OrderHistoryList() {
         <p className="text-base font-medium text-foreground">{t('emptyTitle')}</p>
         <p className="mt-2 text-sm text-muted-foreground">{t('emptyDescription')}</p>
         <Button asChild className="mt-6">
-          <Link href="/shop">{t('emptyAction')}</Link>
+          <Link href="/">{t('emptyAction')}</Link>
         </Button>
       </div>
     )

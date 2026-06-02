@@ -27,7 +27,7 @@ export function CartItemRow({ cartItem }: CartItemRowProps) {
 
   return (
     <li className="flex gap-4 py-4">
-      <Link href={`/shop/${cartItem.slug}`} aria-label={cartItem.title} className="shrink-0">
+      <Link href={`/products/${cartItem.slug}`} aria-label={cartItem.title} className="shrink-0">
         <figure className="relative size-20 overflow-hidden rounded-md bg-accent/10 sm:size-24">
           <Image
             src={cartItem.image || '/placeholder-product.jpg'}
@@ -41,7 +41,7 @@ export function CartItemRow({ cartItem }: CartItemRowProps) {
 
       <div className="flex flex-1 flex-col gap-2">
         <div className="flex items-start justify-between gap-2">
-          <Link href={`/shop/${cartItem.slug}`}>
+          <Link href={`/products/${cartItem.slug}`}>
             <h2 className="text-sm font-medium text-foreground transition-colors hover:text-primary">
               {cartItem.title}
             </h2>
