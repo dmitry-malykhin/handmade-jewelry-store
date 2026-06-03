@@ -1,6 +1,7 @@
 import type { MetadataRoute } from 'next'
-import { fetchProducts, fetchCategories } from '@/lib/api/products'
+import { fetchAllProducts, fetchCategories } from '@/lib/api/products'
 import { routing } from '@/i18n/routing'
+import { logger } from '@/lib/logger'
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
 
@@ -12,15 +13,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   let categories: { slug: string }[] = []
 
   try {
-    const [productsResponse, categoriesResponse] = await Promise.all([
-      // Fetch all products — one sitemap supports up to 50k URLs, limit: 1000 is well within range
-      fetchProducts({ limit: 1000 }),
+    // fetchAllProducts paginates through the API's 100-per-page cap so the
+    // sitemap stays correct as the catalogue grows past 100 SKUs.
+    const [allProducts, categoriesResponse] = await Promise.all([
+      fetchAllProducts(),
       fetchCategories(),
     ])
-    products = productsResponse.data
+    products = allProducts
     categories = categoriesResponse
-  } catch {
-    // API unavailable at build time — static pages only; sitemap regenerates on next revalidation
+  } catch (error) {
+    // Sitemap is critical for SEO — a silent failure here makes the bug invisible
+    // until Google stops crawling product pages. Log loudly so it shows up in Sentry / log aggregation.
+    logger.error('sitemap.products-fetch.failed', {
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    })
   }
 
   const staticEntries: MetadataRoute.Sitemap = routing.locales.flatMap((locale) => [

@@ -5,9 +5,19 @@ import {
   severity as $allureSeverity,
 } from 'allure-js-commons'
 
-const mockFetchProducts = vi.fn()
+const mockFetchAllProducts = vi.fn()
+const mockLoggerError = vi.fn()
+
 vi.mock('@/lib/api/products', () => ({
-  fetchProducts: (...args: unknown[]) => mockFetchProducts(...args),
+  fetchAllProducts: (...args: unknown[]) => mockFetchAllProducts(...args),
+}))
+
+vi.mock('@/lib/logger', () => ({
+  logger: {
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: (...args: unknown[]) => mockLoggerError(...args),
+  },
 }))
 
 beforeEach(async () => {
@@ -20,11 +30,12 @@ beforeEach(async () => {
 describe('Google Shopping Feed', () => {
   beforeEach(() => {
     vi.resetModules()
-    mockFetchProducts.mockReset()
+    mockFetchAllProducts.mockReset()
+    mockLoggerError.mockReset()
   })
 
   it('returns XML with correct content type', async () => {
-    mockFetchProducts.mockResolvedValue({ data: [] })
+    mockFetchAllProducts.mockResolvedValue([])
 
     const { GET } = await import('../google-shopping/route')
     const response = await GET()
@@ -33,7 +44,7 @@ describe('Google Shopping Feed', () => {
   })
 
   it('returns valid RSS 2.0 with Google namespace', async () => {
-    mockFetchProducts.mockResolvedValue({ data: [] })
+    mockFetchAllProducts.mockResolvedValue([])
 
     const { GET } = await import('../google-shopping/route')
     const response = await GET()
@@ -45,25 +56,23 @@ describe('Google Shopping Feed', () => {
   })
 
   it('includes product entries with required Google Shopping fields', async () => {
-    mockFetchProducts.mockResolvedValue({
-      data: [
-        {
-          id: 'prod-1',
-          title: 'Beaded Bracelet',
-          description: 'Handmade bracelet with Czech beads',
-          price: '45.00',
-          stock: 5,
-          images: ['https://cdn.example.com/bracelet.jpg'],
-          slug: 'beaded-bracelet',
-          sku: 'SKU-001',
-          material: 'Czech Glass Beads',
-          weightGrams: 25,
-          status: 'ACTIVE',
-          stockType: 'IN_STOCK',
-          category: { name: 'Bracelets', slug: 'bracelets' },
-        },
-      ],
-    })
+    mockFetchAllProducts.mockResolvedValue([
+      {
+        id: 'prod-1',
+        title: 'Beaded Bracelet',
+        description: 'Handmade bracelet with Czech beads',
+        price: '45.00',
+        stock: 5,
+        images: ['https://cdn.example.com/bracelet.jpg'],
+        slug: 'beaded-bracelet',
+        sku: 'SKU-001',
+        material: 'Czech Glass Beads',
+        weightGrams: 25,
+        status: 'ACTIVE',
+        stockType: 'IN_STOCK',
+        category: { name: 'Bracelets', slug: 'bracelets' },
+      },
+    ])
 
     const { GET } = await import('../google-shopping/route')
     const response = await GET()
@@ -81,25 +90,23 @@ describe('Google Shopping Feed', () => {
   })
 
   it('filters out non-ACTIVE products', async () => {
-    mockFetchProducts.mockResolvedValue({
-      data: [
-        {
-          id: 'draft-1',
-          title: 'Draft Product',
-          description: 'Not ready',
-          price: '10.00',
-          stock: 0,
-          images: [],
-          slug: 'draft',
-          sku: null,
-          material: null,
-          weightGrams: null,
-          status: 'DRAFT',
-          stockType: 'IN_STOCK',
-          category: { name: 'Other', slug: 'other' },
-        },
-      ],
-    })
+    mockFetchAllProducts.mockResolvedValue([
+      {
+        id: 'draft-1',
+        title: 'Draft Product',
+        description: 'Not ready',
+        price: '10.00',
+        stock: 0,
+        images: [],
+        slug: 'draft',
+        sku: null,
+        material: null,
+        weightGrams: null,
+        status: 'DRAFT',
+        stockType: 'IN_STOCK',
+        category: { name: 'Other', slug: 'other' },
+      },
+    ])
 
     const { GET } = await import('../google-shopping/route')
     const response = await GET()
@@ -109,25 +116,23 @@ describe('Google Shopping Feed', () => {
   })
 
   it('maps MADE_TO_ORDER to preorder availability', async () => {
-    mockFetchProducts.mockResolvedValue({
-      data: [
-        {
-          id: 'mto-1',
-          title: 'Custom Necklace',
-          description: 'Made to order',
-          price: '80.00',
-          stock: 0,
-          images: ['https://cdn.example.com/necklace.jpg'],
-          slug: 'custom-necklace',
-          sku: null,
-          material: null,
-          weightGrams: null,
-          status: 'ACTIVE',
-          stockType: 'MADE_TO_ORDER',
-          category: { name: 'Necklaces', slug: 'necklaces' },
-        },
-      ],
-    })
+    mockFetchAllProducts.mockResolvedValue([
+      {
+        id: 'mto-1',
+        title: 'Custom Necklace',
+        description: 'Made to order',
+        price: '80.00',
+        stock: 0,
+        images: ['https://cdn.example.com/necklace.jpg'],
+        slug: 'custom-necklace',
+        sku: null,
+        material: null,
+        weightGrams: null,
+        status: 'ACTIVE',
+        stockType: 'MADE_TO_ORDER',
+        category: { name: 'Necklaces', slug: 'necklaces' },
+      },
+    ])
 
     const { GET } = await import('../google-shopping/route')
     const response = await GET()
@@ -136,8 +141,9 @@ describe('Google Shopping Feed', () => {
     expect(xml).toContain('<g:availability>preorder</g:availability>')
   })
 
-  it('returns empty feed when API is unavailable', async () => {
-    mockFetchProducts.mockRejectedValue(new Error('API down'))
+  it('returns empty feed and logs error when API is unavailable (regression: #288)', async () => {
+    const apiFailure = new Error('API 400: limit must not be greater than 100')
+    mockFetchAllProducts.mockRejectedValue(apiFailure)
 
     const { GET } = await import('../google-shopping/route')
     const response = await GET()
@@ -145,5 +151,11 @@ describe('Google Shopping Feed', () => {
 
     expect(xml).toContain('<channel>')
     expect(xml).not.toContain('<item>')
+
+    // Failure must NOT be silent — Merchant Center would otherwise freeze with stale data
+    expect(mockLoggerError).toHaveBeenCalledWith(
+      'feed.google-shopping.products-fetch.failed',
+      expect.objectContaining({ message: expect.stringContaining('API 400') }),
+    )
   })
 })

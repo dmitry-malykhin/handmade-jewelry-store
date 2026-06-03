@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import * as productsApi from '@/lib/api/products'
+import { logger } from '@/lib/logger'
 import {
   suite as $allureSuite,
   subSuite as $allureSubSuite,
@@ -7,12 +8,21 @@ import {
 } from 'allure-js-commons'
 
 vi.mock('@/lib/api/products', () => ({
-  fetchProducts: vi.fn(),
+  fetchAllProducts: vi.fn(),
   fetchCategories: vi.fn(),
 }))
 
-const mockFetchProducts = vi.mocked(productsApi.fetchProducts)
+vi.mock('@/lib/logger', () => ({
+  logger: {
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+  },
+}))
+
+const mockFetchAllProducts = vi.mocked(productsApi.fetchAllProducts)
 const mockFetchCategories = vi.mocked(productsApi.fetchCategories)
+const mockLoggerError = vi.mocked(logger.error)
 
 const mockProduct = {
   slug: 'silver-moonstone-ring',
@@ -34,10 +44,7 @@ beforeEach(async () => {
 
 describe('sitemap', () => {
   it('returns static entries for all locales when API returns empty data', async () => {
-    mockFetchProducts.mockResolvedValue({
-      data: [],
-      meta: { totalCount: 0, totalPages: 1, page: 1, limit: 1000 },
-    })
+    mockFetchAllProducts.mockResolvedValue([])
     mockFetchCategories.mockResolvedValue([])
 
     const { default: sitemap } = await import('../sitemap')
@@ -48,17 +55,13 @@ describe('sitemap', () => {
   })
 
   it('includes the locale root (home = catalog) for each locale', async () => {
-    mockFetchProducts.mockResolvedValue({
-      data: [],
-      meta: { totalCount: 0, totalPages: 1, page: 1, limit: 1000 },
-    })
+    mockFetchAllProducts.mockResolvedValue([])
     mockFetchCategories.mockResolvedValue([])
 
     const { default: sitemap } = await import('../sitemap')
     const result = await sitemap()
 
     const urls = result.map((entry) => entry.url)
-    // Locale roots present
     expect(urls.some((url) => url.endsWith('/en'))).toBe(true)
     expect(urls.some((url) => url.endsWith('/ru'))).toBe(true)
     expect(urls.some((url) => url.endsWith('/es'))).toBe(true)
@@ -67,15 +70,9 @@ describe('sitemap', () => {
   })
 
   it('adds product pages for each locale when products are returned', async () => {
-    mockFetchProducts.mockResolvedValue({
-      data: [
-        mockProduct as Parameters<typeof mockFetchProducts>[0] & {
-          slug: string
-          updatedAt: string
-        },
-      ],
-      meta: { totalCount: 1, totalPages: 1, page: 1, limit: 1000 },
-    } as Awaited<ReturnType<typeof productsApi.fetchProducts>>)
+    mockFetchAllProducts.mockResolvedValue([
+      mockProduct as Awaited<ReturnType<typeof productsApi.fetchAllProducts>>[number],
+    ])
     mockFetchCategories.mockResolvedValue([])
 
     const { default: sitemap } = await import('../sitemap')
@@ -84,13 +81,14 @@ describe('sitemap', () => {
     const productUrls = result.filter((entry) => entry.url.includes('silver-moonstone-ring'))
     // One entry per locale
     expect(productUrls).toHaveLength(3)
+    // URL uses /products/, not /shop/
+    expect(productUrls.every((entry) => entry.url.includes('/products/'))).toBe(true)
   })
 
   it('sets lastModified from product updatedAt', async () => {
-    mockFetchProducts.mockResolvedValue({
-      data: [mockProduct] as Awaited<ReturnType<typeof productsApi.fetchProducts>>['data'],
-      meta: { totalCount: 1, totalPages: 1, page: 1, limit: 1000 },
-    })
+    mockFetchAllProducts.mockResolvedValue([mockProduct] as Awaited<
+      ReturnType<typeof productsApi.fetchAllProducts>
+    >)
     mockFetchCategories.mockResolvedValue([])
 
     const { default: sitemap } = await import('../sitemap')
@@ -100,23 +98,27 @@ describe('sitemap', () => {
     expect(productEntry?.lastModified).toBeInstanceOf(Date)
   })
 
-  it('returns only static pages when API throws', async () => {
-    mockFetchProducts.mockRejectedValue(new Error('API unavailable'))
-    mockFetchCategories.mockRejectedValue(new Error('API unavailable'))
+  it('returns only static pages and logs error when API throws (regression: #288)', async () => {
+    const apiFailure = new Error('API 400: limit must not be greater than 100')
+    mockFetchAllProducts.mockRejectedValue(apiFailure)
+    mockFetchCategories.mockRejectedValue(apiFailure)
 
     const { default: sitemap } = await import('../sitemap')
     const result = await sitemap()
 
-    // Only 3 locales × 2 static pages (home/catalog + ring-size-guide); /shop removed in #280
+    // Only 3 locales × 2 static pages (home/catalog + ring-size-guide)
     expect(result.length).toBe(6)
     expect(result.every((entry) => !entry.url.includes('silver-moonstone-ring'))).toBe(true)
+
+    // Failure must NOT be silent — logger.error tells ops something is wrong
+    expect(mockLoggerError).toHaveBeenCalledWith(
+      'sitemap.products-fetch.failed',
+      expect.objectContaining({ message: expect.stringContaining('API 400') }),
+    )
   })
 
   it('includes ring size guide entry for each locale', async () => {
-    mockFetchProducts.mockResolvedValue({
-      data: [],
-      meta: { totalCount: 0, totalPages: 1, page: 1, limit: 1000 },
-    })
+    mockFetchAllProducts.mockResolvedValue([])
     mockFetchCategories.mockResolvedValue([])
 
     const { default: sitemap } = await import('../sitemap')
@@ -127,10 +129,7 @@ describe('sitemap', () => {
   })
 
   it('adds category filter pages for each locale', async () => {
-    mockFetchProducts.mockResolvedValue({
-      data: [],
-      meta: { totalCount: 0, totalPages: 1, page: 1, limit: 1000 },
-    })
+    mockFetchAllProducts.mockResolvedValue([])
     mockFetchCategories.mockResolvedValue([mockCategory] as Awaited<
       ReturnType<typeof productsApi.fetchCategories>
     >)
@@ -140,5 +139,7 @@ describe('sitemap', () => {
 
     const categoryUrls = result.filter((entry) => entry.url.includes('categorySlug=rings'))
     expect(categoryUrls).toHaveLength(3)
+    // Facet URL uses locale root, not /shop
+    expect(categoryUrls.every((entry) => /\/(en|ru|es)\?categorySlug=/.test(entry.url))).toBe(true)
   })
 })

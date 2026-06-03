@@ -37,6 +37,32 @@ export async function fetchProducts(params: FetchProductsParams = {}): Promise<P
   return apiClient<ProductsResponse>(`/api/products${query ? `?${query}` : ''}`)
 }
 
+// Matches the @Max(100) guard on the public product listing endpoint
+// (apps/api/src/products/dto/product-query.dto.ts). Exported so server-only
+// callers (sitemap, Google Shopping feed) can paginate against it.
+export const PUBLIC_PRODUCTS_MAX_PAGE_SIZE = 100
+
+/**
+ * Server-only helper: returns every public product by paging through the listing
+ * endpoint at the maximum allowed page size. Used by sitemap.xml and the Google
+ * Shopping feed, both of which need the full catalogue in a single document.
+ *
+ * Bounded by the API-reported `totalPages` — no infinite loops if the count
+ * drifts mid-traversal. Returns the first page's data on failure of later pages
+ * (caller decides whether partial data is acceptable; see usage in sitemap/feed).
+ */
+export async function fetchAllProducts(): Promise<Product[]> {
+  const first = await fetchProducts({ page: 1, limit: PUBLIC_PRODUCTS_MAX_PAGE_SIZE })
+  if (first.meta.totalPages <= 1) return first.data
+
+  const remainingPages = await Promise.all(
+    Array.from({ length: first.meta.totalPages - 1 }, (_, idx) =>
+      fetchProducts({ page: idx + 2, limit: PUBLIC_PRODUCTS_MAX_PAGE_SIZE }),
+    ),
+  )
+  return [...first.data, ...remainingPages.flatMap((response) => response.data)]
+}
+
 export async function fetchProductBySlug(productSlug: string): Promise<Product> {
   return apiClient<Product>(`/api/products/${productSlug}`)
 }

@@ -1,4 +1,5 @@
-import { fetchProducts } from '@/lib/api/products'
+import { fetchAllProducts } from '@/lib/api/products'
+import { logger } from '@/lib/logger'
 import type { Product } from '@jewelry/shared'
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
@@ -51,10 +52,18 @@ export async function GET(): Promise<Response> {
   let products: Product[] = []
 
   try {
-    const response = await fetchProducts({ limit: 1000 })
-    products = response.data.filter((product) => product.status === 'ACTIVE')
-  } catch {
-    // API unavailable — return empty feed; will regenerate on next revalidation
+    // fetchAllProducts paginates the public listing endpoint (capped at 100
+    // per page by the API) so the feed contains every ACTIVE SKU, not just the
+    // first page. Google Merchant Center expects the complete catalogue.
+    const allProducts = await fetchAllProducts()
+    products = allProducts.filter((product) => product.status === 'ACTIVE')
+  } catch (error) {
+    // Google Merchant Center pulls this feed daily — silently returning empty
+    // would freeze our Shopping campaign. Log loudly so the failure is visible.
+    logger.error('feed.google-shopping.products-fetch.failed', {
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    })
   }
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
