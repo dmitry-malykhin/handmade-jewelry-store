@@ -433,6 +433,12 @@
     "ringSizeGuideLink": "Ver guía de tallas de anillos",
     "installmentPreview": "O {count} pagos de ${amount} con Klarna o Afterpay."
   },
+  "productNotFound": {
+    "title": "Esta pieza ya no está",
+    "description": "No pudimos encontrar ese producto. Puede que se haya agotado, renombrado o nunca existió.",
+    "browseCatalog": "Ver el catálogo",
+    "searchProducts": "Buscar productos"
+  },
   "admin": {
     "panelTitle": "Panel de administración",
     "sidebarNav": "Navegación de administrador",

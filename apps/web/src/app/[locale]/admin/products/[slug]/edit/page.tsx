@@ -23,15 +23,16 @@ export default async function AdminEditProductPage({ params }: AdminEditProductP
   const { locale, slug } = await params
   setRequestLocale(locale)
 
-  try {
-    const [categories, product] = await Promise.all([fetchCategories(), fetchProductBySlug(slug)])
+  // .catch(() => null) + sync notFound() — same rationale as products/[slug]/page.tsx (#289)
+  const [categories, product] = await Promise.all([
+    fetchCategories().catch(() => null),
+    fetchProductBySlug(slug).catch(() => null),
+  ])
+  if (!categories || !product) notFound()
 
-    return (
-      <main className="mx-auto max-w-3xl">
-        <EditProductForm categories={categories} product={product} />
-      </main>
-    )
-  } catch {
-    notFound()
-  }
+  return (
+    <main className="mx-auto max-w-3xl">
+      <EditProductForm categories={categories} product={product} />
+    </main>
+  )
 }

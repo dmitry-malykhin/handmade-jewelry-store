@@ -433,6 +433,12 @@
     "ringSizeGuideLink": "View ring size guide",
     "installmentPreview": "Or {count} payments of ${amount} with Klarna or Afterpay."
   },
+  "productNotFound": {
+    "title": "This piece is gone",
+    "description": "We couldn't find that product. It may have sold out, been renamed, or never existed.",
+    "browseCatalog": "Browse catalog",
+    "searchProducts": "Search products"
+  },
   "admin": {
     "panelTitle": "Admin Panel",
     "sidebarNav": "Admin navigation",
