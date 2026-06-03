@@ -71,12 +71,10 @@ export default async function ConfirmationPage({ params, searchParams }: Confirm
     )
   }
 
-  let order
-  try {
-    order = await fetchOrderById(orderId)
-  } catch {
-    notFound()
-  }
+  // .catch(() => null) + sync notFound() — see comment on products/[slug]/page.tsx
+  // for the streaming/404-status rationale (#289).
+  const order = await fetchOrderById(orderId).catch(() => null)
+  if (!order) notFound()
 
   const t = await getTranslations('confirmationPage')
 

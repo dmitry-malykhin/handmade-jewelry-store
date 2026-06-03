@@ -17,12 +17,9 @@ interface ProductPageProps {
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
   const { locale, slug } = await params
 
-  let product
-  try {
-    product = await fetchProductBySlug(slug)
-  } catch {
-    return {}
-  }
+  // .catch(() => null) — see comment in ProductPage below for why we avoid try/catch around notFound()
+  const product = await fetchProductBySlug(slug).catch(() => null)
+  if (!product) return {}
 
   const description = product.description.slice(0, 160)
   const primaryImage = product.images[0]
@@ -69,14 +66,17 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const { locale, slug } = await params
   setRequestLocale(locale)
 
-  const t = await getTranslations('productDetail')
+  // Fetch BEFORE getTranslations to keep the not-found check as early as possible
+  // (see Next.js streaming guide — notFound() returns 200 once a Suspense boundary
+  // streams; loading.tsx in this segment creates an implicit boundary).
+  //
+  // Using `.catch(() => null) + if (!product) notFound()` instead of try/catch around
+  // notFound() — notFound() throws NEXT_HTTP_ERROR_FALLBACK;404 which a surrounding
+  // catch could swallow, leaving the function to return normally.
+  const product = await fetchProductBySlug(slug).catch(() => null)
+  if (!product) notFound()
 
-  let product
-  try {
-    product = await fetchProductBySlug(slug)
-  } catch {
-    notFound()
-  }
+  const t = await getTranslations('productDetail')
 
   const productJsonLd = generateProductJsonLd({
     title: product.title,

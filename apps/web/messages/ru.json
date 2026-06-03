@@ -433,6 +433,12 @@
     "ringSizeGuideLink": "Открыть гид по размерам колец",
     "installmentPreview": "Или {count} платежа по ${amount} с Klarna или Afterpay."
   },
+  "productNotFound": {
+    "title": "Это украшение больше недоступно",
+    "description": "Не удалось найти этот товар. Возможно, он был продан, переименован или никогда не существовал.",
+    "browseCatalog": "Открыть каталог",
+    "searchProducts": "Поиск по товарам"
+  },
   "admin": {
     "panelTitle": "Панель администратора",
     "sidebarNav": "Навигация администратора",
