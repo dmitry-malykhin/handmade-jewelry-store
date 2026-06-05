@@ -31,6 +31,16 @@ export class EasypostMockClient implements EasyPostClient {
   private readonly logger = new Logger(EasypostMockClient.name)
 
   async purchaseLabel(input: PurchaseLabelInput): Promise<PurchaseLabelResult> {
+    // #281 — last-line-of-defence visibility. ShippingService already throws 503
+    // in production, but if any code path bypasses it (a future caller, a fresh
+    // controller, a script) the WARN gets surfaced in Sentry/log aggregation
+    // and we hear about it instead of silently shipping fake tracking numbers.
+    if (process.env.NODE_ENV === 'production') {
+      this.logger.warn(
+        `[mock-in-production] purchaseLabel called against the mock EasyPost client. orderId=${input.orderId} carrier=${input.carrier}. This should never happen — investigate and configure EASYPOST_API_KEY.`,
+      )
+    }
+
     this.logger.log(
       `[dry-run] purchaseLabel orderId=${input.orderId} carrier=${input.carrier} insuranceCents=${input.insuranceCents}`,
     )

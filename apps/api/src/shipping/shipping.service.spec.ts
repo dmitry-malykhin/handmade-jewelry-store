@@ -1,5 +1,5 @@
 import { Test, type TestingModule } from '@nestjs/testing'
-import { BadRequestException, NotFoundException } from '@nestjs/common'
+import { BadRequestException, NotFoundException, ServiceUnavailableException } from '@nestjs/common'
 import { OrderStatus } from '@prisma/client'
 import { PrismaService } from '../prisma/prisma.service'
 import { EASYPOST_CLIENT } from './easypost-client.token'
@@ -86,6 +86,46 @@ describe('ShippingService', () => {
   })
 
   describe('purchaseLabel', () => {
+    // #281 — defensive production guard
+    describe('production dry-run guard', () => {
+      const ORIGINAL_NODE_ENV = process.env.NODE_ENV
+
+      afterEach(() => {
+        if (ORIGINAL_NODE_ENV === undefined) delete process.env.NODE_ENV
+        else process.env.NODE_ENV = ORIGINAL_NODE_ENV
+      })
+
+      it('throws ServiceUnavailableException when NODE_ENV=production and client is dry-run (regression: #281)', async () => {
+        process.env.NODE_ENV = 'production'
+        // easypostClient.isLiveMode defaults to false in this suite
+
+        await expect(
+          shippingService.purchaseLabel({ orderId: 'order-1', carrier: 'USPS' }),
+        ).rejects.toBeInstanceOf(ServiceUnavailableException)
+        // Refusal happens BEFORE the DB lookup — proves no order touched
+        expect(prismaService.order.findUnique).not.toHaveBeenCalled()
+      })
+
+      it('does NOT throw in production when isLiveMode=true', async () => {
+        process.env.NODE_ENV = 'production'
+        Object.defineProperty(easypostClient, 'isLiveMode', { value: true, configurable: true })
+        prismaService.order.findUnique.mockResolvedValue(null)
+
+        await expect(
+          shippingService.purchaseLabel({ orderId: 'order-1', carrier: 'USPS' }),
+        ).rejects.toBeInstanceOf(NotFoundException) // falls through to the real order lookup
+      })
+
+      it('does NOT throw in non-production environments even when dry-run', async () => {
+        process.env.NODE_ENV = 'development'
+        prismaService.order.findUnique.mockResolvedValue(null)
+
+        await expect(
+          shippingService.purchaseLabel({ orderId: 'order-1', carrier: 'USPS' }),
+        ).rejects.toBeInstanceOf(NotFoundException) // dev keeps mock UX
+      })
+    })
+
     it('throws NotFoundException when the order is missing', async () => {
       prismaService.order.findUnique.mockResolvedValue(null)
 

@@ -1,4 +1,11 @@
-import { BadRequestException, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common'
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  Logger,
+  NotFoundException,
+  ServiceUnavailableException,
+} from '@nestjs/common'
 import { OrderStatus } from '@prisma/client'
 import { PrismaService } from '../prisma/prisma.service'
 import { isValidOrderStatusTransition } from '../orders/order-status.transitions'
@@ -64,6 +71,21 @@ export class ShippingService {
    *    explicit and lets the admin batch a stack of labels before shipping).
    */
   async purchaseLabel(options: PurchaseLabelOptions): Promise<PurchaseLabelOutcome> {
+    // #281 — defensive production guard. The mock EasyPost client fabricates
+    // MOCK… tracking numbers + placeholder PDF URLs; if it ran in production the
+    // customer would receive a shipping email pointing at a fake tracking link.
+    // The UI already disables the purchase button when isLiveMode=false, but
+    // we don't trust the UI alone — a direct POST from a leaked admin token,
+    // a stale browser tab or curl must also be refused.
+    if (process.env.NODE_ENV === 'production' && !this.easyPostClient.isLiveMode) {
+      this.logger.error(
+        `Refusing purchaseLabel for order ${options.orderId} — EasyPost is in dry-run mode in production. Set EASYPOST_API_KEY to enable.`,
+      )
+      throw new ServiceUnavailableException(
+        'Shipping label purchase is unavailable: EasyPost is not configured for live mode. Contact the operator.',
+      )
+    }
+
     const order = await this.prismaService.order.findUnique({
       where: { id: options.orderId },
       include: { items: true },

@@ -681,6 +681,7 @@
     "orderDetailTimelineBy": "by {by}",
     "labelPurchaseSectionTitle": "Shipping label",
     "labelPurchaseHelp": "Buy a label through EasyPost — the carrier and tracking number will be saved on this order automatically.",
+    "labelPurchaseDryRunBlocked": "EasyPost is in dry-run mode (no API key configured). Label purchase is disabled to prevent fake tracking from being saved on a real order.",
     "labelPurchaseModeLive": "Live",
     "labelPurchaseModeDryRun": "Dry run",
     "labelPurchaseSubmit": "Purchase label",

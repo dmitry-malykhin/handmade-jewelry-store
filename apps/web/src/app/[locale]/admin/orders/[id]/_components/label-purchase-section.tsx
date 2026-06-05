@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
-import { FileDown, Shield } from 'lucide-react'
+import { FileDown, Shield, AlertTriangle } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
@@ -55,6 +55,14 @@ export function LabelPurchaseSection({ order }: LabelPurchaseSectionProps) {
     enabled: accessToken !== null,
     staleTime: 5 * 60 * 1000,
   })
+
+  // #281 — block purchase entirely when EasyPost is in dry-run mode. The mock
+  // client fabricates MOCK… tracking numbers that would otherwise reach real
+  // customers via the shipping email. Backend enforces the same guard in
+  // production (returns 503) — this is the user-visible side of the safety net.
+  // While the status is still loading we treat it as "not live" — fail-closed.
+  const isLiveMode = shippingStatusQuery.data?.isLiveMode === true
+  const isDryRunBlocked = shippingStatusQuery.data !== undefined && !isLiveMode
 
   const purchaseMutation = useMutation({
     mutationFn: () =>
@@ -129,6 +137,16 @@ export function LabelPurchaseSection({ order }: LabelPurchaseSectionProps) {
         <div className="space-y-3">
           <p className="text-xs text-muted-foreground">{t('labelPurchaseHelp')}</p>
 
+          {isDryRunBlocked && (
+            <div
+              role="alert"
+              className="flex items-start gap-2 rounded-md border border-amber-500/40 bg-amber-50 p-3 text-xs text-amber-900 dark:border-amber-500/30 dark:bg-amber-950/30 dark:text-amber-200"
+            >
+              <AlertTriangle className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
+              <p>{t('labelPurchaseDryRunBlocked')}</p>
+            </div>
+          )}
+
           <div className="flex flex-wrap items-end gap-3">
             <div className="space-y-1.5">
               <Label htmlFor="label-carrier" className="text-sm">
@@ -137,6 +155,7 @@ export function LabelPurchaseSection({ order }: LabelPurchaseSectionProps) {
               <Select
                 value={selectedCarrier}
                 onValueChange={(value) => setSelectedCarrier(value as ShippingCarrier)}
+                disabled={isDryRunBlocked}
               >
                 <SelectTrigger id="label-carrier" className="w-36">
                   <SelectValue />
@@ -157,6 +176,7 @@ export function LabelPurchaseSection({ order }: LabelPurchaseSectionProps) {
                   id="label-insurance"
                   checked={includeInsurance}
                   onCheckedChange={setIncludeInsurance}
+                  disabled={isDryRunBlocked}
                 />
                 <Label htmlFor="label-insurance" className="text-sm">
                   {t('labelPurchaseInsuranceToggle', {
@@ -169,7 +189,8 @@ export function LabelPurchaseSection({ order }: LabelPurchaseSectionProps) {
             <Button
               type="button"
               size="sm"
-              disabled={purchaseMutation.isPending}
+              disabled={purchaseMutation.isPending || isDryRunBlocked}
+              title={isDryRunBlocked ? t('labelPurchaseDryRunBlocked') : undefined}
               onClick={() => purchaseMutation.mutate()}
             >
               {purchaseMutation.isPending ? t('labelPurchaseSubmitting') : t('labelPurchaseSubmit')}
