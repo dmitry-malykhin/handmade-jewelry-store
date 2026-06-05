@@ -681,6 +681,7 @@
     "orderDetailTimelineBy": "кем: {by}",
     "labelPurchaseSectionTitle": "Этикетка доставки",
     "labelPurchaseHelp": "Купить этикетку через EasyPost — перевозчик и номер трека сохранятся в заказе автоматически.",
+    "labelPurchaseDryRunBlocked": "EasyPost работает в режиме dry-run (API-ключ не настроен). Покупка ярлыка отключена, чтобы фиктивный трек-номер не попал в реальный заказ.",
     "labelPurchaseModeLive": "Live",
     "labelPurchaseModeDryRun": "Dry run",
     "labelPurchaseSubmit": "Купить этикетку",

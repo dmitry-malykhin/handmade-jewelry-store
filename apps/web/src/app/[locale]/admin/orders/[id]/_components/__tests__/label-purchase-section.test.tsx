@@ -74,7 +74,9 @@ const mockPurchaseLabel = vi.mocked(adminShipping.purchaseAdminShippingLabel)
 
 beforeEach(() => {
   vi.clearAllMocks()
-  mockFetchShippingStatus.mockResolvedValue({ isLiveMode: false })
+  // Default to live mode so the existing purchase-flow tests aren't gated by
+  // the #281 dry-run guard. Tests that exercise the guard override this.
+  mockFetchShippingStatus.mockResolvedValue({ isLiveMode: true })
 })
 
 beforeEach(async () => {
@@ -98,14 +100,52 @@ describe('LabelPurchaseSection — render gating', () => {
   })
 
   it('renders the dry-run badge when the API reports non-live mode', async () => {
+    mockFetchShippingStatus.mockResolvedValue({ isLiveMode: false })
     render(<LabelPurchaseSection order={baseOrder} />)
     expect(await screen.findByText('Dry run')).toBeInTheDocument()
   })
 
   it('renders the live badge when the API reports live mode', async () => {
-    mockFetchShippingStatus.mockResolvedValue({ isLiveMode: true })
     render(<LabelPurchaseSection order={baseOrder} />)
     expect(await screen.findByText('Live')).toBeInTheDocument()
+  })
+})
+
+// #281 — UI side of the production dry-run guard
+describe('LabelPurchaseSection — dry-run purchase block', () => {
+  it('disables the Purchase button and shows the warning banner in dry-run mode', async () => {
+    mockFetchShippingStatus.mockResolvedValue({ isLiveMode: false })
+
+    render(<LabelPurchaseSection order={baseOrder} />)
+
+    // Warning banner appears only after the query resolves — wait for it
+    const alert = await screen.findByRole('alert')
+    expect(alert).toHaveTextContent(/EasyPost is in dry-run mode/i)
+    expect(screen.getByRole('button', { name: 'Purchase label' })).toBeDisabled()
+  })
+
+  it('does NOT call the purchase API when clicked in dry-run mode', async () => {
+    mockFetchShippingStatus.mockResolvedValue({ isLiveMode: false })
+    const user = userEvent.setup()
+
+    render(<LabelPurchaseSection order={baseOrder} />)
+
+    // Wait for the disabled state to propagate before clicking
+    await screen.findByRole('alert')
+    const button = screen.getByRole('button', { name: 'Purchase label' })
+    await user.click(button)
+
+    expect(mockPurchaseLabel).not.toHaveBeenCalled()
+  })
+
+  it('enables the Purchase button and hides the warning banner in live mode', async () => {
+    render(<LabelPurchaseSection order={baseOrder} />)
+
+    // Wait for the query to settle (Live badge appears once data arrives)
+    await screen.findByText('Live')
+    const button = screen.getByRole('button', { name: 'Purchase label' })
+    expect(button).not.toBeDisabled()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
 })
 

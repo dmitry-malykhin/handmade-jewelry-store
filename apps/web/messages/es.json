@@ -681,6 +681,7 @@
     "orderDetailTimelineBy": "por {by}",
     "labelPurchaseSectionTitle": "Etiqueta de envío",
     "labelPurchaseHelp": "Compra una etiqueta a través de EasyPost — el transportista y el número de seguimiento se guardarán en este pedido automáticamente.",
+    "labelPurchaseDryRunBlocked": "EasyPost está en modo dry-run (sin API key configurada). La compra de etiquetas está deshabilitada para evitar guardar un tracking falso en un pedido real.",
     "labelPurchaseModeLive": "Live",
     "labelPurchaseModeDryRun": "Dry run",
     "labelPurchaseSubmit": "Comprar etiqueta",
