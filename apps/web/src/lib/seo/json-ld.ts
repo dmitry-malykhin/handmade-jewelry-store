@@ -107,3 +107,28 @@ export function generateProductJsonLd(product: ProductJsonLdProps) {
     },
   }
 }
+
+export interface FaqQuestion {
+  question: string
+  answer: string
+}
+
+/**
+ * FAQPage JSON-LD — Google uses this to render expandable FAQ rich results
+ * directly in the SERP. Eligible only when every Q&A is visible on the page
+ * (Google rejects pages where answers are hidden behind login/paywall).
+ */
+export function generateFaqJsonLd(items: FaqQuestion[]) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: items.map((item) => ({
+      '@type': 'Question',
+      name: item.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: item.answer,
+      },
+    })),
+  }
+}

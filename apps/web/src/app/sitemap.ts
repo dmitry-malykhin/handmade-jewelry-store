@@ -43,6 +43,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'yearly' as const,
       priority: 0.6,
     },
+    // Trust pages (#282) — evergreen, conversion-critical for handmade jewelry
+    {
+      url: `${SITE_URL}/${locale}/faq`,
+      changeFrequency: 'monthly' as const,
+      priority: 0.7,
+    },
+    {
+      url: `${SITE_URL}/${locale}/shipping`,
+      changeFrequency: 'monthly' as const,
+      priority: 0.6,
+    },
+    {
+      url: `${SITE_URL}/${locale}/care`,
+      changeFrequency: 'yearly' as const,
+      priority: 0.5,
+    },
     ...categories.map((category) => ({
       url: `${SITE_URL}/${locale}?categorySlug=${category.slug}`,
       changeFrequency: 'weekly' as const,

@@ -15,10 +15,9 @@ const NAV_FILES = [
 
 const KNOWN_DEAD_ROUTES = [
   '/collections',
-  '/faq',
-  '/shipping',
-  '/care',
   '/size-guide',
+  // /faq, /shipping, /care — restored in #282 (trust pages live now), so they're
+  // no longer dead. Kept the list shape for documentation.
   // /shop family — removed in #280 (catalog moved to /, product detail to /products/[slug]).
   // Direct refs in navigation would hit the 301 redirect chain; block them in source.
   '/shop',

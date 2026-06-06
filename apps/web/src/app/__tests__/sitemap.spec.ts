@@ -50,8 +50,8 @@ describe('sitemap', () => {
     const { default: sitemap } = await import('../sitemap')
     const result = await sitemap()
 
-    // 3 locales × 2 static pages (home/catalog + ring-size-guide); /shop removed in #280
-    expect(result.length).toBe(6)
+    // 3 locales × 5 static pages (home/catalog + ring-size-guide + faq + shipping + care)
+    expect(result.length).toBe(15)
   })
 
   it('includes the locale root (home = catalog) for each locale', async () => {
@@ -106,8 +106,8 @@ describe('sitemap', () => {
     const { default: sitemap } = await import('../sitemap')
     const result = await sitemap()
 
-    // Only 3 locales × 2 static pages (home/catalog + ring-size-guide)
-    expect(result.length).toBe(6)
+    // Only 3 locales × 5 static pages (home/catalog + ring-size-guide + trust pages #282)
+    expect(result.length).toBe(15)
     expect(result.every((entry) => !entry.url.includes('silver-moonstone-ring'))).toBe(true)
 
     // Failure must NOT be silent — logger.error tells ops something is wrong
@@ -127,6 +127,21 @@ describe('sitemap', () => {
     const guideUrls = result.filter((entry) => entry.url.includes('/ring-size-guide'))
     expect(guideUrls).toHaveLength(3)
   })
+
+  // #282 — trust pages must be crawlable for SEO + footer links to resolve
+  it.each(['/faq', '/shipping', '/care'])(
+    'includes %s entry for each locale (#282)',
+    async (trustPath) => {
+      mockFetchAllProducts.mockResolvedValue([])
+      mockFetchCategories.mockResolvedValue([])
+
+      const { default: sitemap } = await import('../sitemap')
+      const result = await sitemap()
+
+      const matched = result.filter((entry) => entry.url.endsWith(trustPath))
+      expect(matched).toHaveLength(3)
+    },
+  )
 
   it('adds category filter pages for each locale', async () => {
     mockFetchAllProducts.mockResolvedValue([])

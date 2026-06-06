@@ -3,6 +3,7 @@ import {
   generateProductJsonLd,
   generateBreadcrumbJsonLd,
   generateOrganizationJsonLd,
+  generateFaqJsonLd,
 } from '../json-ld'
 import {
   suite as $allureSuite,
@@ -148,5 +149,42 @@ describe('generateOrganizationJsonLd', () => {
   it('includes sameAs array', () => {
     const result = generateOrganizationJsonLd()
     expect(Array.isArray(result.sameAs)).toBe(true)
+  })
+})
+
+// #282 — FAQPage schema feeds Google rich-result expansions in SERP
+describe('generateFaqJsonLd', () => {
+  const sampleItems = [
+    { question: 'How long does shipping take?', answer: '2–5 business days.' },
+    { question: 'What is the returns policy?', answer: '14 days for in-stock pieces.' },
+  ]
+
+  it('sets correct @context and @type for FAQPage', () => {
+    const result = generateFaqJsonLd(sampleItems)
+    expect(result['@context']).toBe('https://schema.org')
+    expect(result['@type']).toBe('FAQPage')
+  })
+
+  it('maps each input item to a Question with an accepted Answer', () => {
+    const result = generateFaqJsonLd(sampleItems)
+    expect(result.mainEntity).toHaveLength(2)
+    expect(result.mainEntity[0]).toEqual({
+      '@type': 'Question',
+      name: 'How long does shipping take?',
+      acceptedAnswer: { '@type': 'Answer', text: '2–5 business days.' },
+    })
+  })
+
+  it('preserves the order of questions (Google renders them top-to-bottom)', () => {
+    const result = generateFaqJsonLd(sampleItems)
+    expect(result.mainEntity.map((entry) => entry.name)).toEqual([
+      'How long does shipping take?',
+      'What is the returns policy?',
+    ])
+  })
+
+  it('returns an empty mainEntity array when given no items', () => {
+    const result = generateFaqJsonLd([])
+    expect(result.mainEntity).toEqual([])
   })
 })
