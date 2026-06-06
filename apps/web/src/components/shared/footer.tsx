@@ -31,7 +31,12 @@ export function Footer() {
     },
     {
       groupKey: 'supportGroup',
-      links: [{ key: 'sizeGuide', href: '/ring-size-guide' }],
+      links: [
+        { key: 'faq', href: '/faq' },
+        { key: 'shipping', href: '/shipping' },
+        { key: 'careGuide', href: '/care' },
+        { key: 'sizeGuide', href: '/ring-size-guide' },
+      ],
     },
   ] as const
 
