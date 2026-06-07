@@ -35,6 +35,7 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
   setRequestLocale(locale)
 
   const messages = await getMessages()
+  const t = await getTranslations({ locale, namespace: 'header' })
 
   const organizationJsonLd = generateOrganizationJsonLd()
 
@@ -51,8 +52,7 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
           href="#main-content"
           className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-background focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-ring"
         >
-          {/* translated in Header — reusing same string key */}
-          Skip to main content
+          {t('skipToMain')}
         </a>
         <Header />
         <main id="main-content" className="flex-1">

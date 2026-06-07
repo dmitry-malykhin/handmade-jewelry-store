@@ -887,7 +887,7 @@
     "inventoryBadgeInStock": "В наличии",
     "inventoryBadgeMadeToOrder": "Под заказ",
     "inventoryBadgeOneOfAKind": "Единственный",
-    "inventoryBadgeLowStock": "Low stock",
+    "inventoryBadgeLowStock": "Низкий запас",
     "inventoryEmpty": "Нет товаров по этим фильтрам",
     "inventoryStockEditAriaLabel": "Изменить остаток для {title}",
     "inventoryStockSaveError": "Не удалось обновить остаток",
