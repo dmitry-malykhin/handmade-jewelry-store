@@ -11,6 +11,7 @@ import * as bcrypt from 'bcrypt'
 import * as crypto from 'crypto'
 import { EmailService } from '../email/email.service'
 import { PrismaService } from '../prisma/prisma.service'
+import { getFrontendUrl } from '../common/config/urls'
 import { UsersService } from '../users/users.service'
 import type { JwtPayload } from './strategies/jwt.strategy'
 
@@ -114,7 +115,10 @@ export class AuthService {
       data: { passwordResetToken: hashedToken, passwordResetTokenAt: new Date() },
     })
 
-    const frontendUrl = this.configService.get<string>('FRONTEND_URL') ?? 'http://localhost:3001'
+    // Use shared helper — keeps the fallback (http://localhost:3000) consistent
+    // with main.ts and email templates. Historical inline fallback here was
+    // :3001 (wrong port — copy-paste from a stale config), see #284.
+    const frontendUrl = getFrontendUrl()
     // Fire-and-forget — email failure must not expose error details to the caller
     void this.emailService.sendPasswordReset({
       recipientEmail: normalizedEmail,

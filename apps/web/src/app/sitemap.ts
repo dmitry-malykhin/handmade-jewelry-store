@@ -2,8 +2,9 @@ import type { MetadataRoute } from 'next'
 import { fetchAllProducts, fetchCategories } from '@/lib/api/products'
 import { routing } from '@/i18n/routing'
 import { logger } from '@/lib/logger'
+import { getSiteUrl } from '@/lib/config/site-url'
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
+const SITE_URL = getSiteUrl()
 
 // ISR — regenerate sitemap every hour alongside catalog revalidation
 export const revalidate = 3600

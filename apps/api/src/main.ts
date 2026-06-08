@@ -6,6 +6,7 @@ import { ValidationPipe } from '@nestjs/common'
 import { HttpAdapterHost, NestFactory } from '@nestjs/core'
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston'
 import { ProxyAgent, setGlobalDispatcher } from 'undici'
+import { getFrontendUrl } from './common/config/urls'
 import { AppModule } from './app.module'
 import { assertProductionEnv } from './common/config/required-env'
 import { HttpExceptionFilter } from './common/filters/http-exception.filter'
@@ -38,7 +39,7 @@ async function bootstrap() {
 
   // Allow requests from the Next.js frontend
   app.enableCors({
-    origin: process.env.FRONTEND_URL ?? 'http://localhost:3000',
+    origin: getFrontendUrl(),
     credentials: true,
   })
 

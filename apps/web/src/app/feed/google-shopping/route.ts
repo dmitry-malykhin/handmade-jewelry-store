@@ -1,8 +1,9 @@
 import { fetchAllProducts } from '@/lib/api/products'
 import { logger } from '@/lib/logger'
+import { getSiteUrl } from '@/lib/config/site-url'
 import type { Product } from '@jewelry/shared'
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
+const SITE_URL = getSiteUrl()
 const BRAND = 'Senichka'
 
 // ISR — regenerate feed every 6 hours

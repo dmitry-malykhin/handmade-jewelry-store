@@ -1,8 +1,11 @@
+import { getFrontendUrl } from '../../common/config/urls'
+
 export interface WelcomeEmailData {
   recipientEmail: string
 }
 
 export function buildWelcomeEmail(_data: WelcomeEmailData): { subject: string; html: string } {
+  const frontendUrl = getFrontendUrl()
   return {
     subject: 'Welcome to ✦ Jewelry — handmade with love',
     html: `
@@ -23,7 +26,7 @@ export function buildWelcomeEmail(_data: WelcomeEmailData): { subject: string; h
           <p style="margin: 0 0 24px; color: #555; font-size: 15px; line-height: 1.7;">
             Your account is ready. Explore our collection of handmade jewelry crafted with ethically sourced materials.
           </p>
-          <a href="${process.env['FRONTEND_URL'] ?? 'http://localhost:3001'}/"
+          <a href="${frontendUrl}/"
              style="display: inline-block; background: #1a1a1a; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-weight: 600; font-size: 15px;">
             Explore the collection →
           </a>

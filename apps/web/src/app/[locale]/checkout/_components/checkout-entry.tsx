@@ -155,7 +155,6 @@ export function CheckoutEntry() {
         <div className="rounded-lg border border-border bg-card p-6">
           <h2 className="mb-1 font-semibold text-foreground">{t('authTitle')}</h2>
           <p className="mb-4 text-sm text-muted-foreground">{t('authDescription')}</p>
-          {/* TODO #72: replace with real auth flow when JWT is implemented */}
           <Button variant="outline" className="w-full" size="lg" asChild>
             <Link href="/login">{t('signIn')}</Link>
           </Button>

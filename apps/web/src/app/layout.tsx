@@ -11,10 +11,13 @@ import { PinterestTag } from '@/components/analytics/pinterest-tag'
 import { Klaviyo } from '@/components/analytics/klaviyo'
 import { MicrosoftClarity } from '@/components/analytics/microsoft-clarity'
 import { PostHogAnalytics } from '@/components/analytics/posthog'
+import { getSiteUrl } from '@/lib/config/site-url'
 import './globals.css'
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://example.com'),
+  // Was a custom 'https://example.com' fallback; consolidated to getSiteUrl()
+  // so dev shows real localhost OG URLs and prod always reads from env (#284).
+  metadataBase: new URL(getSiteUrl()),
   icons: {
     icon: [
       { url: '/favicon.svg', type: 'image/svg+xml' },

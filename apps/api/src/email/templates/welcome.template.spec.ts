@@ -40,6 +40,7 @@ describe('buildWelcomeEmail', () => {
   it('falls back to the local dev URL when FRONTEND_URL is absent', () => {
     delete process.env.FRONTEND_URL
     const { html } = buildWelcomeEmail({ recipientEmail: 'jane@example.com' })
-    expect(html).toContain('href="http://localhost:3001/"')
+    // Web dev port is :3000 — historical fallback was :3001 (wrong, fixed in #284)
+    expect(html).toContain('href="http://localhost:3000/"')
   })
 })

@@ -1,3 +1,5 @@
+import { getFrontendUrl } from '../../common/config/urls'
+
 export interface BackInStockEmailData {
   recipientEmail: string
   productTitle: string
@@ -9,7 +11,7 @@ export function buildBackInStockEmail(data: BackInStockEmailData): {
   subject: string
   html: string
 } {
-  const productUrl = `${process.env['FRONTEND_URL'] ?? 'http://localhost:3001'}/products/${data.productSlug}`
+  const productUrl = `${getFrontendUrl()}/products/${data.productSlug}`
 
   return {
     subject: `Back in stock: ${data.productTitle}`,
