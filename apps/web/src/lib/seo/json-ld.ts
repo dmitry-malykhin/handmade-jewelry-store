@@ -1,4 +1,6 @@
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
+import { getSiteUrl } from '@/lib/config/site-url'
+
+const SITE_URL = getSiteUrl()
 
 export function generateOrganizationJsonLd() {
   return {
