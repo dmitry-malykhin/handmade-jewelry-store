@@ -9,6 +9,7 @@ import { Footer } from '@/components/shared/footer'
 import { StoreHydration } from '@/components/shared/store-hydration'
 import { QueryProvider } from '@/components/shared/query-provider'
 import { generateOrganizationJsonLd } from '@/lib/seo/json-ld'
+import { buildLocaleAlternates } from '@/lib/seo/alternates'
 import { CookieBanner } from '@/components/shared/cookie-banner'
 
 interface LocaleLayoutProps {
@@ -85,13 +86,9 @@ export async function generateMetadata({
       locale,
       siteName: t('title'),
     },
-    alternates: {
-      languages: {
-        en: '/en',
-        ru: '/ru',
-        es: '/es',
-      },
-    },
+    // Root layout has no canonical of its own — each page declares one — but it
+    // still emits hreflang alternates as a default for pages that don't override.
+    alternates: buildLocaleAlternates(undefined, ''),
   }
 }
 

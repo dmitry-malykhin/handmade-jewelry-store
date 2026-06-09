@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
+import { buildLocaleAlternates } from '@/lib/seo/alternates'
 import { Link } from '@/i18n/navigation'
 import { RegisterForm } from './_components/register-form'
 
@@ -14,9 +15,7 @@ export async function generateMetadata({ params }: RegisterPageProps): Promise<M
   return {
     title: t('registerMetaTitle'),
     description: t('registerMetaDescription'),
-    alternates: {
-      canonical: `/${locale}/register`,
-    },
+    alternates: buildLocaleAlternates(locale, '/register'),
     openGraph: {
       title: t('registerMetaTitle'),
       description: t('registerMetaDescription'),

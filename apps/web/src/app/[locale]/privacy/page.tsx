@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
+import { buildLocaleAlternates } from '@/lib/seo/alternates'
 
 interface PrivacyPageProps {
   params: Promise<{ locale: string }>
@@ -12,10 +13,7 @@ export async function generateMetadata({ params }: PrivacyPageProps): Promise<Me
   return {
     title: t('metaTitle'),
     description: t('metaDescription'),
-    alternates: {
-      canonical: `/${locale}/privacy`,
-      languages: { en: '/en/privacy', ru: '/ru/privacy', es: '/es/privacy' },
-    },
+    alternates: buildLocaleAlternates(locale, '/privacy'),
     openGraph: {
       title: t('metaTitle'),
       description: t('metaDescription'),

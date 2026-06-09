@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
+import { buildLocaleAlternates } from '@/lib/seo/alternates'
 import Link from 'next/link'
 
 interface TermsPageProps {
@@ -13,10 +14,7 @@ export async function generateMetadata({ params }: TermsPageProps): Promise<Meta
   return {
     title: t('metaTitle'),
     description: t('metaDescription'),
-    alternates: {
-      canonical: `/${locale}/terms`,
-      languages: { en: '/en/terms', ru: '/ru/terms', es: '/es/terms' },
-    },
+    alternates: buildLocaleAlternates(locale, '/terms'),
     openGraph: {
       title: t('metaTitle'),
       description: t('metaDescription'),

@@ -95,13 +95,14 @@ describe('FaqPage — FAQPage JSON-LD (#282 SEO rich results)', () => {
 })
 
 describe('FaqPage — generateMetadata', () => {
-  it('returns canonical /<locale>/faq and hreflang for all 3 locales', async () => {
+  it('returns canonical /<locale>/faq + 4 hreflang alternates including x-default (#297)', async () => {
     const metadata = await generateMetadata({ params: Promise.resolve({ locale: 'en' }) })
     expect(metadata.alternates?.canonical).toBe('/en/faq')
     expect(metadata.alternates?.languages).toEqual({
       en: '/en/faq',
       ru: '/ru/faq',
       es: '/es/faq',
+      'x-default': '/en/faq',
     })
   })
 })

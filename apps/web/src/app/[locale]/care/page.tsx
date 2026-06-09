@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
+import { buildLocaleAlternates } from '@/lib/seo/alternates'
 
 interface CarePageProps {
   params: Promise<{ locale: string }>
@@ -12,10 +13,7 @@ export async function generateMetadata({ params }: CarePageProps): Promise<Metad
   return {
     title: t('metaTitle'),
     description: t('metaDescription'),
-    alternates: {
-      canonical: `/${locale}/care`,
-      languages: { en: '/en/care', ru: '/ru/care', es: '/es/care' },
-    },
+    alternates: buildLocaleAlternates(locale, '/care'),
     openGraph: {
       title: t('metaTitle'),
       description: t('metaDescription'),

@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { fetchProductBySlug } from '@/lib/api/products'
 import { generateBreadcrumbJsonLd, generateProductJsonLd } from '@/lib/seo/json-ld'
+import { buildLocaleAlternates } from '@/lib/seo/alternates'
 import { ReviewsSection } from '@/components/features/reviews/reviews-section'
 import { ProductDetail } from './_components/product-detail'
 import { ProductViewTracker } from './_components/product-view-tracker'
@@ -51,14 +52,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
       ...(product.sku && { 'product:retailer_item_id': product.sku }),
     },
     // canonical prevents duplicate content across locales and filter combinations
-    alternates: {
-      canonical: `/${locale}/products/${slug}`,
-      languages: {
-        en: `/en/products/${slug}`,
-        ru: `/ru/products/${slug}`,
-        es: `/es/products/${slug}`,
-      },
-    },
+    alternates: buildLocaleAlternates(locale, `/products/${slug}`),
   }
 }
 

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
+import { buildLocaleAlternates } from '@/lib/seo/alternates'
 import { generateFaqJsonLd } from '@/lib/seo/json-ld'
 
 // 9 question keys exposed as a const tuple so JSON-LD and the rendered
@@ -27,10 +28,7 @@ export async function generateMetadata({ params }: FaqPageProps): Promise<Metada
   return {
     title: t('metaTitle'),
     description: t('metaDescription'),
-    alternates: {
-      canonical: `/${locale}/faq`,
-      languages: { en: '/en/faq', ru: '/ru/faq', es: '/es/faq' },
-    },
+    alternates: buildLocaleAlternates(locale, '/faq'),
     openGraph: {
       title: t('metaTitle'),
       description: t('metaDescription'),
