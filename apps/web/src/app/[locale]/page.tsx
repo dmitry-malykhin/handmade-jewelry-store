@@ -2,6 +2,7 @@ import { Suspense } from 'react'
 import type { Metadata } from 'next'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { fetchProducts, fetchCategories } from '@/lib/api/products'
+import { buildLocaleAlternates } from '@/lib/seo/alternates'
 import { ProductGrid } from '@/components/features/catalog/product-grid'
 import { ProductGridSkeleton } from '@/components/features/catalog/product-grid-skeleton'
 import { CatalogHeader } from './_components/catalog-header'
@@ -41,11 +42,8 @@ export async function generateMetadata({ params }: HomePageProps): Promise<Metad
       type: 'website',
       url: `/${locale}`,
     },
-    alternates: {
-      // canonical points to the locale root — filter combinations must not create duplicate content
-      canonical: `/${locale}`,
-      languages: { en: '/en', ru: '/ru', es: '/es' },
-    },
+    // canonical points to the locale root — filter combinations must not create duplicate content
+    alternates: buildLocaleAlternates(locale, ''),
   }
 }
 

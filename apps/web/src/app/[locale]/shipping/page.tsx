@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
+import { buildLocaleAlternates } from '@/lib/seo/alternates'
 
 interface ShippingPageProps {
   params: Promise<{ locale: string }>
@@ -12,10 +13,7 @@ export async function generateMetadata({ params }: ShippingPageProps): Promise<M
   return {
     title: t('metaTitle'),
     description: t('metaDescription'),
-    alternates: {
-      canonical: `/${locale}/shipping`,
-      languages: { en: '/en/shipping', ru: '/ru/shipping', es: '/es/shipping' },
-    },
+    alternates: buildLocaleAlternates(locale, '/shipping'),
     openGraph: {
       title: t('metaTitle'),
       description: t('metaDescription'),

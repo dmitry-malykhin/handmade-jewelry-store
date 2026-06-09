@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
+import { buildLocaleAlternates } from '@/lib/seo/alternates'
 import { ContactForm } from './_components/contact-form'
 
 interface ContactPageProps {
@@ -13,10 +14,7 @@ export async function generateMetadata({ params }: ContactPageProps): Promise<Me
   return {
     title: t('metaTitle'),
     description: t('metaDescription'),
-    alternates: {
-      canonical: `/${locale}/contact`,
-      languages: { en: '/en/contact', ru: '/ru/contact', es: '/es/contact' },
-    },
+    alternates: buildLocaleAlternates(locale, '/contact'),
     openGraph: {
       title: t('metaTitle'),
       description: t('metaDescription'),

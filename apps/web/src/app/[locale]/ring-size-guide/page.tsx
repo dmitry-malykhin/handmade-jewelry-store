@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
+import { buildLocaleAlternates } from '@/lib/seo/alternates'
 import { generateHowToJsonLd } from '@/lib/seo/json-ld'
 import { RingSizeTable } from './_components/ring-size-table'
 import { HowToMeasure } from './_components/how-to-measure'
@@ -15,14 +16,7 @@ export async function generateMetadata({ params }: RingSizeGuidePageProps): Prom
   return {
     title: t('metaTitle'),
     description: t('metaDescription'),
-    alternates: {
-      canonical: `/${locale}/ring-size-guide`,
-      languages: {
-        en: '/en/ring-size-guide',
-        ru: '/ru/ring-size-guide',
-        es: '/es/ring-size-guide',
-      },
-    },
+    alternates: buildLocaleAlternates(locale, '/ring-size-guide'),
     openGraph: {
       title: t('metaTitle'),
       description: t('metaDescription'),
