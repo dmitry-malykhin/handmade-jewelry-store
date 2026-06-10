@@ -28,12 +28,14 @@ const shippingSchema = z
     path: ['estimatedDeliveryMaxDays'],
   })
 
+// z.coerce.number() makes input and output types diverge — pass both to useForm.
+type ShippingFormInput = z.input<typeof shippingSchema>
 type ShippingFormValues = z.infer<typeof shippingSchema>
 
 export function ShippingSection({ settings, onSave, isSaving }: SectionProps) {
   const t = useTranslations('admin')
 
-  const form = useForm<ShippingFormValues>({
+  const form = useForm<ShippingFormInput, unknown, ShippingFormValues>({
     resolver: zodResolver(shippingSchema),
     defaultValues: {
       returnPolicyDays: settings.returnPolicyDays,
@@ -66,7 +68,13 @@ export function ShippingSection({ settings, onSave, isSaving }: SectionProps) {
               <FormItem>
                 <FormLabel>{t('settingsFieldReturnPolicyDays')}</FormLabel>
                 <FormControl>
-                  <Input type="number" min={0} max={365} {...field} />
+                  <Input
+                    type="number"
+                    min={0}
+                    max={365}
+                    {...field}
+                    value={field.value as number | string}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -79,7 +87,7 @@ export function ShippingSection({ settings, onSave, isSaving }: SectionProps) {
               <FormItem>
                 <FormLabel>{t('settingsFieldFreeShippingThresholdCents')}</FormLabel>
                 <FormControl>
-                  <Input type="number" min={0} {...field} />
+                  <Input type="number" min={0} {...field} value={field.value as number | string} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -92,7 +100,13 @@ export function ShippingSection({ settings, onSave, isSaving }: SectionProps) {
               <FormItem>
                 <FormLabel>{t('settingsFieldEstimatedDeliveryMinDays')}</FormLabel>
                 <FormControl>
-                  <Input type="number" min={0} max={60} {...field} />
+                  <Input
+                    type="number"
+                    min={0}
+                    max={60}
+                    {...field}
+                    value={field.value as number | string}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -105,7 +119,13 @@ export function ShippingSection({ settings, onSave, isSaving }: SectionProps) {
               <FormItem>
                 <FormLabel>{t('settingsFieldEstimatedDeliveryMaxDays')}</FormLabel>
                 <FormControl>
-                  <Input type="number" min={0} max={60} {...field} />
+                  <Input
+                    type="number"
+                    min={0}
+                    max={60}
+                    {...field}
+                    value={field.value as number | string}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
