@@ -36,6 +36,11 @@ jobs:
       - name: Check formatting
         run: pnpm format:check
 
+      - name: Audit dependencies (critical only)
+        # Anything above critical is documented in docs/security-acceptance.md.
+        # New critical CVEs fail the PR — they need a triage before landing.
+        run: pnpm audit --audit-level=critical
+
   build-web:
     name: Production Build (web)
     # `next build` runs the type-check step that vitest doesn't, so prod-code
