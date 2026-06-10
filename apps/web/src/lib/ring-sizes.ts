@@ -43,10 +43,13 @@ export const RING_SIZES: readonly RingSize[] = [
  * Returns null if the diameter falls outside the standard table range.
  */
 export function findUsSizeByDiameter(diameterMm: number): number | null {
-  if (diameterMm < RING_SIZES[0].diameterMm - 0.4) return null
-  if (diameterMm > RING_SIZES[RING_SIZES.length - 1].diameterMm + 0.4) return null
+  const [first] = RING_SIZES
+  const last = RING_SIZES[RING_SIZES.length - 1]
+  if (!first || !last) return null
+  if (diameterMm < first.diameterMm - 0.4) return null
+  if (diameterMm > last.diameterMm + 0.4) return null
 
-  let closest = RING_SIZES[0]
+  let closest = first
   let minDelta = Math.abs(closest.diameterMm - diameterMm)
   for (const size of RING_SIZES) {
     const delta = Math.abs(size.diameterMm - diameterMm)

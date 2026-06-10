@@ -3,6 +3,7 @@ import type { Product } from '@jewelry/shared'
 import { Badge } from '@/components/ui/badge'
 import { Link } from '@/i18n/navigation'
 import { AddToCartButton } from '@/components/features/cart/add-to-cart-button'
+import type { ShippingOption } from '@/app/[locale]/checkout/_lib/shipping-options'
 import { SHIPPING_OPTIONS } from '@/app/[locale]/checkout/_lib/shipping-options'
 import { formatLatestDeliveryDate } from '@/app/[locale]/checkout/_lib/format-eta'
 import { calculateInstallmentPreview } from '@/lib/installment-preview'
@@ -14,12 +15,18 @@ interface ProductInfoProps {
   product: Product
 }
 
-const STANDARD_SHIPPING = SHIPPING_OPTIONS.find((option) => option.id === 'standard')
-if (!STANDARD_SHIPPING) {
-  throw new Error(
-    'Standard shipping option missing from SHIPPING_OPTIONS — check shipping-options.ts',
-  )
+// Wrap in a function — TS doesn't carry `if (!x) throw` narrowing across a
+// module-level const initializer, but a function return type does.
+function requireStandardShipping(): ShippingOption {
+  const option = SHIPPING_OPTIONS.find((opt) => opt.id === 'standard')
+  if (!option) {
+    throw new Error(
+      'Standard shipping option missing from SHIPPING_OPTIONS — check shipping-options.ts',
+    )
+  }
+  return option
 }
+const STANDARD_SHIPPING = requireStandardShipping()
 
 export async function ProductInfo({ product }: ProductInfoProps) {
   const t = await getTranslations('productDetail')

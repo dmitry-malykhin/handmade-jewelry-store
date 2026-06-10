@@ -90,9 +90,11 @@ export function RefundOrderModal({
     [remainingRefundable],
   )
 
+  // z.coerce.number().transform() makes input and output types diverge.
+  type RefundFormInput = z.input<typeof refundFormSchema>
   type RefundFormValues = z.infer<typeof refundFormSchema>
 
-  const form = useForm<RefundFormValues>({
+  const form = useForm<RefundFormInput, unknown, RefundFormValues>({
     resolver: zodResolver(refundFormSchema),
     defaultValues: { amount: undefined, reason: 'CUSTOMER_CHANGED_MIND', note: '' },
   })
@@ -166,7 +168,7 @@ export function RefundOrderModal({
                       min="0.01"
                       max={remainingRefundable}
                       placeholder={remainingFormatted}
-                      value={field.value ?? ''}
+                      value={(field.value as number | undefined) ?? ''}
                       onChange={(event) =>
                         field.onChange(event.target.value === '' ? undefined : event.target.value)
                       }

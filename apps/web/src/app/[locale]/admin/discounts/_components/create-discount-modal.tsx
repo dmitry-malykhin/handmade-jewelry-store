@@ -67,6 +67,8 @@ const createSchema = z
     path: ['value'],
   })
 
+// z.coerce.number() makes input and output types diverge — pass both to useForm.
+type CreateDiscountFormInput = z.input<typeof createSchema>
 type CreateDiscountFormValues = z.infer<typeof createSchema>
 
 export function CreateDiscountModal({ isOpen, onClose }: CreateDiscountModalProps) {
@@ -74,7 +76,7 @@ export function CreateDiscountModal({ isOpen, onClose }: CreateDiscountModalProp
   const accessToken = useAuthStore((state) => state.accessToken)
   const queryClient = useQueryClient()
 
-  const form = useForm<CreateDiscountFormValues>({
+  const form = useForm<CreateDiscountFormInput, unknown, CreateDiscountFormValues>({
     resolver: zodResolver(createSchema),
     defaultValues: {
       code: '',
@@ -182,7 +184,12 @@ export function CreateDiscountModal({ isOpen, onClose }: CreateDiscountModalProp
                   <FormItem>
                     <FormLabel>{t('discountsFieldValue')}</FormLabel>
                     <FormControl>
-                      <Input type="number" min={1} {...field} />
+                      <Input
+                        type="number"
+                        min={1}
+                        {...field}
+                        value={field.value as number | string}
+                      />
                     </FormControl>
                     <FormDescription>
                       {typeValue === 'PERCENTAGE'
@@ -201,7 +208,12 @@ export function CreateDiscountModal({ isOpen, onClose }: CreateDiscountModalProp
                   <FormItem>
                     <FormLabel>{t('discountsFieldMinOrderCents')}</FormLabel>
                     <FormControl>
-                      <Input type="number" min={0} {...field} />
+                      <Input
+                        type="number"
+                        min={0}
+                        {...field}
+                        value={field.value as number | string}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -215,7 +227,12 @@ export function CreateDiscountModal({ isOpen, onClose }: CreateDiscountModalProp
                   <FormItem>
                     <FormLabel>{t('discountsFieldMaxUsages')}</FormLabel>
                     <FormControl>
-                      <Input type="number" min={1} {...field} />
+                      <Input
+                        type="number"
+                        min={1}
+                        {...field}
+                        value={field.value as number | string}
+                      />
                     </FormControl>
                     <FormDescription>{t('discountsFieldMaxUsagesHint')}</FormDescription>
                     <FormMessage />

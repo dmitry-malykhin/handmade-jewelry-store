@@ -36,6 +36,33 @@ jobs:
       - name: Check formatting
         run: pnpm format:check
 
+  build-web:
+    name: Production Build (web)
+    # `next build` runs the type-check step that vitest doesn't, so prod-code
+    # TypeScript errors fail the PR here.
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: HUSKY=0 pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm --filter web build
+        env:
+          # Sentry credentials aren't in PR context; suppress related warnings.
+          SENTRY_SUPPRESS_INSTRUMENTATION_FILE_WARNING: 1
+
   unit-tests-web:
     name: Unit & Component Tests (web)
     runs-on: ubuntu-latest
