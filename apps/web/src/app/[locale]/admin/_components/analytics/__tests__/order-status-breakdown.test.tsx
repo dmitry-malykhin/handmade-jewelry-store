@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import type * as Recharts from 'recharts'
 import { render, screen } from '@/test-utils'
 import { OrderStatusBreakdown } from '../order-status-breakdown'
 import * as adminApi from '@/lib/api/admin'
@@ -25,7 +26,7 @@ global.ResizeObserver = vi.fn().mockImplementation(() => ({
 }))
 
 vi.mock('recharts', async (importOriginal) => {
-  const actual = await importOriginal()
+  const actual = await importOriginal<typeof Recharts>()
   return {
     ...actual,
     ResponsiveContainer: ({ children }: { children: React.ReactNode }) => (

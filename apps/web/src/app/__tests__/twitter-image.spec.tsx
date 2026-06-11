@@ -51,7 +51,7 @@ describe('twitter-image', () => {
 
   it('ImageResponse is constructed with the correct size options', async () => {
     const { default: TwitterImage } = await import('../twitter-image')
-    const result = TwitterImage() as { options: unknown }
+    const result = TwitterImage() as unknown as { options: unknown }
     expect(result.options).toEqual({ width: 1200, height: 628 })
   })
 })

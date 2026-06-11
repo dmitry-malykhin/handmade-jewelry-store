@@ -59,7 +59,7 @@ describe('ProductImageGallery', () => {
   })
 
   it('does not render thumbnails when there is only one image', () => {
-    render(<ProductImageGallery images={[twoImages[0]]} productTitle="Silver Ring" />)
+    render(<ProductImageGallery images={[twoImages[0]!]} productTitle="Silver Ring" />)
 
     expect(screen.queryByRole('list', { name: 'Product photo thumbnails' })).not.toBeInTheDocument()
   })

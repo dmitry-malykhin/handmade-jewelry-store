@@ -5,9 +5,6 @@ vi.mock('@stripe/stripe-js', () => ({
   loadStripe: vi.fn((key: string) => Promise.resolve({ __mockStripe: key })),
 }))
 
-const ORIGINAL_NODE_ENV = process.env.NODE_ENV
-const ORIGINAL_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
-
 async function importStripeHelperFresh() {
   vi.resetModules()
   return import('../stripe')
@@ -18,14 +15,13 @@ beforeEach(() => {
 })
 
 afterEach(() => {
-  process.env.NODE_ENV = ORIGINAL_NODE_ENV
-  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY = ORIGINAL_PUBLISHABLE_KEY
+  vi.unstubAllEnvs()
 })
 
 describe('getStripePromise', () => {
   it('returns a Stripe promise when the publishable key is configured', async () => {
-    process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY = 'pk_test_abc123'
-    process.env.NODE_ENV = 'production'
+    vi.stubEnv('NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY', 'pk_test_abc123')
+    vi.stubEnv('NODE_ENV', 'production')
 
     const { getStripePromise } = await importStripeHelperFresh()
 
@@ -34,8 +30,8 @@ describe('getStripePromise', () => {
   })
 
   it('throws synchronously in production when the key is missing', async () => {
-    process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY = ''
-    process.env.NODE_ENV = 'production'
+    vi.stubEnv('NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY', '')
+    vi.stubEnv('NODE_ENV', 'production')
 
     // The module-level `stripePromise = getStripePromise()` evaluates during
     // import in production — the import itself rejects.
@@ -43,8 +39,8 @@ describe('getStripePromise', () => {
   })
 
   it('returns null + warns in development when the key is missing', async () => {
-    process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY = ''
-    process.env.NODE_ENV = 'development'
+    vi.stubEnv('NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY', '')
+    vi.stubEnv('NODE_ENV', 'development')
     const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
 
     const { getStripePromise } = await importStripeHelperFresh()
@@ -56,8 +52,8 @@ describe('getStripePromise', () => {
   })
 
   it('treats whitespace-only keys as missing', async () => {
-    process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY = '   '
-    process.env.NODE_ENV = 'production'
+    vi.stubEnv('NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY', '   ')
+    vi.stubEnv('NODE_ENV', 'production')
 
     await expect(importStripeHelperFresh()).rejects.toThrow(/NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY/)
   })
@@ -65,8 +61,8 @@ describe('getStripePromise', () => {
 
 describe('isStripeConfigured', () => {
   it('returns true when the module-level promise is non-null (key set)', async () => {
-    process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY = 'pk_test_abc'
-    process.env.NODE_ENV = 'production'
+    vi.stubEnv('NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY', 'pk_test_abc')
+    vi.stubEnv('NODE_ENV', 'production')
 
     const { isStripeConfigured } = await importStripeHelperFresh()
 
@@ -74,8 +70,8 @@ describe('isStripeConfigured', () => {
   })
 
   it('returns false in development when the key is missing', async () => {
-    process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY = ''
-    process.env.NODE_ENV = 'development'
+    vi.stubEnv('NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY', '')
+    vi.stubEnv('NODE_ENV', 'development')
     vi.spyOn(console, 'warn').mockImplementation(() => undefined)
 
     const { isStripeConfigured } = await importStripeHelperFresh()

@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor, within } from '@/test-utils'
 import userEvent from '@testing-library/user-event'
 import { AdminOrdersTable } from '../admin-orders-table'
+import type { OrderDetails } from '@/lib/api/orders'
 import { downloadAdminOrdersCsv, fetchAdminOrders, updateAdminOrderStatus } from '@/lib/api/orders'
 import { useAuthStore } from '@/store/auth.store'
 import {
@@ -63,7 +64,7 @@ const sampleShippingAddress = {
   country: 'US',
 }
 
-const sampleOrder = {
+const sampleOrder: OrderDetails = {
   id: 'order-00000001',
   status: 'PENDING',
   guestEmail: 'buyer@example.com',
@@ -81,6 +82,7 @@ const sampleOrder = {
     },
   ],
   createdAt: new Date('2026-01-15').toISOString(),
+  updatedAt: new Date('2026-01-15').toISOString(),
 }
 
 const singlePageResponse = {
@@ -198,7 +200,7 @@ describe('AdminOrdersTable — status transitions', () => {
   })
 
   it('shows static badge for REFUNDED order (terminal state — no transitions)', async () => {
-    const refundedOrder = { ...sampleOrder, status: 'REFUNDED' }
+    const refundedOrder: OrderDetails = { ...sampleOrder, status: 'REFUNDED' }
     mockFetchAdminOrders.mockResolvedValue({
       ...singlePageResponse,
       data: [refundedOrder],

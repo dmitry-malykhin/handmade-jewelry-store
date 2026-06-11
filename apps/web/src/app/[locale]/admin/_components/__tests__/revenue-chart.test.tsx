@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import type * as Recharts from 'recharts'
 import { render, screen, waitFor } from '@/test-utils'
 import userEvent from '@testing-library/user-event'
 import { RevenueChart } from '../revenue-chart'
@@ -27,7 +28,7 @@ global.ResizeObserver = vi.fn().mockImplementation(() => ({
 
 // ResponsiveContainer doesn't work in jsdom — stub recharts chart components
 vi.mock('recharts', async (importOriginal) => {
-  const actual = await importOriginal()
+  const actual = await importOriginal<typeof Recharts>()
   return {
     ...actual,
     ResponsiveContainer: ({ children }: { children: React.ReactNode }) => (

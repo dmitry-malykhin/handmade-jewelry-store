@@ -31,13 +31,13 @@ function extractHrefLiterals(source: string): string[] {
   const regex = /href\s*[:=]\s*['"](\/[^'"]*)['"]/g
   const hrefs: string[] = []
   let match: RegExpExecArray | null
-  while ((match = regex.exec(source)) !== null) hrefs.push(match[1])
+  while ((match = regex.exec(source)) !== null) hrefs.push(match[1]!)
   return hrefs
 }
 
 function routeExistsForHref(href: string): boolean {
   // Strip query string and hash — they don't affect routing
-  const pathOnly = href.split('?')[0].split('#')[0]
+  const pathOnly = href.split('?')[0]!.split('#')[0]!
   // Root '/' maps to apps/web/src/app/[locale]/page.tsx
   if (pathOnly === '/' || pathOnly === '') {
     return existsSync(resolve(appDir, 'page.tsx'))

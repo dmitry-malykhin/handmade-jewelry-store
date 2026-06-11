@@ -20,7 +20,7 @@ vi.mock('next/og', () => ({
 vi.mock('next-intl/server', () => ({
   getTranslations: async (arg: string | { namespace: string; locale?: string }) => {
     const namespace = typeof arg === 'string' ? arg : arg.namespace
-    const ns = (messages as Record<string, Record<string, string>>)[namespace] ?? {}
+    const ns = (messages as unknown as Record<string, Record<string, string>>)[namespace] ?? {}
     return (key: string) => ns[key] ?? key
   },
 }))
@@ -62,7 +62,7 @@ describe('locale opengraph-image', () => {
     const { default: LocaleOgImage } = await import('../opengraph-image')
     const result = (await LocaleOgImage({
       params: Promise.resolve({ locale: 'en' }),
-    })) as { options: unknown }
+    })) as unknown as { options: unknown }
     expect(result.options).toEqual({ width: 1200, height: 630 })
   })
 })

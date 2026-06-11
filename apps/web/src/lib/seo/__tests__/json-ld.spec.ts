@@ -114,15 +114,15 @@ describe('generateBreadcrumbJsonLd', () => {
       { name: 'Ring', href: '/en/products/ring' },
     ])
 
-    expect(result.itemListElement[0].position).toBe(1)
-    expect(result.itemListElement[1].position).toBe(2)
-    expect(result.itemListElement[2].position).toBe(3)
+    expect(result.itemListElement[0]!.position).toBe(1)
+    expect(result.itemListElement[1]!.position).toBe(2)
+    expect(result.itemListElement[2]!.position).toBe(3)
   })
 
   it('builds full URLs from relative hrefs', () => {
     const result = generateBreadcrumbJsonLd([{ name: 'Home', href: '/en' }])
 
-    expect(result.itemListElement[0].item).toContain('/en')
+    expect(result.itemListElement[0]!.item).toContain('/en')
   })
 })
 

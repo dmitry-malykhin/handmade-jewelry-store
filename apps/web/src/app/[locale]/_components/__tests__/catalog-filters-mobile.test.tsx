@@ -25,8 +25,8 @@ vi.mock('../catalog-filters', () => ({
 }))
 
 const mockCategories: Category[] = [
-  { id: '1', name: 'Rings', slug: 'rings', description: null, imageUrl: null },
-  { id: '2', name: 'Necklaces', slug: 'necklaces', description: null, imageUrl: null },
+  { id: '1', name: 'Rings', slug: 'rings' },
+  { id: '2', name: 'Necklaces', slug: 'necklaces' },
 ]
 
 beforeEach(async () => {
