@@ -7,8 +7,15 @@
 #       KLAVIYO_PRIVATE_API_KEY, KLAVIYO_NEWSLETTER_LIST_ID, STORE_OWNER_EMAIL,
 #       FRONTEND_URL
 #   - GitHub Secret: FLY_API_TOKEN (`flyctl auth token` → copy)
+#   - GitHub Variable: FLY_DEPLOY_ENABLED=true (gate; see below)
 #
 # Issue #242. Frontend deploys to Vercel automatically — no workflow needed.
+#
+# Gate: job is skipped until the operator sets repo variable
+#   FLY_DEPLOY_ENABLED=true
+# (Settings → Secrets and variables → Actions → Variables). Until then we
+# don't have a Fly.io app or FLY_API_TOKEN, and running flyctl would fail
+# every merge for no reason.
 
 name: Deploy API to Fly.io production
 
@@ -29,6 +36,7 @@ concurrency:
 jobs:
   deploy-api-production:
     name: Build & Deploy API → Fly.io
+    if: vars.FLY_DEPLOY_ENABLED == 'true'
     runs-on: ubuntu-latest
     environment: production
 
