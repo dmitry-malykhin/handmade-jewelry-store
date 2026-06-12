@@ -184,6 +184,19 @@ Value: <скопированный token>
 
 ⚠️ **Ротейтить ежегодно** — `flyctl tokens revoke <token-id>` + create new + update GitHub Secret.
 
+### Шаг 6.5 — Enable the deploy gate
+
+Workflow-ы `deploy-staging.yml` и `deploy-flyio-production.yml` пропускают свои jobs пока не выставлена repo-level **variable** (не secret) `FLY_DEPLOY_ENABLED=true`. Это защищает от красных runs до запуска прода. Включай только когда выполнены шаги 1–6.
+
+GitHub repo → **Settings** → **Secrets and variables** → **Actions** → вкладка **Variables** → **New repository variable**:
+
+```
+Name: FLY_DEPLOY_ENABLED
+Value: true
+```
+
+Чтобы временно остановить auto-deploy (например на время инцидента) — переключи значение на `false` или удали variable. Workflow-ы тогда снова станут skipped без правок в коде.
+
 ### Шаг 7 — Verify CI deploy works
 
 Сделай trivial change в `apps/api/`:
