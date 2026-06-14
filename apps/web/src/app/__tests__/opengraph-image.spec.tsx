@@ -45,7 +45,7 @@ describe('opengraph-image', () => {
 
   it('ImageResponse is constructed with the correct size options', async () => {
     const { default: OgImage } = await import('../opengraph-image')
-    const result = OgImage() as { options: unknown }
+    const result = OgImage() as unknown as { options: unknown }
     expect(result.options).toEqual({ width: 1200, height: 630 })
   })
 })

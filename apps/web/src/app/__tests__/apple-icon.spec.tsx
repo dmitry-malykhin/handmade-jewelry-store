@@ -46,7 +46,7 @@ describe('apple-icon', () => {
 
   it('ImageResponse is constructed with the correct 180×180 size options', async () => {
     const { default: AppleIcon } = await import('../apple-icon')
-    const result = AppleIcon() as { options: unknown }
+    const result = AppleIcon() as unknown as { options: unknown }
     expect(result.options).toEqual({ width: 180, height: 180 })
   })
 })

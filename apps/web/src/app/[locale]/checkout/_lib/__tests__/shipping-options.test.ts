@@ -35,10 +35,8 @@ describe('SHIPPING_OPTIONS', () => {
 
 describe('calculateShippingCost', () => {
   // Both options are always defined — tested above
-  const standardOption =
-    SHIPPING_OPTIONS.find((option) => option.id === 'standard') ?? SHIPPING_OPTIONS[0]
-  const expressOption =
-    SHIPPING_OPTIONS.find((option) => option.id === 'express') ?? SHIPPING_OPTIONS[1]
+  const standardOption = SHIPPING_OPTIONS.find((option) => option.id === 'standard')!
+  const expressOption = SHIPPING_OPTIONS.find((option) => option.id === 'express')!
 
   it('returns base cost for standard shipping when subtotal is below threshold', () => {
     const shippingCost = calculateShippingCost(standardOption, 30)

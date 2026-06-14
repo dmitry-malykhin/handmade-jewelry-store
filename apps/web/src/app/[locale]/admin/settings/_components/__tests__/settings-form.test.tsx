@@ -107,7 +107,7 @@ describe('SettingsForm', () => {
     await userEvent.click(firstSaveButton)
 
     await waitFor(() => expect(updateAdminSiteSettingsMock).toHaveBeenCalled())
-    const [payload] = updateAdminSiteSettingsMock.mock.calls[0]
+    const [payload] = updateAdminSiteSettingsMock.mock.calls[0]!
     // General section only — no shipping or social fields
     expect(payload).toMatchObject({ storeName: 'New Name' })
     expect(payload).not.toHaveProperty('estimatedDeliveryMinDays')

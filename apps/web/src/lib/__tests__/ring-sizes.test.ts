@@ -16,19 +16,19 @@ beforeEach(async () => {
 describe('RING_SIZES table integrity', () => {
   it('contains 19 entries covering US 4–13 in 0.5 increments', () => {
     expect(RING_SIZES).toHaveLength(19)
-    expect(RING_SIZES[0].us).toBe(4)
-    expect(RING_SIZES[RING_SIZES.length - 1].us).toBe(13)
+    expect(RING_SIZES[0]!.us).toBe(4)
+    expect(RING_SIZES[RING_SIZES.length - 1]!.us).toBe(13)
   })
 
   it('is sorted ascending by US size', () => {
     for (let i = 1; i < RING_SIZES.length; i += 1) {
-      expect(RING_SIZES[i].us).toBeGreaterThan(RING_SIZES[i - 1].us)
+      expect(RING_SIZES[i]!.us).toBeGreaterThan(RING_SIZES[i - 1]!.us)
     }
   })
 
   it('has strictly increasing diameter — guarantees the lookup is monotonic', () => {
     for (let i = 1; i < RING_SIZES.length; i += 1) {
-      expect(RING_SIZES[i].diameterMm).toBeGreaterThan(RING_SIZES[i - 1].diameterMm)
+      expect(RING_SIZES[i]!.diameterMm).toBeGreaterThan(RING_SIZES[i - 1]!.diameterMm)
     }
   })
 

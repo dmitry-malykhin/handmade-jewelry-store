@@ -14,7 +14,7 @@ vi.mock('next-intl/server', () => ({
   getTranslations: async (namespaceOrOptions: string | { namespace: string; locale?: string }) => {
     const namespace =
       typeof namespaceOrOptions === 'string' ? namespaceOrOptions : namespaceOrOptions.namespace
-    const ns = (messagesEn as Record<string, Record<string, string>>)[namespace] ?? {}
+    const ns = (messagesEn as unknown as Record<string, Record<string, string>>)[namespace] ?? {}
     return (key: string) => ns[key] ?? key
   },
 }))
@@ -57,8 +57,8 @@ describe('FaqPage — content + structure', () => {
   it.each(EXPECTED_QUESTION_KEYS)('renders the "%s" question text', async (key) => {
     const ui = await FaqPage({ params: Promise.resolve({ locale: 'en' }) })
     render(ui)
-    const question = (messagesEn.faqPage as Record<string, string>)[`q_${key}_question`]
-    expect(screen.getByText(question)).toBeInTheDocument()
+    const question = (messagesEn.faqPage as unknown as Record<string, string>)[`q_${key}_question`]
+    expect(screen.getByText(question!)).toBeInTheDocument()
   })
 })
 

@@ -31,6 +31,7 @@ const inStockProduct: Product = {
   material: 'Sterling Silver',
   avgRating: 0,
   reviewCount: 0,
+  status: 'ACTIVE',
   stockType: 'IN_STOCK',
   productionDays: 0,
   lengthCm: null,

@@ -24,6 +24,7 @@ const inStockProduct: AddToCartProduct = {
   price: '49.99',
   stock: 5,
   stockType: 'IN_STOCK',
+  productionDays: 0,
   images: ['https://example.com/ring.jpg'],
 }
 
@@ -82,6 +83,7 @@ describe('BuyNowButton', () => {
       price: 49.99,
       image: 'https://example.com/ring.jpg',
       quantity: 1,
+      productionDays: 0,
     })
     expect(pushMock).toHaveBeenCalledWith('/checkout')
   })

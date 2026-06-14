@@ -47,7 +47,7 @@ beforeEach(async () => {
 
 describe('buildOrderPayload()', () => {
   it('maps cart items to order items with productSnapshot', () => {
-    const payload = buildOrderPayload(mockCartItems, mockFormValues)
+    const payload = buildOrderPayload(mockCartItems, mockFormValues, CHECKOUT_SHIPPING_COST)
 
     expect(payload.items).toHaveLength(2)
     expect(payload.items[0]).toEqual({
@@ -59,14 +59,14 @@ describe('buildOrderPayload()', () => {
   })
 
   it('excludes email from shippingAddress', () => {
-    const payload = buildOrderPayload(mockCartItems, mockFormValues)
+    const payload = buildOrderPayload(mockCartItems, mockFormValues, CHECKOUT_SHIPPING_COST)
 
     expect(payload.shippingAddress).not.toHaveProperty('email')
     expect(payload.shippingAddress.fullName).toBe('Jane Doe')
   })
 
   it('sets guestEmail from the form email field', () => {
-    const payload = buildOrderPayload(mockCartItems, mockFormValues)
+    const payload = buildOrderPayload(mockCartItems, mockFormValues, CHECKOUT_SHIPPING_COST)
 
     expect(payload.guestEmail).toBe('jane@example.com')
   })

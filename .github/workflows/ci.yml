@@ -43,8 +43,9 @@ jobs:
 
   build-web:
     name: Production Build (web)
-    # `next build` runs the type-check step that vitest doesn't, so prod-code
-    # TypeScript errors fail the PR here.
+    # `tsc --noEmit` covers all files (incl. tests); `next build` only checks
+    # what it bundles. Running tsc first surfaces broken test fixtures and
+    # other type drift that would otherwise sneak past the build step.
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -61,6 +62,9 @@ jobs:
 
       - name: Install dependencies
         run: HUSKY=0 pnpm install --frozen-lockfile
+
+      - name: Type-check (tsc --noEmit)
+        run: pnpm --filter web exec tsc --noEmit
 
       - name: Build
         run: pnpm --filter web build
