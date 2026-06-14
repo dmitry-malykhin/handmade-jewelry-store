@@ -64,7 +64,7 @@ describe('CheckoutShippingMethodForm', () => {
     await userEvent.click(screen.getByText('continueToPayment'))
 
     expect(handleNext).toHaveBeenCalledOnce()
-    const [selectedOption, shippingCost] = handleNext.mock.calls[0]
+    const [selectedOption, shippingCost] = handleNext.mock.calls[0]!
     expect(selectedOption.id).toBe('standard')
     expect(typeof shippingCost).toBe('number')
   })
@@ -76,7 +76,7 @@ describe('CheckoutShippingMethodForm', () => {
     await userEvent.click(screen.getByLabelText('shippingOption_express'))
     await userEvent.click(screen.getByText('continueToPayment'))
 
-    const [selectedOption] = handleNext.mock.calls[0]
+    const [selectedOption] = handleNext.mock.calls[0]!
     expect(selectedOption.id).toBe('express')
   })
 
