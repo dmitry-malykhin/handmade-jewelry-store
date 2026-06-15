@@ -73,9 +73,14 @@ export default withSentryConfig(withNextIntl(nextConfig), {
     deleteSourcemapsAfterUpload: true,
   },
 
-  // Disable the Sentry overlay in development — we use Next.js error overlay instead
-  disableLogger: true,
-
-  // Do not wrap build in Sentry tunnel if DSN is not configured
-  automaticVercelMonitors: false,
+  // disableLogger / automaticVercelMonitors moved under `webpack` in v8+; both
+  // top-level keys emit deprecation warnings on next build.
+  webpack: {
+    // Tree-shake Sentry debug logging in the production bundle.
+    treeshake: {
+      removeDebugLogging: true,
+    },
+    // We are not on Vercel; skip the Vercel cron monitor auto-wrap.
+    automaticVercelMonitors: false,
+  },
 })
