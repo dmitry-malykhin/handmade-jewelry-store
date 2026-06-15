@@ -46,3 +46,7 @@ Sentry.init({
   // Do not send events when DSN is not configured (local dev without Sentry account)
   enabled: !!process.env.NEXT_PUBLIC_SENTRY_DSN,
 })
+
+// Required by Sentry to instrument App Router client-side navigations as
+// transactions. Without it the SDK logs an ACTION REQUIRED warning on build.
+export const onRouterTransitionStart = Sentry.captureRouterTransitionStart
