@@ -1,18 +1,9 @@
 import type { NextConfig } from 'next'
 import createNextIntlPlugin from 'next-intl/plugin'
 import { withSentryConfig } from '@sentry/nextjs'
+import { getSecurityHeaders } from './src/lib/security-headers'
 
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts')
-
-const securityHeaders = [
-  { key: 'X-Content-Type-Options', value: 'nosniff' },
-  { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
-  { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
-  {
-    key: 'Permissions-Policy',
-    value: 'camera=(), microphone=(), geolocation=()',
-  },
-]
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
@@ -21,7 +12,7 @@ const nextConfig: NextConfig = {
   // Produces .next/standalone/server.js that can run without next start.
   output: 'standalone',
   async headers() {
-    return [{ source: '/(.*)', headers: securityHeaders }]
+    return [{ source: '/(.*)', headers: getSecurityHeaders(process.env.NODE_ENV) }]
   },
   async redirects() {
     // 301 redirects from the old /shop URL space to the new layout (#280).
