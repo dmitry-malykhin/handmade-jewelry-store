@@ -55,10 +55,7 @@ vi.mock('../checkout-payment-form', () => ({
     onBack: () => void
     selectedShippingOption?: { id: string }
   }) => (
-    <div
-      data-testid="checkout-payment-placeholder"
-      data-shipping-option={selectedShippingOption?.id}
-    >
+    <div data-testid="checkout-payment-form" data-shipping-option={selectedShippingOption?.id}>
       <button onClick={onBack}>back-payment</button>
     </div>
   ),
@@ -123,14 +120,14 @@ describe('CheckoutEntry — multi-step flow', () => {
     expect(screen.getByTestId('checkout-shipping-method-form')).toBeInTheDocument()
   })
 
-  it('moves to payment placeholder (step 3) after shipping method is selected', async () => {
+  it('moves to payment form (step 3) after shipping method is selected', async () => {
     render(<CheckoutEntry />)
 
     await userEvent.click(screen.getByText('continueAsGuest'))
     await userEvent.click(screen.getByText('submit-address'))
     await userEvent.click(screen.getByText('submit-shipping'))
 
-    expect(screen.getByTestId('checkout-payment-placeholder')).toBeInTheDocument()
+    expect(screen.getByTestId('checkout-payment-form')).toBeInTheDocument()
   })
 
   it('goes back to address form when back is clicked on shipping method step', async () => {
@@ -150,7 +147,7 @@ describe('CheckoutEntry — multi-step flow', () => {
     await userEvent.click(screen.getByText('submit-address'))
     await userEvent.click(screen.getByText('submit-shipping'))
 
-    const paymentStep = screen.getByTestId('checkout-payment-placeholder')
+    const paymentStep = screen.getByTestId('checkout-payment-form')
     expect(paymentStep).toHaveAttribute('data-shipping-option', 'standard')
   })
 
