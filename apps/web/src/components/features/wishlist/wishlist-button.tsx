@@ -12,17 +12,11 @@ import { cn } from '@/lib/utils'
 
 interface WishlistButtonProps {
   productId: string
-  // 'card' = compact 32px button overlay on ProductCard image
-  // 'detail' = larger button on product detail page next to "Add to cart"
   variant?: 'card' | 'detail'
 }
 
-/**
- * Heart-icon toggle. For guests: stores in localStorage via Zustand.
- * For logged-in users: also POSTs/DELETEs to the backend so the wishlist
- * survives across devices. Optimistic UI: state flips immediately and
- * rolls back if the network call fails.
- */
+// Optimistic toggle: heart flips immediately; for logged-in users we POST/DELETE
+// the backend and roll back on failure. Guests stay in localStorage only.
 export function WishlistButton({ productId, variant = 'card' }: WishlistButtonProps) {
   const t = useTranslations('wishlist')
   const accessToken = useAuthStore((state) => state.accessToken)
@@ -48,12 +42,10 @@ export function WishlistButton({ productId, variant = 'card' }: WishlistButtonPr
     const wasInWishlist = isInWishlist
     setIsPending(true)
 
-    // Optimistic local update
     if (wasInWishlist) removeLocal(productId)
     else addLocal(productId)
 
     if (!accessToken) {
-      // Guest: localStorage-only is enough.
       setIsPending(false)
       return
     }
@@ -65,14 +57,12 @@ export function WishlistButton({ productId, variant = 'card' }: WishlistButtonPr
         await addToWishlist(accessToken, productId)
       }
     } catch (error) {
-      // 401 = token expired. Silently degrade to guest mode: keep the local change
-      // (the heart stays toggled) and clear the stale token so future clicks skip
-      // the API entirely. No toast — the user's intent succeeded locally.
+      // 401 = token expired. Keep the local change, drop the stale token, and
+      // skip the toast — the user's intent succeeded locally.
       if (error instanceof ApiError && error.status === 401) {
         clearTokens()
         return
       }
-      // Real failure (5xx, network) — roll the optimistic update back and notify.
       if (wasInWishlist) addLocal(productId)
       else removeLocal(productId)
       const message = error instanceof ApiError ? error.message : t('errorGeneric')

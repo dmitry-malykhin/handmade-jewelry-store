@@ -1,23 +1,13 @@
 import { ApiError, API_BASE_URL } from './client'
 
 interface DownloadCsvOptions {
-  /** API path beginning with `/api/...`. */
   path: string
-  /** Bearer token — admin CSV endpoints require ADMIN role. */
   accessToken: string
-  /** Filename suggested to the browser. The `.csv` extension is added if missing. */
   filename: string
 }
 
-/**
- * Fetches a CSV admin export and triggers a browser download via an anchor
- * click + ObjectURL. Kept separate from `apiClient` because that helper
- * assumes a JSON response — CSV needs blob handling and a different error path.
- *
- * Note: the OS-level "Save As" dialog respects the `download` attribute even
- * when the server sets `Content-Disposition: attachment; filename="..."`,
- * so we always control the suggested name from the caller.
- */
+// Separate from apiClient — that helper assumes JSON; CSV needs blob handling
+// and never reads the response body for an error message.
 export async function downloadCsv({
   path,
   accessToken,
@@ -42,8 +32,7 @@ export async function downloadCsv({
     anchor.click()
     document.body.removeChild(anchor)
   } finally {
-    // Always revoke even if click() throws — leaked ObjectURLs hold the blob
-    // in memory for the lifetime of the page.
+    // Always revoke — leaked ObjectURLs hold the blob in memory for the page lifetime.
     URL.revokeObjectURL(objectUrl)
   }
 }

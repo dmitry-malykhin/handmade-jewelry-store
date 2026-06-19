@@ -12,35 +12,21 @@ interface PostHogAnalyticsProps {
   host?: string
 }
 
-/**
- * Loads PostHog and captures pageviews on route changes.
- * Strict GDPR mode — the SDK is not initialized at all until the user accepts
- * analytics cookies. On revocation we call `opt_out_capturing` + `reset` so
- * further events are dropped and the prior session is detached.
- *
- * Pageviews are sent manually so SPA route changes are captured. Authenticated
- * users are identified by their JWT `sub` claim so post-login events thread
- * to the right person in PostHog.
- *
- * Mirrors GoogleAnalytics component pattern to keep the consent gate, route
- * change tracking, and identification flow consistent across analytics tools.
- */
+// Strict GDPR: SDK is not initialised at all until the user accepts analytics
+// cookies. On revocation we opt_out + reset so the prior identified profile
+// cannot resurface if consent is later re-granted in the same session.
 export function PostHogAnalytics({ apiKey, host }: PostHogAnalyticsProps) {
   const hasAnalyticsConsent = useAnalyticsConsent()
   const accessToken = useAuthStore((state) => state.accessToken)
   const pathname = usePathname()
   const searchParams = useSearchParams()
-  // Tracked via React state (not posthog.__loaded internal flag) so dependent
-  // effects re-run when the SDK finishes bootstrapping. Without this, the
-  // initial pageview after mid-session consent grant would be lost.
+  // React state, not posthog.__loaded — dependent effects must re-run when the
+  // SDK finishes bootstrapping, otherwise the first pageview after consent is lost.
   const [isSdkLoaded, setIsSdkLoaded] = useState(false)
 
   useEffect(() => {
     if (!hasAnalyticsConsent) {
       if (posthog.__loaded) {
-        // Consent revoked after grant — stop further capture and detach the
-        // identified profile so the SDK cannot resurface stale identity if
-        // consent is later re-granted in the same session.
         posthog.opt_out_capturing()
         posthog.reset()
         setIsSdkLoaded(false)
@@ -49,8 +35,6 @@ export function PostHogAnalytics({ apiKey, host }: PostHogAnalyticsProps) {
     }
 
     if (posthog.__loaded) {
-      // Consent re-granted after a prior opt-out — resume capture without
-      // reinitializing (init is idempotent but heavier).
       posthog.opt_in_capturing()
       setIsSdkLoaded(true)
       return

@@ -1,21 +1,7 @@
 import { loadStripe, type Stripe } from '@stripe/stripe-js'
 
-/**
- * Builds the Stripe.js promise for `<Elements stripe={...}>`. Centralises
- * publishable-key validation in one place so every checkout entry point
- * gets the same fail-loud behaviour.
- *
- * Behaviour:
- *  - Production + key missing → throws synchronously. The checkout page
- *    catches this and renders a "Payments unavailable — admin notified"
- *    banner instead of letting Stripe.js init silently with `pk_` = `""`.
- *  - Development + key missing → returns `null` and warns once. Lets local
- *    devs work on non-payment screens without standing up a Stripe account.
- *
- * The check runs at module-load time (when this file is first imported)
- * which guarantees the error surfaces immediately on the first page that
- * uses Stripe, not after the user has filled out the address form.
- */
+// Fail-loud in production, warn-once in dev. The check runs at module load so
+// missing config surfaces on first import, not after the user fills the form.
 
 let warnedAboutMissingKey = false
 
@@ -30,7 +16,6 @@ export function getStripePromise(): Promise<Stripe | null> | null {
       )
     }
 
-    // Dev / test — warn once so the build isn't blocked but the dev sees the missing config.
     if (!warnedAboutMissingKey) {
       console.warn(
         '[stripe] NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY is empty — Stripe Elements will not load. ' +
@@ -44,10 +29,7 @@ export function getStripePromise(): Promise<Stripe | null> | null {
   return loadStripe(publishableKey)
 }
 
-/**
- * Module-level singleton — Stripe.js docs recommend calling `loadStripe`
- * exactly once per page session so the SDK isn't re-downloaded.
- */
+// Stripe.js docs: call loadStripe exactly once per page session.
 export const stripePromise = getStripePromise()
 
 export function isStripeConfigured(): boolean {

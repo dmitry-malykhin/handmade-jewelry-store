@@ -6,32 +6,23 @@ interface CartStore {
   items: CartItem[]
 
   /**
-   * Single-product express checkout state. When set, the checkout flow buys ONLY
-   * this item and ignores `items`. The regular cart is preserved untouched.
-   * Cleared on confirmation success or when the user navigates away from /checkout.
+   * Single-product express checkout state. When set, the checkout flow buys
+   * only this item and ignores `items`. The regular cart is preserved untouched.
    */
   expressItem: CartItem | null
 
-  /**
-   * Add a product to the cart. Idempotent — if the product is already in the
-   * cart, the call is a no-op (handmade pieces are unique, quantity is always 1).
-   * The `quantity` parameter is kept for backwards-compat but ignored.
-   */
+  /** Idempotent — handmade pieces are unique, quantity is always 1. */
   addItem: (item: Omit<CartItem, 'quantity'>, quantity?: number) => void
 
-  /** Remove a product from the cart entirely. */
   removeItem: (productId: string) => void
 
-  /** Set an exact quantity. Removes the item if quantity ≤ 0. */
+  /** Removes the item if quantity ≤ 0. */
   updateQuantity: (productId: string, quantity: number) => void
 
-  /** Empty the cart (e.g. after successful order). */
   clearCart: () => void
 
-  /** Start an express checkout for a single product (Buy Now flow). */
   setExpressItem: (item: Omit<CartItem, 'quantity'>, quantity?: number) => void
 
-  /** Discard the express item — call on confirmation success or checkout abandonment. */
   clearExpressItem: () => void
 }
 
@@ -44,9 +35,6 @@ export const useCartStore = create<CartStore>()(
       addItem: (item, _quantity = 1) => {
         set((state) => {
           const existingItem = state.items.find((cartItem) => cartItem.productId === item.productId)
-          // Handmade business model — every piece is unique. quantity is hard-capped at 1.
-          // Adding the same product twice is a no-op; UI shows a "View cart" button for
-          // already-in-cart items, but this guard protects any other call site too.
           if (existingItem) return state
           return { items: [...state.items, { ...item, quantity: 1 }] }
         })
@@ -63,7 +51,6 @@ export const useCartStore = create<CartStore>()(
           get().removeItem(productId)
           return
         }
-        // Clamp to 1 — handmade pieces are always quantity 1 per line item.
         const clampedQuantity = Math.min(quantity, 1)
         set((state) => ({
           items: state.items.map((cartItem) =>
@@ -77,8 +64,6 @@ export const useCartStore = create<CartStore>()(
       clearCart: () => set({ items: [] }),
 
       setExpressItem: (item, _quantity = 1) => {
-        // Express checkout for handmade pieces is always 1 unit — buy now flow
-        // mirrors the regular cart's hard-cap.
         set({ expressItem: { ...item, quantity: 1 } })
       },
 
@@ -93,10 +78,6 @@ export const useCartStore = create<CartStore>()(
   ),
 )
 
-// ── Selector hooks ────────────────────────────────────────────────────────────
-// Fine-grained selectors prevent unnecessary re-renders — components subscribe
-// only to the slice of state they actually need.
-
 export const useCartItems = () => useCartStore((state) => state.items)
 
 export const useCartTotalItems = () =>
@@ -107,18 +88,9 @@ export const useCartTotalPrice = () =>
     state.items.reduce((sum, cartItem) => sum + cartItem.price * cartItem.quantity, 0),
   )
 
-// ── Checkout selectors — switch between regular cart and express item ─────────
-// These are the single source of truth for any code under /checkout. When
-// `expressItem` is set (Buy Now flow) it shadows the cart; the regular cart
-// stays intact and reappears the moment the express flow ends.
-//
-// Implementation note: each `useCartStore(selector)` call must return a stable
-// reference when the underlying state hasn't changed — otherwise Zustand's
-// snapshot caching (via React's useSyncExternalStore) falsely detects "change",
-// triggering an infinite render loop. We therefore subscribe to the raw
-// `items` and `expressItem` separately and derive the result in the hook body,
-// where each render naturally creates a fresh array but Zustand never sees it.
-
+// Subscribe to `items` and `expressItem` separately and derive in the hook
+// body — passing a derived array directly to useCartStore would create a fresh
+// reference every render and trigger Zustand's snapshot-caching loop.
 export const useCheckoutItems = (): CartItem[] => {
   const items = useCartStore((state) => state.items)
   const expressItem = useCartStore((state) => state.expressItem)

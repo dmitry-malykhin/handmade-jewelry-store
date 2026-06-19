@@ -18,15 +18,8 @@ interface UsePaymentRequestResult {
   paymentRequestError: string | null
 }
 
-/**
- * Creates a Stripe PaymentRequest object for Apple Pay / Google Pay.
- * Returns null when the browser doesn't support native payment methods.
- *
- * canMakePayment() returns null on:
- * - Non-HTTPS pages (except localhost)
- * - Browsers with no saved payment methods
- * - iOS when domain is not registered with Apple Pay via Stripe
- */
+// canMakePayment() returns null on non-HTTPS pages, browsers with no saved
+// payment methods, or iOS when the domain isn't registered with Apple Pay.
 export function usePaymentRequest({
   totalAmountInCents,
   clientSecret,

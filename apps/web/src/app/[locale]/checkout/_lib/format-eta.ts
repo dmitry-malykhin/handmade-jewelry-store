@@ -2,23 +2,12 @@ import type { CartItem } from '@jewelry/shared'
 import { calculateEstimatedDelivery, type EstimatedDelivery } from './calculate-estimated-delivery'
 import type { ShippingOption } from './shipping-options'
 
-/**
- * Find the slowest item's production time across the cart. The bottleneck item
- * drives the order ETA — we ship the whole order together, so an early-ready
- * piece still waits for its slowest sibling.
- *
- * Treats `productionDays === undefined` as 0 to stay compatible with carts
- * persisted before the field was introduced (see CartItem in @jewelry/shared).
- */
+// Whole-cart bottleneck: an early-ready piece still waits for its slowest
+// sibling because we ship the order together.
 export function findLongestProductionDays(items: readonly CartItem[]): number {
   return items.reduce((maxDays, item) => Math.max(maxDays, item.productionDays ?? 0), 0)
 }
 
-/**
- * Order ETA = master's production lead time + carrier transit window.
- * Production is precise (mastered's commitment); shipping is a range.
- * The combined result is what the customer sees as "Estimated delivery".
- */
 export function calculateOrderEta(
   productionDays: number,
   shippingOption: ShippingOption,
@@ -31,12 +20,8 @@ export function calculateOrderEta(
   )
 }
 
-/**
- * Format the latest end of the delivery window as a single date — used on
- * product detail "arrives by Apr 14" copy. We pick the LATEST date (not
- * earliest) to under-promise and over-deliver: customers happy when pieces
- * arrive sooner, never disappointed by them arriving later than promised.
- */
+// "Arrives by …" copy: pick the LATEST date to under-promise; customers prefer
+// surprising-early to apologising-late.
 export function formatLatestDeliveryDate(
   productionDays: number,
   shippingOption: ShippingOption,

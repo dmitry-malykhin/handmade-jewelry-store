@@ -8,7 +8,7 @@ import { ReviewsSection } from '@/components/features/reviews/reviews-section'
 import { ProductDetail } from './_components/product-detail'
 import { ProductViewTracker } from './_components/product-view-tracker'
 
-// ISR — same revalidation window as catalog so product data stays fresh
+// 1 h ISR — matches the catalog window.
 export const revalidate = 3600
 
 interface ProductPageProps {
@@ -18,7 +18,6 @@ interface ProductPageProps {
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
   const { locale, slug } = await params
 
-  // .catch(() => null) — see comment in ProductPage below for why we avoid try/catch around notFound()
   const product = await fetchProductBySlug(slug).catch(() => null)
   if (!product) return {}
 
@@ -28,20 +27,18 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
   const availability = product.stock > 0 ? 'in stock' : 'out of stock'
 
   return {
-    // layout template appends "| Handmade Jewelry Store" automatically
     title: product.title,
     description,
     openGraph: {
       title: product.title,
       description,
-      // 'website' keeps Next.js OpenGraph types happy; product-specific fields below via `other`
+      // 'website' keeps Next.js OpenGraph types happy; product-specific fields go via `other`.
       type: 'website',
       ...(primaryImage && {
         images: [{ url: primaryImage, width: 800, height: 800, alt: product.title }],
       }),
     },
-    // Pinterest Rich Pins + Facebook product metadata.
-    // Pinterest reads og:type=product via OpenGraph Product meta tags for Rich Pins.
+    // Pinterest Rich Pins + Facebook product metadata via OpenGraph Product tags.
     other: {
       'og:type': 'product',
       'product:price:amount': price,
@@ -51,7 +48,6 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
       'product:brand': 'Senichka',
       ...(product.sku && { 'product:retailer_item_id': product.sku }),
     },
-    // canonical prevents duplicate content across locales and filter combinations
     alternates: buildLocaleAlternates(locale, `/products/${slug}`),
   }
 }
@@ -60,13 +56,10 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const { locale, slug } = await params
   setRequestLocale(locale)
 
-  // Fetch BEFORE getTranslations to keep the not-found check as early as possible
-  // (see Next.js streaming guide — notFound() returns 200 once a Suspense boundary
-  // streams; loading.tsx in this segment creates an implicit boundary).
-  //
-  // Using `.catch(() => null) + if (!product) notFound()` instead of try/catch around
-  // notFound() — notFound() throws NEXT_HTTP_ERROR_FALLBACK;404 which a surrounding
-  // catch could swallow, leaving the function to return normally.
+  // .catch + sync notFound() instead of try/catch — notFound() throws
+  // NEXT_HTTP_ERROR_FALLBACK;404, which a surrounding catch could swallow.
+  // Fetch runs before getTranslations so the 404 fires before a Suspense
+  // boundary downgrades it to a streamed 200.
   const product = await fetchProductBySlug(slug).catch(() => null)
   if (!product) notFound()
 

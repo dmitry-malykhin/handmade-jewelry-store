@@ -6,8 +6,6 @@ import {
   severity as $allureSeverity,
 } from 'allure-js-commons'
 
-// Minimal valid JWT with payload { sub: 'user-1', email: 'test@test.com', role: 'ADMIN' }
-// Header: {"alg":"HS256","typ":"JWT"}, Payload: {"sub":"user-1","email":"test@test.com","role":"ADMIN"}
 const adminJwt =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.' +
   'eyJzdWIiOiJ1c2VyLTEiLCJlbWFpbCI6InRlc3RAdGVzdC5jb20iLCJyb2xlIjoiQURNSU4ifQ.' +
@@ -20,7 +18,6 @@ const userJwt =
 
 const malformedJwt = 'not.a.jwt.token.structure'
 
-// JWT with no role field in payload: { sub: 'user-3', email: 'norole@test.com' }
 const noRoleJwt =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.' +
   'eyJzdWIiOiJ1c2VyLTMiLCJlbWFpbCI6Im5vcm9sZUB0ZXN0LmNvbSJ9.' +

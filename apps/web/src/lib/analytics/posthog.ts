@@ -1,11 +1,5 @@
-/**
- * PostHog event helpers — type-safe wrappers around posthog.capture(). All
- * functions are no-ops when the SDK is not initialized (consent not granted
- * or env var missing), so call sites never need to guard themselves.
- *
- * Event taxonomy mirrors docs/16_USER_ANALYTICS.md §6. Keep names in
- * snake_case to match the convention used across GA4 / PostHog / FB Pixel.
- */
+// Wrappers are no-ops when the SDK isn't initialised (no consent / no env);
+// call sites don't need to guard. Event taxonomy: docs/16_USER_ANALYTICS.md §6.
 
 import posthog from 'posthog-js'
 
@@ -23,12 +17,8 @@ interface JwtPayload {
   role: UserRole
 }
 
-/**
- * Best-effort decode of a JWT access token's payload. Returns null when the
- * token is missing or malformed — callers should treat that as "anonymous".
- * Duplicated from auth.store.ts to avoid the analytics module importing the
- * full Zustand store just to read JWT shape.
- */
+// Duplicated from auth.store.ts so analytics doesn't import the Zustand store
+// just to read the JWT shape.
 export function decodeAuthUser(accessToken: string | null): DecodedAuthUser | null {
   if (!accessToken) return null
   try {
