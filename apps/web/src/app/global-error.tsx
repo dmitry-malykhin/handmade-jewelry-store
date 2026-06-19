@@ -12,7 +12,7 @@ interface GlobalErrorProps {
 // It must include <html> and <body> tags because the normal layout is bypassed.
 // Sentry captures the error here so crashes in the root layout are tracked.
 //
-// i18n EXEMPTION (#283): strings are intentionally English-only. This boundary
+// i18n EXEMPTION: strings are intentionally English-only. This boundary
 // renders *before* the [locale] layout has set the request-locale context, so
 // neither next-intl messages nor a locale param are available. Showing a
 // generic English fallback is the industry norm for catastrophic-error pages

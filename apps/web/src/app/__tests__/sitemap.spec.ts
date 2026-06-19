@@ -65,7 +65,6 @@ describe('sitemap', () => {
     expect(urls.some((url) => url.endsWith('/en'))).toBe(true)
     expect(urls.some((url) => url.endsWith('/ru'))).toBe(true)
     expect(urls.some((url) => url.endsWith('/es'))).toBe(true)
-    // /shop is gone after #280 — must not appear anywhere
     expect(urls.some((url) => url.includes('/shop'))).toBe(false)
   })
 
@@ -106,7 +105,6 @@ describe('sitemap', () => {
     const { default: sitemap } = await import('../sitemap')
     const result = await sitemap()
 
-    // Only 3 locales × 5 static pages (home/catalog + ring-size-guide + trust pages #282)
     expect(result.length).toBe(15)
     expect(result.every((entry) => !entry.url.includes('silver-moonstone-ring'))).toBe(true)
 
@@ -128,9 +126,8 @@ describe('sitemap', () => {
     expect(guideUrls).toHaveLength(3)
   })
 
-  // #282 — trust pages must be crawlable for SEO + footer links to resolve
   it.each(['/faq', '/shipping', '/care'])(
-    'includes %s entry for each locale (#282)',
+    'includes %s entry for each locale',
     async (trustPath) => {
       mockFetchAllProducts.mockResolvedValue([])
       mockFetchCategories.mockResolvedValue([])

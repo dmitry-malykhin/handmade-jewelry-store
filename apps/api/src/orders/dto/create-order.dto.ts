@@ -135,9 +135,9 @@ export class CreateOrderDto {
   total: number
 
   /**
-   * Loyalty points the buyer chose to redeem at checkout (#124). Server
-   * re-validates against the user's current balance and the per-order cap
-   * before applying — clients can't claim more points than they have.
+   * Loyalty points the buyer chose to redeem at checkout. Server re-validates
+   * against the user's current balance and the per-order cap before applying —
+   * clients can't claim more points than they have.
    */
   @IsInt()
   @Min(0)

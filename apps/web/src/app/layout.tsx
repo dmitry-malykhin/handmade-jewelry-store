@@ -15,8 +15,8 @@ import { getSiteUrl } from '@/lib/config/site-url'
 import './globals.css'
 
 export const metadata: Metadata = {
-  // Was a custom 'https://example.com' fallback; consolidated to getSiteUrl()
-  // so dev shows real localhost OG URLs and prod always reads from env (#284).
+  // getSiteUrl() reads from env so dev shows real localhost OG URLs and prod
+  // always uses the configured public origin.
   metadataBase: new URL(getSiteUrl()),
   icons: {
     icon: [

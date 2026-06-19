@@ -62,10 +62,8 @@ describe('BuyNowButton', () => {
     expect(screen.getByRole('button', { name: /buy now/i })).not.toBeDisabled()
   })
 
-  it('stays enabled for ONE_OF_A_KIND pieces with stock=0 (re-craftable per #231)', () => {
+  it('stays enabled for ONE_OF_A_KIND pieces with stock=0 (re-craftable on demand)', () => {
     render(<BuyNowButton product={permanentlySoldOutProduct} />)
-    // Per #231 there is no permanent sold-out state — even an originally
-    // one-of-a-kind sold piece can be re-crafted on demand.
     expect(screen.getByRole('button', { name: /buy now/i })).not.toBeDisabled()
   })
 

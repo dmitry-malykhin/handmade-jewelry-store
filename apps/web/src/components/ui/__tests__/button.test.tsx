@@ -49,10 +49,10 @@ describe('Button', () => {
     expect(screen.getByRole('button')).toHaveClass('bg-destructive')
   })
 
-  // Issue #210 — Senichka brand CTA is a deeper rose-gold than --primary,
-  // reserved for the strongest call-to-action surfaces (hero, checkout,
-  // "Add to cart"). It must be distinguishable from the regular default
-  // button so designers can pick the right emphasis level.
+  // Senichka brand CTA is a deeper rose-gold than --primary, reserved for the
+  // strongest call-to-action surfaces (hero, checkout, "Add to cart"). It must
+  // be distinguishable from the regular default button so designers can pick
+  // the right emphasis level.
   it('applies the cta variant class', () => {
     render(<Button variant="cta">Add to Cart</Button>)
     const renderedButton = screen.getByRole('button')

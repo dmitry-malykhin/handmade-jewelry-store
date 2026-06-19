@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button'
  * Co-located with the page so Next.js scopes the 404 boundary tightly — the rest
  * of the locale shell (header, footer, nav) still renders around this content.
  *
- * Returns the proper 404 HTTP status (regression: #289).
+ * Returns the proper 404 HTTP status.
  */
 export default async function ProductNotFound() {
   const t = await getTranslations('productNotFound')

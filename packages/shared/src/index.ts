@@ -92,7 +92,7 @@ export interface CartItem {
   quantity: number
   // Production lead time (business days) captured at add-to-cart time.
   // Drives per-item ETA in cart and order ETA at checkout. 0 = ships immediately.
-  // Optional for backwards compatibility with carts persisted before #227.
+  // Optional so older persisted carts (without the field) stay valid.
   productionDays?: number
 }
 
@@ -135,7 +135,7 @@ export interface RevenueStats {
   chartData: RevenueChartDataPoint[]
 }
 
-/** Top-products analytics row (#166). One per product, ranked by revenue desc. */
+/** Top-products analytics row. One per product, ranked by revenue desc. */
 export interface TopProductRow {
   productId: string
   slug: string

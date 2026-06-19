@@ -98,8 +98,8 @@ export class ProductsService {
   }
 
   /**
-   * Customer-facing product search (#99). Matches title / description /
-   * material via case-insensitive `contains` against ACTIVE products only.
+   * Customer-facing product search. Matches title / description / material
+   * via case-insensitive `contains` against ACTIVE products only.
    *
    * Caps results at 50 — search pages don't paginate; if the customer wants
    * to see more matches we expect them to refine the query. Empty / whitespace

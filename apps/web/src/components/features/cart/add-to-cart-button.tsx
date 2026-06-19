@@ -35,8 +35,8 @@ interface AddToCartButtonProps {
  *   2. Already in cart → primary "View cart"  (a Link to /cart, NOT a remove toggle)
  *
  * UX rationale:
- * - Per #231 there is no "permanently sold out" state — every handmade piece
- *   is orderable; the master commits to a productionDays lead time. The legacy
+ * - There is no "permanently sold out" state — every handmade piece is
+ *   orderable; the master commits to a productionDays lead time. The legacy
  *   disabled "Sold out" branch was removed.
  * - The previous click-to-remove behaviour surprised users who expected a
  *   second click to navigate to the cart (Etsy / Amazon / Sephora pattern).

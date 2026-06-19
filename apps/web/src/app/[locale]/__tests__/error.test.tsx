@@ -20,8 +20,6 @@ beforeEach(async () => {
   await $allureSeverity('normal')
 })
 
-// After #280 the catalog moved to /, so the root [locale]/error.tsx boundary
-// catches both catalog errors and any other page error under [locale]/.
 describe('LocaleError boundary (root /[locale]/error.tsx)', () => {
   it('renders generic error heading', () => {
     render(<LocaleError reset={vi.fn()} />)

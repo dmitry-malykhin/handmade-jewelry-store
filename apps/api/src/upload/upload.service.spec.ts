@@ -103,7 +103,6 @@ describe('UploadService', () => {
     })
   })
 
-  // Issue #243 — S3-compatible providers (Cloudflare R2) via AWS_S3_ENDPOINT.
   describe('S3 provider configuration', () => {
     it('omits endpoint when AWS_S3_ENDPOINT is unset (default AWS S3)', async () => {
       mockGetSignedUrl.mockResolvedValue('https://signed-url')

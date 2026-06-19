@@ -21,7 +21,7 @@ function buildDto(overrides: Partial<CreateProductDto> = {}): CreateProductDto {
   })
 }
 
-// Issue #227 — every handmade piece is unique. Stock is binary, 0 or 1.
+// Every handmade piece is unique. Stock is binary, 0 or 1.
 beforeEach(async () => {
   if (!process.env.CI) return
   await $allureSuite('api/products')
@@ -55,8 +55,8 @@ describe('CreateProductDto stock validation', () => {
   })
 })
 
-// Issue #231 — when stock = 0, master MUST commit to a production lead time.
-// Otherwise the customer doesn't know what they're waiting for.
+// When stock = 0, master MUST commit to a production lead time. Otherwise the
+// customer doesn't know what they're waiting for.
 describe('CreateProductDto productionDays cross-field validation', () => {
   it('accepts stock = 0 with productionDays = 1', async () => {
     const errors = await validate(buildDto({ stock: 0, productionDays: 1 }))

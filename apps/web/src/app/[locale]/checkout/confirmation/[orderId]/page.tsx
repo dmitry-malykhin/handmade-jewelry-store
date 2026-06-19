@@ -72,7 +72,7 @@ export default async function ConfirmationPage({ params, searchParams }: Confirm
   }
 
   // .catch(() => null) + sync notFound() — see comment on products/[slug]/page.tsx
-  // for the streaming/404-status rationale (#289).
+  // for the streaming/404-status rationale.
   const order = await fetchOrderById(orderId).catch(() => null)
   if (!order) notFound()
 

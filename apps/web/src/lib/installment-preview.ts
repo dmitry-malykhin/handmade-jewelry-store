@@ -1,5 +1,5 @@
 /**
- * Installment preview for BNPL (Buy Now Pay Later) — issue #101.
+ * Installment preview for BNPL (Buy Now Pay Later).
  *
  * Renders "Or 4 payments of $X with Afterpay" under the price on product
  * detail and at checkout. Drives conversion uplift for handmade jewelry

@@ -56,10 +56,10 @@ export function LabelPurchaseSection({ order }: LabelPurchaseSectionProps) {
     staleTime: 5 * 60 * 1000,
   })
 
-  // #281 — block purchase entirely when EasyPost is in dry-run mode. The mock
-  // client fabricates MOCK… tracking numbers that would otherwise reach real
-  // customers via the shipping email. Backend enforces the same guard in
-  // production (returns 503) — this is the user-visible side of the safety net.
+  // Block purchase entirely when EasyPost is in dry-run mode. The mock client
+  // fabricates MOCK… tracking numbers that would otherwise reach real customers
+  // via the shipping email. Backend enforces the same guard in production
+  // (returns 503) — this is the user-visible side of the safety net.
   // While the status is still loading we treat it as "not live" — fail-closed.
   const isLiveMode = shippingStatusQuery.data?.isLiveMode === true
   const isDryRunBlocked = shippingStatusQuery.data !== undefined && !isLiveMode

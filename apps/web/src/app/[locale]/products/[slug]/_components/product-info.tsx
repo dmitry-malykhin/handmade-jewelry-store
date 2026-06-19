@@ -33,18 +33,18 @@ export async function ProductInfo({ product }: ProductInfoProps) {
 
   const priceUsd = parseFloat(product.price)
   const isReadyToShip = product.stock === 1
-  // Issue #231 — handmade is always orderable. ONE_OF_A_KIND that's been sold
-  // shows a special copy variant ("we can craft a similar one") but the customer
-  // can still order; only the visual framing changes.
+  // Handmade is always orderable. ONE_OF_A_KIND that's been sold shows a
+  // special copy variant ("we can craft a similar one") but the customer can
+  // still order; only the visual framing changes.
   const isOneOfAKindReorderable = product.stockType === 'ONE_OF_A_KIND' && product.stock === 0
   const isMadeOnDemand = product.stock === 0 && !isOneOfAKindReorderable
 
-  // Issue #233 — concrete delivery date (under-promise, over-deliver: latest of range).
+  // Concrete delivery date — under-promise, over-deliver by picking the latest of the range.
   const productionDaysForEta = isReadyToShip ? 0 : product.productionDays
   const arriveByDate = formatLatestDeliveryDate(productionDaysForEta, STANDARD_SHIPPING)
 
-  // Issue #233 — premium-min stock indicator: small dot + plain text, no
-  // full-width colored block. Each state has its own dot tint and main copy.
+  // Premium-min stock indicator: small dot + plain text, no full-width colored
+  // block. Each state has its own dot tint and main copy.
   // ─ green dot for in stock (ready to ship today)
   // ─ amber dot for made-on-demand (master crafts)
   // ─ neutral muted dot for ONE_OF_A_KIND reorderable (originally one of a kind)
@@ -157,9 +157,9 @@ export async function ProductInfo({ product }: ProductInfoProps) {
       {/* Dimensions */}
       <ProductDimensions product={product} />
 
-      {/* Ring size guide — only on rings (issue #118). Internal link helps
-          customers find the right size before adding to cart and improves SEO
-          via cross-linking. */}
+      {/* Ring size guide — only on rings. Internal link helps customers find
+          the right size before adding to cart and improves SEO via
+          cross-linking. */}
       {product.category.slug === 'rings' && (
         <Link
           href="/ring-size-guide"

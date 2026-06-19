@@ -33,9 +33,9 @@ export function calculateOrderEta(
 
 /**
  * Format the latest end of the delivery window as a single date — used on
- * product detail "arrives by Apr 14" copy. Issue #233 chose the LATEST date
- * (not earliest) so we under-promise and over-deliver: customers happy when
- * pieces arrive sooner, never disappointed by them arriving later than promised.
+ * product detail "arrives by Apr 14" copy. We pick the LATEST date (not
+ * earliest) to under-promise and over-deliver: customers happy when pieces
+ * arrive sooner, never disappointed by them arriving later than promised.
  */
 export function formatLatestDeliveryDate(
   productionDays: number,

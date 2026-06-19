@@ -32,7 +32,7 @@ export interface CreateOrderPayload {
   subtotal: number
   shippingCost: number
   total: number
-  /** Loyalty points the buyer chose to redeem (#124). Server clamps. */
+  /** Loyalty points the buyer chose to redeem. Server clamps. */
   loyaltyPointsToRedeem?: number
   source?: string
 }
@@ -103,7 +103,6 @@ export interface AdminOrderDetail extends OrderDetails {
   source: string | null
   statusHistory: OrderStatusHistoryEntry[]
   payment: OrderPaymentInfo | null
-  // EasyPost (#125)
   easypostShipmentId: string | null
   easypostTrackerId: string | null
   labelUrl: string | null

@@ -10,7 +10,7 @@
  * Why a helper and not `process.env.FRONTEND_URL ?? '...'` inline:
  *  - Inline reads diverged historically — auth + email templates defaulted to
  *    `:3001` (wrong port) while main.ts defaulted to `:3000`. A localhost
- *    typo in production would have shipped emails with broken links (#284).
+ *    typo in production would have shipped emails with broken links.
  *  - Production validation (require `FRONTEND_URL` set, refuse localhost) is
  *    enforced once in `required-env.ts` at startup. Helpers stay simple
  *    readers — never re-validate per call.

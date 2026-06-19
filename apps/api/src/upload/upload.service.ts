@@ -19,7 +19,7 @@ export class UploadService {
   // S3 client is created lazily so the app starts without credentials in dev.
   // A real upload attempt will throw InternalServerErrorException if missing.
   //
-  // Supports two providers via AWS_S3_ENDPOINT (issue #243):
+  // Supports two providers via AWS_S3_ENDPOINT:
   //  - When AWS_S3_ENDPOINT is set → Cloudflare R2 or any S3-compatible service.
   //    R2 endpoint shape: https://<account-id>.r2.cloudflarestorage.com.
   //    R2 requires path-style addressing (forcePathStyle).

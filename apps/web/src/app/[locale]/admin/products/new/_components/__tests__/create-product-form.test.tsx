@@ -189,7 +189,6 @@ describe('CreateProductForm — submission', () => {
       'A beautiful handmade silver ring crafted with love.',
     )
     await userEvent.type(screen.getByRole('spinbutton', { name: /price \(usd\)/i }), '49.99')
-    // Stock is now a binary toggle (#227). Click "In stock (1 piece ready)" → field value becomes 1.
     await userEvent.click(screen.getByRole('button', { name: /in stock \(1 piece ready\)/i }))
 
     // Select category

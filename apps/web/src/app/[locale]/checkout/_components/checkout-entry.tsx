@@ -23,7 +23,7 @@ interface CheckoutFlowState {
   addressValues: CheckoutAddressFormValues | null
   selectedShippingOption: ShippingOption | null
   resolvedShippingCost: number
-  /** Loyalty points the user applied on the shipping step (#124). */
+  /** Loyalty points the user applied on the shipping step. */
   loyaltyPointsToRedeem: number
 }
 

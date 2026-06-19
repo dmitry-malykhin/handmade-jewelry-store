@@ -115,8 +115,8 @@ export function WishlistManager() {
       {products.map((product) => {
         const priceUsd = parseFloat(product.price)
         const primaryImage = product.images[0] ?? '/placeholder-product.jpg'
-        // Issue #231 — handmade pieces are always orderable. stock=0 means "the
-        // master will craft it after the order is paid", regardless of stockType.
+        // Handmade pieces are always orderable. stock=0 means "the master will
+        // craft it after the order is paid", regardless of stockType.
         const isMadeOnDemand = product.stock === 0
         const isLowStock =
           product.stock > 0 && product.stock <= SCARCITY_THRESHOLD && !isMadeOnDemand

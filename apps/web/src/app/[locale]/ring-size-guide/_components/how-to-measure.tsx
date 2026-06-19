@@ -4,9 +4,9 @@ import { getTranslations } from 'next-intl/server'
  * Three step-by-step methods for measuring ring size at home.
  * Server Component — pure content, no state.
  *
- * Used by the ring size guide page (#118). The list is also referenced
- * by the JSON-LD HowTo schema in the page metadata so search engines
- * can show rich results for "how to measure ring size" queries.
+ * Used by the ring size guide page. The list is also referenced by the JSON-LD
+ * HowTo schema in the page metadata so search engines can show rich results
+ * for "how to measure ring size" queries.
  */
 export async function HowToMeasure() {
   const t = await getTranslations('ringSizeGuide')

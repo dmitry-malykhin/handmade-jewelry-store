@@ -17,8 +17,8 @@ export async function ProductCard({ product, isPriority = false }: ProductCardPr
 
   const primaryImage = product.images[0] ?? '/placeholder-product.jpg'
   const priceUsd = parseFloat(product.price)
-  // Issue #231 — handmade pieces are always orderable. Even an originally
-  // one-of-a-kind sold piece can be re-crafted with a similar stone.
+  // Handmade pieces are always orderable. Even an originally one-of-a-kind
+  // sold piece can be re-crafted with a similar stone.
   const isMadeOnDemand = product.stock === 0
 
   return (

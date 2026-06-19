@@ -4,7 +4,6 @@ import { useTranslations } from 'next-intl'
 import { Link, usePathname } from '@/i18n/navigation'
 import { cn } from '@/lib/utils'
 
-// Loyalty link re-added with #124 — the loyalty system now ships.
 const ACCOUNT_LINKS = [
   { href: '/account', key: 'overview' },
   { href: '/account/orders', key: 'orders' },

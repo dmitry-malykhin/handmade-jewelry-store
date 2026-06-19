@@ -6,8 +6,6 @@
  * (international standard); UK uses the alphabet system; US is its own scale.
  *
  * Rows are sorted ascending by US size — UI tables can iterate as-is.
- *
- * Issue #118 (#118-ring-size-guide).
  */
 export interface RingSize {
   us: number // 4–13, in 0.5 increments

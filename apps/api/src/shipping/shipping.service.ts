@@ -71,8 +71,8 @@ export class ShippingService {
    *    explicit and lets the admin batch a stack of labels before shipping).
    */
   async purchaseLabel(options: PurchaseLabelOptions): Promise<PurchaseLabelOutcome> {
-    // #281 — defensive production guard. The mock EasyPost client fabricates
-    // MOCK… tracking numbers + placeholder PDF URLs; if it ran in production the
+    // Defensive production guard. The mock EasyPost client fabricates MOCK…
+    // tracking numbers + placeholder PDF URLs; if it ran in production the
     // customer would receive a shipping email pointing at a fake tracking link.
     // The UI already disables the purchase button when isLiveMode=false, but
     // we don't trust the UI alone — a direct POST from a leaked admin token,

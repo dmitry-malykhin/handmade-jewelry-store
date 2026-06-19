@@ -137,7 +137,6 @@ describe('ProductPage — notFound behaviour (regression: #289)', () => {
 
     expect(metadata.title).toBe(sampleProduct.title)
     expect(metadata.alternates?.canonical).toBe(`/en/products/${sampleProduct.slug}`)
-    // #297 — x-default points international visitors to the EN version
     expect(metadata.alternates?.languages).toEqual({
       en: `/en/products/${sampleProduct.slug}`,
       ru: `/ru/products/${sampleProduct.slug}`,

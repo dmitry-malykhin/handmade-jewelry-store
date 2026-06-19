@@ -88,7 +88,7 @@ describe('PaymentsService', () => {
 
       expect(result).toEqual({ clientSecret: CLIENT_SECRET })
       // Amount in cents: $49.98 → 4998
-      // Issue #101 — Klarna + Afterpay enabled alongside card; Stripe filters by
+      // Klarna + Afterpay enabled alongside card; Stripe filters by
       // region/amount/currency, so adding them is safe even when not eligible.
       expect(mockStripeService.client.paymentIntents.create).toHaveBeenCalledWith(
         expect.objectContaining({

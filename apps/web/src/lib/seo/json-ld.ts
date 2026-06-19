@@ -51,8 +51,8 @@ export interface HowToStep {
 }
 
 /**
- * Build a HowTo JSON-LD object — used on the ring size guide (#118) so
- * Google can show rich results for "how to measure ring size" queries.
+ * Build a HowTo JSON-LD object — used on the ring size guide so Google can
+ * show rich results for "how to measure ring size" queries.
  *
  * The `name` is the page title; `description` is a one-line summary;
  * `steps` is the ordered list of methods.

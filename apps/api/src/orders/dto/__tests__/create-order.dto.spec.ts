@@ -8,7 +8,7 @@ import {
   severity as $allureSeverity,
 } from 'allure-js-commons'
 
-// Issue #227 — every handmade piece is unique. The order DTO must reject:
+// Every handmade piece is unique. The order DTO must reject:
 //   1. quantity > 1 on a single line item
 //   2. the same productId appearing twice in items[]
 // Both invariants protect the master from impossible commitments at order-create time.

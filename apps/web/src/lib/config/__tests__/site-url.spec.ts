@@ -26,7 +26,7 @@ describe('getSiteUrl', () => {
     expect(getSiteUrl()).toBe('https://senichka.com')
   })
 
-  it('falls back to http://localhost:3000 when env is absent (regression #284)', () => {
+  it('falls back to http://localhost:3000 when env is absent', () => {
     delete process.env.NEXT_PUBLIC_SITE_URL
     expect(getSiteUrl()).toBe('http://localhost:3000')
   })

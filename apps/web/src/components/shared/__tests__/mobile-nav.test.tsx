@@ -103,7 +103,6 @@ describe('MobileNav', () => {
     expect(screen.getByRole('link', { name: /shop/i })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /about/i })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /contact/i })).toBeInTheDocument()
-    // /collections route does not exist — link removed in #279
     expect(screen.queryByRole('link', { name: /collections/i })).not.toBeInTheDocument()
   })
 
