@@ -20,7 +20,7 @@ import { removeFromWishlist } from '@/lib/api/wishlist'
  * Strict Mode / fast refresh.
  *
  * NOTE: Clearing the regular cart after a non-express order is a separate
- * pre-existing concern (cart persists post-purchase). Out of scope for #225.
+ * pre-existing concern (cart persists post-purchase) and is out of scope here.
  */
 export function ExpressCheckoutCleanup() {
   const hasRunRef = useRef(false)

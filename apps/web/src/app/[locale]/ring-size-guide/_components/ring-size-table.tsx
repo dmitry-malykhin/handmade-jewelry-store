@@ -3,7 +3,7 @@ import { RING_SIZES } from '@/lib/ring-sizes'
 
 /**
  * Static conversion table — Server Component, no interactivity.
- * Rendered inside the ring size guide page (#118).
+ * Rendered inside the ring size guide page.
  *
  * Print-friendly: no decorations, plain `<table>` with semantic headers
  * so a customer can print the page directly from the browser.

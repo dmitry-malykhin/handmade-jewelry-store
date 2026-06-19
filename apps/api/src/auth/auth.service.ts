@@ -115,9 +115,6 @@ export class AuthService {
       data: { passwordResetToken: hashedToken, passwordResetTokenAt: new Date() },
     })
 
-    // Use shared helper — keeps the fallback (http://localhost:3000) consistent
-    // with main.ts and email templates. Historical inline fallback here was
-    // :3001 (wrong port — copy-paste from a stale config), see #284.
     const frontendUrl = getFrontendUrl()
     // Fire-and-forget — email failure must not expose error details to the caller
     void this.emailService.sendPasswordReset({

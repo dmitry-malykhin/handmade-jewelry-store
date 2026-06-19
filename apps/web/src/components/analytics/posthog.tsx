@@ -15,8 +15,8 @@ interface PostHogAnalyticsProps {
 /**
  * Loads PostHog and captures pageviews on route changes.
  * Strict GDPR mode — the SDK is not initialized at all until the user accepts
- * analytics cookies (#107). On revocation we call `opt_out_capturing` + `reset`
- * so further events are dropped and the prior session is detached.
+ * analytics cookies. On revocation we call `opt_out_capturing` + `reset` so
+ * further events are dropped and the prior session is detached.
  *
  * Pageviews are sent manually so SPA route changes are captured. Authenticated
  * users are identified by their JWT `sub` claim so post-login events thread

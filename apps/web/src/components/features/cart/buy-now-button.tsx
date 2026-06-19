@@ -37,8 +37,8 @@ export function BuyNowButton({ product, className }: BuyNowButtonProps) {
     router.push('/checkout')
   }
 
-  // Issue #231 — every handmade piece is orderable, so Buy Now stays active
-  // for stock=0 too (the master crafts after payment).
+  // Every handmade piece is orderable, so Buy Now stays active for stock=0
+  // too (the master crafts after payment).
   return (
     <Button
       type="button"

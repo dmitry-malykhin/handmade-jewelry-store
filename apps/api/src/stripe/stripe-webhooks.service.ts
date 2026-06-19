@@ -145,8 +145,8 @@ export class StripeWebhooksService {
       return
     }
 
-    // Detect partial vs full refund from the Stripe charge itself — admin
-    // refund flow (#170) may set PARTIALLY_REFUNDED before this webhook arrives.
+    // Detect partial vs full refund from the Stripe charge itself — the admin
+    // refund flow may set PARTIALLY_REFUNDED before this webhook arrives.
     const isFullRefund = charge.amount_refunded >= charge.amount
     const targetPaymentStatus = isFullRefund
       ? PaymentStatus.REFUNDED

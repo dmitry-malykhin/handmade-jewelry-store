@@ -152,7 +152,7 @@ describe('generateOrganizationJsonLd', () => {
   })
 })
 
-// #282 — FAQPage schema feeds Google rich-result expansions in SERP
+// FAQPage schema feeds Google rich-result expansions in SERP
 describe('generateFaqJsonLd', () => {
   const sampleItems = [
     { question: 'How long does shipping take?', answer: '2–5 business days.' },

@@ -33,18 +33,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const staticEntries: MetadataRoute.Sitemap = routing.locales.flatMap((locale) => [
     {
-      // Home is the catalog (#280) — daily change frequency, highest priority
+      // Home is the catalog — daily change frequency, highest priority
       url: `${SITE_URL}/${locale}`,
       changeFrequency: 'daily',
       priority: 1.0,
     },
     {
-      // Issue #118 — high-SEO-value evergreen content; rarely changes.
+      // High-SEO-value evergreen content; rarely changes.
       url: `${SITE_URL}/${locale}/ring-size-guide`,
       changeFrequency: 'yearly' as const,
       priority: 0.6,
     },
-    // Trust pages (#282) — evergreen, conversion-critical for handmade jewelry
+    // Trust pages — evergreen, conversion-critical for handmade jewelry
     {
       url: `${SITE_URL}/${locale}/faq`,
       changeFrequency: 'monthly' as const,

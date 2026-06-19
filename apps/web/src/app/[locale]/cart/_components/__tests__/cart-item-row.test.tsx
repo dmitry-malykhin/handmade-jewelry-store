@@ -112,7 +112,6 @@ describe('CartItemRow — accessibility', () => {
     const { container } = render(<CartItemRow cartItem={ringCartItem} />)
 
     const iconButtons = container.querySelectorAll('.size-11')
-    // Only the Trash button remains — quantity controls were removed in #227.
     expect(iconButtons.length).toBe(1)
   })
 })

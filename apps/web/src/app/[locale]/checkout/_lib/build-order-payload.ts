@@ -10,7 +10,7 @@ import type { CheckoutAddressFormValues } from '../_components/checkout-address-
 interface BuildOrderPayloadOptions {
   /** Logged-in user id (when present). Loyalty redemption requires a user. */
   userId?: string
-  /** Loyalty points the buyer chose to redeem (#124). Server clamps. */
+  /** Loyalty points the buyer chose to redeem. Server clamps. */
   loyaltyPointsToRedeem?: number
 }
 

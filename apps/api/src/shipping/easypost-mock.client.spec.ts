@@ -50,7 +50,6 @@ describe('EasypostMockClient', () => {
       expect(result.estimatedDeliveryAt).toBeInstanceOf(Date)
     })
 
-    // #281 — last-line-of-defence visibility for prod calls against the mock
     describe('production warning', () => {
       const ORIGINAL_NODE_ENV = process.env.NODE_ENV
 

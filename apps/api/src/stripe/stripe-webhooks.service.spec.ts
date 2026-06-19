@@ -307,7 +307,7 @@ describe('StripeWebhooksService', () => {
       })
     })
 
-    // #170 — partial refund detection: when charge.amount_refunded < charge.amount,
+    // Partial refund detection: when charge.amount_refunded < charge.amount,
     // the order must transition to PARTIALLY_REFUNDED, not REFUNDED.
     it('sets PARTIALLY_REFUNDED when amount_refunded < charge.amount', async () => {
       mockPrismaService.payment.findUnique.mockResolvedValueOnce(

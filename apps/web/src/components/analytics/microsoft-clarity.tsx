@@ -10,7 +10,7 @@ interface MicrosoftClarityProps {
 /**
  * Loads Microsoft Clarity for session recording + heatmaps. Strictly gated
  * on analytics consent — the script is not even injected until the user
- * accepts cookies (#107). On consent revocation the component returns null
+ * accepts cookies. On consent revocation the component returns null
  * on next render, removing the Script element; cleanup of clarity's runtime
  * is best-effort and a hard reload guarantees full detachment.
  *

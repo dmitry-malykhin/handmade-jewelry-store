@@ -17,7 +17,7 @@ export function CartItemRow({ cartItem }: CartItemRowProps) {
   const removeItem = useCartStore((state) => state.removeItem)
 
   const itemTotal = (cartItem.price * cartItem.quantity).toFixed(2)
-  // productionDays is optional on CartItem (carts persisted before #227 lack it).
+  // productionDays is optional on CartItem (older persisted carts lack it).
   const productionDays = cartItem.productionDays ?? 0
   const isMadeOnDemand = productionDays > 0
 

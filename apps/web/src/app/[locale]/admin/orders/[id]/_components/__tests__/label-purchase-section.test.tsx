@@ -75,7 +75,7 @@ const mockPurchaseLabel = vi.mocked(adminShipping.purchaseAdminShippingLabel)
 beforeEach(() => {
   vi.clearAllMocks()
   // Default to live mode so the existing purchase-flow tests aren't gated by
-  // the #281 dry-run guard. Tests that exercise the guard override this.
+  // the dry-run guard. Tests that exercise the guard override this.
   mockFetchShippingStatus.mockResolvedValue({ isLiveMode: true })
 })
 
@@ -111,7 +111,7 @@ describe('LabelPurchaseSection — render gating', () => {
   })
 })
 
-// #281 — UI side of the production dry-run guard
+// UI side of the production dry-run guard
 describe('LabelPurchaseSection — dry-run purchase block', () => {
   it('disables the Purchase button and shows the warning banner in dry-run mode', async () => {
     mockFetchShippingStatus.mockResolvedValue({ isLiveMode: false })

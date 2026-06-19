@@ -47,7 +47,7 @@ export class PaymentsService {
     // Stripe requires amount in the smallest currency unit (cents for USD)
     const amountInCents = Math.round(Number(order.total) * 100)
 
-    // Issue #101 — enable Klarna + Afterpay Buy Now Pay Later alongside cards.
+    // Enable Klarna + Afterpay Buy Now Pay Later alongside cards.
     // Stripe Payment Element renders these as tabs automatically. The methods
     // are filtered server-side by region, currency, and amount eligibility,
     // and on the client by browser locale — Stripe shows only what's relevant.

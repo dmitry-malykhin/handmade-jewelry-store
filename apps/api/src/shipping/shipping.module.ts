@@ -14,7 +14,7 @@ import { ShippingWebhooksController } from './shipping-webhooks.controller'
     ShippingService,
     // EasypostMockClient is wired by default — this is the "dry-run" mode used
     // pre-launch. When EASYPOST_API_KEY is configured we swap this provider for
-    // the real EasyPost-backed client (out of scope for #125).
+    // the real EasyPost-backed client.
     { provide: EASYPOST_CLIENT, useClass: EasypostMockClient },
   ],
   exports: [ShippingService],

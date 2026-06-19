@@ -86,7 +86,6 @@ describe('ShippingService', () => {
   })
 
   describe('purchaseLabel', () => {
-    // #281 — defensive production guard
     describe('production dry-run guard', () => {
       const ORIGINAL_NODE_ENV = process.env.NODE_ENV
 

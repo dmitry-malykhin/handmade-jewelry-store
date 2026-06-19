@@ -23,7 +23,7 @@ export default async function AdminEditProductPage({ params }: AdminEditProductP
   const { locale, slug } = await params
   setRequestLocale(locale)
 
-  // .catch(() => null) + sync notFound() — same rationale as products/[slug]/page.tsx (#289)
+  // .catch(() => null) + sync notFound() — same rationale as products/[slug]/page.tsx
   const [categories, product] = await Promise.all([
     fetchCategories().catch(() => null),
     fetchProductBySlug(slug).catch(() => null),

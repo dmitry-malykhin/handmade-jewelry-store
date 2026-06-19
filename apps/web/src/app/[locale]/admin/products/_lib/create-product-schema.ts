@@ -29,7 +29,7 @@ export const createProductSchema = z
     sku: z.string().max(100).optional().or(z.literal('')),
     material: z.string().max(200).optional().or(z.literal('')),
     stockType: z.enum(STOCK_TYPES).default('IN_STOCK'),
-    // Required when stock = 0 (#231) — see .superRefine below.
+    // Required when stock = 0 — see .superRefine below.
     productionDays: z.number().int().min(0).max(365).optional(),
     // Dimensions — all optional, stored in metric
     lengthCm: z.number().positive().max(500).optional(),
@@ -40,9 +40,9 @@ export const createProductSchema = z
     beadSizeMm: z.number().positive().max(100).optional(),
   })
   .superRefine((value, ctx) => {
-    // Issue #231 — handmade products are always orderable, but if there's no piece
-    // ready (stock=0) the master must commit to a lead time. 0 days + 0 stock is
-    // a contradiction we never want to ship.
+    // Handmade products are always orderable, but if there's no piece ready
+    // (stock=0) the master must commit to a lead time. 0 days + 0 stock is a
+    // contradiction we never want to ship.
     if (value.stock === 0 && (value.productionDays === undefined || value.productionDays < 1)) {
       ctx.addIssue({
         code: 'custom',

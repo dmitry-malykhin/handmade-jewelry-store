@@ -91,7 +91,7 @@ describe('i18n untranslated regression guards (#283)', () => {
     expect(value).toBe('Existencias')
   })
 
-  // Layout skip-link must read from i18n — bug #283 had it hardcoded as "Skip to main content"
+  // Layout skip-link must read from i18n — regression guard against hardcoded English.
   it('all three locales define header.skipToMain', () => {
     expect((en as { header: { skipToMain: string } }).header.skipToMain).toBeTruthy()
     expect((ru as { header: { skipToMain: string } }).header.skipToMain).toBeTruthy()

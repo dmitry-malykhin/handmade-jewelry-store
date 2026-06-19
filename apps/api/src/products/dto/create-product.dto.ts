@@ -16,9 +16,9 @@ import {
   type ValidationOptions,
 } from 'class-validator'
 
-// Issue #231 — handmade has no permanent sold-out state. When a product is
-// not currently in stock (stock=0), the master must commit to a production
-// lead time so the customer knows what they're waiting for.
+// Handmade has no permanent sold-out state. When a product is not currently
+// in stock (stock=0), the master must commit to a production lead time so the
+// customer knows what they're waiting for.
 function ProductionDaysRequiredWhenOutOfStock(validationOptions?: ValidationOptions) {
   return function (target: object, propertyName: string) {
     registerDecorator({
