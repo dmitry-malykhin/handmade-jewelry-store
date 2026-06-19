@@ -24,12 +24,9 @@ const mockAdminUser: UserProfile = {
   avatarUrl: 'https://example.com/avatar.jpg',
 }
 
-// Reset store to unauthenticated state before each test
 beforeEach(() => {
   useUserStore.setState({ user: null })
 })
-
-// ── setUser ────────────────────────────────────────────────────────────────────
 
 beforeEach(async () => {
   if (!process.env.CI) return
@@ -64,8 +61,6 @@ describe('setUser()', () => {
   })
 })
 
-// ── clearUser ──────────────────────────────────────────────────────────────────
-
 describe('clearUser()', () => {
   it('sets user to null (logout)', () => {
     useUserStore.getState().setUser(mockUser)
@@ -78,8 +73,6 @@ describe('clearUser()', () => {
     expect(() => useUserStore.getState().clearUser()).not.toThrow()
   })
 })
-
-// ── selector hooks ─────────────────────────────────────────────────────────────
 
 describe('useCurrentUser()', () => {
   it('returns null when no user is logged in', () => {

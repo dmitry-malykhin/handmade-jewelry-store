@@ -7,22 +7,9 @@ interface MicrosoftClarityProps {
   projectId: string
 }
 
-/**
- * Loads Microsoft Clarity for session recording + heatmaps. Strictly gated
- * on analytics consent — the script is not even injected until the user
- * accepts cookies. On consent revocation the component returns null
- * on next render, removing the Script element; cleanup of clarity's runtime
- * is best-effort and a hard reload guarantees full detachment.
- *
- * Privacy strategy:
- *  - Stripe Payment Element runs in a Stripe-hosted iframe — Clarity cannot
- *    see card / BNPL fields by design. No per-element masking needed.
- *  - Email inputs and other PII are masked by Clarity's "Balanced" dashboard
- *    setting (Project Settings → Masking). Configured once in the Clarity UI,
- *    not in code. See docs/16_USER_ANALYTICS.md §4.
- *
- * Free tier is unlimited — no event budget, no paid plan.
- */
+// Strictly gated on analytics consent — script is never injected without it.
+// PII masking is configured in the Clarity dashboard (Balanced), not in code;
+// see docs/16_USER_ANALYTICS.md §4.
 export function MicrosoftClarity({ projectId }: MicrosoftClarityProps) {
   const hasAnalyticsConsent = useAnalyticsConsent()
 

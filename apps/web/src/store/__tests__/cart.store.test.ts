@@ -15,7 +15,6 @@ import {
   severity as $allureSeverity,
 } from 'allure-js-commons'
 
-// Snapshot of product data as it would arrive when adding to cart
 const mockRing = {
   productId: 'prod-1',
   slug: 'sterling-silver-ring',
@@ -34,12 +33,9 @@ const mockNecklace = {
   productionDays: 5,
 }
 
-// Reset store to empty state before each test — ensures full isolation
 beforeEach(() => {
   useCartStore.setState({ items: [], expressItem: null })
 })
-
-// ── addItem ────────────────────────────────────────────────────────────────────
 
 beforeEach(async () => {
   if (!process.env.CI) return
@@ -92,8 +88,6 @@ describe('addItem()', () => {
   })
 })
 
-// ── removeItem ─────────────────────────────────────────────────────────────────
-
 describe('removeItem()', () => {
   it('removes the product from the cart', () => {
     useCartStore.getState().addItem(mockRing)
@@ -120,8 +114,6 @@ describe('removeItem()', () => {
   })
 })
 
-// ── updateQuantity ─────────────────────────────────────────────────────────────
-
 describe('updateQuantity()', () => {
   it('clamps any quantity > 1 down to 1', () => {
     useCartStore.getState().addItem(mockRing)
@@ -145,8 +137,6 @@ describe('updateQuantity()', () => {
   })
 })
 
-// ── clearCart ──────────────────────────────────────────────────────────────────
-
 describe('clearCart()', () => {
   it('empties the cart', () => {
     useCartStore.getState().addItem(mockRing)
@@ -160,8 +150,6 @@ describe('clearCart()', () => {
     expect(() => useCartStore.getState().clearCart()).not.toThrow()
   })
 })
-
-// ── selector hooks ─────────────────────────────────────────────────────────────
 
 describe('useCartTotalItems()', () => {
   it('returns 0 for an empty cart', () => {
@@ -197,8 +185,6 @@ describe('useCartTotalPrice()', () => {
     expect(result.current).toBeCloseTo(179.98, 2)
   })
 })
-
-// ── Express checkout (Buy Now) ────────────────────────────────────────────────
 
 describe('expressItem flow', () => {
   it('starts as null', () => {

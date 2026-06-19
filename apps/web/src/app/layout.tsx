@@ -15,8 +15,6 @@ import { getSiteUrl } from '@/lib/config/site-url'
 import './globals.css'
 
 export const metadata: Metadata = {
-  // getSiteUrl() reads from env so dev shows real localhost OG URLs and prod
-  // always uses the configured public origin.
   metadataBase: new URL(getSiteUrl()),
   icons: {
     icon: [
@@ -38,7 +36,6 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     images: ['/og-image.png'],
   },
-  // Google Search Console verification — set env var after adding property in GSC
   ...((process.env.NEXT_PUBLIC_GSC_VERIFICATION_ID ||
     process.env.NEXT_PUBLIC_PINTEREST_VERIFICATION_ID) && {
     verification: {
@@ -76,15 +73,9 @@ const jost = Jost({
   variable: '--font-jost',
 })
 
-/**
- * Root layout — minimal by design.
- * All page content lives under app/[locale]/ which handles
- * Header, Footer, and NextIntlClientProvider.
- *
- * We read the locale from the x-next-intl-locale header that
- * next-intl middleware automatically sets on every response.
- * This gives us the correct <html lang> without duplicating the HTML structure.
- */
+// Page content lives under app/[locale]/ — this layout only handles <html>,
+// fonts, theme, and analytics scripts. Locale comes from the x-next-intl-locale
+// header so <html lang> is right without duplicating the layout.
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const headersList = await headers()
   const locale = headersList.get('x-next-intl-locale') ?? 'en'

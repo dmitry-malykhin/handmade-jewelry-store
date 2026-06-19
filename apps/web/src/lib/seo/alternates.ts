@@ -1,26 +1,9 @@
 import { routing } from '@/i18n/routing'
 
-/**
- * Builds the `alternates` block for Next.js `Metadata`. Used by every
- * locale-aware page so SEO tags stay consistent (canonical + hreflang).
- *
- * Includes `x-default` per Google's international SEO recommendation
- * (https://developers.google.com/search/docs/specialty/international/localized-versions):
- * visitors whose Accept-Language does not match en/ru/es are routed to the
- * default locale (en). Without `x-default`, Google still picks one of the
- * explicit alternates, but mis-routes more often.
- *
- * @param locale - The locale of the currently rendered page. Pass `undefined`
- *                 for the root layout metadata (which has no own canonical —
- *                 each page renders its own).
- * @param path   - The route path WITHOUT the locale prefix. Use an empty string
- *                 for the locale root. Examples:
- *                   ""                          → /en, /ru, /es
- *                   "/contact"                  → /en/contact, /ru/contact, …
- *                   "/products/silver-ring"     → /en/products/silver-ring, …
- *
- * The returned shape is structurally compatible with `Metadata['alternates']`.
- */
+// `path` is the route without locale prefix (e.g. "/contact", "" for root).
+// Pass `locale: undefined` from the root layout — it has no own canonical
+// because each page renders its own. Includes `x-default` so visitors whose
+// Accept-Language doesn't match en/ru/es land on the default locale.
 export function buildLocaleAlternates(
   locale: string | undefined,
   path: string,

@@ -60,8 +60,6 @@ export const useCookieConsentStore = create<CookieConsentStore>()(
   ),
 )
 
-// ── Selector hooks ─────────────────────────────────────────────────────────────
-
 export const useHasCookieDecision = () => useCookieConsentStore((state) => state.hasDecided)
 
 export const useAnalyticsConsent = () =>

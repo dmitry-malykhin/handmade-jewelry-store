@@ -2,12 +2,7 @@ import { http, HttpResponse } from 'msw'
 
 const API_BASE = 'http://localhost:4000'
 
-/**
- * Default MSW handlers — baseline responses for all tests.
- * Individual tests can override with server.use() for specific scenarios.
- */
 export const handlers = [
-  // Auth
   http.post(`${API_BASE}/api/auth/register`, () => {
     return HttpResponse.json({ accessToken: 'access-token', refreshToken: 'refresh-token' })
   }),
@@ -16,7 +11,6 @@ export const handlers = [
     return HttpResponse.json({ accessToken: 'access-token', refreshToken: 'refresh-token' })
   }),
 
-  // Products — placeholder for W4
   http.get(`${API_BASE}/products`, () => {
     return HttpResponse.json([
       {
@@ -38,12 +32,10 @@ export const handlers = [
     ])
   }),
 
-  // Contact form — 204 No Content on success
   http.post(`${API_BASE}/api/contact`, () => {
     return new HttpResponse(null, { status: 204 })
   }),
 
-  // Single product
   http.get(`${API_BASE}/products/:slug`, ({ params }) => {
     return HttpResponse.json({
       id: 'prod-1',

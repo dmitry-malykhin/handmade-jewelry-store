@@ -37,20 +37,11 @@ export async function fetchProducts(params: FetchProductsParams = {}): Promise<P
   return apiClient<ProductsResponse>(`/api/products${query ? `?${query}` : ''}`)
 }
 
-// Matches the @Max(100) guard on the public product listing endpoint
-// (apps/api/src/products/dto/product-query.dto.ts). Exported so server-only
-// callers (sitemap, Google Shopping feed) can paginate against it.
+// Mirrors the @Max(100) guard on the public listing endpoint.
 export const PUBLIC_PRODUCTS_MAX_PAGE_SIZE = 100
 
-/**
- * Server-only helper: returns every public product by paging through the listing
- * endpoint at the maximum allowed page size. Used by sitemap.xml and the Google
- * Shopping feed, both of which need the full catalogue in a single document.
- *
- * Bounded by the API-reported `totalPages` — no infinite loops if the count
- * drifts mid-traversal. Returns the first page's data on failure of later pages
- * (caller decides whether partial data is acceptable; see usage in sitemap/feed).
- */
+// Bounded by `totalPages` from the API so a count drift mid-traversal can't
+// turn this into an infinite loop.
 export async function fetchAllProducts(): Promise<Product[]> {
   const first = await fetchProducts({ page: 1, limit: PUBLIC_PRODUCTS_MAX_PAGE_SIZE })
   if (first.meta.totalPages <= 1) return first.data
@@ -71,20 +62,11 @@ export async function fetchCategories(): Promise<Category[]> {
   return apiClient<Category[]>('/api/categories')
 }
 
-/**
- * Customer-facing product search. Returns at most 50 matches (the search
- * endpoint caps server-side); whitespace-only queries return an empty array
- * without hitting the network.
- */
 export async function searchProducts(query: string): Promise<Product[]> {
   if (!query.trim()) return []
   return apiClient<Product[]>(`/api/products/search?q=${encodeURIComponent(query.trim())}`)
 }
 
-/**
- * Triggers a browser download of the admin product catalogue CSV. No filters —
- * admin gets the full catalogue every time.
- */
 export async function downloadAdminProductsCsv(accessToken: string): Promise<void> {
   await downloadCsv({
     path: '/api/admin/products/export',
@@ -196,11 +178,8 @@ export interface BulkProductsActionResult {
   affectedCount: number
 }
 
-/**
- * Apply one action to many products at once. Returns the number of rows the
- * server actually touched — useful when the selection went stale between
- * render and click.
- */
+// Returns the number of rows the server actually touched — selection may have
+// gone stale between render and click.
 export async function bulkUpdateAdminProducts(
   payload: BulkProductsActionPayload,
   accessToken: string,
