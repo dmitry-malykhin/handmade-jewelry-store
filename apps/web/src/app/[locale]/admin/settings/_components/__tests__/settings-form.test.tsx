@@ -101,14 +101,13 @@ describe('SettingsForm', () => {
     await userEvent.clear(storeNameInput)
     await userEvent.type(storeNameInput, 'New Name')
 
-    // Each section has its own Save button — General is the first
+    // Each section has its own Save — General is the first.
     const [firstSaveButton] = screen.getAllByRole('button', { name: /Save changes/i })
     if (!firstSaveButton) throw new Error('Expected at least one Save button to render')
     await userEvent.click(firstSaveButton)
 
     await waitFor(() => expect(updateAdminSiteSettingsMock).toHaveBeenCalled())
     const [payload] = updateAdminSiteSettingsMock.mock.calls[0]!
-    // General section only — no shipping or social fields
     expect(payload).toMatchObject({ storeName: 'New Name' })
     expect(payload).not.toHaveProperty('estimatedDeliveryMinDays')
     expect(payload).not.toHaveProperty('instagramUrl')

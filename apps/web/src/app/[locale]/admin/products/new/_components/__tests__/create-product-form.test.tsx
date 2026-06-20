@@ -31,7 +31,6 @@ vi.mock('@/i18n/navigation', () => ({
   ),
 }))
 
-// Mock ProductImageUpload to isolate form logic from upload complexity
 vi.mock('../../../_components/product-image-upload', () => ({
   ProductImageUpload: ({
     onImagesChange,
@@ -66,7 +65,7 @@ beforeEach(() => {
   mockUseAuthStore.mockImplementation((selector) =>
     selector({ accessToken: 'mock-token' } as Parameters<typeof selector>[0]),
   )
-  // jsdom does not implement Pointer Events — required by Radix UI Select
+  // jsdom-missing APIs required by Radix UI Select.
   window.HTMLElement.prototype.hasPointerCapture = vi.fn()
   window.HTMLElement.prototype.setPointerCapture = vi.fn()
   window.HTMLElement.prototype.releasePointerCapture = vi.fn()
@@ -74,7 +73,6 @@ beforeEach(() => {
 })
 
 afterEach(() => {
-  // Ensure fake timers are always restored so they don't leak into other tests
   vi.useRealTimers()
 })
 
@@ -98,7 +96,6 @@ describe('CreateProductForm — rendering', () => {
   it('renders category options from props', async () => {
     render(<CreateProductForm categories={sampleCategories} />)
 
-    // Open the category select — queried by aria-label on SelectTrigger
     const categoryTrigger = screen.getByRole('combobox', { name: /category/i })
     await userEvent.click(categoryTrigger)
 
@@ -120,7 +117,6 @@ describe('CreateProductForm — slug auto-generation', () => {
 
     await userEvent.type(screen.getByPlaceholderText(/northern lights bracelet/i), 'Silver Ring')
 
-    // waitFor polls until the 400ms debounce fires naturally
     await waitFor(
       () => {
         const slugInput = screen.getByRole('textbox', { name: /url slug/i })
@@ -139,7 +135,6 @@ describe('CreateProductForm — slug auto-generation', () => {
 
     await userEvent.type(screen.getByPlaceholderText(/northern lights bracelet/i), 'Silver Ring')
 
-    // Wait long enough for debounce to fire — slug must remain unchanged
     await waitFor(
       () => {
         expect((slugInput as HTMLInputElement).value).toBe('my-custom-slug')
@@ -175,7 +170,6 @@ describe('CreateProductForm — submission', () => {
 
     await userEvent.type(screen.getByPlaceholderText(/northern lights bracelet/i), 'Silver Ring')
 
-    // Wait for slug debounce to fire before filling other fields
     await waitFor(
       () => {
         const slugInput = screen.getByRole('textbox', { name: /url slug/i })
@@ -191,11 +185,9 @@ describe('CreateProductForm — submission', () => {
     await userEvent.type(screen.getByRole('spinbutton', { name: /price \(usd\)/i }), '49.99')
     await userEvent.click(screen.getByRole('button', { name: /in stock \(1 piece ready\)/i }))
 
-    // Select category
     await userEvent.click(screen.getByRole('combobox', { name: /category/i }))
     await userEvent.click(await screen.findByRole('option', { name: 'Bracelets' }))
 
-    // Add image via mock
     await userEvent.click(screen.getByTestId('mock-image-upload'))
 
     await userEvent.click(screen.getByRole('button', { name: /create product/i }))

@@ -19,14 +19,13 @@ vi.mock('@/store/auth.store', () => ({
     selector({ accessToken: 'mock-token' }),
 }))
 
-// recharts uses ResizeObserver internally
+// recharts needs ResizeObserver, and ResponsiveContainer doesn't work in jsdom.
 global.ResizeObserver = vi.fn().mockImplementation(() => ({
   observe: vi.fn(),
   unobserve: vi.fn(),
   disconnect: vi.fn(),
 }))
 
-// ResponsiveContainer doesn't work in jsdom — stub recharts chart components
 vi.mock('recharts', async (importOriginal) => {
   const actual = await importOriginal<typeof Recharts>()
   return {

@@ -96,7 +96,6 @@ const twoProducts = {
 beforeEach(() => {
   vi.clearAllMocks()
   mockFetchAdminProducts.mockResolvedValue(twoProducts as never)
-  // Suppress unused-import warnings — these are mocked for table internals.
   void mockUpdateProductStatus
   void mockDeleteAdminProduct
 })
@@ -113,7 +112,7 @@ describe('AdminProductsTable — bulk selection', () => {
     render(<AdminProductsTable />)
 
     await screen.findByText('Ring A')
-    // 1 header + 2 rows = 3 total
+    // 1 header checkbox + 2 row checkboxes.
     expect(screen.getAllByRole('checkbox')).toHaveLength(3)
   })
 
@@ -186,7 +185,6 @@ describe('AdminProductsTable — bulk actions', () => {
     await user.click(screen.getByRole('button', { name: /^publish$/i }))
 
     const dialog = await screen.findByRole('dialog')
-    // Confirm button inside the dialog uses the "Publish" action label
     await user.click(within(dialog).getByRole('button', { name: /^publish$/i }))
 
     await waitFor(() => {

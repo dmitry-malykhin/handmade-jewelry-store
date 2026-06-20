@@ -95,7 +95,6 @@ export function CreateProductForm({ categories }: CreateProductFormProps) {
 
   const watchedTitle = watch('title')
 
-  // Auto-generate slug from title with 400ms debounce
   useEffect(() => {
     if (isSlugManuallyEdited || !watchedTitle) return
 
@@ -114,7 +113,6 @@ export function CreateProductForm({ categories }: CreateProductFormProps) {
     mutationFn: (formValues: CreateProductFormValues) => {
       const payload = {
         ...formValues,
-        // Convert empty strings to undefined for optional fields
         sku: formValues.sku || undefined,
         material: formValues.material || undefined,
       }

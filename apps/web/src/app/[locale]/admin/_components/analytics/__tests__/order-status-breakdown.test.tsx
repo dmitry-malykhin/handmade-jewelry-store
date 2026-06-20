@@ -18,7 +18,6 @@ vi.mock('@/store/auth.store', () => ({
     selector({ accessToken: 'mock-token' }),
 }))
 
-// recharts uses ResizeObserver internally
 global.ResizeObserver = vi.fn().mockImplementation(() => ({
   observe: vi.fn(),
   unobserve: vi.fn(),
@@ -69,7 +68,6 @@ describe('OrderStatusBreakdown', () => {
 
     render(<OrderStatusBreakdown period="30d" />)
 
-    // Pending and Delivered should both show even though Pending has 0
     expect(await screen.findByText('Pending')).toBeInTheDocument()
     expect(screen.getByText('Delivered')).toBeInTheDocument()
     expect(screen.getByText('7')).toBeInTheDocument()

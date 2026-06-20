@@ -147,7 +147,6 @@ export function ProductImageUpload({
 
       setUploadItems((previousItems) => [...previousItems, ...newItems])
 
-      // Start uploading valid files immediately
       newItems
         .filter((newItem) => newItem.status === 'pending')
         .forEach((newItem) => void uploadFile(newItem))
@@ -159,7 +158,6 @@ export function ProductImageUpload({
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const files = Array.from(event.target.files ?? [])
       if (files.length > 0) addFiles(files)
-      // Reset input so same file can be re-selected after removal
       event.target.value = ''
     },
     [addFiles],

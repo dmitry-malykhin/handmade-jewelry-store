@@ -12,9 +12,7 @@ interface OrderStatusBreakdownProps {
   period: RevenueChartPeriod
 }
 
-// Distinct, theme-friendly palette — chosen so adjacent slices stay readable in
-// both light and dark mode. Tailwind's `[hsl(...)]` arbitrary values can't be
-// referenced from recharts, so we keep the colors inline.
+// Inline because recharts can't reference Tailwind's arbitrary `[hsl(...)]` values.
 const STATUS_COLOR: Record<OrderStatusForBreakdown, string> = {
   PENDING: '#9ca3af', // gray-400
   PAID: '#3b82f6', // blue-500
@@ -77,8 +75,7 @@ export function OrderStatusBreakdown({ period }: OrderStatusBreakdownProps) {
     enabled: accessToken !== null,
   })
 
-  // Only non-zero slices show on the donut — zero-count statuses still appear
-  // in the legend so the customer can see the full set of buckets.
+  // Donut hides empty slices; the legend still shows the full bucket list.
   const allRows = (data ?? []).map((row) => ({
     ...row,
     label: t(STATUS_LABEL_KEY[row.status]),

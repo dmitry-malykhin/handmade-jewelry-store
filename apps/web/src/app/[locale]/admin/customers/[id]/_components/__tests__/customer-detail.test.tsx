@@ -91,7 +91,6 @@ describe('CustomerDetail', () => {
 
     await waitFor(() => expect(screen.getByText('jane@example.com')).toBeInTheDocument())
     expect(screen.getByText('$245.50')).toBeInTheDocument()
-    // Total orders rendered as just the number — assert via the dd element class
     expect(screen.getByText('2')).toBeInTheDocument()
   })
 

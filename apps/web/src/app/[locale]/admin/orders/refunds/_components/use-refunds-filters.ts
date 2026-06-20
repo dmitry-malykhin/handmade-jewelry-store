@@ -16,7 +16,7 @@ function isRefundReason(value: string): value is RefundReason {
   return (REFUND_REASONS as readonly string[]).includes(value)
 }
 
-/** URL-derived filter values + setters. Filters survive refresh + share. */
+// Filters live in the URL so they survive refresh + share.
 export function useRefundsFilters(): {
   filters: AdminRefundsQueryParams
   setFilter: (key: keyof AdminRefundsQueryParams, value: string) => void
@@ -32,7 +32,6 @@ export function useRefundsFilters(): {
     return {
       from: searchParams.get('from') ?? undefined,
       to: searchParams.get('to') ?? undefined,
-      // Guard against arbitrary URL input — only accept a known enum value.
       reason: reason && isRefundReason(reason) ? reason : undefined,
       customer: searchParams.get('customer') ?? undefined,
     }
@@ -46,7 +45,7 @@ export function useRefundsFilters(): {
       } else {
         next.set(key, value)
       }
-      // `replace` (not `push`) — filter tweaks shouldn't grow browser history.
+      // `replace` — filter tweaks shouldn't grow browser history.
       router.replace(`${pathname}?${next.toString()}`, { scroll: false })
     },
     [pathname, router, searchParams],

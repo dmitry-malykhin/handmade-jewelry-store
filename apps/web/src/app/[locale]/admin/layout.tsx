@@ -7,15 +7,6 @@ interface AdminLayoutProps {
   children: ReactNode
 }
 
-/**
- * Admin section layout — wraps all /admin/* pages.
- * Renders a fixed sidebar + main content area.
- * AdminAuthGuard (client component) enforces ADMIN role on the client;
- * it redirects to / if the user is not authenticated or not an ADMIN.
- *
- * AdminHeaderHelp floats a `?` help button (and registers the `?` keyboard
- * shortcut) per active route — see `lib/admin-help/path-to-help-slug.ts`.
- */
 export default function AdminLayout({ children }: AdminLayoutProps) {
   return (
     <AdminAuthGuard>

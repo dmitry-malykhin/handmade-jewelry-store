@@ -27,8 +27,6 @@ export function CustomersTable() {
   const [searchInput, setSearchInput] = useState('')
   const [search, setSearch] = useState('')
 
-  // Debounce the search term so we don't fire a request on every keystroke.
-  // 300ms is the same window used by other admin search inputs in this app.
   useEffect(() => {
     const handle = window.setTimeout(() => {
       setSearch(searchInput)

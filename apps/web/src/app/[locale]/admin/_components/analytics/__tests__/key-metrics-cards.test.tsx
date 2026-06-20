@@ -82,7 +82,6 @@ describe('KeyMetricsCards', () => {
 
     render(<KeyMetricsCards period="30d" />)
 
-    // Four ellipses, one per metric card
     const placeholders = screen.getAllByText('…')
     expect(placeholders).toHaveLength(4)
   })

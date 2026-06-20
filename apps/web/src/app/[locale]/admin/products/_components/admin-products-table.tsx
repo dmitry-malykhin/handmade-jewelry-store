@@ -103,8 +103,6 @@ export function AdminProductsTable() {
   const [productToDelete, setProductToDelete] = useState<ProductTableRow | null>(null)
   const [isExporting, setIsExporting] = useState(false)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set())
-  // One field for all three bulk-confirm dialogs (publish/draft/delete) — the
-  // value drives both the visibility and the action to fire on confirm.
   const [pendingBulkAction, setPendingBulkAction] = useState<BulkProductAction | null>(null)
 
   async function handleExportCsv() {
@@ -136,7 +134,6 @@ export function AdminProductsTable() {
     })
   }
 
-  // Debounce search to avoid excessive API calls
   const handleSearchChange = (value: string) => {
     setSearchQuery(value)
     clearTimeout((handleSearchChange as { timer?: ReturnType<typeof setTimeout> }).timer)
@@ -243,8 +240,7 @@ export function AdminProductsTable() {
     [data?.data],
   )
 
-  // Selection lives outside the URL: stale ids across page/filter changes are
-  // confusing, so we reset on any queryParams shift.
+  // Reset selection on any queryParams shift — stale ids across pages confuse.
   useEffect(() => {
     setSelectedIds(new Set())
   }, [debouncedSearch, statusFilter, sortBy, sortOrder, currentPage])
@@ -309,9 +305,8 @@ export function AdminProductsTable() {
     },
   })
 
-  // Every bulk action now confirms — publish/draft used to skip the dialog,
-  // but a 50-product misclick on Publish is silent and irreversible enough to
-  // warrant the same speed bump as Delete.
+  // Every bulk action confirms — a 50-product misclick on Publish is silent
+  // and effectively irreversible.
   function handleBulkActionClick(action: BulkProductAction) {
     if (selectedIds.size === 0) return
     setPendingBulkAction(action)

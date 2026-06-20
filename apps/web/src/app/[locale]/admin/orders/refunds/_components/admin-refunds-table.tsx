@@ -31,25 +31,18 @@ import { REFUND_REASONS, useRefundsFilters } from './use-refunds-filters'
 const CUSTOMER_DEBOUNCE_MS = 300
 const REASON_ALL_SENTINEL = 'ALL'
 
-/**
- * Read-only ledger of every refund issued through the admin. Filters live in
- * the URL so refreshing or sharing the page preserves the view.
- *
- * The customer input is debounced locally — every keystroke shouldn't push a
- * new URL entry — but the debounce only governs the URL write. Once committed
- * to the URL, TanStack Query picks the new param up via the queryKey.
- */
+// Filters live in the URL so refreshing or sharing preserves the view; the
+// customer input is debounced before being written so each keystroke isn't a
+// new history entry.
 export function AdminRefundsTable() {
   const t = useTranslations('admin')
   const accessToken = useAuthStore((state) => state.accessToken)
   const { filters, setFilter, clearFilters, hasActiveFilters } = useRefundsFilters()
 
-  // Local mirror of the customer input so the field updates instantly while
-  // we wait the 300ms before writing to the URL.
   const [customerDraft, setCustomerDraft] = useState(filters.customer ?? '')
 
   useEffect(() => {
-    // Keep the input in sync when the URL changes externally (e.g. Clear).
+    // Sync when the URL changes externally (e.g. Clear).
     setCustomerDraft(filters.customer ?? '')
   }, [filters.customer])
 

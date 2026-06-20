@@ -150,7 +150,6 @@ describe('AdminOrdersTable — rendering', () => {
 
     render(<AdminOrdersTable />)
 
-    // total 7300 cents → $7300.00
     expect(await screen.findByText('$7300.00')).toBeInTheDocument()
   })
 
@@ -192,7 +191,6 @@ describe('AdminOrdersTable — status transitions', () => {
 
     render(<AdminOrdersTable />)
 
-    // PENDING has transitions → rendered as a button trigger
     const statusButton = await screen.findByRole('button', {
       name: /change status for order 00000001/i,
     })
@@ -210,7 +208,6 @@ describe('AdminOrdersTable — status transitions', () => {
 
     await screen.findByText('REFUNDED')
 
-    // No dropdown trigger button for terminal state
     expect(
       screen.queryByRole('button', { name: /change status for order/i }),
     ).not.toBeInTheDocument()
@@ -231,7 +228,7 @@ describe('AdminOrdersTable — status transitions', () => {
     const paidOption = await screen.findByRole('menuitem', { name: /paid/i })
     await user.click(paidOption)
 
-    // PENDING → PAID has no customer side effects, so it must not gate on a dialog
+    // PENDING → PAID is silent-to-customer — must skip the confirm dialog.
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     await waitFor(() => {
       expect(mockUpdateAdminOrderStatus).toHaveBeenCalledWith(
