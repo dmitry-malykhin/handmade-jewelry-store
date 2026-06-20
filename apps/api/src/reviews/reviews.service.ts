@@ -27,7 +27,7 @@ export class ReviewsService {
       throw new NotFoundException(`Product with id "${dto.productId}" not found`)
     }
 
-    // Verified-purchase guard: user must have a delivered order containing this product
+    // Verified-purchase guard.
     const hasPurchased = await this.prismaService.orderItem.findFirst({
       where: {
         productId: dto.productId,
@@ -40,7 +40,6 @@ export class ReviewsService {
     }
 
     try {
-      // Atomic: create review + recalculate Product avgRating and reviewCount
       const review = await this.prismaService.$transaction(async (tx) => {
         const created = await tx.review.create({
           data: {
@@ -51,8 +50,7 @@ export class ReviewsService {
           },
         })
 
-        // Aggregates reflect only APPROVED reviews so a PENDING or HIDDEN
-        // review never inflates the public rating until an admin acts on it.
+        // Only APPROVED reviews — PENDING/HIDDEN must not inflate the rating.
         const aggregate = await tx.review.aggregate({
           where: { productId: dto.productId, status: ReviewStatus.APPROVED },
           _avg: { rating: true },
@@ -93,7 +91,6 @@ export class ReviewsService {
     const skip = (page - 1) * limit
 
     const reviews = await this.prismaService.review.findMany({
-      // Public list only shows APPROVED — PENDING/HIDDEN are admin-only.
       where: { productId: product.id, status: ReviewStatus.APPROVED },
       include: { user: { select: { email: true } } },
       orderBy: { createdAt: 'desc' },
@@ -101,7 +98,7 @@ export class ReviewsService {
       take: limit,
     })
 
-    // Mask email to first-name-like prefix for privacy: jane.doe@x.com → "Jane d."
+    // jane.doe@x.com → "Jane d." — privacy mask.
     const sanitized = reviews.map((review) => {
       const localPart = review.user.email.split('@')[0] ?? 'User'
       const cleaned = localPart.replace(/[._-]+/g, ' ')
@@ -167,8 +164,6 @@ export class ReviewsService {
     }
   }
 
-  // ── Admin moderation ──────────────────────────────────────────────────────
-
   async findAllForAdmin(query: AdminReviewsQueryDto) {
     const { status, rating, page = 1, limit = 20 } = query
     const skip = (page - 1) * limit
@@ -185,7 +180,6 @@ export class ReviewsService {
           user: { select: { email: true } },
           product: { select: { id: true, slug: true, title: true, images: true } },
         },
-        // Newest first so the admin sees pending moderation work up top.
         orderBy: { createdAt: 'desc' },
         skip,
         take: limit,
@@ -199,12 +193,8 @@ export class ReviewsService {
     }
   }
 
-  /**
-   * Approve or hide a review. Status change recomputes the product's
-   * avgRating + reviewCount in the same transaction so the public surfaces
-   * stay consistent — e.g. hiding a 5-star review immediately drops it from
-   * the average.
-   */
+  // Recomputes product.avgRating + reviewCount in the same transaction —
+  // hiding a 5-star review must drop it from the public average immediately.
   async updateStatusForAdmin(reviewId: string, dto: UpdateReviewStatusDto) {
     const review = await this.prismaService.review.findUnique({ where: { id: reviewId } })
     if (!review) {

@@ -2,27 +2,18 @@ import { Injectable, Logger } from '@nestjs/common'
 import { LoyaltyTransactionType, OrderStatus, type Prisma } from '@prisma/client'
 import { PrismaService } from '../prisma/prisma.service'
 
-/**
- * 1 USD spent = 1 loyalty point. 100 points = $1.00 reduction on a future
- * order. The earn-rate matches the redemption-rate by design — keeps the
- * mental model crisp ("X cents back per dollar"). Decimal cents (e.g.
- * subtotal $68.49) are floored — points are integers and we don't accrue
- * partial points.
- */
+// 1 USD spent = 1 point; 100 points = $1.00 off a future order. Earn-rate
+// matches redemption-rate by design ("X cents back per dollar"). Decimal
+// subtotals are floored — points are integers.
 export function calculatePointsEarnedFromSubtotal(subtotalUsd: number): number {
   if (!Number.isFinite(subtotalUsd) || subtotalUsd <= 0) return 0
   return Math.floor(subtotalUsd)
 }
 
-/**
- * Max points a single order can redeem. 50% cap so loyalty programs can't
- * make a real order effectively free — Stripe fees still apply against $0.
- * Reused in checkout validation and on the server before deducting.
- */
+// 50 % cap — loyalty can't make an order effectively free (Stripe still bills
+// fees against $0). Reused by checkout + server-side validation.
 export function calculateMaxRedeemablePoints(subtotalUsd: number): number {
   if (!Number.isFinite(subtotalUsd) || subtotalUsd <= 0) return 0
-  // 1 point = $0.01 → subtotal * 100 = subtotal in points. Half of that is
-  // the cap.
   return Math.floor(subtotalUsd * 100 * 0.5)
 }
 
@@ -32,7 +23,6 @@ export class LoyaltyService {
 
   constructor(private readonly prismaService: PrismaService) {}
 
-  /** Current point balance for the authenticated user. */
   async getBalance(userId: string): Promise<{ balance: number }> {
     const user = await this.prismaService.user.findUnique({
       where: { id: userId },
@@ -41,7 +31,6 @@ export class LoyaltyService {
     return { balance: user?.loyaltyBalance ?? 0 }
   }
 
-  /** Most-recent transactions first — used on /account/loyalty. */
   async listTransactions(userId: string, limit = 20) {
     return this.prismaService.loyaltyTransaction.findMany({
       where: { userId },
@@ -50,15 +39,8 @@ export class LoyaltyService {
     })
   }
 
-  /**
-   * Award points for an order that just transitioned to DELIVERED. Idempotent:
-   * if `Order.loyaltyPointsEarned` is already non-zero we treat it as
-   * already-awarded and exit without double-crediting (delivery-event
-   * webhooks can fire twice).
-   *
-   * Must be called inside a Prisma transaction together with the order
-   * update — partial state is worse than no state.
-   */
+  // Idempotent — bails when loyaltyPointsEarned > 0 (delivery webhooks can
+  // fire twice). Must run inside the same transaction as the order update.
   async awardForDelivered(
     tx: Prisma.TransactionClient,
     order: {
@@ -68,8 +50,8 @@ export class LoyaltyService {
       loyaltyPointsEarned: number
     },
   ): Promise<number> {
-    if (!order.userId) return 0 // guest orders — no account to credit
-    if (order.loyaltyPointsEarned > 0) return 0 // already awarded; idempotent
+    if (!order.userId) return 0
+    if (order.loyaltyPointsEarned > 0) return 0
 
     const subtotalNumber = Number(order.subtotal)
     const pointsEarned = calculatePointsEarnedFromSubtotal(subtotalNumber)
@@ -97,12 +79,7 @@ export class LoyaltyService {
     return pointsEarned
   }
 
-  /**
-   * Reverse points that were previously awarded for an order that's now
-   * being cancelled or refunded. Symmetric to `awardForDelivered`: if the
-   * order never reached DELIVERED (and thus `loyaltyPointsEarned === 0`),
-   * this is a no-op.
-   */
+  // No-op when the order never reached DELIVERED.
   async reverseForCancellationOrRefund(
     tx: Prisma.TransactionClient,
     order: { id: string; userId: string | null; loyaltyPointsEarned: number; status: OrderStatus },
@@ -123,7 +100,7 @@ export class LoyaltyService {
       data: {
         userId: order.userId,
         orderId: order.id,
-        // Negative — keeps SUM(points) = balance invariant.
+        // Negative keeps the SUM(points) = balance invariant.
         points: -pointsToReverse,
         type: LoyaltyTransactionType.REVERSED,
         note: `Order ${order.id.slice(-8)} ${order.status.toLowerCase()}`,
@@ -136,12 +113,8 @@ export class LoyaltyService {
     return pointsToReverse
   }
 
-  /**
-   * Debit points at checkout when the buyer chose to redeem some of their
-   * balance. Caller (OrdersService) has already validated the amount fits
-   * `getBalance()` and `calculateMaxRedeemablePoints(subtotal)` — this method
-   * trusts its input and only does the bookkeeping.
-   */
+  // Trusts caller-validated `points` (OrdersService already clamped against
+  // balance + per-order cap).
   async spendForCheckout(
     tx: Prisma.TransactionClient,
     params: { userId: string; orderId: string; points: number },

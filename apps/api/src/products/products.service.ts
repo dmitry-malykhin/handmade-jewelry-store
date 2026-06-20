@@ -44,7 +44,6 @@ export class ProductsService {
     const skip = (page - 1) * limit
 
     const whereClause = {
-      // Public catalog only shows ACTIVE products
       status: ProductStatus.ACTIVE,
       ...(categorySlug && { category: { slug: categorySlug } }),
       ...(search && {
@@ -97,20 +96,8 @@ export class ProductsService {
     return product
   }
 
-  /**
-   * Customer-facing product search. Matches title / description / material
-   * via case-insensitive `contains` against ACTIVE products only.
-   *
-   * Caps results at 50 — search pages don't paginate; if the customer wants
-   * to see more matches we expect them to refine the query. Empty / whitespace
-   * queries short-circuit to an empty result so the UI can render the "no
-   * query" state without an unnecessary DB roundtrip.
-   *
-   * Note: this uses ILIKE-style matching rather than Postgres tsvector. The
-   * catalogue is small (handmade scale) so the simpler approach wins on
-   * complexity. Switch to `to_tsvector + GIN` once the catalogue passes ~1000
-   * products and ILIKE scans become measurable.
-   */
+  // ILIKE rather than tsvector — handmade catalogues are small enough that
+  // the simpler approach wins. Revisit (to_tsvector + GIN) once ~1000 SKUs.
   async searchProducts(query: string) {
     const trimmed = query.trim()
     if (!trimmed) return []
@@ -125,8 +112,6 @@ export class ProductsService {
         ],
       },
       include: { category: { select: { name: true, slug: true } } },
-      // Title matches are intuitively most relevant; orderBy title asc gives
-      // a stable, predictable ranking without the cost of tsvector ranking.
       orderBy: [{ title: 'asc' }],
       take: 50,
     })
@@ -148,8 +133,7 @@ export class ProductsService {
       include: { category: { select: { name: true, slug: true } } },
     })
 
-    // Back-in-stock fan-out: only when stock genuinely transitions from 0 → >0.
-    // Fire-and-forget so the admin response stays fast; failures are logged inside the service.
+    // Fan-out only on 0 → >0; fire-and-forget so the admin response stays fast.
     if (previous.stock === 0 && updated.stock > 0) {
       void this.backInStockService.notifyForProduct(updated.id)
     }
@@ -162,11 +146,6 @@ export class ProductsService {
     await this.prismaService.product.delete({ where: { slug: productSlug } })
   }
 
-  /**
-   * Builds a CSV document of the full product catalogue. No pagination — admin
-   * triggering an export expects every product. Sorted newest-first so the
-   * spreadsheet opens with the most recently added items at the top.
-   */
   async exportToCsv(): Promise<string> {
     const products = await this.prismaService.product.findMany({
       include: { category: { select: { name: true } } },
@@ -201,7 +180,6 @@ export class ProductsService {
     const skip = (page - 1) * limit
 
     const whereClause = {
-      // Admin sees all statuses unless explicitly filtered
       ...(status && { status }),
       ...(categorySlug && { category: { slug: categorySlug } }),
       ...(search && {
@@ -234,15 +212,8 @@ export class ProductsService {
     }
   }
 
-  /**
-   * Apply one action across many products. Returns `{ affectedCount }` —
-   * callers can compare this to `ids.length` to detect partial application
-   * (typically: an id was deleted between the table render and the click).
-   *
-   * No transaction wrapper: each row is independent, and a single failing row
-   * shouldn't strand the others. Prisma's `updateMany`/`deleteMany` already
-   * runs as one SQL statement per call.
-   */
+  // `affectedCount` lets callers detect partial application (an id deleted
+  // between table render and click).
   async bulkAction(payload: BulkProductsActionDto): Promise<{ affectedCount: number }> {
     const { ids, action } = payload
 
@@ -276,16 +247,8 @@ export class ProductsService {
     })
   }
 
-  /**
-   * Lists products for the admin inventory view, sorted by stock ASC so the
-   * most-at-risk items surface first. Adds an `isLowStock` flag computed from
-   * the threshold — only IN_STOCK type counts, since MADE_TO_ORDER and
-   * ONE_OF_A_KIND items aren't depleted by orders in the conventional sense.
-   *
-   * `lowStockOnly` toggle filters the result set to flagged items in SQL so
-   * the table doesn't ship the full catalog when admin is investigating
-   * restocks specifically.
-   */
+  // `isLowStock` only flags IN_STOCK rows — MADE_TO_ORDER and ONE_OF_A_KIND
+  // aren't depleted by orders in the conventional sense.
   async findInventory(inventoryQueryDto: InventoryQueryDto) {
     const threshold = inventoryQueryDto.threshold ?? 3
     const lowStockOnly = inventoryQueryDto.lowStockOnly ?? false
@@ -309,22 +272,16 @@ export class ProductsService {
     }
   }
 
-  /**
-   * Returns the count of products currently at or below the threshold —
-   * separate endpoint so the sidebar badge query is cheap and doesn't pull
-   * the full inventory payload on every page load.
-   */
+  // Separate endpoint so the sidebar badge doesn't pull the full inventory
+  // payload on every admin page navigation.
   async countLowStock(threshold = 3): Promise<number> {
     return this.prismaService.product.count({
       where: { stockType: StockType.IN_STOCK, stock: { lte: threshold } },
     })
   }
 
-  /**
-   * Quick stock update from the inventory page — kept as its own method so
-   * the inline-edit flow doesn't have to round-trip the full product edit
-   * payload (images, SEO fields, dimensions, etc.).
-   */
+  // Separate from update() — the inline-edit flow doesn't round-trip the full
+  // edit payload (images, SEO fields, dimensions).
   async updateStock(productId: string, newStock: number) {
     const product = await this.prismaService.product.findUnique({
       where: { id: productId },

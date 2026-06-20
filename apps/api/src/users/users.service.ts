@@ -6,12 +6,8 @@ import { AdminCustomerQueryDto } from './dto/admin-customer-query.dto'
 
 const BCRYPT_SALT_ROUNDS = 12
 
-/**
- * Order statuses that represent realised revenue — used when computing customer
- * lifetime value. PENDING is excluded (payment not confirmed); CANCELLED /
- * REFUNDED are excluded (no net income). PARTIALLY_REFUNDED stays in so the
- * non-refunded slice still counts (refundAmount is subtracted downstream).
- */
+// PARTIALLY_REFUNDED is included — its non-refunded slice is real revenue;
+// refundAmount is subtracted downstream.
 const REVENUE_ORDER_STATUSES: readonly OrderStatus[] = [
   OrderStatus.PAID,
   OrderStatus.PROCESSING,
@@ -43,16 +39,8 @@ export class UsersService {
     return bcrypt.compare(plainPassword, hashedPassword)
   }
 
-  /**
-   * Admin customers list — paginated, with computed totalOrders and
-   * lifetimeValueUsd per user. We only surface USER role (admins should not
-   * appear in their own customer roster).
-   *
-   * Lifetime value is computed in JS after a single batched query rather than
-   * via a SQL subquery — the customer roster is small (handmade store), and
-   * keeping aggregation in code keeps the SQL portable across the dev SQLite
-   * and prod Postgres options.
-   */
+  // JS aggregation rather than SQL subquery — customer rosters are small for
+  // handmade stores, and keeps the SQL portable across SQLite/Postgres.
   async findAllCustomers(adminCustomerQueryDto: AdminCustomerQueryDto) {
     const { page = 1, limit = 20, search } = adminCustomerQueryDto
     const skip = (page - 1) * limit
@@ -111,10 +99,6 @@ export class UsersService {
     }
   }
 
-  /**
-   * Detailed customer profile for `/admin/customers/[id]`. Returns full order
-   * history (newest first) + saved addresses for support flows.
-   */
   async findCustomerById(userId: string) {
     const user = await this.prismaService.user.findUnique({
       where: { id: userId },

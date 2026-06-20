@@ -31,8 +31,7 @@ export class PaymentsService {
     }
 
     if (order.payment) {
-      // Return existing clientSecret instead of creating a duplicate PaymentIntent.
-      // Handles the case where the browser reloads mid-checkout.
+      // Reuse the existing clientSecret — handles mid-checkout browser reload.
       const existingIntent = await this.stripeService.client.paymentIntents.retrieve(
         order.payment.stripeId,
       )
@@ -44,27 +43,19 @@ export class PaymentsService {
       return { clientSecret: existingIntent.client_secret }
     }
 
-    // Stripe requires amount in the smallest currency unit (cents for USD)
     const amountInCents = Math.round(Number(order.total) * 100)
 
-    // Enable Klarna + Afterpay Buy Now Pay Later alongside cards.
-    // Stripe Payment Element renders these as tabs automatically. The methods
-    // are filtered server-side by region, currency, and amount eligibility,
-    // and on the client by browser locale — Stripe shows only what's relevant.
-    // Both must also be enabled in Stripe Dashboard → Settings → Payment methods
-    // (see docs/runbooks/stripe-bnpl-setup.md).
-    //
-    // 'afterpay_clearpay' is Stripe's canonical id for both Afterpay (US/AU/NZ/CA)
-    // and Clearpay (UK) — same product, regional brand split.
+    // Enable BNPL alongside cards. Stripe filters server-side by region /
+    // currency / amount eligibility; both must also be enabled in the
+    // Stripe Dashboard — see docs/runbooks/stripe-bnpl-setup.md.
+    // 'afterpay_clearpay' covers both Afterpay (US/AU/NZ/CA) and Clearpay (UK).
     const paymentMethodTypes = ['card', 'klarna', 'afterpay_clearpay']
 
-    // orderId as idempotency key — prevents duplicate PaymentIntents on network retries
     const stripePaymentIntent = await this.stripeService.client.paymentIntents.create(
       {
         amount: amountInCents,
         currency: 'usd',
         payment_method_types: paymentMethodTypes,
-        // Stored on the PaymentIntent for reconciliation in Stripe Dashboard
         metadata: { orderId },
       },
       { idempotencyKey: `create-intent-${orderId}` },

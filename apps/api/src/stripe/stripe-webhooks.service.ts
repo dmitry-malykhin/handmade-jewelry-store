@@ -27,7 +27,6 @@ export class StripeWebhooksService {
       return
     }
 
-    // Idempotency guard: skip if already processed
     if (payment.status === PaymentStatus.SUCCEEDED) {
       this.logger.log(`PaymentIntent ${paymentIntent.id} already processed — skipping`)
       return
@@ -63,11 +62,8 @@ export class StripeWebhooksService {
 
     this.logger.log(`Order ${payment.orderId} transitioned to PAID`)
 
-    // Authoritative revenue event — webhook is the trusted source. Client
-    // `order_placed` from the confirmation page can be lost (tab close, network
-    // drop), so payment_succeeded here is the source of truth for revenue.
-    // PostHog merges anonymous → identified sessions automatically when the
-    // distinct_id matches a prior `posthog.identify()` call.
+    // The client `order_placed` event can be lost (tab close, network drop),
+    // so this webhook is the source of truth for revenue.
     const distinctId =
       payment.order.userId ?? payment.order.guestEmail ?? `order-${payment.orderId}`
     const amountUsd = (paymentIntent.amount ?? 0) / 100
@@ -145,17 +141,15 @@ export class StripeWebhooksService {
       return
     }
 
-    // Detect partial vs full refund from the Stripe charge itself — the admin
-    // refund flow may set PARTIALLY_REFUNDED before this webhook arrives.
+    // The admin refund endpoint may set PARTIALLY_REFUNDED before this webhook
+    // arrives; we still proceed when moving to a different state (e.g.
+    // PARTIALLY_REFUNDED → REFUNDED on a follow-up additional refund).
     const isFullRefund = charge.amount_refunded >= charge.amount
     const targetPaymentStatus = isFullRefund
       ? PaymentStatus.REFUNDED
       : PaymentStatus.PARTIALLY_REFUNDED
     const targetOrderStatus = isFullRefund ? OrderStatus.REFUNDED : OrderStatus.PARTIALLY_REFUNDED
 
-    // Idempotency — if the admin endpoint already moved the payment to the
-    // matching refund state, skip. Cross-state move (PARTIALLY_REFUNDED →
-    // REFUNDED on a follow-up additional refund) still proceeds.
     if (payment.status === targetPaymentStatus) {
       this.logger.log(`Charge ${charge.id} already at ${targetPaymentStatus} — skipping`)
       return
@@ -202,7 +196,7 @@ export class StripeWebhooksService {
   }
 
   handleChargeDisputeCreated(dispute: Stripe.Dispute): void {
-    // Post-MVP: send Slack/email alert and transition order to ON_HOLD
+    // TODO(post-launch): Slack/email alert + transition order to ON_HOLD.
     this.logger.error(
       `DISPUTE CREATED — dispute ID: ${dispute.id}, charge: ${dispute.charge}, amount: $${dispute.amount / 100}`,
     )

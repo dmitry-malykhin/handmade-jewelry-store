@@ -1,21 +1,8 @@
-/**
- * Startup environment-variable validator. Run from `main.ts` before
- * `NestFactory.create`. In production a missing required var crashes the
- * process with a single readable message instead of letting the app boot
- * and explode later inside a controller.
- *
- * In non-production (`development`, `test`) we only warn — local devs can
- * boot the API without every integration set up.
- *
- * The list lives here rather than as a JSON schema because the *rules*
- * differ: some vars are required only in production, some are required
- * only when another var is present (e.g. AWS_S3_ENDPOINT implies R2 →
- * everything else gets validated by the upload service at runtime).
- */
+// Production: crash on first missing required var with one readable block —
+// easier than chasing one var at a time. Dev/test: warn only.
 
 type EnvCheck = {
   name: string
-  /** Why this var matters — printed in the missing-var error message. */
   description: string
 }
 
@@ -44,7 +31,7 @@ const REQUIRED_IN_PRODUCTION: ReadonlyArray<EnvCheck> = [
   { name: 'AWS_S3_PUBLIC_URL_PREFIX', description: 'Public CDN/bucket prefix for image URLs' },
 ]
 
-/** Vars that are recommended but not fatal — printed as a warning on startup. */
+// Recommended (warned), not required (fatal).
 const RECOMMENDED_IN_PRODUCTION: ReadonlyArray<EnvCheck> = [
   { name: 'SENTRY_DSN', description: 'Sentry error-tracking DSN' },
   { name: 'POSTHOG_API_KEY', description: 'PostHog server-side event capture' },
@@ -66,8 +53,8 @@ export function validateRequiredEnv(env: NodeJS.ProcessEnv): ValidationReport {
     }
   }
 
-  // FRONTEND_URL pointing at localhost in production is almost always a deploy mistake —
-  // emails and CORS would use the wrong host.
+  // FRONTEND_URL = localhost in prod almost always means a deploy mistake —
+  // emails and CORS would point at the wrong host.
   const frontendUrl = env.FRONTEND_URL ?? ''
   if (frontendUrl.startsWith('http://localhost') || frontendUrl.startsWith('http://127.')) {
     warnings.push(
@@ -78,11 +65,6 @@ export function validateRequiredEnv(env: NodeJS.ProcessEnv): ValidationReport {
   return { missing, warnings }
 }
 
-/**
- * Throws when running in production with missing required vars. Prints a
- * single block listing every missing var with its purpose — easier to
- * fix-and-redeploy than chasing one var at a time.
- */
 export function assertProductionEnv(
   env: NodeJS.ProcessEnv = process.env,
   logger: { warn: (m: string) => void; error: (m: string) => void } = console,

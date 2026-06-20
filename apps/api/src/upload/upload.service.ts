@@ -16,17 +16,8 @@ export class UploadService {
 
   constructor(private readonly configService: ConfigService) {}
 
-  // S3 client is created lazily so the app starts without credentials in dev.
-  // A real upload attempt will throw InternalServerErrorException if missing.
-  //
-  // Supports two providers via AWS_S3_ENDPOINT:
-  //  - When AWS_S3_ENDPOINT is set → Cloudflare R2 or any S3-compatible service.
-  //    R2 endpoint shape: https://<account-id>.r2.cloudflarestorage.com.
-  //    R2 requires path-style addressing (forcePathStyle).
-  //  - When AWS_S3_ENDPOINT is empty/unset → default AWS S3 endpoint per region.
-  //
-  // Switching providers is an env-only change; consumers (presigned URLs, public
-  // URL prefix) work identically because R2's API is S3-compatible.
+  // Lazy so dev starts without S3 credentials. AWS_S3_ENDPOINT picks between
+  // AWS S3 (unset) and any S3-compatible service like R2 (set + path-style).
   private buildS3Client(): S3Client {
     const config: S3ClientConfig = {
       region: this.configService.getOrThrow<string>('AWS_REGION'),
@@ -53,15 +44,14 @@ export class UploadService {
     const publicUrlPrefix = this.configService.getOrThrow<string>('AWS_S3_PUBLIC_URL_PREFIX')
 
     const extension = extname(fileName).toLowerCase() || '.jpg'
-    // Use UUID for S3 key — never expose original filename (prevents path traversal / PII leaks)
+    // UUID key — never expose the original filename (path traversal / PII leak).
     const s3Key = `products/${randomUUID()}${extension}`
 
     const command = new PutObjectCommand({
       Bucket: bucketName,
       Key: s3Key,
       ContentType: contentType,
-      // Enforce file size limit server-side via S3 policy condition
-      // This prevents oversize uploads even if client validation is bypassed
+      // Server-side size cap — protects against bypassed client validation.
       Metadata: { 'max-size': String(MAX_FILE_SIZE_BYTES) },
     })
 
