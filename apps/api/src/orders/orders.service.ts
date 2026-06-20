@@ -41,7 +41,6 @@ interface ShippingAddressSnapshot {
   country?: string
 }
 
-/** Renders the ShippingAddress JSON snapshot into a single CSV cell. */
 function formatShippingAddress(snapshot: unknown): string {
   if (!snapshot || typeof snapshot !== 'object') return ''
   const address = snapshot as ShippingAddressSnapshot
@@ -55,7 +54,7 @@ interface OrderItemForExport {
   quantity: number
 }
 
-/** Compacts the line items into a single readable cell — "Title × 2 | Title × 1". */
+// Renders as `"Title × 2 | Title × 1"` — a single readable CSV cell.
 function formatOrderItems(items: readonly OrderItemForExport[]): string {
   return items
     .map((item) => {
@@ -94,11 +93,8 @@ export class OrdersService {
       source,
     } = createOrderDto
 
-    // ── Loyalty redemption: server-side validation + total adjustment ──────
-    // The client sends a candidate `loyaltyPointsToRedeem`; we re-verify
-    // against the actual balance and the per-order cap (50% of subtotal) and
-    // recalculate `total` on the server. Anything the client sent in `total`
-    // for the discounted amount is overwritten by our calculation.
+    // Re-verify the client's loyaltyPointsToRedeem against the real balance
+    // and the per-order cap (50% of subtotal); recalculate `total` server-side.
     let pointsToRedeem = 0
     let adjustedTotal = total
     if (userId && loyaltyPointsToRedeem && loyaltyPointsToRedeem > 0) {
@@ -132,7 +128,6 @@ export class OrdersService {
                 productSnapshot: orderItem.productSnapshot,
               })),
             },
-            // Record initial PENDING status in history for full audit trail
             statusHistory: {
               create: {
                 fromStatus: null,
@@ -161,7 +156,6 @@ export class OrdersService {
       return order
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        // P2003 = Foreign key constraint failed (e.g. productId does not exist)
         if (error.code === 'P2003') {
           const field = error.meta?.field_name ?? 'unknown field'
           this.logger.warn(`Order creation failed — foreign key constraint on ${field}`)
@@ -169,7 +163,6 @@ export class OrdersService {
             `One or more items reference a product that does not exist (${field})`,
           )
         }
-        // P2025 = Record not found
         if (error.code === 'P2025') {
           throw new BadRequestException('One or more referenced records do not exist')
         }
@@ -178,15 +171,8 @@ export class OrdersService {
     }
   }
 
-  /**
-   * Builds a CSV document of every order matching the optional status / date
-   * filters. Returned as a single string so the controller can stream it to
-   * the client with the right `Content-Type` and `Content-Disposition`.
-   *
-   * No pagination here on purpose — an admin invoking "Export" expects the
-   * full result set. We cap exposure by sorting `createdAt desc` so even if
-   * the catalogue ever grows huge the most relevant rows arrive first.
-   */
+  // Returns the whole filtered set as a single CSV string — admins clicking
+  // Export expect the full result. Newest first so the relevant rows lead.
   async exportToCsv(query: OrderExportQueryDto): Promise<string> {
     const { status, from, to } = query
 
@@ -292,10 +278,8 @@ export class OrdersService {
       )
     }
 
-    // Wrap status update + loyalty bookkeeping in one transaction. Either both
-    // commit or neither does — a half-finished DELIVERED transition that
-    // didn't credit points would be visible (and confusing) on the account
-    // page until manually fixed.
+    // Atomic with loyalty bookkeeping — a DELIVERED that didn't credit points
+    // would show inconsistent state on the account page until fixed by hand.
     const updatedOrder = await this.prismaService.$transaction(async (tx) => {
       const next = await tx.order.update({
         where: { id: orderId },
@@ -316,9 +300,8 @@ export class OrdersService {
         },
       })
 
-      // Loyalty hooks — only the transitions that actually move points fire
-      // here. Both helpers are idempotent and bail when there's nothing to do
-      // (guest order, points already awarded, etc.).
+      // Both loyalty helpers are idempotent — they bail when there's nothing
+      // to do (guest order, points already awarded, etc.).
       if (updateOrderStatusDto.status === OrderStatus.DELIVERED) {
         await this.loyaltyService.awardForDelivered(tx, next)
       }
@@ -351,7 +334,6 @@ export class OrdersService {
       data: {
         trackingNumber: updateOrderTrackingDto.trackingNumber,
         shippingCarrier: updateOrderTrackingDto.shippingCarrier,
-        // Record exact time admin added tracking — used for delivery estimate display
         shippedAt: new Date(),
       },
       include: {
@@ -362,26 +344,9 @@ export class OrdersService {
     })
   }
 
-  /**
-   * Issues a full or partial refund against the order's Stripe PaymentIntent.
-   *
-   * Order is the source of truth for refund metadata (reason, note) — the Stripe
-   * webhook `charge.refunded` will arrive later but the idempotency guard
-   * (payment.status already REFUNDED / PARTIALLY_REFUNDED) makes it a no-op.
-   *
-   * Validation:
-   *  - Order must have a Payment in SUCCEEDED or PARTIALLY_REFUNDED status
-   *  - Requested amount cannot exceed remaining refundable (total − refundAmount)
-   *  - Status transition to REFUNDED / PARTIALLY_REFUNDED must be allowed
-   *
-   * Side effects (all in a single transaction):
-   *  - Stripe Refund created (outside transaction; if it succeeds and DB writes
-   *    fail, the webhook will reconcile on retry)
-   *  - Payment.status → REFUNDED (full) or PARTIALLY_REFUNDED (partial)
-   *  - Order.status, refundedAt, refundAmount (cumulative), refundReason, refundNote
-   *  - OrderStatusHistory entry
-   *  - Refund confirmation email sent (best-effort; failure does not roll back)
-   */
+  // Order is the source of truth for refund metadata — the late-arriving
+  // `charge.refunded` webhook is idempotent because payment.status is already
+  // REFUNDED / PARTIALLY_REFUNDED by the time it fires.
   async refundOrder(orderId: string, refundOrderDto: RefundOrderDto) {
     const order = await this.prismaService.order.findUnique({
       where: { id: orderId },
@@ -418,8 +383,8 @@ export class OrdersService {
       throw new BadRequestException('Refund amount must be greater than zero')
     }
 
-    // Stripe refund happens outside the DB transaction. If Stripe succeeds but
-    // DB write fails, the webhook handler will reconcile (idempotent).
+    // Stripe is called outside the DB transaction; if Stripe succeeds but the
+    // DB write fails, the webhook reconciles on retry.
     const stripeRefund = await this.stripeService.createRefund(
       order.payment.stripeId,
       requestedAmount.toNumber(),
@@ -438,8 +403,7 @@ export class OrdersService {
       )
     }
 
-    // Capture the payment narrowing — TypeScript loses it inside the async
-    // transaction callback closure, which is why we previously needed `!`.
+    // TS narrowing is lost inside the async transaction callback.
     const payment = order.payment
 
     const updatedOrder = await this.prismaService.$transaction(async (transaction) => {
@@ -474,9 +438,6 @@ export class OrdersService {
         },
       })
 
-      // Reverse any loyalty points earned at DELIVERED. Symmetric to the
-      // award path — same transaction so balance stays consistent with the
-      // payment + order state.
       await this.loyaltyService.reverseForCancellationOrRefund(transaction, next)
 
       return next
@@ -486,9 +447,9 @@ export class OrdersService {
       `Order ${orderId} refunded $${requestedAmount} (cumulative $${cumulativeRefunded}, ${newOrderStatus})`,
     )
 
-    // PostHog refund event — fires AFTER DB commit so a failed transaction
-    // doesn't pollute the funnel. DistinctId matches trackPaymentSucceeded
-    // so PostHog threads the refund into the same customer profile.
+    // Fires AFTER commit so a rolled-back transaction can't pollute the funnel;
+    // distinctId matches trackPaymentSucceeded so the refund threads on the
+    // same PostHog profile.
     const distinctId = updatedOrder.userId ?? updatedOrder.guestEmail ?? `order-${orderId}`
     this.analyticsService.trackOrderRefunded(distinctId, {
       orderId,
@@ -497,7 +458,7 @@ export class OrdersService {
       isFullRefund,
     })
 
-    // Refund confirmation email — best-effort, do not roll back the refund.
+    // Best-effort — an email failure must not roll back the refund itself.
     const recipientEmail = updatedOrder.guestEmail ?? null
     if (recipientEmail) {
       try {
@@ -517,16 +478,12 @@ export class OrdersService {
     return updatedOrder
   }
 
-  /**
-   * Lists all orders that have a refund recorded — both fully and partially
-   * refunded. Used by the admin refunds page; orders without `refundedAt` are
-   * excluded so the result is a pure refund ledger.
-   */
+  // Pure refund ledger — orders without `refundedAt` are excluded.
   async findAllRefunds(query: RefundsQueryDto = {}) {
     const { from, to, reason, customer } = query
 
-    // Customer substring matches either guest email OR the linked user's email.
-    // Wrapping in a nested OR keeps it composable with the AND of other filters.
+    // Match guest email OR the linked user's email — nested OR so the AND of
+    // other filters composes correctly.
     const customerClause: Prisma.OrderWhereInput | undefined = customer
       ? {
           OR: [
@@ -564,17 +521,8 @@ export class OrdersService {
     })
   }
 
-  /**
-   * Production queue for the admin tracker — orders that have at least one
-   * MADE_TO_ORDER item and haven't shipped yet (status PAID or PROCESSING).
-   * Each row is enriched with:
-   *   - `productionDeadlineAt` = order.createdAt + max(productionDays) across
-   *     MADE_TO_ORDER items. A single deadline per order keeps the table
-   *     scan-able even when an order mixes multiple MTO pieces.
-   *   - `maxProductionDays` — surfaced so the UI can show "X day window" too.
-   *
-   * Sorted by deadline ASC so the most urgent piece is first.
-   */
+  // Orders with at least one MADE_TO_ORDER item that haven't shipped yet,
+  // enriched with a single deadline per order so the table stays scan-able.
   async findProductionQueue() {
     const orders = await this.prismaService.order.findMany({
       where: {
@@ -610,13 +558,9 @@ export class OrdersService {
     return enriched
   }
 
-  /**
-   * Sets the production status / notes for an order. Validates the new status
-   * against a tight whitelist — the production flow is QUEUED → IN_PRODUCTION
-   * → READY_TO_SHIP. Skipping back (e.g. READY_TO_SHIP → QUEUED) is forbidden
-   * to prevent accidental clobbering; admins who really need to reset can
-   * change it directly in the DB.
-   */
+  // Production flow is forward-only: QUEUED → IN_PRODUCTION → READY_TO_SHIP.
+  // Reverse transitions are blocked to prevent accidental clobbering;
+  // resetting requires direct DB access.
   async updateProduction(orderId: string, updateProductionDto: UpdateProductionDto) {
     const order = await this.prismaService.order.findUnique({
       where: { id: orderId },
@@ -651,11 +595,7 @@ export class OrdersService {
   }
 }
 
-/**
- * Production status transitions. Linear flow — admins move forward through
- * QUEUED → IN_PRODUCTION → READY_TO_SHIP. Same-state writes are allowed so
- * "update note without changing status" works.
- */
+// Same-state writes are allowed so "update note without changing status" works.
 function isValidProductionStatusTransition(
   fromStatus: Prisma.OrderGetPayload<{ select: { productionStatus: true } }>['productionStatus'],
   toStatus: Prisma.OrderGetPayload<{ select: { productionStatus: true } }>['productionStatus'],
@@ -663,8 +603,7 @@ function isValidProductionStatusTransition(
   if (fromStatus === toStatus) return true
   if (fromStatus === 'QUEUED' && toStatus === 'IN_PRODUCTION') return true
   if (fromStatus === 'IN_PRODUCTION' && toStatus === 'READY_TO_SHIP') return true
-  // Allow direct QUEUED → READY_TO_SHIP for trivial pieces the maker finished
-  // immediately (e.g. ready stock that was mis-classified MTO).
+  // Direct skip for trivial pieces (e.g. ready stock mis-classified MTO).
   if (fromStatus === 'QUEUED' && toStatus === 'READY_TO_SHIP') return true
   return false
 }

@@ -16,10 +16,9 @@ import { UsersService } from '../users/users.service'
 import type { JwtPayload } from './strategies/jwt.strategy'
 
 const REFRESH_TOKEN_HASH_ROUNDS = 10
-// 7 days in seconds — number type is always accepted by JwtSignOptions.expiresIn
 const REFRESH_TOKEN_EXPIRES_IN_SECONDS = 7 * 24 * 60 * 60
 const PASSWORD_RESET_TOKEN_HASH_ROUNDS = 10
-const PASSWORD_RESET_TOKEN_EXPIRY_MS = 60 * 60 * 1000 // 1 hour
+const PASSWORD_RESET_TOKEN_EXPIRY_MS = 60 * 60 * 1000
 
 export interface AuthTokens {
   accessToken: string
@@ -56,7 +55,6 @@ export class AuthService {
     }
 
     const newUser = await this.usersService.createUser(normalizedEmail, plainPassword)
-    // Fire-and-forget — welcome email must not block or fail registration
     void this.emailService.sendWelcome({ recipientEmail: newUser.email })
     return this.generateTokens(newUser)
   }
@@ -74,7 +72,6 @@ export class AuthService {
       where: { id: tokenId },
     })
 
-    // Reject if token doesn't exist or belongs to a different user
     if (!storedToken || storedToken.userId !== userId) {
       throw new UnauthorizedException('Refresh token invalid or revoked')
     }
@@ -86,13 +83,11 @@ export class AuthService {
 
     const tokenMatches = await bcrypt.compare(incomingRefreshToken, storedToken.tokenHash)
     if (!tokenMatches) {
-      // Token reuse detected — someone presented a valid-looking but stale token.
-      // Revoke ALL sessions for this user as a precaution.
+      // Stale token presented — revoke ALL sessions as a precaution.
       await this.revokeAllRefreshTokens(userId)
       throw new UnauthorizedException('Refresh token reuse detected — please log in again')
     }
 
-    // Rotate: delete current session, issue a new one
     await this.prismaService.refreshToken.delete({ where: { id: tokenId } })
 
     const user = await this.usersService.findById(userId)
@@ -104,7 +99,7 @@ export class AuthService {
   async forgotPassword(email: string): Promise<void> {
     const normalizedEmail = email.trim().toLowerCase()
     const user = await this.usersService.findByEmail(normalizedEmail)
-    // Always return void — never reveal whether an email is registered
+    // Always void — never reveal whether an email is registered.
     if (!user) return
 
     const plainToken = crypto.randomUUID()
@@ -116,7 +111,6 @@ export class AuthService {
     })
 
     const frontendUrl = getFrontendUrl()
-    // Fire-and-forget — email failure must not expose error details to the caller
     void this.emailService.sendPasswordReset({
       recipientEmail: normalizedEmail,
       resetToken: plainToken,
@@ -127,7 +121,6 @@ export class AuthService {
   async resetPassword(plainToken: string, newPassword: string): Promise<void> {
     const expiryThreshold = new Date(Date.now() - PASSWORD_RESET_TOKEN_EXPIRY_MS)
 
-    // Fetch all users with a non-expired reset token and compare via bcrypt
     const candidates = await this.prismaService.user.findMany({
       where: {
         passwordResetToken: { not: null },
@@ -138,7 +131,7 @@ export class AuthService {
     let matchedUserId: string | null = null
     for (const candidate of candidates) {
       if (!candidate.passwordResetToken) continue
-      // Sequential bcrypt comparisons are intentional — parallelising would negate constant-time protection
+      // Sequential on purpose — parallelising negates the constant-time guarantee.
       const tokenMatches = await bcrypt.compare(plainToken, candidate.passwordResetToken)
       if (tokenMatches) {
         matchedUserId = candidate.id
@@ -152,7 +145,6 @@ export class AuthService {
 
     const hashedPassword = await bcrypt.hash(newPassword, PASSWORD_RESET_TOKEN_HASH_ROUNDS)
 
-    // Atomic: update password + clear reset token + revoke all active sessions
     await this.prismaService.$transaction([
       this.prismaService.user.update({
         where: { id: matchedUserId },
@@ -177,9 +169,8 @@ export class AuthService {
 
     const hashedPassword = await bcrypt.hash(newPassword, PASSWORD_RESET_TOKEN_HASH_ROUNDS)
 
-    // Atomic: update password + revoke all sessions on other devices.
-    // User stays logged in on the current device because the access token is still valid
-    // until it expires (~15 min) — they get a fresh refresh token next request.
+    // Other devices are logged out; this device keeps its ~15-min access token
+    // and gets a fresh refresh token on the next request.
     await this.prismaService.$transaction([
       this.prismaService.user.update({
         where: { id: userId },
@@ -190,7 +181,6 @@ export class AuthService {
   }
 
   async logout(userId: string, tokenId: string): Promise<void> {
-    // Delete only this session — other devices remain logged in
     await this.prismaService.refreshToken.deleteMany({
       where: { id: tokenId, userId },
     })
@@ -204,8 +194,8 @@ export class AuthService {
     const refreshSecret = this.configService.getOrThrow<string>('JWT_REFRESH_SECRET')
     const expiresAt = new Date(Date.now() + REFRESH_TOKEN_EXPIRES_IN_SECONDS * 1000)
 
-    // Pre-generate tokenId so it can be embedded in both tokens simultaneously.
-    // The same ID is stored as RefreshToken.id — enables O(1) session lookup.
+    // Pre-generate so the same ID lives in both tokens AND in RefreshToken.id
+    // — enables O(1) session lookup.
     const tokenId = crypto.randomUUID()
 
     const basePayload: JwtPayload = { sub: user.id, email: user.email, role: user.role, tokenId }

@@ -20,15 +20,8 @@ interface OrderRefundedProperties {
   isFullRefund: boolean
 }
 
-/**
- * Server-side PostHog event capture. Webhook-driven events (Stripe payment,
- * order status transitions) belong here — they're verified by trusted
- * sources, unlike client events which can be blocked, replayed, or spoofed.
- *
- * Initialisation is lazy: the SDK is only created when POSTHOG_API_KEY is
- * present, so dev / test environments without credentials get a clean no-op
- * service. All capture methods short-circuit when the client is absent.
- */
+// Webhook-verified events only — client events can be blocked, replayed, or
+// spoofed. SDK is lazy: missing POSTHOG_API_KEY = clean no-op service.
 @Injectable()
 export class AnalyticsService implements OnModuleDestroy {
   private readonly client: PostHog | null
@@ -44,11 +37,7 @@ export class AnalyticsService implements OnModuleDestroy {
       : null
   }
 
-  /**
-   * Captures the verified payment success event. Source of truth for revenue
-   * — fire this from the Stripe webhook handler, NOT from the browser
-   * confirmation page (which can be skipped, double-loaded, or spoofed).
-   */
+  // Source of truth for revenue — fire only from the Stripe webhook handler.
   trackPaymentSucceeded(userId: string, properties: PaymentSucceededProperties): void {
     if (!this.client) return
     this.client.capture({
@@ -62,11 +51,8 @@ export class AnalyticsService implements OnModuleDestroy {
     })
   }
 
-  /**
-   * Captures the verified order creation event. Fires after the order row
-   * exists in the database — pairs with the client `order_placed` to detect
-   * drop-off between confirmation page load and DB commit.
-   */
+  // Pairs with the client `order_placed` to detect drop-off between
+  // confirmation page load and DB commit.
   trackOrderCreated(userId: string, properties: OrderEventProperties): void {
     if (!this.client) return
     this.client.capture({
@@ -80,12 +66,8 @@ export class AnalyticsService implements OnModuleDestroy {
     })
   }
 
-  /**
-   * Captures the admin-initiated refund event. Fires after the Stripe refund
-   * succeeds AND the DB transaction commits — so funnel analysis correctly
-   * shows post-purchase return rate by reason without double-counting failed
-   * refund attempts.
-   */
+  // Fires AFTER Stripe + DB commit — failed refund attempts don't pollute
+  // the post-purchase return-rate funnel.
   trackOrderRefunded(userId: string, properties: OrderRefundedProperties): void {
     if (!this.client) return
     this.client.capture({

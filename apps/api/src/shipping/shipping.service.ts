@@ -13,8 +13,7 @@ import { EASYPOST_CLIENT } from './easypost-client.token'
 import type { EasyPostClient, PurchaseLabelInput, TrackerEvent } from './easypost-client.interface'
 
 const GRAMS_PER_OUNCE = 28.3495
-// EasyPost rejects parcels under 0.01 oz; we send a sensible default for
-// jewelry that doesn't have weight recorded yet (most pieces sit under 50g).
+// EasyPost rejects parcels under 0.01 oz; most handmade pieces sit under 50g.
 const FALLBACK_WEIGHT_OUNCES = 1
 
 interface ShippingAddressSnapshot {
@@ -57,26 +56,15 @@ export class ShippingService {
     @Inject(EASYPOST_CLIENT) private readonly easyPostClient: EasyPostClient,
   ) {}
 
-  /** Whether the integration is talking to the real EasyPost API. */
   getStatus(): { isLiveMode: boolean } {
     return { isLiveMode: this.easyPostClient.isLiveMode }
   }
 
-  /**
-   * Buys a shipping label for the given order. On success:
-   *  - Order is updated with shipment/tracker ids, tracking number, carrier
-   *    and the hosted label URL.
-   *  - The function does NOT transition order status to SHIPPED — admin still
-   *    confirms via the existing status workflow (keeps the audit trail
-   *    explicit and lets the admin batch a stack of labels before shipping).
-   */
+  // Does NOT transition the order to SHIPPED — the admin batches labels first
+  // and confirms via the status workflow so the audit trail stays explicit.
   async purchaseLabel(options: PurchaseLabelOptions): Promise<PurchaseLabelOutcome> {
-    // Defensive production guard. The mock EasyPost client fabricates MOCK…
-    // tracking numbers + placeholder PDF URLs; if it ran in production the
-    // customer would receive a shipping email pointing at a fake tracking link.
-    // The UI already disables the purchase button when isLiveMode=false, but
-    // we don't trust the UI alone — a direct POST from a leaked admin token,
-    // a stale browser tab or curl must also be refused.
+    // Defensive guard — a direct POST or stale browser tab must also be refused;
+    // the mock client fabricates MOCK… tracking numbers in dry-run mode.
     if (process.env.NODE_ENV === 'production' && !this.easyPostClient.isLiveMode) {
       this.logger.error(
         `Refusing purchaseLabel for order ${options.orderId} — EasyPost is in dry-run mode in production. Set EASYPOST_API_KEY to enable.`,
@@ -165,16 +153,9 @@ export class ShippingService {
     }
   }
 
-  /**
-   * Handles a webhook delivery from EasyPost. The body is parsed, validated
-   * and (when it's a tracker update we care about) used to advance the
-   * matching order's status.
-   *
-   * Returns `{ processed: false }` for any payload that we deliberately
-   * ignore — non-tracker events, unknown statuses, missing matching order.
-   * Returns `{ processed: true, deliveredOrderId }` when an order has been
-   * transitioned to DELIVERED.
-   */
+  // `processed: false` for payloads we deliberately ignore (non-tracker,
+  // unknown statuses, no matching order). `true` only when an order moved
+  // to DELIVERED.
   async handleWebhook(
     rawBody: string,
     signature: string | undefined,
@@ -209,8 +190,7 @@ export class ShippingService {
     }
 
     if (order.status === OrderStatus.DELIVERED) {
-      // Webhook delivery is at-least-once; ignore duplicates without thrashing
-      // the status history.
+      // At-least-once webhook delivery — ignore duplicates without thrashing history.
       return { processed: false }
     }
 

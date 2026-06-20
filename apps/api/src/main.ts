@@ -12,40 +12,30 @@ import { assertProductionEnv } from './common/config/required-env'
 import { HttpExceptionFilter } from './common/filters/http-exception.filter'
 import { SentryGlobalFilter } from '@sentry/nestjs/setup'
 
-// Fail fast on missing required env vars in production. A boot-time crash
-// is preferable to a half-started app exploding inside a controller later.
-// No-op in development / test.
 assertProductionEnv()
 
-// Node 22's built-in fetch (undici) does not honour HTTP(S)_PROXY env vars by default.
-// Local dev behind a corporate / personal VPN proxy needs an explicit dispatcher,
-// otherwise outbound calls (Klaviyo, Stripe, Resend) bypass the proxy and fail.
-// Production deploys do not set these vars → no behaviour change.
+// Node 22 fetch (undici) doesn't honour HTTP(S)_PROXY by default. Production
+// deploys don't set these vars; this only affects local dev behind a VPN proxy.
 const proxyUrl = process.env.HTTPS_PROXY ?? process.env.https_proxy
 if (proxyUrl) {
   setGlobalDispatcher(new ProxyAgent(proxyUrl))
 }
 
 async function bootstrap() {
-  // rawBody: true — required for Stripe webhook signature verification.
-  // stripe.webhooks.constructEvent() needs the raw Buffer, not parsed JSON.
+  // rawBody: true — Stripe.webhooks.constructEvent() needs the raw Buffer.
   const app = await NestFactory.create(AppModule, { rawBody: true })
 
-  // Replace NestJS default logger with Winston so all internal NestJS logs
-  // (module init, route mapping, etc.) go through the same structured pipeline.
   app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER))
 
   app.setGlobalPrefix('api')
 
-  // Allow requests from the Next.js frontend
   app.enableCors({
     origin: getFrontendUrl(),
     credentials: true,
   })
 
-  // whitelist: strips properties not in the DTO (protects against mass-assignment)
-  // forbidNonWhitelisted: returns 400 if unknown properties are sent
-  // transform: converts plain JSON body to typed DTO class instances
+  // whitelist strips unknown properties (mass-assignment protection);
+  // forbidNonWhitelisted returns 400 instead of silently dropping them.
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -55,8 +45,8 @@ async function bootstrap() {
   )
 
   const { httpAdapter } = app.get(HttpAdapterHost)
-  // SentryGlobalFilter catches all unhandled exceptions and reports 5xx errors to Sentry.
-  // Must be registered BEFORE HttpExceptionFilter so Sentry sees the raw exception.
+  // Sentry filter MUST come first so it sees the raw exception before any
+  // other filter wraps it into an HttpException.
   app.useGlobalFilters(new SentryGlobalFilter(httpAdapter), new HttpExceptionFilter())
 
   const port = process.env.API_PORT ?? 4000

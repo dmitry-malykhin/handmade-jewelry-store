@@ -10,11 +10,7 @@ import { CreateDiscountDto } from './dto/create-discount.dto'
 import { UpdateDiscountDto } from './dto/update-discount.dto'
 import { ValidateDiscountDto } from './dto/validate-discount.dto'
 
-/**
- * Computes the discount in cents for a given subtotal. Percentage discounts
- * are bounded by the subtotal — a 100% off code on a $50 cart returns 5000,
- * not the percentage interpretation that could exceed cart total.
- */
+// Bounded by subtotal — a 100% code on a $50 cart returns 5000, never above.
 export function computeDiscountAmountCents(
   type: DiscountType,
   value: number,
@@ -65,7 +61,6 @@ export class DiscountsService {
         },
       })
     } catch (error) {
-      // P2002 = unique constraint violation on `code`
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
         throw new ConflictException(`Discount code "${normalisedCode}" already exists`)
       }
@@ -92,11 +87,8 @@ export class DiscountsService {
     })
   }
 
-  /**
-   * Soft delete — historical orders keep referencing the code, but the admin
-   * list filters by `deletedAt: null` and the validate endpoint treats deleted
-   * codes the same as "not found".
-   */
+  // Soft delete — historical orders still reference the code; admin list
+  // filters by deletedAt: null, validate treats deleted as "not found".
   async remove(discountId: string) {
     await this.findOneById(discountId)
     await this.prismaService.discount.update({
@@ -105,11 +97,8 @@ export class DiscountsService {
     })
   }
 
-  /**
-   * Public-facing validation. Returns the discount details + computed amount
-   * the cart should be reduced by. Throws specific errors so the frontend can
-   * surface a precise message ("expired", "minimum order $X").
-   */
+  // Throws specific errors so the frontend can render precise copy
+  // ("expired", "minimum order $X").
   async validate(validateDiscountDto: ValidateDiscountDto) {
     const normalisedCode = validateDiscountDto.code.toUpperCase()
     const discount = await this.prismaService.discount.findUnique({
@@ -153,11 +142,7 @@ export class DiscountsService {
     }
   }
 
-  /**
-   * Atomically bumps usageCount. Intended for the order create / payment
-   * webhook flow (not wired in this PR — tracked separately). Returns the
-   * updated record so callers can detect "now exhausted" states.
-   */
+  // TODO(post-launch): wire into the order-create / payment webhook flow.
   async incrementUsage(discountId: string) {
     return this.prismaService.discount.update({
       where: { id: discountId },
