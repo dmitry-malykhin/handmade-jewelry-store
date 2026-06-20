@@ -31,7 +31,6 @@ vi.mock('@/store/auth.store', () => ({
     selector({ accessToken: 'test-token' }),
 }))
 
-// confirm() is used for delete confirmation — auto-accept in tests
 const originalConfirm = global.confirm
 
 function buildDiscount(
@@ -168,8 +167,6 @@ describe('DiscountsTable', () => {
     await userEvent.click(screen.getByRole('button', { name: /Delete code WELCOME10/i }))
 
     const dialog = await screen.findByRole('dialog')
-    // The destructive primary button inside the dialog is labelled "Delete"
-    // (the row trash button uses "Delete code …" aria-label).
     const confirmButton = within(dialog).getByRole('button', { name: /^delete$/i })
     await userEvent.click(confirmButton)
 

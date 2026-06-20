@@ -111,14 +111,12 @@ describe('LabelPurchaseSection — render gating', () => {
   })
 })
 
-// UI side of the production dry-run guard
 describe('LabelPurchaseSection — dry-run purchase block', () => {
   it('disables the Purchase button and shows the warning banner in dry-run mode', async () => {
     mockFetchShippingStatus.mockResolvedValue({ isLiveMode: false })
 
     render(<LabelPurchaseSection order={baseOrder} />)
 
-    // Warning banner appears only after the query resolves — wait for it
     const alert = await screen.findByRole('alert')
     expect(alert).toHaveTextContent(/EasyPost is in dry-run mode/i)
     expect(screen.getByRole('button', { name: 'Purchase label' })).toBeDisabled()
@@ -130,7 +128,6 @@ describe('LabelPurchaseSection — dry-run purchase block', () => {
 
     render(<LabelPurchaseSection order={baseOrder} />)
 
-    // Wait for the disabled state to propagate before clicking
     await screen.findByRole('alert')
     const button = screen.getByRole('button', { name: 'Purchase label' })
     await user.click(button)
@@ -141,7 +138,6 @@ describe('LabelPurchaseSection — dry-run purchase block', () => {
   it('enables the Purchase button and hides the warning banner in live mode', async () => {
     render(<LabelPurchaseSection order={baseOrder} />)
 
-    // Wait for the query to settle (Live badge appears once data arrives)
     await screen.findByText('Live')
     const button = screen.getByRole('button', { name: 'Purchase label' })
     expect(button).not.toBeDisabled()

@@ -185,7 +185,6 @@ describe('AdminOrderDetail — rendering', () => {
 
   it('renders status history timeline entries', async () => {
     render(<AdminOrderDetail orderId="clorder1234567890" />)
-    // Both history entries should be rendered as badges in the timeline
     const paidBadges = await screen.findAllByText('Paid')
     expect(paidBadges.length).toBeGreaterThanOrEqual(1)
   })
@@ -210,7 +209,6 @@ describe('AdminOrderDetail — status update', () => {
 
   it('renders allowed next status buttons for PAID order', async () => {
     render(<AdminOrderDetail orderId="clorder1234567890" />)
-    // PAID → PROCESSING, CANCELLED — button text is "Set to {status}"
     expect(await screen.findByRole('button', { name: /set to processing/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /set to cancelled/i })).toBeInTheDocument()
   })
@@ -249,15 +247,14 @@ describe('AdminOrderDetail — tracking', () => {
     render(<AdminOrderDetail orderId="clorder1234567890" />)
     const trackingInput = await screen.findByLabelText('Tracking number')
     expect(trackingInput).toBeInTheDocument()
-    // The label-purchase section also has a "Carrier" label — scope to the
-    // tracking <section> to assert this specifically.
+    // LabelPurchaseSection has its own "Carrier" label — scope the assertion.
     const trackingSection = trackingInput.closest('section') as HTMLElement
     expect(within(trackingSection).getByLabelText('Carrier')).toBeInTheDocument()
   })
 
   it('submit button is disabled when tracking number is empty', async () => {
     render(<AdminOrderDetail orderId="clorder1234567890" />)
-    await screen.findByLabelText('Tracking number') // wait for data
+    await screen.findByLabelText('Tracking number')
     const saveButton = screen.getByRole('button', { name: 'Save tracking' })
     expect(saveButton).toBeDisabled()
   })
@@ -274,9 +271,7 @@ describe('AdminOrderDetail — tracking', () => {
     render(<AdminOrderDetail orderId="clorder1234567890" />)
     const trackingInput = await screen.findByLabelText('Tracking number')
 
-    // Scope to the tracking section — the LabelPurchaseSection has its own
-    // carrier select with the same label text, so an unscoped getByRole would
-    // match both.
+    // LabelPurchaseSection has a carrier select with the same label; scope.
     const trackingSection = trackingInput.closest('section') as HTMLElement
     const trackingCarrierTrigger = within(trackingSection).getByRole('combobox')
 

@@ -10,7 +10,7 @@ export const createProductSchema = z
       .number({ message: 'Price must be a number' })
       .positive('Price must be positive')
       .multipleOf(0.01, 'Price can have at most 2 decimal places'),
-    // Handmade business model: stock is binary, 0 (made on order) or 1 (one piece ready to ship).
+    // Binary: 0 (made on order) or 1 (one piece ready to ship).
     stock: z
       .number({ message: 'Stock must be a number' })
       .int('Stock must be a whole number')
@@ -31,7 +31,6 @@ export const createProductSchema = z
     stockType: z.enum(STOCK_TYPES).default('IN_STOCK'),
     // Required when stock = 0 — see .superRefine below.
     productionDays: z.number().int().min(0).max(365).optional(),
-    // Dimensions — all optional, stored in metric
     lengthCm: z.number().positive().max(500).optional(),
     widthCm: z.number().positive().max(500).optional(),
     heightCm: z.number().positive().max(500).optional(),
@@ -40,9 +39,8 @@ export const createProductSchema = z
     beadSizeMm: z.number().positive().max(100).optional(),
   })
   .superRefine((value, ctx) => {
-    // Handmade products are always orderable, but if there's no piece ready
-    // (stock=0) the master must commit to a lead time. 0 days + 0 stock is a
-    // contradiction we never want to ship.
+    // 0 days + 0 stock is contradictory — when nothing is ready, the master
+    // must commit to a lead time so the customer knows the wait.
     if (value.stock === 0 && (value.productionDays === undefined || value.productionDays < 1)) {
       ctx.addIssue({
         code: 'custom',

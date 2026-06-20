@@ -89,9 +89,7 @@ describe('InventoryTable', () => {
     render(<InventoryTable />)
 
     await waitFor(() => expect(screen.getByText('Silver Ring')).toBeInTheDocument())
-    // The badge appears in a TableCell; the "Low stock only" Label appears in
-    // the filter card. Disambiguate by counting all matches: 2 when low stock,
-    // 1 (just the filter label) when not.
+    // 2 matches when the row also renders the badge; 1 when only the filter label remains.
     expect(screen.getAllByText(/Low stock/i)).toHaveLength(2)
     expect(screen.getByRole('button', { name: /Edit stock for Silver Ring/i })).toHaveTextContent(
       '1',
@@ -107,7 +105,6 @@ describe('InventoryTable', () => {
     render(<InventoryTable />)
 
     await waitFor(() => expect(screen.getByText('Silver Ring')).toBeInTheDocument())
-    // Only the filter Label remains — no badge in the row.
     expect(screen.getAllByText(/Low stock/i)).toHaveLength(1)
   })
 

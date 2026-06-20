@@ -24,7 +24,6 @@ vi.mock('@/store/auth.store', () => ({
   useAuthStore: vi.fn(),
 }))
 
-// jsdom does not implement URL.createObjectURL
 window.URL.createObjectURL = vi.fn(() => 'blob:mock-preview-url')
 window.URL.revokeObjectURL = vi.fn()
 

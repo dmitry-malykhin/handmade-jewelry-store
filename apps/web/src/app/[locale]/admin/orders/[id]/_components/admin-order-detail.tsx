@@ -45,7 +45,7 @@ interface AdminOrderDetailProps {
   orderId: string
 }
 
-// Mirrors the backend state machine whitelist
+// Mirrors the backend state machine whitelist.
 const ALLOWED_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
   PENDING: ['PAID', 'CANCELLED'],
   PAID: ['PROCESSING', 'CANCELLED'],
@@ -479,9 +479,6 @@ export function AdminOrderDetail({ orderId }: AdminOrderDetailProps) {
     },
   })
 
-  // Status transitions with customer-visible side effects (email / loyalty
-  // credit / terminal CANCELLED) go through ConfirmDialog. Reversible
-  // silent-to-customer transitions fire immediately.
   function handleStatusChange(newStatus: OrderStatus) {
     if (requiresStatusConfirmation(newStatus)) {
       setPendingStatus(newStatus)
@@ -558,7 +555,6 @@ export function AdminOrderDetail({ orderId }: AdminOrderDetailProps) {
             isUpdating={trackingMutation.isPending}
           />
 
-          {/* Refund — only for orders with a successful or partially refunded payment. */}
           {order.payment &&
             (order.payment.status === 'SUCCEEDED' ||
               order.payment.status === 'PARTIALLY_REFUNDED') && (
@@ -580,8 +576,6 @@ export function AdminOrderDetail({ orderId }: AdminOrderDetailProps) {
             onClose={() => setIsRefundModalOpen(false)}
             orderId={order.id}
             orderTotal={Number(order.total)}
-            // refundAmount comes through as a string after JSON serialization
-            // when populated; Number() handles both null and string safely.
             alreadyRefunded={order.refundAmount != null ? Number(order.refundAmount) : 0}
           />
         </>

@@ -27,10 +27,8 @@ export function AdminSidebar() {
   const pathname = usePathname()
   const accessToken = useAuthStore((state) => state.accessToken)
 
-  // Lightweight badge query — separate endpoint returning just { count } so we
-  // don't load the full inventory payload on every admin page navigation.
-  // Refetch every 2 minutes to keep the indicator reasonably fresh as orders
-  // come in. Window-focus refetch covers the "I returned from another tab" case.
+  // Separate count-only endpoint so we don't load the full inventory payload
+  // on every admin navigation.
   const { data: lowStockData } = useQuery({
     queryKey: ['admin-low-stock-count'],
     queryFn: () => fetchLowStockCount(accessToken ?? ''),
@@ -40,15 +38,13 @@ export function AdminSidebar() {
   })
   const lowStockCount = lowStockData?.count ?? 0
 
-  // Hrefs are locale-agnostic — `Link` from `@/i18n/navigation` prepends the
-  // active locale automatically. Including `/${locale}` here produced a
-  // double-locale URL like `/en/en/admin/products` and 404'd.
+  // Hrefs are locale-agnostic — Link prepends the active locale; including
+  // `/${locale}` here would produce `/en/en/admin/...` and 404.
   const sidebarLinks = [
     {
       href: '/admin',
       labelKey: 'navDashboard' as const,
       icon: <LayoutDashboard className="size-4" aria-hidden="true" />,
-      // Dashboard is active only on exact /admin path, not on sub-pages
       isActive: pathname === '/admin',
     },
     {
@@ -67,7 +63,7 @@ export function AdminSidebar() {
       href: '/admin/orders',
       labelKey: 'navOrders' as const,
       icon: <ShoppingCart className="size-4" aria-hidden="true" />,
-      // Match /admin/orders but not the dedicated sub-routes (refunds, production).
+      // Excluded sub-routes have their own sidebar entries below.
       isActive:
         pathname.startsWith('/admin/orders') &&
         !pathname.startsWith('/admin/orders/refunds') &&

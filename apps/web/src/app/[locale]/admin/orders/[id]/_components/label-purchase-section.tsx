@@ -27,9 +27,7 @@ import { useAuthStore } from '@/store/auth.store'
 
 const CARRIERS: ShippingCarrier[] = ['USPS', 'FedEx', 'UPS', 'DHL']
 
-// Threshold above which insurance is offered — matches docs/08 #4 risk note:
-// shipping insurance becomes meaningful for high-value jewelry. We default
-// the insurance amount to the full order total.
+// Threshold above which insurance is offered — see docs/08 §4 risk note.
 const INSURANCE_OFFER_THRESHOLD_CENTS = 10_000
 
 interface LabelPurchaseSectionProps {
@@ -56,11 +54,8 @@ export function LabelPurchaseSection({ order }: LabelPurchaseSectionProps) {
     staleTime: 5 * 60 * 1000,
   })
 
-  // Block purchase entirely when EasyPost is in dry-run mode. The mock client
-  // fabricates MOCK… tracking numbers that would otherwise reach real customers
-  // via the shipping email. Backend enforces the same guard in production
-  // (returns 503) — this is the user-visible side of the safety net.
-  // While the status is still loading we treat it as "not live" — fail-closed.
+  // Backend returns 503 when EasyPost is in dry-run mode (mock tracking numbers
+  // would otherwise reach customers); we fail-closed while loading.
   const isLiveMode = shippingStatusQuery.data?.isLiveMode === true
   const isDryRunBlocked = shippingStatusQuery.data !== undefined && !isLiveMode
 
@@ -84,9 +79,6 @@ export function LabelPurchaseSection({ order }: LabelPurchaseSectionProps) {
     },
   })
 
-  // Hide the whole panel for terminal/cancelled orders. There's nothing the
-  // admin can act on, and the existing tracking section already shows the
-  // last known label info on a refunded/delivered order if it exists.
   if (!canPurchase && !alreadyPurchased) return null
 
   return (

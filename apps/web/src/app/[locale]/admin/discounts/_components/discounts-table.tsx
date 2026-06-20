@@ -94,8 +94,6 @@ export function DiscountsTable() {
     if (!discountToDelete) return
     deleteMutation.mutate(discountToDelete.id, {
       onSuccess: () => setDiscountToDelete(null),
-      // On error, keep the dialog open so the toast doesn't get lost and the
-      // admin can decide to cancel or retry.
     })
   }
 

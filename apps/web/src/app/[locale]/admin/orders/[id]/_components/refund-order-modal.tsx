@@ -42,7 +42,6 @@ interface RefundOrderModalProps {
   onClose: () => void
   orderId: string
   orderTotal: number
-  /** Amount already refunded on this order (0 for first-time refund). */
   alreadyRefunded: number
 }
 
@@ -71,7 +70,7 @@ export function RefundOrderModal({
   )
   const remainingFormatted = remainingRefundable.toFixed(2)
 
-  // amount is optional — empty string + transform → undefined means "full refund"
+  // Empty string → undefined means "full refund".
   const refundFormSchema = useMemo(
     () =>
       z.object({

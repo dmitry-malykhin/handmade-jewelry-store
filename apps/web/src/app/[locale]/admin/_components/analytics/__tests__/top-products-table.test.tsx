@@ -29,8 +29,6 @@ vi.mock('@/i18n/navigation', () => ({
   ),
 }))
 
-// Stub next/image — its full feature set isn't necessary for these tests
-// and CDN-relative `src` paths trigger jsdom warnings otherwise.
 vi.mock('next/image', () => ({
   default: ({ alt }: { alt: string }) => <span data-testid="product-image" aria-label={alt} />,
 }))

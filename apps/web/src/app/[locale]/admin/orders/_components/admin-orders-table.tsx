@@ -41,7 +41,7 @@ import { ApiError } from '@/lib/api/client'
 import type { AdminOrdersQueryParams } from '@/lib/api/orders'
 import { getStatusConfirmCopy, requiresStatusConfirmation } from '../_lib/status-confirm'
 
-// Transitions whitelist mirrors the backend state machine
+// Mirrors the backend state machine.
 const ALLOWED_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
   PENDING: ['PAID', 'CANCELLED'],
   PAID: ['PROCESSING', 'CANCELLED'],
@@ -98,7 +98,6 @@ export function AdminOrdersTable() {
     if (!accessToken) return
     setIsExporting(true)
     try {
-      // Mirror the active status filter so the export matches what's visible.
       await downloadAdminOrdersCsv(
         statusFilter !== 'ALL' ? { status: statusFilter } : {},
         accessToken,
@@ -138,8 +137,6 @@ export function AdminOrdersTable() {
     },
   })
 
-  // Same gate as the order detail page: side-effect transitions confirm,
-  // others fire instantly.
   function handleStatusChange(orderId: string, newStatus: OrderStatus) {
     if (requiresStatusConfirmation(newStatus)) {
       setPendingTransition({ orderId, newStatus })

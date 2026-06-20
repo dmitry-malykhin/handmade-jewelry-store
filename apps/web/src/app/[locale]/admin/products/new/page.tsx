@@ -8,7 +8,6 @@ export const metadata: Metadata = {
 }
 
 export default async function AdminNewProductPage() {
-  // Fetch categories server-side — no loading state in form, instant render
   const categories = await fetchCategories()
 
   return (

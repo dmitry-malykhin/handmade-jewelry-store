@@ -33,10 +33,8 @@ import {
 
 const PRODUCTION_STATUSES: ProductionStatus[] = ['QUEUED', 'IN_PRODUCTION', 'READY_TO_SHIP']
 
-/**
- * Days between two dates, rounded toward zero so a deadline 1.5 days away
- * shows as "1 day left" (under-promise) rather than "2 days left".
- */
+// Rounded toward zero — a deadline 1.5 days away shows as "1 day left"
+// (under-promise).
 function daysUntil(deadlineIso: string): number {
   const now = Date.now()
   const deadline = new Date(deadlineIso).getTime()
@@ -158,10 +156,7 @@ function ProductionRow({ order, onUpdateStatus, onSaveNotes, isSaving }: Product
     onSaveNotes(trimmed)
   }
 
-  const mtoItemCount = order.items.filter(
-    // OrderItem.productSnapshot.title is the human-friendly label captured at order time
-    (item) => item.productSnapshot?.title,
-  ).length
+  const mtoItemCount = order.items.filter((item) => item.productSnapshot?.title).length
 
   return (
     <TableRow>
