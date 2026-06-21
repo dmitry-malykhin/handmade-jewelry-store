@@ -1,5 +1,3 @@
-// Shared TypeScript types used across apps/web and apps/api
-
 export type { MeasurementSystem, ConvertedLength } from './measurementConverter'
 export { convertLength, convertDimensions } from './measurementConverter'
 
@@ -9,8 +7,6 @@ export {
   isDisplayCurrency,
   formatCurrencyPrice,
 } from './formatCurrencyPrice'
-
-// ── Products ──────────────────────────────────────────────────────────────────
 
 export type StockType = 'IN_STOCK' | 'MADE_TO_ORDER' | 'ONE_OF_A_KIND'
 
@@ -30,7 +26,7 @@ export interface Product {
   id: string
   title: string
   description: string
-  price: string // Prisma Decimal serialises to string in JSON
+  price: string // Prisma Decimal → string in JSON
   stock: number
   images: string[]
   slug: string
@@ -64,8 +60,6 @@ export interface ProductsResponse {
   }
 }
 
-// ── API wrappers ──────────────────────────────────────────────────────────────
-
 export type ApiResponse<T> = {
   data: T
   message?: string
@@ -77,34 +71,19 @@ export type PaginatedResponse<T> = ApiResponse<T[]> & {
   limit: number
 }
 
-// ── Cart ──────────────────────────────────────────────────────────────────────
-
-/**
- * Snapshot of a product captured when it is added to the cart.
- * Intentionally flat — cart items are independent of live product data.
- */
 export interface CartItem {
   productId: string
-  slug: string // for URL: /products/sterling-silver-ring
+  slug: string
   title: string
-  price: number // USD, e.g. 49.99
-  image: string // URL of the primary product image
+  price: number
+  image: string
   quantity: number
-  // Production lead time (business days) captured at add-to-cart time.
-  // Drives per-item ETA in cart and order ETA at checkout. 0 = ships immediately.
-  // Optional so older persisted carts (without the field) stay valid.
+  // Optional — older persisted carts (pre-field) must stay valid.
   productionDays?: number
 }
 
-// ── User ──────────────────────────────────────────────────────────────────────
-
 export type UserRole = 'customer' | 'admin'
 
-/**
- * Authenticated user profile.
- * Populated after login; stored only in memory (not persisted to localStorage).
- * Auth is driven by HTTP-only cookie — this type holds the decoded user data.
- */
 export interface UserProfile {
   id: string
   email: string
@@ -112,8 +91,6 @@ export interface UserProfile {
   role: UserRole
   avatarUrl: string | null
 }
-
-// ── Admin ─────────────────────────────────────────────────────────────────────
 
 export interface AdminStats {
   productCount: number
@@ -124,7 +101,7 @@ export interface AdminStats {
 export type RevenueChartPeriod = '7d' | '30d' | '90d' | '1y'
 
 export interface RevenueChartDataPoint {
-  date: string // ISO date string YYYY-MM-DD
+  date: string
   revenueCents: number
 }
 
@@ -135,7 +112,6 @@ export interface RevenueStats {
   chartData: RevenueChartDataPoint[]
 }
 
-/** Top-products analytics row. One per product, ranked by revenue desc. */
 export interface TopProductRow {
   productId: string
   slug: string
@@ -157,20 +133,14 @@ export type OrderStatusForBreakdown =
   | 'REFUNDED'
   | 'PARTIALLY_REFUNDED'
 
-/** Status → count for the donut chart on /admin/analytics. */
 export interface OrderStatusBreakdownRow {
   status: OrderStatusForBreakdown
   count: number
 }
 
-/** Topline business metrics on /admin/analytics — period-scoped. */
 export interface KeyMetrics {
-  /** Customers with their first paid order inside the period. */
   newCustomers: number
-  /** Customers with ≥2 paid orders ever, at least one inside the period. */
   returningCustomers: number
-  /** Percentage 0-100. (refundedOrders / paidOrders) × 100 inside the period. */
   refundRatePercent: number
-  /** Mean of (deliveredAt − createdAt) days for orders DELIVERED inside the period. */
   avgDaysOrderToDelivery: number
 }

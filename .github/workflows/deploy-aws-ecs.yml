@@ -1,33 +1,9 @@
-# Deploy NestJS API to AWS ECS Fargate (#82).
-#
-# Cutover-aware: the Fly.io workflow (deploy-flyio-production.yml) is the
-# default pre-revenue. This one is `workflow_dispatch`-gated so the cutover
-# is intentional — you don't accidentally start running both deploys in
-# parallel and end up paying for both stacks.
-#
-# Required GitHub Secrets (set BEFORE first run — see Terraform output):
-#   AWS_ACCESS_KEY_ID
-#   AWS_SECRET_ACCESS_KEY
-#   AWS_REGION                 (e.g. us-east-1)
-#   AWS_ECR_REPOSITORY         (e.g. handmade-jewelry-store-api)
-#   AWS_ECS_CLUSTER            (e.g. handmade-jewelry-store-cluster)
-#   AWS_ECS_SERVICE            (e.g. handmade-jewelry-store-api)
-#   AWS_ECS_TASK_FAMILY        (e.g. handmade-jewelry-store-api)
-#   AWS_ECS_CONTAINER_NAME     (e.g. api)
-#   AWS_API_HEALTH_URL         (e.g. https://api.senichka.com/api/health)
-#
 # Cutover runbook: docs/runbooks/aws-ecs-deploy.md
 
 name: Deploy API to AWS ECS
 
 on:
-  # Manual trigger only until we cut over from Fly.io. After cutover, flip to
-  #   push:
-  #     branches: [main]
-  #     paths:
-  #       - 'apps/api/**'
-  #       - 'packages/shared/**'
-  #       - 'apps/api/Dockerfile'
+  # Manual until Fly.io → ECS cutover; then switch to push: branches: [main].
   workflow_dispatch:
     inputs:
       skip_migrations:
@@ -53,8 +29,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Standard AWS SDK auth via static access keys. We can swap this for
-      # OIDC federation later (post-MVP improvement noted in infra/aws/README).
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -69,9 +43,6 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # The image tag is the commit SHA so every deploy is identifiable in
-      # ECR + ECS console + CloudWatch logs. We also tag :latest for casual
-      # `docker pull` from the runbook — the SHA tag is what ECS uses.
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
@@ -85,11 +56,6 @@ jobs:
           cache-to: type=gha,mode=max
           platforms: linux/amd64
 
-      # Pull the current task definition, swap the image, register a new
-      # revision, and update the service. amazon-ecs-render-task-definition
-      # is the official AWS action — it preserves everything else (env vars,
-      # secrets, healthCheck, etc.) so we don't have to maintain a duplicate
-      # task def JSON in this repo.
       - name: Download current task definition
         run: |
           aws ecs describe-task-definition \
@@ -105,15 +71,11 @@ jobs:
           container-name: ${{ secrets.AWS_ECS_CONTAINER_NAME }}
           image: ${{ steps.ecr-login.outputs.registry }}/${{ secrets.AWS_ECR_REPOSITORY }}:sha-${{ github.sha }}
 
-      # Prisma migrations run in a one-off Fargate task BEFORE rolling the
-      # service forward. This keeps schema changes deterministic: if the
-      # migration fails, the existing pods stay up on the old schema.
+      # Migrations run in a one-off Fargate task BEFORE the rolling update.
+      # If they fail, existing pods stay up on the old schema.
       - name: Apply pending Prisma migrations
         if: ${{ inputs.skip_migrations != true }}
         run: |
-          # Reuse the rendered task definition but override the command to
-          # run the migration instead of starting the API. We run it in a
-          # one-off task and wait for it to finish.
           aws ecs run-task \
             --cluster "${{ secrets.AWS_ECS_CLUSTER }}" \
             --task-definition "${{ secrets.AWS_ECS_TASK_FAMILY }}" \
@@ -126,7 +88,6 @@ jobs:
           echo "Waiting for migration task $TASK_ARN to finish..."
           aws ecs wait tasks-stopped --cluster "${{ secrets.AWS_ECS_CLUSTER }}" --tasks "$TASK_ARN"
 
-          # Surface the exit code of the migration container.
           EXIT_CODE=$(aws ecs describe-tasks --cluster "${{ secrets.AWS_ECS_CLUSTER }}" --tasks "$TASK_ARN" --query 'tasks[0].containers[0].exitCode' --output text)
           if [ "$EXIT_CODE" != "0" ]; then
             echo "Migration failed with exit code $EXIT_CODE — service NOT updated."
@@ -141,17 +102,12 @@ jobs:
           task-definition: ${{ steps.render.outputs.task-definition }}
           service: ${{ secrets.AWS_ECS_SERVICE }}
           cluster: ${{ secrets.AWS_ECS_CLUSTER }}
-          # `wait-for-service-stability: true` blocks until ECS reports the
-          # new task healthy AND drained the old one. This is what gives us
-          # zero-downtime semantics in the workflow's own pass/fail.
           wait-for-service-stability: true
           wait-for-minutes: 15
 
       - name: Smoke test — /api/health
         run: |
-          # Give the ALB a beat to register the fresh task. wait-for-service-stability
-          # ends when ECS says steady-state, but the ALB target-group health check
-          # has its own ~30s settle window.
+          # ALB target-group health check has its own ~30s settle window after ECS reports steady-state.
           sleep 20
           curl --fail --show-error --silent --max-time 10 \
             "${{ secrets.AWS_API_HEALTH_URL }}" \

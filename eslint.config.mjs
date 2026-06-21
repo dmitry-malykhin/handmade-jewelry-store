@@ -3,7 +3,6 @@ import tseslint from 'typescript-eslint'
 import prettierConfig from 'eslint-config-prettier'
 
 export default tseslint.config(
-  // ── Ignore patterns ──────────────────────────────────────────────────────────
   {
     ignores: [
       '**/node_modules/**',
@@ -18,43 +17,33 @@ export default tseslint.config(
     ],
   },
 
-  // ── TypeScript recommended rules ─────────────────────────────────────────────
   ...tseslint.configs.recommended,
 
-  // ── Prettier compatibility — must be last ─────────────────────────────────────
   prettierConfig,
 
-  // ── Project-specific rules (from CODE_RULES.docx) ─────────────────────────────
   {
     rules: {
-      // Enforce explicit types — no 'any' allowed (CODE_RULES §2)
       '@typescript-eslint/no-explicit-any': 'error',
 
-      // Unused vars allowed only with underscore prefix (_varName)
       '@typescript-eslint/no-unused-vars': [
         'error',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
       ],
 
-      // Prefer 'type' imports for TypeScript types
       '@typescript-eslint/consistent-type-imports': [
         'error',
         { prefer: 'type-imports', fixStyle: 'inline-type-imports' },
       ],
 
-      // Allow implicit return types (too noisy for React components)
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/explicit-module-boundary-types': 'off',
 
-      // Allow non-null assertions when developer is confident
       '@typescript-eslint/no-non-null-assertion': 'warn',
     },
   },
 
-  // ── NestJS (apps/api) — DI tokens must be value imports, not type-only ────────
-  // NestJS constructor injection uses class references as reflect-metadata tokens
-  // at runtime. `import type` removes the import from JS output, breaking DI.
-  // This override must come AFTER the global rules to take precedence.
+  // NestJS DI tokens use class refs as reflect-metadata at runtime; `import type`
+  // would strip them from JS output and break DI. Must come AFTER global rules.
   {
     files: ['apps/api/**/*.ts'],
     rules: {
@@ -62,8 +51,6 @@ export default tseslint.config(
     },
   },
 
-  // ── Tests — `arr[i]!` is fine when the test itself controls the array size.
-  // Production code still gets the `warn` from above.
   {
     files: [
       '**/__tests__/**/*.ts',
