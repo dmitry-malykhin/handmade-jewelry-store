@@ -36,16 +36,12 @@ jobs:
       - name: Check formatting
         run: pnpm format:check
 
+      # New critical CVEs fail the PR; non-critical exceptions in docs/security-acceptance.md.
       - name: Audit dependencies (critical only)
-        # Anything above critical is documented in docs/security-acceptance.md.
-        # New critical CVEs fail the PR — they need a triage before landing.
         run: pnpm audit --audit-level=critical
 
   build-web:
     name: Production Build (web)
-    # `tsc --noEmit` covers all files (incl. tests); `next build` only checks
-    # what it bundles. Running tsc first surfaces broken test fixtures and
-    # other type drift that would otherwise sneak past the build step.
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -63,13 +59,14 @@ jobs:
       - name: Install dependencies
         run: HUSKY=0 pnpm install --frozen-lockfile
 
+      # tsc covers all files (incl. tests); next build only what it bundles —
+      # running tsc first surfaces broken fixtures / type drift early.
       - name: Type-check (tsc --noEmit)
         run: pnpm --filter web exec tsc --noEmit
 
       - name: Build
         run: pnpm --filter web build
         env:
-          # Sentry credentials aren't in PR context; suppress related warnings.
           SENTRY_SUPPRESS_INSTRUMENTATION_FILE_WARNING: 1
 
   unit-tests-web:
@@ -92,11 +89,6 @@ jobs:
         run: HUSKY=0 pnpm install --frozen-lockfile
 
       - name: Run Vitest
-        # CI env var triggers the junit reporter (see apps/web/vitest.config.ts)
-        # so `apps/web/reports/junit.xml` is produced for future tooling
-        # (download-as-artifact, Allure, etc.) — not consumed in this workflow.
-        # The same env var enables the allure-vitest reporter; allure-results/
-        # is uploaded below so the `allure-publish` job can stitch it together.
         run: pnpm --filter web test:run
 
       - name: Upload web Allure results
@@ -145,7 +137,7 @@ jobs:
   e2e-tests:
     name: E2E Tests (Playwright)
     runs-on: ubuntu-latest
-    # E2E runs on push to main only — keeps PR checks fast
+    # Push to main only — keeps PR checks fast.
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
       - name: Checkout
@@ -189,10 +181,7 @@ jobs:
   allure-publish:
     name: Publish Allure dashboard to GitHub Pages
     needs: [unit-tests-web, unit-tests-api, e2e-tests]
-    # Run only on push to main — the dashboard tracks historical trends and
-    # there's no value rebuilding it on every PR. `if: always()` lets us
-    # publish even when one of the test jobs failed (the report shows the
-    # failures, which is the whole point).
+    # `if: always()` so the dashboard shows failed runs too — that's the point.
     if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
@@ -244,9 +233,8 @@ jobs:
           path: gh-pages-existing
         continue-on-error: true
 
-      # Allure's trend graph requires the prior `history/` folder to be copied
-      # back into `allure-results/` before generating. Missing history is OK
-      # on the first run — the trend will just start empty.
+      # Allure trend graph requires prior history/ to be copied back into
+      # allure-results/ before generating. Missing on first run is fine.
       - name: Restore Allure history
         if: steps.check.outputs.has_results == 'true'
         run: |

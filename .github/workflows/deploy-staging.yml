@@ -1,12 +1,5 @@
-# Auto-deploy NestJS API to Fly.io staging on merge to main.
-# Requires FLY_API_TOKEN secret in GitHub repo settings.
-# Docs: docs/17_STAGING_ENVIRONMENTS.md
-#
-# Gate: job is skipped until the operator sets repo variable
-#   FLY_DEPLOY_ENABLED=true
-# (Settings → Secrets and variables → Actions → Variables). Until then we
-# don't have a Fly.io app or FLY_API_TOKEN, and running flyctl would fail
-# every merge for no reason.
+# Setup: docs/17_STAGING_ENVIRONMENTS.md
+# Gate: skipped until repo variable FLY_DEPLOY_ENABLED=true is set.
 
 name: Deploy API to staging
 
