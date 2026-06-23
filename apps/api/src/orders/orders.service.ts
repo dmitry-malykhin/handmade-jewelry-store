@@ -3,6 +3,7 @@ import { OrderStatus, PaymentStatus, Prisma, StockType } from '@prisma/client'
 import { Decimal, InputJsonValue } from '@prisma/client/runtime/library'
 import { AnalyticsService } from '../analytics/analytics.service'
 import { buildCsvDocument } from '../common/csv/csv-formatter'
+import { paginate } from '../common/pagination/paginate'
 import { EmailService } from '../email/email.service'
 import { LoyaltyService } from '../loyalty/loyalty.service'
 import { PrismaService } from '../prisma/prisma.service'
@@ -214,34 +215,25 @@ export class OrdersService {
   }
 
   async findAll(orderQueryDto: OrderQueryDto) {
-    const { page = 1, limit = 20, status, userId } = orderQueryDto
-    const skip = (page - 1) * limit
+    const { page, limit, status, userId } = orderQueryDto
 
     const whereClause = {
       ...(status && { status }),
       ...(userId && { userId }),
     }
 
-    const [orders, totalCount] = await Promise.all([
-      this.prismaService.order.findMany({
-        where: whereClause,
-        skip,
-        take: limit,
-        include: { items: true },
-        orderBy: { createdAt: 'desc' },
-      }),
-      this.prismaService.order.count({ where: whereClause }),
-    ])
-
-    return {
-      data: orders,
-      meta: {
-        totalCount,
-        page,
-        limit,
-        totalPages: Math.ceil(totalCount / limit),
-      },
-    }
+    return paginate(
+      { page, limit },
+      (skip, take) =>
+        this.prismaService.order.findMany({
+          where: whereClause,
+          skip,
+          take,
+          include: { items: true },
+          orderBy: { createdAt: 'desc' },
+        }),
+      () => this.prismaService.order.count({ where: whereClause }),
+    )
   }
 
   async findUserOrders(userId: string) {

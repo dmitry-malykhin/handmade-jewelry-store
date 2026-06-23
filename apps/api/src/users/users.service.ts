@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { OrderStatus, Role } from '@prisma/client'
 import * as bcrypt from 'bcrypt'
+import { paginate } from '../common/pagination/paginate'
 import { PrismaService } from '../prisma/prisma.service'
 import { AdminCustomerQueryDto } from './dto/admin-customer-query.dto'
 
@@ -42,8 +43,7 @@ export class UsersService {
   // JS aggregation rather than SQL subquery — customer rosters are small for
   // handmade stores, and keeps the SQL portable across SQLite/Postgres.
   async findAllCustomers(adminCustomerQueryDto: AdminCustomerQueryDto) {
-    const { page = 1, limit = 20, search } = adminCustomerQueryDto
-    const skip = (page - 1) * limit
+    const { page, limit, search } = adminCustomerQueryDto
 
     const whereClause = {
       role: Role.USER,
@@ -52,20 +52,22 @@ export class UsersService {
       }),
     }
 
-    const [users, totalCount] = await Promise.all([
-      this.prismaService.user.findMany({
-        where: whereClause,
-        skip,
-        take: limit,
-        include: {
-          orders: {
-            select: { status: true, total: true, refundAmount: true, createdAt: true },
+    const { data: users, meta } = await paginate(
+      { page, limit },
+      (skip, take) =>
+        this.prismaService.user.findMany({
+          where: whereClause,
+          skip,
+          take,
+          include: {
+            orders: {
+              select: { status: true, total: true, refundAmount: true, createdAt: true },
+            },
           },
-        },
-        orderBy: { createdAt: 'desc' },
-      }),
-      this.prismaService.user.count({ where: whereClause }),
-    ])
+          orderBy: { createdAt: 'desc' },
+        }),
+      () => this.prismaService.user.count({ where: whereClause }),
+    )
 
     const data = users.map((user) => {
       const revenueOrders = user.orders.filter((order) =>
@@ -88,15 +90,7 @@ export class UsersService {
       }
     })
 
-    return {
-      data,
-      meta: {
-        totalCount,
-        page,
-        limit,
-        totalPages: Math.ceil(totalCount / limit),
-      },
-    }
+    return { data, meta }
   }
 
   async findCustomerById(userId: string) {

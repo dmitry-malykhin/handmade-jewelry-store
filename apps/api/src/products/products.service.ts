@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { ProductStatus, StockType } from '@prisma/client'
 import { buildCsvDocument } from '../common/csv/csv-formatter'
+import { paginate } from '../common/pagination/paginate'
 import { PrismaService } from '../prisma/prisma.service'
 import { BackInStockService } from '../wishlist/back-in-stock.service'
 import { BulkProductAction, BulkProductsActionDto } from './dto/bulk-products-action.dto'
@@ -31,8 +32,8 @@ export class ProductsService {
 
   async findAll(productQueryDto: ProductQueryDto) {
     const {
-      page = 1,
-      limit = 20,
+      page,
+      limit,
       categorySlug,
       search,
       minPrice,
@@ -41,7 +42,6 @@ export class ProductsService {
       sortBy = ProductSortField.CREATED_AT,
       sortOrder = SortOrder.DESC,
     } = productQueryDto
-    const skip = (page - 1) * limit
 
     const whereClause = {
       status: ProductStatus.ACTIVE,
@@ -61,26 +61,18 @@ export class ProductsService {
       ...(material && { material: { contains: material, mode: 'insensitive' as const } }),
     }
 
-    const [products, totalCount] = await Promise.all([
-      this.prismaService.product.findMany({
-        where: whereClause,
-        skip,
-        take: limit,
-        include: { category: { select: { name: true, slug: true } } },
-        orderBy: { [sortBy]: sortOrder },
-      }),
-      this.prismaService.product.count({ where: whereClause }),
-    ])
-
-    return {
-      data: products,
-      meta: {
-        totalCount,
-        page,
-        limit,
-        totalPages: Math.ceil(totalCount / limit),
-      },
-    }
+    return paginate(
+      { page, limit },
+      (skip, take) =>
+        this.prismaService.product.findMany({
+          where: whereClause,
+          skip,
+          take,
+          include: { category: { select: { name: true, slug: true } } },
+          orderBy: { [sortBy]: sortOrder },
+        }),
+      () => this.prismaService.product.count({ where: whereClause }),
+    )
   }
 
   async findOneBySlug(productSlug: string) {
@@ -169,15 +161,14 @@ export class ProductsService {
 
   async findAllAdmin(adminProductQueryDto: AdminProductQueryDto) {
     const {
-      page = 1,
-      limit = 20,
+      page,
+      limit,
       status,
       categorySlug,
       search,
       sortBy = ProductSortField.CREATED_AT,
       sortOrder = SortOrder.DESC,
     } = adminProductQueryDto
-    const skip = (page - 1) * limit
 
     const whereClause = {
       ...(status && { status }),
@@ -190,26 +181,18 @@ export class ProductsService {
       }),
     }
 
-    const [products, totalCount] = await Promise.all([
-      this.prismaService.product.findMany({
-        where: whereClause,
-        skip,
-        take: limit,
-        include: { category: { select: { name: true, slug: true } } },
-        orderBy: { [sortBy]: sortOrder },
-      }),
-      this.prismaService.product.count({ where: whereClause }),
-    ])
-
-    return {
-      data: products,
-      meta: {
-        totalCount,
-        page,
-        limit,
-        totalPages: Math.ceil(totalCount / limit),
-      },
-    }
+    return paginate(
+      { page, limit },
+      (skip, take) =>
+        this.prismaService.product.findMany({
+          where: whereClause,
+          skip,
+          take,
+          include: { category: { select: { name: true, slug: true } } },
+          orderBy: { [sortBy]: sortOrder },
+        }),
+      () => this.prismaService.product.count({ where: whereClause }),
+    )
   }
 
   // `affectedCount` lets callers detect partial application (an id deleted

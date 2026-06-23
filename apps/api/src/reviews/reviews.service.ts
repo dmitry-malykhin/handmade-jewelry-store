@@ -6,6 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common'
 import { OrderStatus, Prisma, ReviewStatus } from '@prisma/client'
+import { paginate } from '../common/pagination/paginate'
 import { PrismaService } from '../prisma/prisma.service'
 import { AdminReviewsQueryDto } from './dto/admin-reviews-query.dto'
 import { CreateReviewDto } from './dto/create-review.dto'
@@ -78,8 +79,6 @@ export class ReviewsService {
   }
 
   async findReviewsForProduct(productSlug: string, query: ReviewQueryDto) {
-    const { page = 1, limit = 10 } = query
-
     const product = await this.prismaService.product.findUnique({
       where: { slug: productSlug },
       select: { id: true, avgRating: true, reviewCount: true },
@@ -88,15 +87,20 @@ export class ReviewsService {
       throw new NotFoundException(`Product with slug "${productSlug}" not found`)
     }
 
-    const skip = (page - 1) * limit
-
-    const reviews = await this.prismaService.review.findMany({
-      where: { productId: product.id, status: ReviewStatus.APPROVED },
-      include: { user: { select: { email: true } } },
-      orderBy: { createdAt: 'desc' },
-      skip,
-      take: limit,
-    })
+    const { data: reviews, meta } = await paginate(
+      { page: query.page, limit: query.limit },
+      (skip, take) =>
+        this.prismaService.review.findMany({
+          where: { productId: product.id, status: ReviewStatus.APPROVED },
+          include: { user: { select: { email: true } } },
+          orderBy: { createdAt: 'desc' },
+          skip,
+          take,
+        }),
+      // Aggregate is already on the product row — avoid a redundant count() round-trip.
+      async () => product.reviewCount,
+      { page: 1, limit: 10 },
+    )
 
     // jane.doe@x.com → "Jane d." — privacy mask.
     const sanitized = reviews.map((review) => {
@@ -119,13 +123,7 @@ export class ReviewsService {
 
     return {
       data: sanitized,
-      meta: {
-        totalCount: product.reviewCount,
-        avgRating: product.avgRating,
-        page,
-        limit,
-        totalPages: Math.ceil(product.reviewCount / limit),
-      },
+      meta: { ...meta, avgRating: product.avgRating },
     }
   }
 
@@ -165,32 +163,28 @@ export class ReviewsService {
   }
 
   async findAllForAdmin(query: AdminReviewsQueryDto) {
-    const { status, rating, page = 1, limit = 20 } = query
-    const skip = (page - 1) * limit
+    const { status, rating, page, limit } = query
 
     const whereClause: Prisma.ReviewWhereInput = {
       ...(status && { status }),
       ...(rating !== undefined && { rating }),
     }
 
-    const [reviews, totalCount] = await Promise.all([
-      this.prismaService.review.findMany({
-        where: whereClause,
-        include: {
-          user: { select: { email: true } },
-          product: { select: { id: true, slug: true, title: true, images: true } },
-        },
-        orderBy: { createdAt: 'desc' },
-        skip,
-        take: limit,
-      }),
-      this.prismaService.review.count({ where: whereClause }),
-    ])
-
-    return {
-      data: reviews,
-      meta: { totalCount, page, limit, totalPages: Math.ceil(totalCount / limit) },
-    }
+    return paginate(
+      { page, limit },
+      (skip, take) =>
+        this.prismaService.review.findMany({
+          where: whereClause,
+          include: {
+            user: { select: { email: true } },
+            product: { select: { id: true, slug: true, title: true, images: true } },
+          },
+          orderBy: { createdAt: 'desc' },
+          skip,
+          take,
+        }),
+      () => this.prismaService.review.count({ where: whereClause }),
+    )
   }
 
   // Recomputes product.avgRating + reviewCount in the same transaction —
