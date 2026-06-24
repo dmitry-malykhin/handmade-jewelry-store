@@ -10,13 +10,6 @@ interface ThemeToggleProps {
   className?: string
 }
 
-/**
- * Animated dark / light mode toggle.
- * Sun and Moon icons overlap at the same position:
- *   light mode → Sun visible (scale-100), Moon hidden (scale-0, rotated 90°)
- *   dark mode  → Moon visible (scale-100), Sun hidden (scale-0, rotated -90°)
- * Both transitions run at 300ms with ease-in-out.
- */
 export function ThemeToggle({ className }: ThemeToggleProps) {
   const { resolvedTheme, setTheme } = useTheme()
   const t = useTranslations('header')
@@ -32,7 +25,6 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
       className={className}
       suppressHydrationWarning
     >
-      {/* Sun — visible in light mode */}
       <Sun
         className={cn(
           'absolute size-5 transition-all duration-300 ease-in-out',
@@ -40,7 +32,6 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
         )}
         aria-hidden="true"
       />
-      {/* Moon — visible in dark mode */}
       <Moon
         className={cn(
           'absolute size-5 transition-all duration-300 ease-in-out',

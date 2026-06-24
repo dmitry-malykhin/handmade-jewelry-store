@@ -1,11 +1,6 @@
 import { useTranslations } from 'next-intl'
 import { Link } from '@/i18n/navigation'
 
-/**
- * Desktop navigation links.
- * Server Component — useTranslations works on server with next-intl.
- * Link from @/i18n/navigation auto-prepends the active locale.
- */
 export function NavLinks() {
   const t = useTranslations('navigation')
 

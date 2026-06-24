@@ -27,19 +27,18 @@ export function CookieBanner() {
     marketing: false,
   })
 
-  // Sync draft with stored preferences when user opens the customise panel
   useEffect(() => {
     if (isCustomising) {
       setDraftPreferences(storedPreferences)
     }
   }, [isCustomising, storedPreferences])
 
-  // Zustand persist with skipHydration requires manual rehydration on mount
+  // skipHydration in the store requires manual rehydrate() on mount.
   useEffect(() => {
     useCookieConsentStore.persist.rehydrate()
   }, [])
 
-  // Keep banner hidden after SSR until client hydration completes
+  // Keeps banner invisible during SSR — prevents hydration mismatch.
   const [isMounted, setIsMounted] = useState(false)
   useEffect(() => {
     setIsMounted(true)
@@ -69,7 +68,6 @@ export function CookieBanner() {
     >
       <div className="mx-auto max-w-4xl">
         {!isCustomising ? (
-          /* ── Default view ─────────────────────────────────────────── */
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="flex-1">
               <p id="cookie-banner-title" className="mb-1 font-semibold text-foreground">
@@ -95,27 +93,21 @@ export function CookieBanner() {
             </div>
           </div>
         ) : (
-          /* ── Customise view ───────────────────────────────────────── */
           <div className="space-y-4">
             <p id="cookie-banner-title" className="font-semibold text-foreground">
               {t('title')}
             </p>
 
-            {/* Strictly necessary — always on, cannot be toggled */}
             <fieldset className="rounded-lg border border-border p-4">
               <div className="flex items-center justify-between">
                 <legend className="float-left font-medium text-foreground">
                   {t('necessaryLabel')}
                 </legend>
-                <span className="text-xs font-medium text-muted-foreground">
-                  {/* Always on — not a real toggle, just an indicator */}
-                  Always on
-                </span>
+                <span className="text-xs font-medium text-muted-foreground">Always on</span>
               </div>
               <p className="mt-1 text-sm text-muted-foreground">{t('necessaryDescription')}</p>
             </fieldset>
 
-            {/* Analytics */}
             <fieldset className="rounded-lg border border-border p-4">
               <div className="flex items-center justify-between">
                 <legend className="float-left font-medium text-foreground">
@@ -136,7 +128,6 @@ export function CookieBanner() {
               </Label>
             </fieldset>
 
-            {/* Marketing */}
             <fieldset className="rounded-lg border border-border p-4">
               <div className="flex items-center justify-between">
                 <legend className="float-left font-medium text-foreground">

@@ -10,38 +10,22 @@ interface MarkdownRendererProps {
   className?: string
 }
 
-/**
- * Project-styled Markdown renderer for admin help docs.
- *
- * Design choices:
- *  - GFM (tables, task lists, strikethrough) — our docs lean heavily on tables
- *    to describe field-by-field meaning.
- *  - `rehype-slug` injects ids on headings so future TOC / deep-linking works.
- *  - External links open in a new tab; internal admin links navigate inline.
- *  - Code blocks use the same surface treatment as inline code for visual
- *    consistency with the rest of the admin UI.
- */
 export function MarkdownRenderer({ content, className }: MarkdownRendererProps) {
   return (
     <div
       className={cn(
         'prose prose-sm max-w-none text-foreground',
-        // Headings
         'prose-headings:font-semibold prose-headings:text-foreground',
         'prose-h1:text-xl prose-h1:mb-3 prose-h1:mt-0',
         'prose-h2:text-base prose-h2:mt-6 prose-h2:mb-2 prose-h2:uppercase prose-h2:tracking-wide prose-h2:text-muted-foreground',
         'prose-h3:text-sm prose-h3:font-semibold prose-h3:mt-4 prose-h3:mb-1',
-        // Paragraphs / lists
         'prose-p:text-sm prose-p:text-foreground prose-p:leading-relaxed',
         'prose-li:text-sm prose-li:text-foreground prose-ul:my-2 prose-ol:my-2',
-        // Inline + block code
         'prose-code:rounded prose-code:bg-muted prose-code:px-1 prose-code:py-0.5 prose-code:text-xs prose-code:font-mono prose-code:before:content-none prose-code:after:content-none',
         'prose-pre:rounded-md prose-pre:bg-muted prose-pre:p-3 prose-pre:text-xs',
-        // Links + tables + strong
         'prose-a:text-primary prose-a:underline-offset-2 hover:prose-a:underline',
         'prose-strong:text-foreground',
         'prose-table:text-sm prose-th:text-foreground prose-td:text-foreground',
-        // Blockquotes
         'prose-blockquote:border-l-primary prose-blockquote:text-muted-foreground prose-blockquote:font-normal prose-blockquote:not-italic',
         className,
       )}

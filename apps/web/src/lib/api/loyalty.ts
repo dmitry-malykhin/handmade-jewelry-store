@@ -27,11 +27,8 @@ export async function fetchLoyaltyTransactions(accessToken: string): Promise<Loy
   })
 }
 
-/**
- * Maximum points the buyer can redeem on a single order. 50% of the
- * subtotal so Stripe fees stay payable in cash. Kept in sync with backend
- * `calculateMaxRedeemablePoints` in apps/api/src/loyalty/loyalty.service.ts.
- */
+// 50% cap so Stripe fees stay payable in cash. Mirrors backend
+// LoyaltyService.calculateMaxRedeemablePoints — keep both in sync.
 export function calculateMaxRedeemablePoints(subtotalUsd: number): number {
   if (!Number.isFinite(subtotalUsd) || subtotalUsd <= 0) return 0
   return Math.floor(subtotalUsd * 100 * 0.5)

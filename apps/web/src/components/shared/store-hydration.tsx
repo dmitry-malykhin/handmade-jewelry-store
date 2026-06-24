@@ -7,15 +7,9 @@ import { useCurrencyStore } from '@/store/currency.store'
 import { useMeasurementStore } from '@/store/measurement.store'
 import { useWishlistStore } from '@/store/wishlist.store'
 
-/**
- * Triggers Zustand persist rehydration on the client after first render.
- *
- * Both cart and auth stores use skipHydration: true to avoid SSR/client mismatches
- * (localStorage doesn't exist on the server). This component calls rehydrate()
- * inside useEffect — which only runs in the browser after hydration is complete.
- *
- * Place this once near the root of the client tree (locale layout).
- */
+// Mount once near the client tree root. Stores use skipHydration:true to avoid
+// SSR/client mismatch (no localStorage on server); rehydrate() must run in
+// useEffect AFTER hydration completes.
 export function StoreHydration() {
   useEffect(() => {
     useCartStore.persist.rehydrate()

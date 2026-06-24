@@ -27,10 +27,7 @@ export async function requestPresignedUrl(
   })
 }
 
-/**
- * Upload a file directly to S3 using a presigned PUT URL.
- * Uses XMLHttpRequest instead of fetch to support upload progress events.
- */
+// XMLHttpRequest (not fetch) — fetch has no upload progress events.
 export function uploadFileToS3(
   file: File,
   uploadUrl: string,
@@ -46,7 +43,6 @@ export function uploadFileToS3(
     })
 
     xhr.addEventListener('load', () => {
-      // S3 presigned PUT returns 200 on success
       if (xhr.status === 200) {
         resolve()
       } else {

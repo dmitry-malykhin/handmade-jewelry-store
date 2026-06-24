@@ -5,11 +5,8 @@ import { Button } from '@/components/ui/button'
 import { Link } from '@/i18n/navigation'
 
 interface ErrorMessageProps {
-  /** Specific error description shown below the heading */
   description?: string
-  /** Called when user clicks "Try again" — pass the reset fn from error.tsx */
   onRetry?: () => void
-  /** Show "Go to homepage" link instead of / in addition to retry button */
   showHomeLink?: boolean
 }
 

@@ -4,10 +4,6 @@ import { Link } from '@/i18n/navigation'
 import { CookiePreferencesButton } from '@/components/shared/cookie-preferences-button'
 import { NewsletterForm } from '@/components/features/newsletter/newsletter-form'
 
-/**
- * Site footer — Server Component.
- * All text from translations. locale-aware Link for all hrefs.
- */
 export function Footer() {
   const t = useTranslations('footer')
 

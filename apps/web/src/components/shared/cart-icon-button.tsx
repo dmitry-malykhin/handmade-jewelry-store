@@ -6,11 +6,6 @@ import { Link } from '@/i18n/navigation'
 import { Button } from '@/components/ui/button'
 import { useCartTotalItems } from '@/store'
 
-/**
- * Cart icon button with live item count badge.
- * Subscribes to Zustand cart store — updates automatically when items change.
- * Replaces the static cart button in Header.
- */
 export function CartIconButton() {
   const t = useTranslations('header')
   const totalItems = useCartTotalItems()

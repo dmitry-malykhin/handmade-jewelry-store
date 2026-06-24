@@ -7,22 +7,12 @@ import { Button } from '@/components/ui/button'
 import { HelpDrawer } from './help-drawer'
 
 interface HelpButtonProps {
-  /** docs/admin-help/{locale}/{slug}.md to load when the drawer opens */
+  // Resolves to docs/admin-help/{locale}/{slug}.md
   slug: string
-  /** Active admin locale — propagated to the drawer for content selection. */
   locale: string
 }
 
-/**
- * Floating help trigger for admin pages.
- *
- * Renders as a top-right ghost icon button (anchored via absolute positioning
- * by the consumer's layout) and listens for the global `?` keyboard shortcut.
- *
- * Shortcut design — `?` (no modifier) was chosen to match Linear / GitHub
- * convention. We ignore the key while typing in inputs / textareas / select
- * triggers so users entering literal `?` characters into forms are unaffected.
- */
+// `?` shortcut matches Linear/GitHub convention.
 export function HelpButton({ slug, locale }: HelpButtonProps) {
   const t = useTranslations('admin')
   const [isOpen, setIsOpen] = useState(false)
@@ -30,7 +20,7 @@ export function HelpButton({ slug, locale }: HelpButtonProps) {
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key !== '?') return
-      // Skip when focus is inside an editable element
+      // Skip when typing literal "?" into a form field.
       const target = event.target as HTMLElement | null
       if (!target) return
       const tag = target.tagName

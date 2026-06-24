@@ -22,18 +22,10 @@ export type UpdateSiteSettingsPayload = Partial<
   Omit<SiteSettings, 'id' | 'createdAt' | 'updatedAt'>
 >
 
-/**
- * Public read — no auth required. Storefront reads from this.
- */
 export async function fetchSiteSettings(): Promise<SiteSettings> {
   return apiClient<SiteSettings>('/api/settings')
 }
 
-/**
- * Admin read — same data but goes through the auth-guarded route. Used by
- * the settings form so we don't leak the public read endpoint into the admin
- * bundle accidentally.
- */
 export async function fetchAdminSiteSettings(accessToken: string): Promise<SiteSettings> {
   return apiClient<SiteSettings>('/api/admin/settings', {
     headers: { Authorization: `Bearer ${accessToken}` },
