@@ -14,7 +14,8 @@ import {
 
 export interface LocaleConfig {
   flag: string
-  name: string // always in the language itself: "Русский", not "Russian"
+  // Always in the language itself: "Русский", not "Russian".
+  name: string
   short: string
 }
 
@@ -24,12 +25,6 @@ export const LOCALES: Record<string, LocaleConfig> = {
   es: { flag: '🇪🇸', name: 'Español', short: 'ES' },
 }
 
-/**
- * Desktop language switcher.
- * Trigger shows the CURRENT locale's flag + 2-letter code — visible at a glance.
- * Dropdown shows flag + native language name + checkmark for active.
- * Position: header right side between cart and hamburger.
- */
 export function LanguageSwitcher() {
   const locale = useLocale()
   const router = useRouter()
@@ -56,7 +51,6 @@ export function LanguageSwitcher() {
           isPending && 'opacity-50',
         )}
       >
-        {/* Colored flag — immediately visible, no click needed */}
         <span aria-hidden="true" className="text-base leading-none">
           {current.flag}
         </span>

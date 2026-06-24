@@ -13,9 +13,7 @@ import { cn } from '@/lib/utils'
 import { useCurrencyStore } from '@/store/currency.store'
 
 interface CurrencyConfig {
-  /** Symbol shown in the dropdown trigger — visually distinct at a glance. */
   symbol: string
-  /** Full descriptive name; used in the dropdown and aria-label. */
   name: string
 }
 
@@ -25,11 +23,6 @@ export const CURRENCY_OPTIONS: Record<DisplayCurrency, CurrencyConfig> = {
   GBP: { symbol: '£', name: 'British Pound' },
 }
 
-/**
- * Header currency selector. Mirrors LanguageSwitcher visually so the two
- * controls feel like a pair — visitors used to picking their language find
- * currency in the same place.
- */
 export function CurrencySwitcher() {
   const t = useTranslations('currencySwitcher')
   const displayCurrency = useCurrencyStore((state) => state.displayCurrency)

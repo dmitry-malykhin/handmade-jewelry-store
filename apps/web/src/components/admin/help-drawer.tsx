@@ -12,9 +12,8 @@ import {
 import { MarkdownRenderer } from './markdown-renderer'
 
 interface HelpDrawerProps {
-  /** Slug like 'discounts/create' that maps to docs/admin-help/{locale}/{slug}.md */
+  // Maps to docs/admin-help/{locale}/{slug}.md
   slug: string
-  /** Active admin locale — `en`, `ru`, or `es`. */
   locale: string
   isOpen: boolean
   onClose: () => void
@@ -27,20 +26,11 @@ type FetchState =
   | { status: 'not-found' }
   | { status: 'error'; message: string }
 
-/**
- * Right-side drawer rendering an admin help Markdown article.
- *
- * Fetch is lazy: we wait for `isOpen` before hitting the network so the help
- * system has zero cost when admin doesn't ask for it. We also cache the last
- * fetched slug — closing & re-opening on the same page doesn't re-fetch.
- */
 export function HelpDrawer({ slug, locale, isOpen, onClose }: HelpDrawerProps) {
   const t = useTranslations('admin')
   const [fetchState, setFetchState] = useState<FetchState>({ status: 'idle' })
-  // Records the last (locale, slug) pair we resolved (in any terminal status).
-  // Used to skip refetch when the drawer re-opens on the same page in the same
-  // locale. We track it via ref — not state — so updating it does not
-  // retrigger the effect.
+  // Ref (not state) so updating it doesn't retrigger the effect; lets the drawer
+  // skip the refetch when re-opened on the same page in the same locale.
   const loadedKeyRef = useRef<string | null>(null)
   const cacheKey = `${locale}::${slug}`
 

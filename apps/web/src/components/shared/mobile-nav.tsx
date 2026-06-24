@@ -15,14 +15,6 @@ const NAV_LINKS = [
   { key: 'navigation.contact', href: '/contact' },
 ] as const
 
-/**
- * Mobile navigation:
- * - Hamburger button in the header (top-right)
- * - Animated slide-in sidebar from the right, full height minus header
- * - Semi-transparent backdrop closes the menu on tap
- * - Language selector as an accordion at the bottom (expandable dropdown)
- *   because more languages may be added in the future
- */
 export function MobileNav() {
   const [isOpen, setIsOpen] = useState(false)
   const [langOpen, setLangOpen] = useState(false)
@@ -36,12 +28,10 @@ export function MobileNav() {
 
   const current = LOCALES[locale] ?? (LOCALES['en'] as NonNullable<(typeof LOCALES)[string]>)
 
-  // Close sidebar when route changes (user navigated)
   useEffect(() => {
     setIsOpen(false)
   }, [pathname])
 
-  // Lock body scroll while sidebar is open
   useEffect(() => {
     document.body.style.overflow = isOpen ? 'hidden' : ''
     return () => {
@@ -63,7 +53,6 @@ export function MobileNav() {
 
   return (
     <div className="md:hidden">
-      {/* ── Hamburger toggle ──────────────────────────────────────────────── */}
       <Button
         variant="ghost"
         size="icon"
@@ -88,7 +77,6 @@ export function MobileNav() {
         />
       </Button>
 
-      {/* ── Backdrop ─────────────────────────────────────────────────────── */}
       <div
         aria-hidden="true"
         onClick={close}
@@ -99,22 +87,18 @@ export function MobileNav() {
         )}
       />
 
-      {/* ── Sliding sidebar ───────────────────────────────────────────────── */}
       <div
         id="mobile-menu"
         role="dialog"
         aria-modal="true"
         aria-label={t('header.openMenu')}
         className={cn(
-          // Sizing: full height minus header (h-16 = 4rem), max 320px wide
           'fixed right-0 top-16 z-50 flex h-[calc(100dvh-4rem)] w-[min(320px,85vw)] flex-col',
           'border-l bg-background shadow-2xl',
-          // Slide animation
           'transition-transform duration-300 ease-in-out',
           isOpen ? 'translate-x-0' : 'translate-x-full',
         )}
       >
-        {/* Nav links — scrollable if many items */}
         <nav aria-label="Mobile navigation" className="flex-1 overflow-y-auto px-3 py-6">
           <ul role="list" className="flex flex-col gap-1">
             {NAV_LINKS.map(({ key, href }) => (
@@ -131,9 +115,7 @@ export function MobileNav() {
           </ul>
         </nav>
 
-        {/* ── Bottom controls (theme + language) ────────────────────────── */}
         <div className="shrink-0 border-t px-3 py-4">
-          {/* Theme toggle row */}
           <button
             type="button"
             onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
@@ -146,7 +128,6 @@ export function MobileNav() {
             <span className="dark:hidden">{t('header.switchToDark')}</span>
             <span className="hidden dark:inline">{t('header.switchToLight')}</span>
           </button>
-          {/* Accordion trigger */}
           <button
             type="button"
             onClick={() => setLangOpen((prev) => !prev)}
@@ -165,7 +146,6 @@ export function MobileNav() {
             />
           </button>
 
-          {/* Accordion panel — smooth height animation */}
           <div
             className={cn(
               'overflow-hidden transition-all duration-300 ease-in-out',

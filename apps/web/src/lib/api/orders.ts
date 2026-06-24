@@ -32,7 +32,7 @@ export interface CreateOrderPayload {
   subtotal: number
   shippingCost: number
   total: number
-  /** Loyalty points the buyer chose to redeem. Server clamps. */
+  // Server clamps to balance + 50% subtotal.
   loyaltyPointsToRedeem?: number
   source?: string
 }
@@ -167,16 +167,11 @@ export async function createOrder(payload: CreateOrderPayload): Promise<CreatedO
 
 export interface AdminOrdersExportParams {
   status?: OrderStatus
-  /** ISO 8601 date or datetime — inclusive lower bound on `createdAt`. */
+  // ISO 8601, inclusive bounds on `createdAt`.
   from?: string
-  /** ISO 8601 date or datetime — inclusive upper bound on `createdAt`. */
   to?: string
 }
 
-/**
- * Triggers a browser download of the admin CSV export. Filters are optional —
- * an empty params object exports every order.
- */
 export async function downloadAdminOrdersCsv(
   params: AdminOrdersExportParams,
   accessToken: string,
@@ -253,7 +248,7 @@ export type RefundReason =
   | 'OTHER'
 
 export interface RefundOrderPayload {
-  /** Amount in USD. Omit for full refund of remaining amount. */
+  // Amount in USD. Omit for full refund of remaining amount.
   amount?: number
   reason: RefundReason
   note?: string
@@ -272,12 +267,11 @@ export async function refundAdminOrder(
 }
 
 export interface AdminRefundsQueryParams {
-  /** ISO 8601 date or datetime — inclusive lower bound on `refundedAt`. */
+  // ISO 8601, inclusive bounds on `refundedAt`.
   from?: string
-  /** ISO 8601 date or datetime — inclusive upper bound on `refundedAt`. */
   to?: string
   reason?: RefundReason
-  /** Substring match against guest email or registered customer email. */
+  // Substring match against guest email or registered customer email.
   customer?: string
 }
 
@@ -303,9 +297,8 @@ export type ProductionStatus = 'QUEUED' | 'IN_PRODUCTION' | 'READY_TO_SHIP'
 export interface ProductionQueueItem extends AdminOrderDetail {
   productionStatus: ProductionStatus
   productionNotes: string | null
-  /** ISO date — computed deadline = order.createdAt + max(productionDays) across MTO items */
+  // ISO date = order.createdAt + max(productionDays across MTO items).
   productionDeadlineAt: string
-  /** Max productionDays across MTO items in this order, for "X-day window" hints */
   maxProductionDays: number
 }
 
