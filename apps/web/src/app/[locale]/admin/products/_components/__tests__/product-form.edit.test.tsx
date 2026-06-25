@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import userEvent from '@testing-library/user-event'
 import { render, screen, waitFor } from '@/test-utils'
-import { EditProductForm } from '../edit-product-form'
+import { ProductForm } from '../product-form'
 import { updateAdminProduct } from '@/lib/api/products'
 import { useAuthStore } from '@/store/auth.store'
 import type { Category, Product } from '@jewelry/shared'
@@ -12,6 +12,7 @@ import {
 } from 'allure-js-commons'
 
 vi.mock('@/lib/api/products', () => ({
+  createAdminProduct: vi.fn(),
   updateAdminProduct: vi.fn(),
 }))
 
@@ -80,13 +81,13 @@ beforeEach(() => {
 beforeEach(async () => {
   if (!process.env.CI) return
   await $allureSuite('web/app/locale')
-  await $allureSubSuite('edit-product-form')
+  await $allureSubSuite('product-form/edit')
   await $allureSeverity('normal')
 })
 
-describe('EditProductForm', () => {
+describe('ProductForm (edit)', () => {
   it('pre-fills inputs from API product data', () => {
-    render(<EditProductForm categories={sampleCategories} product={sampleProduct} />)
+    render(<ProductForm mode="edit" categories={sampleCategories} product={sampleProduct} />)
 
     expect(screen.getByDisplayValue('Silver Ring')).toBeInTheDocument()
     expect(screen.getByDisplayValue('silver-ring')).toBeInTheDocument()
@@ -102,7 +103,7 @@ describe('EditProductForm', () => {
       stock: 0,
     })
 
-    render(<EditProductForm categories={sampleCategories} product={sampleProduct} />)
+    render(<ProductForm mode="edit" categories={sampleCategories} product={sampleProduct} />)
 
     const titleInput = screen.getByPlaceholderText(/northern lights bracelet/i)
     await userEvent.clear(titleInput)

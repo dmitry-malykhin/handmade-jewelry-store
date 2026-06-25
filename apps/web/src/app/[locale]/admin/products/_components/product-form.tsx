@@ -21,19 +21,18 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useAuthStore } from '@/store/auth.store'
-import { updateAdminProduct } from '@/lib/api/products'
+import { createAdminProduct, updateAdminProduct } from '@/lib/api/products'
 import { ApiError } from '@/lib/api/client'
-import { ProductImageUpload } from '../../../_components/product-image-upload'
+import { ProductImageUpload } from './product-image-upload'
 import {
   createProductSchema,
   STOCK_TYPES,
   type CreateProductFormValues,
-} from '../../../_lib/create-product-schema'
+} from '../_lib/create-product-schema'
 
-interface EditProductFormProps {
-  categories: Category[]
-  product: Product
-}
+type ProductFormProps =
+  | { mode: 'create'; categories: Category[] }
+  | { mode: 'edit'; categories: Category[]; product: Product }
 
 function generateSlugFromTitle(title: string): string {
   return title
@@ -69,18 +68,57 @@ function FormField({
   )
 }
 
-export function EditProductForm({ categories, product }: EditProductFormProps) {
+function buildDefaultValues(product: Product | undefined): Partial<CreateProductFormValues> {
+  if (!product) {
+    return {
+      stockType: 'IN_STOCK',
+      stock: 0,
+      productionDays: 0,
+      images: [],
+    }
+  }
+  return {
+    title: product.title,
+    description: product.description,
+    price: Number(product.price),
+    stock: product.stock,
+    images: product.images,
+    slug: product.slug,
+    categoryId: product.categoryId,
+    sku: product.sku ?? '',
+    material: product.material ?? '',
+    stockType: product.stockType,
+    productionDays: product.productionDays,
+    lengthCm: product.lengthCm ?? undefined,
+    widthCm: product.widthCm ?? undefined,
+    heightCm: product.heightCm ?? undefined,
+    diameterCm: product.diameterCm ?? undefined,
+    weightGrams: product.weightGrams ?? undefined,
+    beadSizeMm: product.beadSizeMm ?? undefined,
+  }
+}
+
+function hasAnyDimension(product: Product): boolean {
+  return (
+    product.lengthCm !== null ||
+    product.widthCm !== null ||
+    product.heightCm !== null ||
+    product.diameterCm !== null ||
+    product.weightGrams !== null ||
+    product.beadSizeMm !== null
+  )
+}
+
+export function ProductForm(props: ProductFormProps) {
+  const isCreate = props.mode === 'create'
+  const product = props.mode === 'edit' ? props.product : undefined
+
   const t = useTranslations('admin')
   const router = useRouter()
   const queryClient = useQueryClient()
   const accessToken = useAuthStore((state) => state.accessToken)
   const [isDimensionsOpen, setIsDimensionsOpen] = useState(
-    product.lengthCm !== null ||
-      product.widthCm !== null ||
-      product.heightCm !== null ||
-      product.diameterCm !== null ||
-      product.weightGrams !== null ||
-      product.beadSizeMm !== null,
+    product ? hasAnyDimension(product) : false,
   )
   const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(false)
   const slugDebounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -94,25 +132,7 @@ export function EditProductForm({ categories, product }: EditProductFormProps) {
     formState: { errors, isSubmitting },
   } = useForm<CreateProductFormValues>({
     resolver: zodResolver(createProductSchema),
-    defaultValues: {
-      title: product.title,
-      description: product.description,
-      price: Number(product.price),
-      stock: product.stock,
-      images: product.images,
-      slug: product.slug,
-      categoryId: product.categoryId,
-      sku: product.sku ?? '',
-      material: product.material ?? '',
-      stockType: product.stockType,
-      productionDays: product.productionDays,
-      lengthCm: product.lengthCm ?? undefined,
-      widthCm: product.widthCm ?? undefined,
-      heightCm: product.heightCm ?? undefined,
-      diameterCm: product.diameterCm ?? undefined,
-      weightGrams: product.weightGrams ?? undefined,
-      beadSizeMm: product.beadSizeMm ?? undefined,
-    },
+    defaultValues: buildDefaultValues(product),
   })
 
   const watchedTitle = watch('title')
@@ -131,16 +151,21 @@ export function EditProductForm({ categories, product }: EditProductFormProps) {
     }
   }, [watchedTitle, isSlugManuallyEdited, setValue])
 
-  const updateProductMutation = useMutation({
+  const submitMutation = useMutation({
     mutationFn: (formValues: CreateProductFormValues) => {
       const payload = {
         ...formValues,
         sku: formValues.sku || undefined,
         material: formValues.material || undefined,
       }
-      return updateAdminProduct(product.slug, payload, accessToken ?? '')
+      if (props.mode === 'create') {
+        return createAdminProduct(payload, accessToken ?? '')
+      }
+      return updateAdminProduct(props.product.slug, payload, accessToken ?? '')
     },
     onMutate: async (formValues) => {
+      if (isCreate || !product) return undefined
+
       await queryClient.cancelQueries({ queryKey: ['admin', 'products'] })
       const previousProductsQueries = queryClient.getQueriesData<ProductsResponse>({
         queryKey: ['admin', 'products'],
@@ -149,17 +174,11 @@ export function EditProductForm({ categories, product }: EditProductFormProps) {
       queryClient.setQueriesData<ProductsResponse>(
         { queryKey: ['admin', 'products'] },
         (currentData) => {
-          if (!currentData) {
-            return currentData
-          }
-
+          if (!currentData) return currentData
           return {
             ...currentData,
             data: currentData.data.map((currentProduct) => {
-              if (currentProduct.id !== product.id) {
-                return currentProduct
-              }
-
+              if (currentProduct.id !== product.id) return currentProduct
               return {
                 ...currentProduct,
                 title: formValues.title,
@@ -186,31 +205,44 @@ export function EditProductForm({ categories, product }: EditProductFormProps) {
 
       return { previousProductsQueries }
     },
-    onSuccess: (updatedProduct) => {
-      toast.success(t('productsUpdateSuccess', { title: updatedProduct.title }))
+    onSuccess: (savedProduct) => {
+      toast.success(
+        t(isCreate ? 'productsCreateSuccess' : 'productsUpdateSuccess', {
+          title: savedProduct.title,
+        }),
+      )
       router.push('/admin/products')
     },
     onError: (error, _variables, context) => {
-      context?.previousProductsQueries.forEach(([queryKey, queryData]) => {
-        queryClient.setQueryData(queryKey, queryData)
-      })
-
-      const message = error instanceof ApiError ? error.message : t('productsUpdateError')
+      if (!isCreate && context?.previousProductsQueries) {
+        context.previousProductsQueries.forEach(([queryKey, queryData]) => {
+          queryClient.setQueryData(queryKey, queryData)
+        })
+      }
+      const message =
+        error instanceof ApiError
+          ? error.message
+          : t(isCreate ? 'productsCreateError' : 'productsUpdateError')
       toast.error(message)
     },
     onSettled: () => {
-      void queryClient.invalidateQueries({ queryKey: ['admin', 'products'] })
+      if (!isCreate) {
+        void queryClient.invalidateQueries({ queryKey: ['admin', 'products'] })
+      }
     },
   })
 
   const handleFormSubmit = useCallback(
     (formValues: CreateProductFormValues) => {
-      updateProductMutation.mutate(formValues)
+      submitMutation.mutate(formValues)
     },
-    [updateProductMutation],
+    [submitMutation],
   )
 
-  const isFormDisabled = isSubmitting || updateProductMutation.isPending
+  const isFormDisabled = isSubmitting || submitMutation.isPending
+  const submitLabel = isFormDisabled
+    ? t(isCreate ? 'productsFormSubmitting' : 'productsFormSaving')
+    : t(isCreate ? 'productsFormSubmit' : 'productsFormSave')
 
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} noValidate>
@@ -409,7 +441,7 @@ export function EditProductForm({ categories, product }: EditProductFormProps) {
                       <SelectValue placeholder={t('productsFormFieldCategoryPlaceholder')} />
                     </SelectTrigger>
                     <SelectContent>
-                      {categories.map((category) => (
+                      {props.categories.map((category) => (
                         <SelectItem key={category.id} value={category.id}>
                           {category.name}
                         </SelectItem>
@@ -565,7 +597,7 @@ export function EditProductForm({ categories, product }: EditProductFormProps) {
             render={({ field }) => (
               <ProductImageUpload
                 onImagesChange={field.onChange}
-                initialImageUrls={product.images}
+                initialImageUrls={product?.images}
                 errorMessage={
                   errors.images?.message ??
                   (errors.images as { root?: { message?: string } })?.root?.message
@@ -577,7 +609,7 @@ export function EditProductForm({ categories, product }: EditProductFormProps) {
 
         <div className="flex items-center gap-3 border-t border-border pt-6">
           <Button type="submit" disabled={isFormDisabled}>
-            {isFormDisabled ? t('productsFormSaving') : t('productsFormSave')}
+            {submitLabel}
           </Button>
           <Button
             type="button"

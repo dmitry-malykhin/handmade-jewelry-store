@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { fetchCategories, fetchProductBySlug } from '@/lib/api/products'
-import { EditProductForm } from './_components/edit-product-form'
+import { ProductForm } from '../../_components/product-form'
 
 interface AdminEditProductPageProps {
   params: Promise<{ locale: string; slug: string }>
@@ -32,7 +32,7 @@ export default async function AdminEditProductPage({ params }: AdminEditProductP
 
   return (
     <main className="mx-auto max-w-3xl">
-      <EditProductForm categories={categories} product={product} />
+      <ProductForm mode="edit" categories={categories} product={product} />
     </main>
   )
 }
