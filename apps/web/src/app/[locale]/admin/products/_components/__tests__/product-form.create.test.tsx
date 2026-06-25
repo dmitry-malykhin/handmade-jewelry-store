@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, waitFor } from '@/test-utils'
 import userEvent from '@testing-library/user-event'
-import { CreateProductForm } from '../create-product-form'
+import { ProductForm } from '../product-form'
 import { createAdminProduct } from '@/lib/api/products'
 import { useAuthStore } from '@/store/auth.store'
 import type { Category } from '@jewelry/shared'
@@ -13,6 +13,7 @@ import {
 
 vi.mock('@/lib/api/products', () => ({
   createAdminProduct: vi.fn(),
+  updateAdminProduct: vi.fn(),
 }))
 
 vi.mock('@/store/auth.store', () => ({
@@ -31,7 +32,7 @@ vi.mock('@/i18n/navigation', () => ({
   ),
 }))
 
-vi.mock('../../../_components/product-image-upload', () => ({
+vi.mock('../product-image-upload', () => ({
   ProductImageUpload: ({
     onImagesChange,
   }: {
@@ -65,7 +66,6 @@ beforeEach(() => {
   mockUseAuthStore.mockImplementation((selector) =>
     selector({ accessToken: 'mock-token' } as Parameters<typeof selector>[0]),
   )
-  // jsdom-missing APIs required by Radix UI Select.
   window.HTMLElement.prototype.hasPointerCapture = vi.fn()
   window.HTMLElement.prototype.setPointerCapture = vi.fn()
   window.HTMLElement.prototype.releasePointerCapture = vi.fn()
@@ -79,13 +79,13 @@ afterEach(() => {
 beforeEach(async () => {
   if (!process.env.CI) return
   await $allureSuite('web/app/locale')
-  await $allureSubSuite('create-product-form')
+  await $allureSubSuite('product-form/create')
   await $allureSeverity('normal')
 })
 
-describe('CreateProductForm — rendering', () => {
+describe('ProductForm (create) — rendering', () => {
   it('renders all main form sections', () => {
-    render(<CreateProductForm categories={sampleCategories} />)
+    render(<ProductForm mode="create" categories={sampleCategories} />)
 
     expect(screen.getByText('Basic information')).toBeInTheDocument()
     expect(screen.getByText('Pricing & stock')).toBeInTheDocument()
@@ -94,7 +94,7 @@ describe('CreateProductForm — rendering', () => {
   })
 
   it('renders category options from props', async () => {
-    render(<CreateProductForm categories={sampleCategories} />)
+    render(<ProductForm mode="create" categories={sampleCategories} />)
 
     const categoryTrigger = screen.getByRole('combobox', { name: /category/i })
     await userEvent.click(categoryTrigger)
@@ -104,16 +104,16 @@ describe('CreateProductForm — rendering', () => {
   })
 
   it('renders submit and cancel buttons', () => {
-    render(<CreateProductForm categories={sampleCategories} />)
+    render(<ProductForm mode="create" categories={sampleCategories} />)
 
     expect(screen.getByRole('button', { name: /create product/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /cancel/i })).toBeInTheDocument()
   })
 })
 
-describe('CreateProductForm — slug auto-generation', () => {
+describe('ProductForm (create) — slug auto-generation', () => {
   it('auto-generates slug from title after 400ms debounce', async () => {
-    render(<CreateProductForm categories={sampleCategories} />)
+    render(<ProductForm mode="create" categories={sampleCategories} />)
 
     await userEvent.type(screen.getByPlaceholderText(/northern lights bracelet/i), 'Silver Ring')
 
@@ -127,7 +127,7 @@ describe('CreateProductForm — slug auto-generation', () => {
   })
 
   it('stops auto-generating slug after manual edit', async () => {
-    render(<CreateProductForm categories={sampleCategories} />)
+    render(<ProductForm mode="create" categories={sampleCategories} />)
 
     const slugInput = screen.getByRole('textbox', { name: /url slug/i })
     await userEvent.clear(slugInput)
@@ -144,9 +144,9 @@ describe('CreateProductForm — slug auto-generation', () => {
   })
 })
 
-describe('CreateProductForm — validation', () => {
+describe('ProductForm (create) — validation', () => {
   it('shows validation errors on submit with empty required fields', async () => {
-    render(<CreateProductForm categories={sampleCategories} />)
+    render(<ProductForm mode="create" categories={sampleCategories} />)
 
     await userEvent.click(screen.getByRole('button', { name: /create product/i }))
 
@@ -158,7 +158,7 @@ describe('CreateProductForm — validation', () => {
   })
 })
 
-describe('CreateProductForm — submission', () => {
+describe('ProductForm (create) — submission', () => {
   it('calls createAdminProduct with correct payload on valid submit', async () => {
     mockCreateAdminProduct.mockResolvedValue({
       id: 'prod-1',
@@ -166,7 +166,7 @@ describe('CreateProductForm — submission', () => {
       slug: 'silver-ring',
     } as never)
 
-    render(<CreateProductForm categories={sampleCategories} />)
+    render(<ProductForm mode="create" categories={sampleCategories} />)
 
     await userEvent.type(screen.getByPlaceholderText(/northern lights bracelet/i), 'Silver Ring')
 

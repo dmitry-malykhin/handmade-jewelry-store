@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { fetchCategories } from '@/lib/api/products'
-import { CreateProductForm } from './_components/create-product-form'
+import { ProductForm } from '../_components/product-form'
 
 export const metadata: Metadata = {
   title: 'New Product — Admin Panel',
@@ -12,7 +12,7 @@ export default async function AdminNewProductPage() {
 
   return (
     <main className="mx-auto max-w-3xl">
-      <CreateProductForm categories={categories} />
+      <ProductForm mode="create" categories={categories} />
     </main>
   )
 }
