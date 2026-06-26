@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslations } from 'next-intl'
 import {
   ChevronDown,
@@ -18,6 +18,7 @@ import { toast } from 'sonner'
 import type { Product, ProductsResponse, ProductStatus } from '@jewelry/shared'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { AdminPagination } from '@/components/admin/admin-pagination'
 import { ConfirmDialog } from '@/components/admin/confirm-dialog'
 import { Input } from '@/components/ui/input'
 import {
@@ -41,6 +42,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { useAdminCsvExport } from '@/hooks/useAdminCsvExport'
+import { useAdminListQuery } from '@/hooks/useAdminListQuery'
 import { useAuthStore } from '@/store/auth.store'
 import {
   bulkUpdateAdminProducts,
@@ -101,23 +104,12 @@ export function AdminProductsTable() {
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc')
   const [currentPage, setCurrentPage] = useState(1)
   const [productToDelete, setProductToDelete] = useState<ProductTableRow | null>(null)
-  const [isExporting, setIsExporting] = useState(false)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set())
   const [pendingBulkAction, setPendingBulkAction] = useState<BulkProductAction | null>(null)
 
-  async function handleExportCsv() {
-    if (!accessToken) return
-    setIsExporting(true)
-    try {
-      await downloadAdminProductsCsv(accessToken)
-      toast.success(t('exportCsvSuccess'))
-    } catch (error) {
-      const message = error instanceof ApiError ? error.message : t('exportCsvError')
-      toast.error(message)
-    } finally {
-      setIsExporting(false)
-    }
-  }
+  const { isExporting, isExportDisabled, handleExport } = useAdminCsvExport({
+    download: downloadAdminProductsCsv,
+  })
 
   const updateAdminProductsQueries = (
     updater: (currentData: ProductsResponse) => ProductsResponse,
@@ -152,10 +144,10 @@ export function AdminProductsTable() {
     sortOrder,
   }
 
-  const { data, isPending: isProductsLoading } = useQuery({
-    queryKey: ['admin', 'products', queryParams],
-    queryFn: () => fetchAdminProducts(queryParams, accessToken ?? ''),
-    enabled: accessToken !== null,
+  const { data, isPending: isProductsLoading } = useAdminListQuery({
+    queryKey: ['admin', 'products'],
+    queryParams,
+    fetcher: fetchAdminProducts,
   })
 
   const statusMutation = useMutation({
@@ -339,8 +331,8 @@ export function AdminProductsTable() {
             type="button"
             variant="outline"
             size="sm"
-            disabled={isExporting || !accessToken}
-            onClick={handleExportCsv}
+            disabled={isExportDisabled}
+            onClick={handleExport}
           >
             <Download className="mr-2 size-4" aria-hidden="true" />
             {isExporting ? t('exportCsvInProgress') : t('exportCsvButton')}
@@ -621,35 +613,15 @@ export function AdminProductsTable() {
             </Table>
           </div>
 
-          {totalPages > 1 && (
-            <div className="mt-4 flex items-center justify-between">
-              <p className="text-sm text-muted-foreground">
-                {t('productsPaginationInfo', {
-                  page: currentPage,
-                  totalPages,
-                  totalCount: data?.meta.totalCount ?? 0,
-                })}
-              </p>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage((previousPage) => previousPage - 1)}
-                  disabled={currentPage <= 1}
-                >
-                  {t('productsPaginationPrev')}
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage((previousPage) => previousPage + 1)}
-                  disabled={currentPage >= totalPages}
-                >
-                  {t('productsPaginationNext')}
-                </Button>
-              </div>
-            </div>
-          )}
+          <AdminPagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalCount={data?.meta.totalCount ?? 0}
+            onPageChange={setCurrentPage}
+            infoKey="productsPaginationInfo"
+            prevLabelKey="productsPaginationPrev"
+            nextLabelKey="productsPaginationNext"
+          />
         </>
       )}
 

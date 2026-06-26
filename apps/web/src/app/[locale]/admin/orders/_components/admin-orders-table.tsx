@@ -1,12 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslations } from 'next-intl'
 import { Download } from 'lucide-react'
 import { toast } from 'sonner'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { AdminPagination } from '@/components/admin/admin-pagination'
 import { ConfirmDialog } from '@/components/admin/confirm-dialog'
 import {
   DropdownMenu,
@@ -30,6 +31,8 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Link } from '@/i18n/navigation'
+import { useAdminCsvExport } from '@/hooks/useAdminCsvExport'
+import { useAdminListQuery } from '@/hooks/useAdminListQuery'
 import { useAuthStore } from '@/store/auth.store'
 import {
   downloadAdminOrdersCsv,
@@ -88,28 +91,15 @@ export function AdminOrdersTable() {
 
   const [statusFilter, setStatusFilter] = useState<OrderStatus | 'ALL'>('ALL')
   const [currentPage, setCurrentPage] = useState(1)
-  const [isExporting, setIsExporting] = useState(false)
   const [pendingTransition, setPendingTransition] = useState<{
     orderId: string
     newStatus: OrderStatus
   } | null>(null)
 
-  async function handleExportCsv() {
-    if (!accessToken) return
-    setIsExporting(true)
-    try {
-      await downloadAdminOrdersCsv(
-        statusFilter !== 'ALL' ? { status: statusFilter } : {},
-        accessToken,
-      )
-      toast.success(t('exportCsvSuccess'))
-    } catch (error) {
-      const message = error instanceof ApiError ? error.message : t('exportCsvError')
-      toast.error(message)
-    } finally {
-      setIsExporting(false)
-    }
-  }
+  const { isExporting, isExportDisabled, handleExport } = useAdminCsvExport({
+    download: (token) =>
+      downloadAdminOrdersCsv(statusFilter !== 'ALL' ? { status: statusFilter } : {}, token),
+  })
 
   const queryParams: AdminOrdersQueryParams = {
     page: currentPage,
@@ -117,10 +107,10 @@ export function AdminOrdersTable() {
     ...(statusFilter !== 'ALL' && { status: statusFilter }),
   }
 
-  const { data, isPending: isOrdersLoading } = useQuery({
-    queryKey: ['admin', 'orders', queryParams],
-    queryFn: () => fetchAdminOrders(queryParams, accessToken ?? ''),
-    enabled: accessToken !== null,
+  const { data, isPending: isOrdersLoading } = useAdminListQuery({
+    queryKey: ['admin', 'orders'],
+    queryParams,
+    fetcher: fetchAdminOrders,
   })
 
   const statusMutation = useMutation({
@@ -161,8 +151,8 @@ export function AdminOrdersTable() {
           type="button"
           variant="outline"
           size="sm"
-          disabled={isExporting || !accessToken}
-          onClick={handleExportCsv}
+          disabled={isExportDisabled}
+          onClick={handleExport}
         >
           <Download className="mr-2 size-4" aria-hidden="true" />
           {isExporting ? t('exportCsvInProgress') : t('exportCsvButton')}
@@ -287,35 +277,15 @@ export function AdminOrdersTable() {
             </Table>
           </div>
 
-          {totalPages > 1 && (
-            <div className="mt-4 flex items-center justify-between">
-              <p className="text-sm text-muted-foreground">
-                {t('ordersPaginationInfo', {
-                  page: currentPage,
-                  totalPages,
-                  totalCount: data?.meta.totalCount ?? 0,
-                })}
-              </p>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage((previousPage) => previousPage - 1)}
-                  disabled={currentPage <= 1}
-                >
-                  {t('ordersPaginationPrev')}
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage((previousPage) => previousPage + 1)}
-                  disabled={currentPage >= totalPages}
-                >
-                  {t('ordersPaginationNext')}
-                </Button>
-              </div>
-            </div>
-          )}
+          <AdminPagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalCount={data?.meta.totalCount ?? 0}
+            onPageChange={setCurrentPage}
+            infoKey="ordersPaginationInfo"
+            prevLabelKey="ordersPaginationPrev"
+            nextLabelKey="ordersPaginationNext"
+          />
         </>
       )}
 
