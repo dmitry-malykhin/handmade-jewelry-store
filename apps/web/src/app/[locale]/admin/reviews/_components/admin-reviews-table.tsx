@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslations } from 'next-intl'
 import { Check, EyeOff, MessageSquare, Star } from 'lucide-react'
 import { toast } from 'sonner'
@@ -24,6 +24,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Textarea } from '@/components/ui/textarea'
+import { useAdminListQuery } from '@/hooks/useAdminListQuery'
 import { ApiError } from '@/lib/api/client'
 import {
   fetchAdminReviews,
@@ -219,10 +220,10 @@ export function AdminReviewsTable() {
     ...(ratingFilter !== RATING_FILTER_ALL && { rating: Number(ratingFilter) }),
   }
 
-  const { data, isPending } = useQuery({
-    queryKey: ['admin-reviews', queryParams],
-    queryFn: () => fetchAdminReviews(queryParams, accessToken ?? ''),
-    enabled: accessToken !== null,
+  const { data, isPending } = useAdminListQuery({
+    queryKey: ['admin-reviews'],
+    queryParams,
+    fetcher: fetchAdminReviews,
   })
 
   const statusMutation = useMutation({
