@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common'
+import { AnalyticsModule } from '../analytics/analytics.module'
 import { AuthModule } from '../auth/auth.module'
 import { EmailModule } from '../email/email.module'
 import { LoyaltyModule } from '../loyalty/loyalty.module'
@@ -6,11 +7,13 @@ import { PrismaModule } from '../prisma/prisma.module'
 import { StripeModule } from '../stripe/stripe.module'
 import { AdminOrdersController } from './admin-orders.controller'
 import { OrdersController } from './orders.controller'
+import { OrdersProductionService } from './orders-production.service'
+import { OrdersRefundsService } from './orders-refunds.service'
 import { OrdersService } from './orders.service'
 
 @Module({
-  imports: [PrismaModule, AuthModule, EmailModule, StripeModule, LoyaltyModule],
+  imports: [PrismaModule, AuthModule, EmailModule, StripeModule, LoyaltyModule, AnalyticsModule],
   controllers: [OrdersController, AdminOrdersController],
-  providers: [OrdersService],
+  providers: [OrdersService, OrdersRefundsService, OrdersProductionService],
 })
 export class OrdersModule {}
