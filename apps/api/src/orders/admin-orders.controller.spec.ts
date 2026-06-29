@@ -1,6 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { OrderStatus } from '@prisma/client'
 import { AdminOrdersController } from './admin-orders.controller'
+import { OrdersProductionService } from './orders-production.service'
+import { OrdersRefundsService } from './orders-refunds.service'
 import { OrdersService } from './orders.service'
 import { OrderQueryDto } from './dto/order-query.dto'
 import {
@@ -26,6 +28,17 @@ const mockOrdersService = {
   findOneById: jest.fn(),
   updateStatus: jest.fn(),
   updateTracking: jest.fn(),
+  exportToCsv: jest.fn(),
+}
+
+const mockOrdersRefundsService = {
+  refundOrder: jest.fn(),
+  findAllRefunds: jest.fn(),
+}
+
+const mockOrdersProductionService = {
+  findProductionQueue: jest.fn(),
+  updateProduction: jest.fn(),
 }
 
 beforeEach(async () => {
@@ -41,7 +54,11 @@ describe('AdminOrdersController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AdminOrdersController],
-      providers: [{ provide: OrdersService, useValue: mockOrdersService }],
+      providers: [
+        { provide: OrdersService, useValue: mockOrdersService },
+        { provide: OrdersRefundsService, useValue: mockOrdersRefundsService },
+        { provide: OrdersProductionService, useValue: mockOrdersProductionService },
+      ],
     }).compile()
 
     adminOrdersController = module.get<AdminOrdersController>(AdminOrdersController)

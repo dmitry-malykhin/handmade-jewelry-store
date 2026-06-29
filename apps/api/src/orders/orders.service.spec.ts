@@ -2,18 +2,16 @@ import { BadRequestException, NotFoundException } from '@nestjs/common'
 import { Test, TestingModule } from '@nestjs/testing'
 import { OrderStatus } from '@prisma/client'
 import { Decimal } from '@prisma/client/runtime/library'
-import { AnalyticsService } from '../analytics/analytics.service'
-import { EmailService } from '../email/email.service'
-import { LoyaltyService } from '../loyalty/loyalty.service'
-import { PrismaService } from '../prisma/prisma.service'
-import { StripeService } from '../stripe/stripe.service'
-import { CreateOrderDto } from './dto/create-order.dto'
-import { OrdersService } from './orders.service'
 import {
   suite as $allureSuite,
   subSuite as $allureSubSuite,
   severity as $allureSeverity,
 } from 'allure-js-commons'
+import { EmailService } from '../email/email.service'
+import { LoyaltyService } from '../loyalty/loyalty.service'
+import { PrismaService } from '../prisma/prisma.service'
+import { CreateOrderDto } from './dto/create-order.dto'
+import { OrdersService } from './orders.service'
 
 const mockShippingAddress = {
   fullName: 'Jane Doe',
@@ -57,9 +55,6 @@ const mockPrismaService = {
     findUnique: jest.fn(),
     update: jest.fn(),
   },
-  payment: {
-    update: jest.fn(),
-  },
   $transaction: jest.fn(
     (callback: TransactionCallback): Promise<unknown> => callback(mockPrismaService),
   ),
@@ -67,17 +62,6 @@ const mockPrismaService = {
 
 const mockEmailService = {
   sendShippingNotification: jest.fn(),
-  sendRefundProcessed: jest.fn(),
-}
-
-const mockStripeService = {
-  createRefund: jest.fn(),
-}
-
-const mockAnalyticsService = {
-  trackOrderRefunded: jest.fn(),
-  trackOrderCreated: jest.fn(),
-  trackPaymentSucceeded: jest.fn(),
 }
 
 const mockLoyaltyService = {
@@ -103,8 +87,6 @@ describe('OrdersService', () => {
         OrdersService,
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: EmailService, useValue: mockEmailService },
-        { provide: StripeService, useValue: mockStripeService },
-        { provide: AnalyticsService, useValue: mockAnalyticsService },
         { provide: LoyaltyService, useValue: mockLoyaltyService },
       ],
     }).compile()
@@ -137,50 +119,50 @@ describe('OrdersService', () => {
       expect(order.statusHistory[0]?.toStatus).toBe(OrderStatus.PENDING)
     })
 
-    it('creates a guest order when userId is not provided', async () => {
-      mockPrismaService.order.create.mockResolvedValue({ ...mockCreatedOrder, userId: null })
+    it('clamps loyaltyPointsToRedeem against balance and the 50% subtotal cap', async () => {
+      mockLoyaltyService.getBalance.mockResolvedValueOnce({ balance: 10000 })
+      mockPrismaService.order.create.mockResolvedValue(mockCreatedOrder)
 
-      const createOrderDto: CreateOrderDto = {
+      // subtotal $100 → 50% cap = 5000 points. Caller asked 8000; balance is 10000 → use 5000.
+      const dto: CreateOrderDto = {
+        userId: 'user-1',
         items: [mockOrderItem],
         shippingAddress: mockShippingAddress,
-        subtotal: 99.98,
-        shippingCost: 5.0,
-        total: 104.98,
+        subtotal: 100,
+        shippingCost: 5,
+        total: 105,
+        loyaltyPointsToRedeem: 8000,
       }
 
-      const order = await ordersService.create(createOrderDto)
+      await ordersService.create(dto)
 
-      expect(order.userId).toBeNull()
-      expect(mockPrismaService.order.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({ userId: null }),
-        }),
-      )
+      const callData = mockPrismaService.order.create.mock.calls[0]?.[0] as {
+        data: { loyaltyPointsUsed: number; total: number }
+      }
+      expect(callData.data.loyaltyPointsUsed).toBe(5000)
+      // 5000 points = $50 → total = 105 - 50 = 55
+      expect(callData.data.total).toBe(55)
     })
 
-    it('saves guestEmail when provided', async () => {
-      mockPrismaService.order.create.mockResolvedValue({
-        ...mockCreatedOrder,
-        userId: null,
-        guestEmail: 'guest@example.com',
-      })
+    it('spends points via LoyaltyService when redeeming on a registered user', async () => {
+      mockLoyaltyService.getBalance.mockResolvedValueOnce({ balance: 5000 })
+      mockPrismaService.order.create.mockResolvedValue(mockCreatedOrder)
 
-      const createOrderDto: CreateOrderDto = {
+      await ordersService.create({
+        userId: 'user-1',
         items: [mockOrderItem],
         shippingAddress: mockShippingAddress,
-        subtotal: 99.98,
-        shippingCost: 5.0,
-        total: 104.98,
-        guestEmail: 'guest@example.com',
-      }
+        subtotal: 100,
+        shippingCost: 5,
+        total: 105,
+        loyaltyPointsToRedeem: 2000,
+      })
 
-      await ordersService.create(createOrderDto)
-
-      expect(mockPrismaService.order.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({ guestEmail: 'guest@example.com' }),
-        }),
-      )
+      expect(mockLoyaltyService.spendForCheckout).toHaveBeenCalledWith(expect.anything(), {
+        userId: 'user-1',
+        orderId: mockCreatedOrder.id,
+        points: 2000,
+      })
     })
   })
 
@@ -335,183 +317,6 @@ describe('OrdersService', () => {
     })
   })
 
-  // ── refundOrder ───────────────────────────────────────────────────────────
-
-  describe('refundOrder()', () => {
-    const refundablePayment = {
-      id: 'payment-1',
-      stripeId: 'pi_test_123',
-      status: 'SUCCEEDED',
-    }
-
-    // Real Decimal behaviour matters — arithmetic in refundOrder must produce
-    // the same totals the production code computes, so reuse the prod class.
-    function buildOrder(overrides: Record<string, unknown> = {}): Record<string, unknown> {
-      return {
-        id: 'order-1',
-        status: OrderStatus.DELIVERED,
-        total: new Decimal('100.00'),
-        refundAmount: null,
-        guestEmail: 'jane@example.com',
-        payment: refundablePayment,
-        ...overrides,
-      }
-    }
-
-    it('throws NotFound when order does not exist', async () => {
-      mockPrismaService.order.findUnique.mockResolvedValueOnce(null)
-
-      await expect(
-        ordersService.refundOrder('missing-order', { reason: 'OTHER' as const }),
-      ).rejects.toThrow(NotFoundException)
-    })
-
-    it('throws BadRequest when order has no payment record', async () => {
-      mockPrismaService.order.findUnique.mockResolvedValueOnce(buildOrder({ payment: null }))
-
-      await expect(
-        ordersService.refundOrder('order-1', { reason: 'OTHER' as const }),
-      ).rejects.toThrow(/no payment/i)
-    })
-
-    it('throws BadRequest when payment status is not SUCCEEDED or PARTIALLY_REFUNDED', async () => {
-      mockPrismaService.order.findUnique.mockResolvedValueOnce(
-        buildOrder({ payment: { ...refundablePayment, status: 'PENDING' } }),
-      )
-
-      await expect(
-        ordersService.refundOrder('order-1', { reason: 'OTHER' as const }),
-      ).rejects.toThrow(/cannot refund/i)
-    })
-
-    it('throws BadRequest when requested amount exceeds remaining refundable', async () => {
-      mockPrismaService.order.findUnique.mockResolvedValueOnce(buildOrder())
-
-      await expect(
-        ordersService.refundOrder('order-1', { reason: 'OTHER' as const, amount: 150 }),
-      ).rejects.toThrow(/exceeds remaining refundable/i)
-    })
-
-    it('performs a full refund — sets REFUNDED status, calls Stripe, records history', async () => {
-      const order = buildOrder({ guestEmail: 'jane@example.com' })
-      mockPrismaService.order.findUnique.mockResolvedValueOnce(order)
-      mockStripeService.createRefund.mockResolvedValueOnce({ id: 're_test_full' })
-      mockPrismaService.order.update.mockImplementationOnce(
-        ({ data }: { data: Record<string, unknown> }) =>
-          Promise.resolve({ ...order, ...data, items: [], statusHistory: [] }),
-      )
-
-      const result = await ordersService.refundOrder('order-1', {
-        reason: 'ITEM_DAMAGED' as const,
-        note: 'Buyer reported broken clasp',
-      })
-
-      expect(mockStripeService.createRefund).toHaveBeenCalledWith('pi_test_123', 100)
-      expect(mockPrismaService.payment.update).toHaveBeenCalledWith({
-        where: { id: 'payment-1' },
-        data: { status: 'REFUNDED' },
-      })
-      expect(mockPrismaService.order.update).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: { id: 'order-1' },
-          data: expect.objectContaining({
-            status: OrderStatus.REFUNDED,
-            refundReason: 'ITEM_DAMAGED',
-            refundNote: 'Buyer reported broken clasp',
-            refundAmount: expect.any(Decimal),
-            statusHistory: expect.objectContaining({
-              create: expect.objectContaining({
-                fromStatus: OrderStatus.DELIVERED,
-                toStatus: OrderStatus.REFUNDED,
-                createdBy: 'admin',
-              }),
-            }),
-          }),
-        }),
-      )
-      // PostHog: full-refund event with reason + isFullRefund=true, keyed by guestEmail
-      expect(mockAnalyticsService.trackOrderRefunded).toHaveBeenCalledWith('jane@example.com', {
-        orderId: 'order-1',
-        refundAmountUsd: 100,
-        reason: 'ITEM_DAMAGED',
-        isFullRefund: true,
-      })
-      expect(result.status).toBe(OrderStatus.REFUNDED)
-    })
-
-    it('performs a partial refund — sets PARTIALLY_REFUNDED status', async () => {
-      const order = buildOrder()
-      mockPrismaService.order.findUnique.mockResolvedValueOnce(order)
-      mockStripeService.createRefund.mockResolvedValueOnce({ id: 're_test_partial' })
-      mockPrismaService.order.update.mockImplementationOnce(
-        ({ data }: { data: Record<string, unknown> }) =>
-          Promise.resolve({ ...order, ...data, items: [], statusHistory: [] }),
-      )
-
-      const result = await ordersService.refundOrder('order-1', {
-        reason: 'CUSTOMER_CHANGED_MIND' as const,
-        amount: 40,
-      })
-
-      expect(mockStripeService.createRefund).toHaveBeenCalledWith('pi_test_123', 40)
-      expect(mockPrismaService.payment.update).toHaveBeenCalledWith({
-        where: { id: 'payment-1' },
-        data: { status: 'PARTIALLY_REFUNDED' },
-      })
-      expect(mockAnalyticsService.trackOrderRefunded).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.objectContaining({ refundAmountUsd: 40, isFullRefund: false }),
-      )
-      expect(result.status).toBe(OrderStatus.PARTIALLY_REFUNDED)
-    })
-
-    it('top-up after PARTIALLY_REFUNDED — cumulative refund reaches total → REFUNDED', async () => {
-      const partialOrder = buildOrder({
-        status: OrderStatus.PARTIALLY_REFUNDED,
-        refundAmount: new Decimal('40.00'),
-        payment: { ...refundablePayment, status: 'PARTIALLY_REFUNDED' },
-      })
-      mockPrismaService.order.findUnique.mockResolvedValueOnce(partialOrder)
-      mockStripeService.createRefund.mockResolvedValueOnce({ id: 're_test_topup' })
-      mockPrismaService.order.update.mockImplementationOnce(
-        ({ data }: { data: Record<string, unknown> }) =>
-          Promise.resolve({ ...partialOrder, ...data, items: [], statusHistory: [] }),
-      )
-
-      const result = await ordersService.refundOrder('order-1', {
-        reason: 'OTHER' as const,
-        amount: 60,
-      })
-
-      expect(mockStripeService.createRefund).toHaveBeenCalledWith('pi_test_123', 60)
-      expect(result.status).toBe(OrderStatus.REFUNDED)
-      expect(mockPrismaService.payment.update).toHaveBeenCalledWith({
-        where: { id: 'payment-1' },
-        data: { status: 'REFUNDED' },
-      })
-    })
-
-    it('sends refund email but swallows email failure (refund must not be rolled back)', async () => {
-      const order = buildOrder()
-      mockPrismaService.order.findUnique.mockResolvedValueOnce(order)
-      mockStripeService.createRefund.mockResolvedValueOnce({ id: 're_test_email_fail' })
-      mockPrismaService.order.update.mockResolvedValueOnce({
-        ...order,
-        status: OrderStatus.REFUNDED,
-        guestEmail: 'jane@example.com',
-        items: [],
-        statusHistory: [],
-      })
-      mockEmailService.sendRefundProcessed.mockRejectedValueOnce(new Error('Resend down'))
-
-      await expect(
-        ordersService.refundOrder('order-1', { reason: 'OTHER' as const }),
-      ).resolves.toBeDefined()
-
-      expect(mockEmailService.sendRefundProcessed).toHaveBeenCalled()
-    })
-  })
-
   // ── exportToCsv ───────────────────────────────────────────────────────────
 
   describe('exportToCsv()', () => {
@@ -620,258 +425,6 @@ describe('OrdersService', () => {
 
       // user-42 should appear in the email column (third field).
       expect(csv.split('\r\n')[1]?.split(',')[2]).toBe('user-42')
-    })
-  })
-
-  // ── findAllRefunds ────────────────────────────────────────────────────────
-
-  describe('findAllRefunds()', () => {
-    function lastWhereClause(): Record<string, unknown> {
-      const call = mockPrismaService.order.findMany.mock.calls.at(-1)?.[0] as
-        | { where: Record<string, unknown> }
-        | undefined
-      return call?.where ?? {}
-    }
-
-    it('returns all refunded orders ordered by refundedAt desc when no filters', async () => {
-      mockPrismaService.order.findMany.mockResolvedValueOnce([])
-
-      await ordersService.findAllRefunds()
-
-      const where = lastWhereClause()
-      // AND-array always present so the WHERE composes uniformly with filters
-      // tacked on. First leg is the canonical "refunded or partially refunded".
-      expect(where).toEqual({
-        AND: [
-          { OR: [{ status: OrderStatus.REFUNDED }, { status: OrderStatus.PARTIALLY_REFUNDED }] },
-        ],
-      })
-      expect(mockPrismaService.order.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          orderBy: { refundedAt: 'desc' },
-          include: { items: true, payment: true },
-        }),
-      )
-    })
-
-    it('applies the from-date filter to refundedAt', async () => {
-      mockPrismaService.order.findMany.mockResolvedValueOnce([])
-
-      await ordersService.findAllRefunds({ from: '2026-05-01' })
-
-      expect(lastWhereClause()).toEqual({
-        AND: [
-          { OR: [{ status: OrderStatus.REFUNDED }, { status: OrderStatus.PARTIALLY_REFUNDED }] },
-          { refundedAt: { gte: new Date('2026-05-01') } },
-        ],
-      })
-    })
-
-    it('applies the to-date filter to refundedAt', async () => {
-      mockPrismaService.order.findMany.mockResolvedValueOnce([])
-
-      await ordersService.findAllRefunds({ to: '2026-05-31' })
-
-      expect(lastWhereClause()).toEqual({
-        AND: [
-          { OR: [{ status: OrderStatus.REFUNDED }, { status: OrderStatus.PARTIALLY_REFUNDED }] },
-          { refundedAt: { lte: new Date('2026-05-31') } },
-        ],
-      })
-    })
-
-    it('applies a single reason filter', async () => {
-      mockPrismaService.order.findMany.mockResolvedValueOnce([])
-
-      await ordersService.findAllRefunds({ reason: 'ITEM_DAMAGED' })
-
-      expect(lastWhereClause()).toEqual({
-        AND: [
-          { OR: [{ status: OrderStatus.REFUNDED }, { status: OrderStatus.PARTIALLY_REFUNDED }] },
-          { refundReason: 'ITEM_DAMAGED' },
-        ],
-      })
-    })
-
-    it('applies the customer filter as case-insensitive substring on guestEmail OR user.email', async () => {
-      mockPrismaService.order.findMany.mockResolvedValueOnce([])
-
-      await ordersService.findAllRefunds({ customer: 'alice' })
-
-      expect(lastWhereClause()).toEqual({
-        AND: [
-          { OR: [{ status: OrderStatus.REFUNDED }, { status: OrderStatus.PARTIALLY_REFUNDED }] },
-          {
-            OR: [
-              { guestEmail: { contains: 'alice', mode: 'insensitive' } },
-              { user: { email: { contains: 'alice', mode: 'insensitive' } } },
-            ],
-          },
-        ],
-      })
-    })
-
-    it('AND-composes all filters when more than one is provided', async () => {
-      mockPrismaService.order.findMany.mockResolvedValueOnce([])
-
-      await ordersService.findAllRefunds({
-        from: '2026-05-01',
-        to: '2026-05-31',
-        reason: 'ITEM_DAMAGED',
-        customer: 'alice',
-      })
-
-      expect(lastWhereClause()).toEqual({
-        AND: [
-          { OR: [{ status: OrderStatus.REFUNDED }, { status: OrderStatus.PARTIALLY_REFUNDED }] },
-          { refundedAt: { gte: new Date('2026-05-01'), lte: new Date('2026-05-31') } },
-          { refundReason: 'ITEM_DAMAGED' },
-          {
-            OR: [
-              { guestEmail: { contains: 'alice', mode: 'insensitive' } },
-              { user: { email: { contains: 'alice', mode: 'insensitive' } } },
-            ],
-          },
-        ],
-      })
-    })
-  })
-
-  // ── findProductionQueue ───────────────────────────────────────────────────
-
-  describe('findProductionQueue()', () => {
-    function buildOrderWithMto(overrides: Record<string, unknown> = {}): Record<string, unknown> {
-      return {
-        id: 'order-mto-1',
-        status: OrderStatus.PAID,
-        productionStatus: 'QUEUED',
-        productionNotes: null,
-        createdAt: new Date('2026-05-10T00:00:00Z'),
-        items: [{ id: 'item-1', product: { stockType: 'MADE_TO_ORDER', productionDays: 5 } }],
-        ...overrides,
-      }
-    }
-
-    it('queries orders in PAID or PROCESSING status with at least one MADE_TO_ORDER item', async () => {
-      mockPrismaService.order.findMany.mockResolvedValueOnce([])
-
-      await ordersService.findProductionQueue()
-
-      expect(mockPrismaService.order.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: {
-            status: { in: [OrderStatus.PAID, OrderStatus.PROCESSING] },
-            items: { some: { product: { stockType: 'MADE_TO_ORDER' } } },
-          },
-        }),
-      )
-    })
-
-    it('computes deadline = createdAt + max(productionDays) across MTO items', async () => {
-      mockPrismaService.order.findMany.mockResolvedValueOnce([
-        buildOrderWithMto({
-          items: [
-            { id: 'a', product: { stockType: 'MADE_TO_ORDER', productionDays: 3 } },
-            { id: 'b', product: { stockType: 'MADE_TO_ORDER', productionDays: 7 } },
-            { id: 'c', product: { stockType: 'IN_STOCK', productionDays: 0 } },
-          ],
-        }),
-      ])
-
-      const result = await ordersService.findProductionQueue()
-
-      // createdAt = 2026-05-10, max productionDays = 7 → deadline = 2026-05-17
-      expect(result[0]?.maxProductionDays).toBe(7)
-      expect(result[0]?.productionDeadlineAt).toBe(new Date('2026-05-17T00:00:00Z').toISOString())
-    })
-
-    it('sorts by deadline ascending — most urgent first', async () => {
-      const lessUrgent = buildOrderWithMto({
-        id: 'order-late',
-        createdAt: new Date('2026-05-10T00:00:00Z'),
-        items: [{ id: 'i', product: { stockType: 'MADE_TO_ORDER', productionDays: 14 } }],
-      })
-      const moreUrgent = buildOrderWithMto({
-        id: 'order-soon',
-        createdAt: new Date('2026-05-10T00:00:00Z'),
-        items: [{ id: 'i', product: { stockType: 'MADE_TO_ORDER', productionDays: 1 } }],
-      })
-      mockPrismaService.order.findMany.mockResolvedValueOnce([lessUrgent, moreUrgent])
-
-      const result = await ordersService.findProductionQueue()
-
-      expect(result.map((order) => order.id)).toEqual(['order-soon', 'order-late'])
-    })
-  })
-
-  // ── updateProduction ──────────────────────────────────────────────────────
-
-  describe('updateProduction()', () => {
-    it('throws NotFoundException when order does not exist', async () => {
-      mockPrismaService.order.findUnique.mockResolvedValueOnce(null)
-
-      await expect(
-        ordersService.updateProduction('missing', { productionStatus: 'IN_PRODUCTION' }),
-      ).rejects.toThrow(NotFoundException)
-    })
-
-    it('updates productionStatus and productionNotes on a valid transition', async () => {
-      mockPrismaService.order.findUnique.mockResolvedValueOnce({
-        id: 'order-1',
-        productionStatus: 'QUEUED',
-      })
-      mockPrismaService.order.update.mockResolvedValueOnce({})
-
-      await ordersService.updateProduction('order-1', {
-        productionStatus: 'IN_PRODUCTION',
-        productionNotes: 'started today',
-      })
-
-      expect(mockPrismaService.order.update).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: { id: 'order-1' },
-          data: { productionStatus: 'IN_PRODUCTION', productionNotes: 'started today' },
-        }),
-      )
-    })
-
-    it('forbids backwards transition (READY_TO_SHIP → QUEUED)', async () => {
-      mockPrismaService.order.findUnique.mockResolvedValueOnce({
-        id: 'order-1',
-        productionStatus: 'READY_TO_SHIP',
-      })
-
-      await expect(
-        ordersService.updateProduction('order-1', { productionStatus: 'QUEUED' }),
-      ).rejects.toThrow(/cannot transition production status/i)
-      expect(mockPrismaService.order.update).not.toHaveBeenCalled()
-    })
-
-    it('allows same-state writes so admin can update notes without changing status', async () => {
-      mockPrismaService.order.findUnique.mockResolvedValueOnce({
-        id: 'order-1',
-        productionStatus: 'IN_PRODUCTION',
-      })
-      mockPrismaService.order.update.mockResolvedValueOnce({})
-
-      await ordersService.updateProduction('order-1', {
-        productionStatus: 'IN_PRODUCTION',
-        productionNotes: 'waiting on garnet shipment',
-      })
-
-      expect(mockPrismaService.order.update).toHaveBeenCalled()
-    })
-
-    it('allows direct QUEUED → READY_TO_SHIP skip when piece finished immediately', async () => {
-      mockPrismaService.order.findUnique.mockResolvedValueOnce({
-        id: 'order-1',
-        productionStatus: 'QUEUED',
-      })
-      mockPrismaService.order.update.mockResolvedValueOnce({})
-
-      await ordersService.updateProduction('order-1', { productionStatus: 'READY_TO_SHIP' })
-
-      expect(mockPrismaService.order.update).toHaveBeenCalled()
     })
   })
 })

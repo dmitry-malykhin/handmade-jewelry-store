@@ -22,13 +22,19 @@ import { RefundsQueryDto } from './dto/refunds-query.dto'
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto'
 import { UpdateOrderTrackingDto } from './dto/update-order-tracking.dto'
 import { UpdateProductionDto } from './dto/update-production.dto'
+import { OrdersProductionService } from './orders-production.service'
+import { OrdersRefundsService } from './orders-refunds.service'
 import { OrdersService } from './orders.service'
 
 @Controller('admin/orders')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(Role.ADMIN)
 export class AdminOrdersController {
-  constructor(private readonly ordersService: OrdersService) {}
+  constructor(
+    private readonly ordersService: OrdersService,
+    private readonly ordersRefundsService: OrdersRefundsService,
+    private readonly ordersProductionService: OrdersProductionService,
+  ) {}
 
   @Get()
   findAll(@Query() orderQueryDto: OrderQueryDto) {
@@ -46,13 +52,13 @@ export class AdminOrdersController {
   // Refunds list — placed before :id route so 'refunds' doesn't match :id
   @Get('refunds')
   findAllRefunds(@Query() refundsQueryDto: RefundsQueryDto) {
-    return this.ordersService.findAllRefunds(refundsQueryDto)
+    return this.ordersRefundsService.findAllRefunds(refundsQueryDto)
   }
 
   // Production queue — placed before :id route so 'production' doesn't match :id
   @Get('production')
   findProductionQueue() {
-    return this.ordersService.findProductionQueue()
+    return this.ordersProductionService.findProductionQueue()
   }
 
   @Get(':id')
@@ -78,12 +84,12 @@ export class AdminOrdersController {
   @Post(':id/refund')
   @HttpCode(HttpStatus.OK)
   refund(@Param('id') orderId: string, @Body() refundOrderDto: RefundOrderDto) {
-    return this.ordersService.refundOrder(orderId, refundOrderDto)
+    return this.ordersRefundsService.refundOrder(orderId, refundOrderDto)
   }
 
   @Patch(':id/production')
   @HttpCode(HttpStatus.OK)
   updateProduction(@Param('id') orderId: string, @Body() updateProductionDto: UpdateProductionDto) {
-    return this.ordersService.updateProduction(orderId, updateProductionDto)
+    return this.ordersProductionService.updateProduction(orderId, updateProductionDto)
   }
 }
