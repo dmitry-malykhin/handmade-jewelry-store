@@ -1,5 +1,6 @@
 import { apiClient } from './client'
 import type { OrderItem, OrderStatus } from './orders'
+import { toQueryString } from './query-string'
 
 export interface AdminCustomerSummary {
   id: string
@@ -65,17 +66,9 @@ export async function fetchAdminCustomers(
   params: AdminCustomerQueryParams,
   accessToken: string,
 ): Promise<AdminCustomersResponse> {
-  const searchParams = new URLSearchParams()
-  Object.entries(params).forEach(([key, value]) => {
-    if (value !== undefined && value !== null && value !== '') {
-      searchParams.set(key, String(value))
-    }
+  return apiClient<AdminCustomersResponse>(`/api/admin/customers${toQueryString(params)}`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
   })
-  const queryString = searchParams.toString()
-  return apiClient<AdminCustomersResponse>(
-    `/api/admin/customers${queryString ? `?${queryString}` : ''}`,
-    { headers: { Authorization: `Bearer ${accessToken}` } },
-  )
 }
 
 export async function fetchAdminCustomerById(

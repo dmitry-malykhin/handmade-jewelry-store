@@ -1,4 +1,5 @@
 import { apiClient } from './client'
+import { toQueryString } from './query-string'
 
 export interface ProductReview {
   id: string
@@ -119,17 +120,9 @@ export async function fetchAdminReviews(
   params: AdminReviewsQueryParams,
   accessToken: string,
 ): Promise<AdminReviewsResponse> {
-  const searchParams = new URLSearchParams()
-  Object.entries(params).forEach(([key, value]) => {
-    if (value !== undefined && value !== null && value !== '') {
-      searchParams.set(key, String(value))
-    }
+  return apiClient<AdminReviewsResponse>(`/api/admin/reviews${toQueryString(params)}`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
   })
-  const queryString = searchParams.toString()
-  return apiClient<AdminReviewsResponse>(
-    `/api/admin/reviews${queryString ? `?${queryString}` : ''}`,
-    { headers: { Authorization: `Bearer ${accessToken}` } },
-  )
 }
 
 export async function updateAdminReviewStatus(

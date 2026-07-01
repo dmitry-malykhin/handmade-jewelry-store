@@ -1,5 +1,6 @@
 import { apiClient } from './client'
 import { downloadCsv } from './csv-download'
+import { toQueryString } from './query-string'
 
 export interface ShippingAddress {
   fullName: string
@@ -176,15 +177,8 @@ export async function downloadAdminOrdersCsv(
   params: AdminOrdersExportParams,
   accessToken: string,
 ): Promise<void> {
-  const searchParams = new URLSearchParams()
-  Object.entries(params).forEach(([key, value]) => {
-    if (value !== undefined && value !== null && value !== '') {
-      searchParams.set(key, String(value))
-    }
-  })
-  const queryString = searchParams.toString()
   await downloadCsv({
-    path: `/api/admin/orders/export${queryString ? `?${queryString}` : ''}`,
+    path: `/api/admin/orders/export${toQueryString(params)}`,
     accessToken,
     filename: 'orders-export',
   })
@@ -194,17 +188,9 @@ export async function fetchAdminOrders(
   params: AdminOrdersQueryParams,
   accessToken: string,
 ): Promise<AdminOrdersResponse> {
-  const searchParams = new URLSearchParams()
-  Object.entries(params).forEach(([key, value]) => {
-    if (value !== undefined && value !== null && value !== '') {
-      searchParams.set(key, String(value))
-    }
+  return apiClient<AdminOrdersResponse>(`/api/admin/orders${toQueryString(params)}`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
   })
-  const queryString = searchParams.toString()
-  return apiClient<AdminOrdersResponse>(
-    `/api/admin/orders${queryString ? `?${queryString}` : ''}`,
-    { headers: { Authorization: `Bearer ${accessToken}` } },
-  )
 }
 
 export async function fetchAdminOrderById(
@@ -279,17 +265,9 @@ export async function fetchAdminRefunds(
   params: AdminRefundsQueryParams,
   accessToken: string,
 ): Promise<AdminOrderDetail[]> {
-  const searchParams = new URLSearchParams()
-  Object.entries(params).forEach(([key, value]) => {
-    if (value !== undefined && value !== null && value !== '') {
-      searchParams.set(key, String(value))
-    }
+  return apiClient<AdminOrderDetail[]>(`/api/admin/orders/refunds${toQueryString(params)}`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
   })
-  const queryString = searchParams.toString()
-  return apiClient<AdminOrderDetail[]>(
-    `/api/admin/orders/refunds${queryString ? `?${queryString}` : ''}`,
-    { headers: { Authorization: `Bearer ${accessToken}` } },
-  )
 }
 
 export type ProductionStatus = 'QUEUED' | 'IN_PRODUCTION' | 'READY_TO_SHIP'

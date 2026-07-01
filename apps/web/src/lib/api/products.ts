@@ -1,6 +1,7 @@
 import type { Category, Product, ProductsResponse, ProductStatus } from '@jewelry/shared'
 import { apiClient } from './client'
 import { downloadCsv } from './csv-download'
+import { toQueryString } from './query-string'
 
 export interface FetchProductsParams {
   page?: number
@@ -25,16 +26,7 @@ export interface AdminProductsQueryParams {
 }
 
 export async function fetchProducts(params: FetchProductsParams = {}): Promise<ProductsResponse> {
-  const searchParams = new URLSearchParams()
-
-  Object.entries(params).forEach(([key, value]) => {
-    if (value !== undefined && value !== null && value !== '') {
-      searchParams.set(key, String(value))
-    }
-  })
-
-  const query = searchParams.toString()
-  return apiClient<ProductsResponse>(`/api/products${query ? `?${query}` : ''}`)
+  return apiClient<ProductsResponse>(`/api/products${toQueryString(params)}`)
 }
 
 // Mirrors the @Max(100) guard on the public listing endpoint.
@@ -79,18 +71,7 @@ export async function fetchAdminProducts(
   params: AdminProductsQueryParams,
   accessToken: string,
 ): Promise<ProductsResponse> {
-  const searchParams = new URLSearchParams()
-
-  Object.entries(params).forEach(([key, value]) => {
-    if (value !== undefined && value !== null && value !== '') {
-      searchParams.set(key, String(value))
-    }
-  })
-
-  const queryString = searchParams.toString()
-  const url = `/api/admin/products${queryString ? `?${queryString}` : ''}`
-
-  return apiClient<ProductsResponse>(url, {
+  return apiClient<ProductsResponse>(`/api/admin/products${toQueryString(params)}`, {
     headers: { Authorization: `Bearer ${accessToken}` },
   })
 }
