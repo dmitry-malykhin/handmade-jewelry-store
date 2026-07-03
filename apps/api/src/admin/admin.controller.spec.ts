@@ -1,6 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { Reflector } from '@nestjs/core'
 import { AdminController } from './admin.controller'
+import { AdminOrdersAnalyticsService } from './admin-orders-analytics.service'
+import { AdminProductsAnalyticsService } from './admin-products-analytics.service'
+import { AdminRevenueService } from './admin-revenue.service'
 import { AdminService } from './admin.service'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
 import { RolesGuard } from '../auth/guards/roles.guard'
@@ -12,6 +15,19 @@ import {
 
 const mockAdminService = {
   getStats: jest.fn(),
+}
+
+const mockAdminRevenueService = {
+  getRevenueStats: jest.fn(),
+  getKeyMetrics: jest.fn(),
+}
+
+const mockAdminProductsAnalyticsService = {
+  getTopProducts: jest.fn(),
+}
+
+const mockAdminOrdersAnalyticsService = {
+  getOrderStatusBreakdown: jest.fn(),
 }
 
 const mockJwtAuthGuard = { canActivate: jest.fn().mockReturnValue(true) }
@@ -32,6 +48,9 @@ describe('AdminController', () => {
       controllers: [AdminController],
       providers: [
         { provide: AdminService, useValue: mockAdminService },
+        { provide: AdminRevenueService, useValue: mockAdminRevenueService },
+        { provide: AdminProductsAnalyticsService, useValue: mockAdminProductsAnalyticsService },
+        { provide: AdminOrdersAnalyticsService, useValue: mockAdminOrdersAnalyticsService },
         { provide: Reflector, useValue: new Reflector() },
       ],
     })
