@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common'
 import { OrderStatus, PaymentStatus, Prisma } from '@prisma/client'
+import * as Sentry from '@sentry/nestjs'
 import { Decimal } from '@prisma/client/runtime/library'
 import { AnalyticsService } from '../analytics/analytics.service'
 import { EmailService } from '../email/email.service'
@@ -26,6 +27,18 @@ export class OrdersRefundsService {
   // `charge.refunded` webhook is idempotent because payment.status is already
   // REFUNDED / PARTIALLY_REFUNDED by the time it fires.
   async refundOrder(orderId: string, refundOrderDto: RefundOrderDto) {
+    Sentry.setContext('order', {
+      orderId,
+      amount: refundOrderDto.amount ?? 'full-remaining',
+      reason: refundOrderDto.reason,
+    })
+    Sentry.addBreadcrumb({
+      category: 'orders.refund',
+      message: `refundOrder ${orderId}`,
+      level: 'info',
+      data: { orderId, reason: refundOrderDto.reason },
+    })
+
     const order = await this.prismaService.order.findUnique({
       where: { id: orderId },
       include: { payment: true },

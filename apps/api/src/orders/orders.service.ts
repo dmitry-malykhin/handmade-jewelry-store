@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common'
 import { OrderStatus, Prisma } from '@prisma/client'
+import * as Sentry from '@sentry/nestjs'
 import { InputJsonValue } from '@prisma/client/runtime/library'
 import { buildCsvDocument } from '../common/csv/csv-formatter'
 import { paginate } from '../common/pagination/paginate'
@@ -256,6 +257,18 @@ export class OrdersService {
 
   async updateStatus(orderId: string, updateOrderStatusDto: UpdateOrderStatusDto) {
     const order = await this.findOneById(orderId)
+
+    Sentry.setContext('order', {
+      orderId,
+      fromStatus: order.status,
+      toStatus: updateOrderStatusDto.status,
+    })
+    Sentry.addBreadcrumb({
+      category: 'orders.status',
+      message: `updateStatus ${orderId} ${order.status} → ${updateOrderStatusDto.status}`,
+      level: 'info',
+      data: { orderId, fromStatus: order.status, toStatus: updateOrderStatusDto.status },
+    })
 
     if (!isValidOrderStatusTransition(order.status, updateOrderStatusDto.status)) {
       throw new BadRequestException(

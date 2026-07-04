@@ -36,6 +36,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { useAuthStore } from '@/store/auth.store'
 import { refundAdminOrder, type RefundReason } from '@/lib/api/orders'
 import { ApiError } from '@/lib/api/client'
+import { captureAdminError } from '@/lib/sentry/capture-admin-error'
 
 interface RefundOrderModalProps {
   isOpen: boolean
@@ -120,7 +121,13 @@ export function RefundOrderModal({
       form.reset()
       onClose()
     },
-    onError: (error) => {
+    onError: (error, values) => {
+      captureAdminError(error, {
+        action: 'orders.refund',
+        orderId,
+        amount: values.amount ?? remainingRefundable,
+        reason: values.reason,
+      })
       const message = error instanceof ApiError ? error.message : 'Unknown error'
       toast.error(t('refundModalError', { message }))
     },

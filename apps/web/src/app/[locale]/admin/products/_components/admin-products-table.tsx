@@ -55,6 +55,7 @@ import {
   type BulkProductAction,
 } from '@/lib/api/products'
 import { ApiError } from '@/lib/api/client'
+import { captureAdminError } from '@/lib/sentry/capture-admin-error'
 import { DeleteProductDialog } from './delete-product-dialog'
 
 const PRODUCT_STATUSES: ProductStatus[] = ['ACTIVE', 'DRAFT', 'ARCHIVED']
@@ -171,8 +172,13 @@ export function AdminProductsTable() {
     onSuccess: (updatedProduct) => {
       toast.success(t('productsStatusUpdateSuccess', { title: updatedProduct.title }))
     },
-    onError: (error, _variables, context) => {
+    onError: (error, variables, context) => {
       restoreProductsQueries(context?.previousProductsQueries)
+      captureAdminError(error, {
+        action: 'products.updateStatus',
+        productId: variables.productId,
+        newStatus: variables.newStatus,
+      })
       const message = error instanceof ApiError ? error.message : t('productsStatusUpdateError')
       toast.error(message)
     },
@@ -217,8 +223,13 @@ export function AdminProductsTable() {
       toast.success(t('productsDeleteSuccess'))
       setProductToDelete(null)
     },
-    onError: (error, _variables, context) => {
+    onError: (error, variables, context) => {
       restoreProductsQueries(context?.previousProductsQueries)
+      captureAdminError(error, {
+        action: 'products.delete',
+        productId: variables.id,
+        productSlug: variables.slug,
+      })
       const message = error instanceof ApiError ? error.message : t('productsDeleteError')
       toast.error(message)
     },
@@ -291,7 +302,12 @@ export function AdminProductsTable() {
       setPendingBulkAction(null)
       void queryClient.invalidateQueries({ queryKey: ['admin', 'products'] })
     },
-    onError: (error) => {
+    onError: (error, variables) => {
+      captureAdminError(error, {
+        action: 'products.bulk',
+        bulkAction: variables.action,
+        count: selectedIds.size,
+      })
       const message = error instanceof ApiError ? error.message : t('productsBulkActionError')
       toast.error(message)
     },

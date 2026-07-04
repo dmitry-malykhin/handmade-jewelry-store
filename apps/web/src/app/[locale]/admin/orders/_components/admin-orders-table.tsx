@@ -42,6 +42,7 @@ import {
 } from '@/lib/api/orders'
 import { ApiError } from '@/lib/api/client'
 import type { AdminOrdersQueryParams } from '@/lib/api/orders'
+import { captureAdminError } from '@/lib/sentry/capture-admin-error'
 import { getStatusConfirmCopy, requiresStatusConfirmation } from '../_lib/status-confirm'
 
 // Mirrors the backend state machine.
@@ -121,7 +122,12 @@ export function AdminOrdersTable() {
       toast.success(t('ordersStatusUpdateSuccess', { id: updatedOrder.id.slice(-8) }))
       setPendingTransition(null)
     },
-    onError: (error) => {
+    onError: (error, variables) => {
+      captureAdminError(error, {
+        action: 'orders.updateStatus',
+        orderId: variables.orderId,
+        newStatus: variables.newStatus,
+      })
       const message = error instanceof ApiError ? error.message : t('ordersStatusUpdateError')
       toast.error(message)
     },
