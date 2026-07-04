@@ -17,6 +17,7 @@ import {
   type UpdateOrderTrackingPayload,
 } from '@/lib/api/orders'
 import { ApiError } from '@/lib/api/client'
+import { captureAdminError } from '@/lib/sentry/capture-admin-error'
 import { getStatusConfirmCopy, requiresStatusConfirmation } from '../../_lib/status-confirm'
 import { CustomerInfoCard } from './customer-info-card'
 import { LabelPurchaseSection } from './label-purchase-section'
@@ -54,7 +55,12 @@ export function AdminOrderDetail({ orderId }: AdminOrderDetailProps) {
       toast.success(t('ordersStatusUpdateSuccess', { id: orderId.slice(-8) }))
       setPendingStatus(null)
     },
-    onError: (error) => {
+    onError: (error, newStatus) => {
+      captureAdminError(error, {
+        action: 'orders.updateStatus',
+        orderId,
+        newStatus,
+      })
       const message = error instanceof ApiError ? error.message : t('ordersStatusUpdateError')
       toast.error(message)
     },
@@ -78,7 +84,12 @@ export function AdminOrderDetail({ orderId }: AdminOrderDetailProps) {
       void queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] })
       toast.success(t('orderDetailTrackingSaveSuccess'))
     },
-    onError: (error) => {
+    onError: (error, payload) => {
+      captureAdminError(error, {
+        action: 'orders.updateTracking',
+        orderId,
+        shippingCarrier: payload.shippingCarrier,
+      })
       const message = error instanceof ApiError ? error.message : t('orderDetailTrackingSaveError')
       toast.error(message)
     },
