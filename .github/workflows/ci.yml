@@ -134,11 +134,35 @@ jobs:
           retention-days: 1
           if-no-files-found: ignore
 
+  detect-changes:
+    name: Detect changed paths
+    runs-on: ubuntu-latest
+    # Only needed for PRs — push to main always runs E2E unconditionally.
+    if: github.event_name == 'pull_request'
+    outputs:
+      frontend: ${{ steps.filter.outputs.frontend }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            frontend:
+              - 'apps/web/**'
+              - 'packages/shared/**'
+              - 'pnpm-lock.yaml'
+
   e2e-tests:
     name: E2E Tests (Playwright)
     runs-on: ubuntu-latest
-    # Push to main only — keeps PR checks fast.
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: detect-changes
+    # `always()` — otherwise skipped `needs` cascade-skips this job on push to main.
+    # Runs on: any push to main, OR PRs that touched frontend code.
+    if: |
+      always() && (
+        (github.event_name == 'push' && github.ref == 'refs/heads/main')
+        || (github.event_name == 'pull_request' && needs.detect-changes.outputs.frontend == 'true')
+      )
     steps:
       - name: Checkout
         uses: actions/checkout@v4
