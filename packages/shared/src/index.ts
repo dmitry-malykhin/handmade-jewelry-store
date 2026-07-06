@@ -132,6 +132,7 @@ export type OrderStatusForBreakdown =
   | 'CANCELLED'
   | 'REFUNDED'
   | 'PARTIALLY_REFUNDED'
+  | 'ON_HOLD'
 
 export interface OrderStatusBreakdownRow {
   status: OrderStatusForBreakdown

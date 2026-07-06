@@ -125,6 +125,7 @@ export type OrderStatus =
   | 'CANCELLED'
   | 'REFUNDED'
   | 'PARTIALLY_REFUNDED'
+  | 'ON_HOLD'
 
 export interface AdminOrdersQueryParams {
   page?: number

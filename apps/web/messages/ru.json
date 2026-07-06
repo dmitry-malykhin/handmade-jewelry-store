@@ -569,6 +569,7 @@
     "ordersStatusCANCELLED": "Отменён",
     "ordersStatusREFUNDED": "Возврат",
     "ordersStatusPARTIALLY_REFUNDED": "Частичный возврат",
+    "ordersStatusON_HOLD": "Приостановлен",
     "ordersLoading": "Загрузка заказов...",
     "ordersEmpty": "Заказы не найдены.",
     "ordersColId": "Номер заказа",

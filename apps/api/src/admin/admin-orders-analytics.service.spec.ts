@@ -35,7 +35,7 @@ describe('AdminOrdersAnalyticsService', () => {
   afterEach(() => jest.resetAllMocks())
 
   describe('getOrderStatusBreakdown', () => {
-    it('returns all 8 known statuses, including those with zero orders', async () => {
+    it('returns all 9 known statuses, including those with zero orders', async () => {
       // Backend only reports the non-zero buckets; service must fill the rest.
       mockPrismaService.order.groupBy.mockResolvedValueOnce([
         { status: 'PAID', _count: { status: 3 } },
@@ -49,8 +49,8 @@ describe('AdminOrdersAnalyticsService', () => {
       expect(byStatus.get('DELIVERED')).toBe(7)
       expect(byStatus.get('PENDING')).toBe(0)
       expect(byStatus.get('REFUNDED')).toBe(0)
-      // The chart needs a stable legend — all 8 statuses always present
-      expect(result).toHaveLength(8)
+      // The chart needs a stable legend — all 9 statuses always present
+      expect(result).toHaveLength(9)
     })
   })
 })

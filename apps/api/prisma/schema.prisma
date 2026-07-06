@@ -32,6 +32,7 @@ enum OrderStatus {
   CANCELLED          // Order cancelled (allowed before SHIPPED)
   REFUNDED           // Full refund executed via Stripe
   PARTIALLY_REFUNDED // Partial refund — e.g. MADE_TO_ORDER cancelled mid-production
+  ON_HOLD            // Chargeback dispute or fraud flag — admin action required
 }
 
 enum PaymentStatus {

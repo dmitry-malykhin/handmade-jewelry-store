@@ -16,6 +16,7 @@ const ALL_STATUSES: OrderStatusForBreakdown[] = [
   'CANCELLED',
   'REFUNDED',
   'PARTIALLY_REFUNDED',
+  'ON_HOLD',
 ]
 
 @Injectable()

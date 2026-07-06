@@ -141,4 +141,32 @@ describe('isValidOrderStatusTransition', () => {
       })
     })
   })
+
+  describe('ON_HOLD dispute lifecycle', () => {
+    it('allows any non-terminal status → ON_HOLD (chargeback can hit an order at any active stage)', () => {
+      const canBeHeld = [
+        OrderStatus.PENDING,
+        OrderStatus.PAID,
+        OrderStatus.PROCESSING,
+        OrderStatus.SHIPPED,
+        OrderStatus.DELIVERED,
+      ]
+      canBeHeld.forEach((from) => {
+        expect(isValidOrderStatusTransition(from, OrderStatus.ON_HOLD)).toBe(true)
+      })
+    })
+
+    it('forbids CANCELLED → ON_HOLD (money already returned, hold is meaningless)', () => {
+      expect(isValidOrderStatusTransition(OrderStatus.CANCELLED, OrderStatus.ON_HOLD)).toBe(false)
+    })
+
+    it('only resolves ON_HOLD into REFUNDED / PARTIALLY_REFUNDED / CANCELLED', () => {
+      const allowed = [OrderStatus.REFUNDED, OrderStatus.PARTIALLY_REFUNDED, OrderStatus.CANCELLED]
+      allowed.forEach((target) => {
+        expect(isValidOrderStatusTransition(OrderStatus.ON_HOLD, target)).toBe(true)
+      })
+      expect(isValidOrderStatusTransition(OrderStatus.ON_HOLD, OrderStatus.SHIPPED)).toBe(false)
+      expect(isValidOrderStatusTransition(OrderStatus.ON_HOLD, OrderStatus.DELIVERED)).toBe(false)
+    })
+  })
 })

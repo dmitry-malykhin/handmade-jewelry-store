@@ -569,6 +569,7 @@
     "ordersStatusCANCELLED": "Cancelado",
     "ordersStatusREFUNDED": "Reembolsado",
     "ordersStatusPARTIALLY_REFUNDED": "Reembolso parcial",
+    "ordersStatusON_HOLD": "En espera",
     "ordersLoading": "Cargando pedidos...",
     "ordersEmpty": "No se encontraron pedidos.",
     "ordersColId": "N.º de pedido",

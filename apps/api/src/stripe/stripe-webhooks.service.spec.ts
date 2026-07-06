@@ -1,3 +1,4 @@
+import { ConfigService } from '@nestjs/config'
 import { Test, TestingModule } from '@nestjs/testing'
 import { OrderStatus, PaymentStatus } from '@prisma/client'
 import { Decimal } from '@prisma/client/runtime/library'
@@ -5,6 +6,8 @@ import type Stripe from 'stripe'
 import { AnalyticsService } from '../analytics/analytics.service'
 import { EmailService } from '../email/email.service'
 import { PrismaService } from '../prisma/prisma.service'
+import { SlackNotifierService } from './slack-notifier.service'
+import { StripeService } from './stripe.service'
 import { StripeWebhooksService } from './stripe-webhooks.service'
 import {
   suite as $allureSuite,
@@ -81,11 +84,18 @@ describe('StripeWebhooksService', () => {
     order: { findUnique: jest.Mock; update: jest.Mock }
     $transaction: jest.Mock
   }
-  let mockEmailService: { sendOrderConfirmation: jest.Mock; sendRefundProcessed: jest.Mock }
+  let mockEmailService: {
+    sendOrderConfirmation: jest.Mock
+    sendRefundProcessed: jest.Mock
+    sendDisputeAlert: jest.Mock
+  }
   let mockAnalyticsService: {
     trackPaymentSucceeded: jest.Mock
     trackOrderCreated: jest.Mock
   }
+  let mockSlackNotifierService: { sendDisputeAlert: jest.Mock }
+  let mockStripeService: { client: { charges: { retrieve: jest.Mock } } }
+  let mockConfigService: { get: jest.Mock }
 
   beforeEach(async () => {
     mockPrismaService = {
@@ -97,10 +107,16 @@ describe('StripeWebhooksService', () => {
     mockEmailService = {
       sendOrderConfirmation: jest.fn(),
       sendRefundProcessed: jest.fn(),
+      sendDisputeAlert: jest.fn(),
     }
     mockAnalyticsService = {
       trackPaymentSucceeded: jest.fn(),
       trackOrderCreated: jest.fn(),
+    }
+    mockSlackNotifierService = { sendDisputeAlert: jest.fn() }
+    mockStripeService = { client: { charges: { retrieve: jest.fn() } } }
+    mockConfigService = {
+      get: jest.fn((key: string) => (key === 'FRONTEND_URL' ? 'https://shop.example' : undefined)),
     }
 
     const module: TestingModule = await Test.createTestingModule({
@@ -109,6 +125,9 @@ describe('StripeWebhooksService', () => {
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: EmailService, useValue: mockEmailService },
         { provide: AnalyticsService, useValue: mockAnalyticsService },
+        { provide: SlackNotifierService, useValue: mockSlackNotifierService },
+        { provide: StripeService, useValue: mockStripeService },
+        { provide: ConfigService, useValue: mockConfigService },
       ],
     }).compile()
 
@@ -345,14 +364,110 @@ describe('StripeWebhooksService', () => {
   })
 
   describe('handleChargeDisputeCreated', () => {
-    it('logs an error without throwing', () => {
-      const mockDispute = {
+    const buildMockDispute = (overrides: Partial<Stripe.Dispute> = {}) =>
+      ({
         id: 'dp_test_123',
         charge: STRIPE_CHARGE_ID,
         amount: 4998,
-      } as Stripe.Dispute
+        reason: 'fraudulent',
+        ...overrides,
+      }) as Stripe.Dispute
 
-      expect(() => stripeWebhooksService.handleChargeDisputeCreated(mockDispute)).not.toThrow()
+    it('transitions the order to ON_HOLD and records the history entry', async () => {
+      mockStripeService.client.charges.retrieve.mockResolvedValueOnce({
+        id: STRIPE_CHARGE_ID,
+        payment_intent: STRIPE_INTENT_ID,
+      })
+      mockPrismaService.payment.findUnique.mockResolvedValueOnce(
+        buildMockPayment({ order: { id: ORDER_ID, status: OrderStatus.PAID } }),
+      )
+
+      await stripeWebhooksService.handleChargeDisputeCreated(buildMockDispute())
+
+      expect(mockPrismaService.order.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: ORDER_ID },
+          data: expect.objectContaining({
+            status: OrderStatus.ON_HOLD,
+            statusHistory: expect.objectContaining({
+              create: expect.objectContaining({
+                fromStatus: OrderStatus.PAID,
+                toStatus: OrderStatus.ON_HOLD,
+                createdBy: 'stripe-webhook',
+              }),
+            }),
+          }),
+        }),
+      )
+    })
+
+    it('fires both Slack + email alerts with the dispute payload', async () => {
+      mockStripeService.client.charges.retrieve.mockResolvedValueOnce({
+        id: STRIPE_CHARGE_ID,
+        payment_intent: STRIPE_INTENT_ID,
+      })
+      mockPrismaService.payment.findUnique.mockResolvedValueOnce(
+        buildMockPayment({ order: { id: ORDER_ID, status: OrderStatus.PAID } }),
+      )
+
+      await stripeWebhooksService.handleChargeDisputeCreated(buildMockDispute())
+
+      const expectedPayload = {
+        disputeId: 'dp_test_123',
+        chargeId: STRIPE_CHARGE_ID,
+        orderId: ORDER_ID,
+        amountUsd: 49.98,
+        reason: 'fraudulent',
+        adminUrl: `https://shop.example/admin/orders/${ORDER_ID}`,
+      }
+      expect(mockSlackNotifierService.sendDisputeAlert).toHaveBeenCalledWith(expectedPayload)
+      expect(mockEmailService.sendDisputeAlert).toHaveBeenCalledWith(expectedPayload)
+    })
+
+    it('still emails admin when Slack notification throws (Slack outage tolerance)', async () => {
+      mockStripeService.client.charges.retrieve.mockResolvedValueOnce({
+        id: STRIPE_CHARGE_ID,
+        payment_intent: STRIPE_INTENT_ID,
+      })
+      mockPrismaService.payment.findUnique.mockResolvedValueOnce(
+        buildMockPayment({ order: { id: ORDER_ID, status: OrderStatus.PAID } }),
+      )
+      mockSlackNotifierService.sendDisputeAlert.mockRejectedValueOnce(new Error('Slack 503'))
+
+      await stripeWebhooksService.handleChargeDisputeCreated(buildMockDispute())
+
+      expect(mockEmailService.sendDisputeAlert).toHaveBeenCalled()
+    })
+
+    it('skips ON_HOLD transition when order is already in a terminal state (REFUNDED)', async () => {
+      mockStripeService.client.charges.retrieve.mockResolvedValueOnce({
+        id: STRIPE_CHARGE_ID,
+        payment_intent: STRIPE_INTENT_ID,
+      })
+      mockPrismaService.payment.findUnique.mockResolvedValueOnce(
+        buildMockPayment({ order: { id: ORDER_ID, status: OrderStatus.REFUNDED } }),
+      )
+
+      await stripeWebhooksService.handleChargeDisputeCreated(buildMockDispute())
+
+      // Guard against writing an invalid state transition — alerts still fire so admin
+      // sees the flag, but the order stays in its terminal state.
+      expect(mockPrismaService.order.update).not.toHaveBeenCalled()
+      expect(mockEmailService.sendDisputeAlert).toHaveBeenCalled()
+    })
+
+    it('skips silently when no Payment row matches the charge (unknown intent)', async () => {
+      mockStripeService.client.charges.retrieve.mockResolvedValueOnce({
+        id: STRIPE_CHARGE_ID,
+        payment_intent: STRIPE_INTENT_ID,
+      })
+      mockPrismaService.payment.findUnique.mockResolvedValueOnce(null)
+
+      await stripeWebhooksService.handleChargeDisputeCreated(buildMockDispute())
+
+      expect(mockPrismaService.order.update).not.toHaveBeenCalled()
+      expect(mockEmailService.sendDisputeAlert).not.toHaveBeenCalled()
+      expect(mockSlackNotifierService.sendDisputeAlert).not.toHaveBeenCalled()
     })
   })
 })
