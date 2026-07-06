@@ -26,6 +26,7 @@ import {
   buildBackInStockEmail,
   type BackInStockEmailData,
 } from './templates/back-in-stock.template'
+import { buildDisputeAlertEmail, type DisputeAlertData } from './templates/dispute-alert.template'
 
 // Resend's onboarding domain — accepted for testing, but flagged as spam by
 // most receivers. Production MUST set RESEND_FROM_ADDRESS to a verified
@@ -87,6 +88,12 @@ export class EmailService {
     const ownerEmail = this.configService.getOrThrow<string>('STORE_OWNER_EMAIL')
     // Reply-To set to the sender so the store owner can reply directly from their inbox
     await this.send({ to: ownerEmail, subject, html, replyTo: data.senderEmail })
+  }
+
+  async sendDisputeAlert(data: DisputeAlertData): Promise<void> {
+    const { subject, html } = buildDisputeAlertEmail(data)
+    const ownerEmail = this.configService.getOrThrow<string>('STORE_OWNER_EMAIL')
+    await this.send({ to: ownerEmail, subject, html })
   }
 
   private async send(params: {

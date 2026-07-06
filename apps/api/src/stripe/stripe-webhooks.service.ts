@@ -1,10 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
 import { OrderStatus, PaymentStatus } from '@prisma/client'
 import type Stripe from 'stripe'
 import { AnalyticsService } from '../analytics/analytics.service'
 import { EmailService } from '../email/email.service'
 import { PrismaService } from '../prisma/prisma.service'
 import { isValidOrderStatusTransition } from '../orders/order-status.transitions'
+import { SlackNotifierService } from './slack-notifier.service'
+import { StripeService } from './stripe.service'
 
 @Injectable()
 export class StripeWebhooksService {
@@ -14,6 +17,9 @@ export class StripeWebhooksService {
     private readonly prismaService: PrismaService,
     private readonly emailService: EmailService,
     private readonly analyticsService: AnalyticsService,
+    private readonly slackNotifierService: SlackNotifierService,
+    private readonly stripeService: StripeService,
+    private readonly configService: ConfigService,
   ) {}
 
   async handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent): Promise<void> {
@@ -195,11 +201,86 @@ export class StripeWebhooksService {
     }
   }
 
-  handleChargeDisputeCreated(dispute: Stripe.Dispute): void {
-    // TODO(post-launch): Slack/email alert + transition order to ON_HOLD.
+  async handleChargeDisputeCreated(dispute: Stripe.Dispute): Promise<void> {
+    const chargeId = typeof dispute.charge === 'string' ? dispute.charge : dispute.charge.id
+    const amountUsd = dispute.amount / 100
+
     this.logger.error(
-      `DISPUTE CREATED — dispute ID: ${dispute.id}, charge: ${dispute.charge}, amount: $${dispute.amount / 100}`,
+      `DISPUTE CREATED — dispute ${dispute.id}, charge ${chargeId}, amount $${amountUsd}`,
     )
+
+    // Stripe dispute references a charge — walk back to the PaymentIntent, then
+    // to our Payment row (indexed by stripeId = payment_intent id).
+    const payment = await this.findPaymentByChargeId(chargeId)
+
+    if (!payment) {
+      this.logger.warn(`No matching Payment row for disputed charge ${chargeId} — skipping ON_HOLD`)
+      return
+    }
+
+    if (isValidOrderStatusTransition(payment.order.status, OrderStatus.ON_HOLD)) {
+      await this.prismaService.order.update({
+        where: { id: payment.orderId },
+        data: {
+          status: OrderStatus.ON_HOLD,
+          statusHistory: {
+            create: {
+              fromStatus: payment.order.status,
+              toStatus: OrderStatus.ON_HOLD,
+              note: `Chargeback dispute ${dispute.id} filed — reason: ${dispute.reason ?? 'unspecified'}`,
+              createdBy: 'stripe-webhook',
+            },
+          },
+        },
+      })
+      this.logger.log(`Order ${payment.orderId} transitioned to ON_HOLD`)
+    } else {
+      this.logger.warn(
+        `Order ${payment.orderId} in ${payment.order.status} cannot transition to ON_HOLD — admin alert only`,
+      )
+    }
+
+    // Best-effort alerting: neither Slack nor email failure blocks the webhook
+    // ack — Stripe retries the whole webhook otherwise, causing duplicate ON_HOLD
+    // transitions in the history.
+    const adminUrl = `${this.configService.get<string>('FRONTEND_URL') ?? ''}/admin/orders/${payment.orderId}`
+    const alertPayload = {
+      disputeId: dispute.id,
+      chargeId,
+      orderId: payment.orderId,
+      amountUsd,
+      reason: dispute.reason ?? null,
+      adminUrl,
+    }
+
+    try {
+      await this.slackNotifierService.sendDisputeAlert(alertPayload)
+    } catch (error) {
+      this.logger.error(
+        `Slack dispute alert failed — falling back to email only. ${error instanceof Error ? error.message : String(error)}`,
+      )
+    }
+
+    try {
+      await this.emailService.sendDisputeAlert(alertPayload)
+    } catch (error) {
+      this.logger.error(
+        `Dispute alert email failed for order ${payment.orderId}: ${error instanceof Error ? error.message : String(error)}`,
+      )
+    }
+  }
+
+  // Payment.stripeId stores the PaymentIntent id (pi_*); dispute.charge references a
+  // Charge id (ch_*). We resolve the link via Stripe's API — the charge object
+  // exposes payment_intent, which matches our Payment.stripeId.
+  private async findPaymentByChargeId(chargeId: string) {
+    const charge = await this.stripeService.client.charges.retrieve(chargeId)
+    const paymentIntentId = typeof charge.payment_intent === 'string' ? charge.payment_intent : null
+    if (!paymentIntentId) return null
+    return this.prismaService.payment.findUnique({
+      where: { stripeId: paymentIntentId },
+      include: { order: true },
+    })
   }
 
   private async sendOrderConfirmationEmail(orderId: string): Promise<void> {

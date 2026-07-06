@@ -22,6 +22,7 @@ const STATUS_COLOR: Record<OrderStatusForBreakdown, string> = {
   CANCELLED: '#6b7280', // gray-500
   REFUNDED: '#ef4444', // red-500
   PARTIALLY_REFUNDED: '#f97316', // orange-500
+  ON_HOLD: '#dc2626', // red-600 — same alarm channel as REFUNDED but darker
 }
 
 const STATUS_LABEL_KEY: Record<
@@ -34,6 +35,7 @@ const STATUS_LABEL_KEY: Record<
   | 'ordersStatusCANCELLED'
   | 'ordersStatusREFUNDED'
   | 'ordersStatusPARTIALLY_REFUNDED'
+  | 'ordersStatusON_HOLD'
 > = {
   PENDING: 'ordersStatusPENDING',
   PAID: 'ordersStatusPAID',
@@ -43,6 +45,7 @@ const STATUS_LABEL_KEY: Record<
   CANCELLED: 'ordersStatusCANCELLED',
   REFUNDED: 'ordersStatusREFUNDED',
   PARTIALLY_REFUNDED: 'ordersStatusPARTIALLY_REFUNDED',
+  ON_HOLD: 'ordersStatusON_HOLD',
 }
 
 interface DonutTooltipPayloadItem {

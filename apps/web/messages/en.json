@@ -569,6 +569,7 @@
     "ordersStatusCANCELLED": "Cancelled",
     "ordersStatusREFUNDED": "Refunded",
     "ordersStatusPARTIALLY_REFUNDED": "Partially refunded",
+    "ordersStatusON_HOLD": "On hold",
     "ordersLoading": "Loading orders...",
     "ordersEmpty": "No orders found.",
     "ordersColId": "Order ID",

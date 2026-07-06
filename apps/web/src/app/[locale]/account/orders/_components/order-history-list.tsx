@@ -17,6 +17,7 @@ const STATUS_BADGE_VARIANT: Record<OrderStatus, string> = {
   CANCELLED: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300',
   REFUNDED: 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300',
   PARTIALLY_REFUNDED: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300',
+  ON_HOLD: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300',
 }
 
 function formatDate(isoString: string, locale: string): string {
