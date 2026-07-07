@@ -1,12 +1,13 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common'
 import { Test, TestingModule } from '@nestjs/testing'
-import { OrderStatus } from '@prisma/client'
+import { DiscountType, OrderStatus } from '@prisma/client'
 import { Decimal } from '@prisma/client/runtime/library'
 import {
   suite as $allureSuite,
   subSuite as $allureSubSuite,
   severity as $allureSeverity,
 } from 'allure-js-commons'
+import { DiscountsService } from '../discounts/discounts.service'
 import { EmailService } from '../email/email.service'
 import { LoyaltyService } from '../loyalty/loyalty.service'
 import { PrismaService } from '../prisma/prisma.service'
@@ -71,6 +72,10 @@ const mockLoyaltyService = {
   spendForCheckout: jest.fn().mockResolvedValue(undefined),
 }
 
+const mockDiscountsService = {
+  applyOnOrderCreate: jest.fn(),
+}
+
 beforeEach(async () => {
   if (!process.env.CI) return
   await $allureSuite('api/orders')
@@ -88,6 +93,7 @@ describe('OrdersService', () => {
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: EmailService, useValue: mockEmailService },
         { provide: LoyaltyService, useValue: mockLoyaltyService },
+        { provide: DiscountsService, useValue: mockDiscountsService },
       ],
     }).compile()
 
@@ -163,6 +169,110 @@ describe('OrdersService', () => {
         orderId: mockCreatedOrder.id,
         points: 2000,
       })
+    })
+
+    // ── discount codes (#347) ───────────────────────────────────────────────
+
+    it('applies a valid discount code — persists snapshot and subtracts from total', async () => {
+      mockDiscountsService.applyOnOrderCreate.mockResolvedValueOnce({
+        code: 'WELCOME10',
+        type: DiscountType.PERCENTAGE,
+        discountAmountCents: 1000, // $10 off
+      })
+      mockPrismaService.order.create.mockResolvedValue(mockCreatedOrder)
+
+      await ordersService.create({
+        items: [mockOrderItem],
+        shippingAddress: mockShippingAddress,
+        subtotal: 100,
+        shippingCost: 5,
+        total: 105,
+        discountCode: 'welcome10',
+      })
+
+      expect(mockDiscountsService.applyOnOrderCreate).toHaveBeenCalledWith(expect.anything(), {
+        code: 'welcome10',
+        subtotalCents: 10000,
+      })
+      const callData = mockPrismaService.order.create.mock.calls[0]?.[0] as {
+        data: {
+          total: number
+          discountCode: string | null
+          discountAmountCents: number | null
+          discountType: DiscountType | null
+        }
+      }
+      // 105 - 10 = 95
+      expect(callData.data.total).toBe(95)
+      expect(callData.data.discountCode).toBe('WELCOME10')
+      expect(callData.data.discountAmountCents).toBe(1000)
+      expect(callData.data.discountType).toBe(DiscountType.PERCENTAGE)
+    })
+
+    it('propagates BadRequestException from applyOnOrderCreate — no order is created', async () => {
+      mockDiscountsService.applyOnOrderCreate.mockRejectedValueOnce(
+        new BadRequestException('Discount code has expired'),
+      )
+
+      await expect(
+        ordersService.create({
+          items: [mockOrderItem],
+          shippingAddress: mockShippingAddress,
+          subtotal: 100,
+          shippingCost: 5,
+          total: 105,
+          discountCode: 'EXPIRED',
+        }),
+      ).rejects.toThrow(BadRequestException)
+
+      expect(mockPrismaService.order.create).not.toHaveBeenCalled()
+    })
+
+    it('leaves discount fields null when no code is provided', async () => {
+      mockPrismaService.order.create.mockResolvedValue(mockCreatedOrder)
+
+      await ordersService.create({
+        items: [mockOrderItem],
+        shippingAddress: mockShippingAddress,
+        subtotal: 100,
+        shippingCost: 5,
+        total: 105,
+      })
+
+      expect(mockDiscountsService.applyOnOrderCreate).not.toHaveBeenCalled()
+      const callData = mockPrismaService.order.create.mock.calls[0]?.[0] as {
+        data: {
+          discountCode: string | null
+          discountAmountCents: number | null
+          discountType: DiscountType | null
+        }
+      }
+      expect(callData.data.discountCode).toBeNull()
+      expect(callData.data.discountAmountCents).toBeNull()
+      expect(callData.data.discountType).toBeNull()
+    })
+
+    it('clamps discounted total to 0 when discountAmount exceeds the loyalty-adjusted total', async () => {
+      mockDiscountsService.applyOnOrderCreate.mockResolvedValueOnce({
+        code: 'BIGDEAL',
+        type: DiscountType.FIXED_AMOUNT,
+        discountAmountCents: 20000, // $200 off a $105 order
+      })
+      mockPrismaService.order.create.mockResolvedValue(mockCreatedOrder)
+
+      await ordersService.create({
+        items: [mockOrderItem],
+        shippingAddress: mockShippingAddress,
+        subtotal: 100,
+        shippingCost: 5,
+        total: 105,
+        discountCode: 'BIGDEAL',
+      })
+
+      const callData = mockPrismaService.order.create.mock.calls[0]?.[0] as {
+        data: { total: number }
+      }
+      expect(callData.data.total).toBe(0)
     })
   })
 

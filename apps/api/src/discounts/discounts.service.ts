@@ -10,6 +10,19 @@ import { CreateDiscountDto } from './dto/create-discount.dto'
 import { UpdateDiscountDto } from './dto/update-discount.dto'
 import { ValidateDiscountDto } from './dto/validate-discount.dto'
 
+// Prisma transaction client slice for `applyOnOrderCreate` — accepts either
+// the service itself or a $transaction client, so a caller can atomically tie
+// the usage bump to order creation.
+export type DiscountsPrismaClient = {
+  discount: Pick<PrismaService['discount'], 'findUnique' | 'updateMany'>
+}
+
+export interface AppliedDiscount {
+  code: string
+  type: DiscountType
+  discountAmountCents: number
+}
+
 // Bounded by subtotal — a 100% code on a $50 cart returns 5000, never above.
 export function computeDiscountAmountCents(
   type: DiscountType,
@@ -142,12 +155,68 @@ export class DiscountsService {
     }
   }
 
-  // TODO(post-launch): wire into the order-create / payment webhook flow.
-  async incrementUsage(discountId: string) {
-    return this.prismaService.discount.update({
-      where: { id: discountId },
-      data: { usageCount: { increment: 1 } },
+  /**
+   * Applied inside the order-create transaction (#347). Re-validates the code
+   * server-side, atomically bumps `usageCount` (a conditional `updateMany`
+   * against `usageCount < maxUsages` so two concurrent checkouts can't push
+   * the counter past `maxUsages`), and returns the discount snapshot the
+   * caller writes onto the Order. Throws on any validation failure — the
+   * transaction rolls back and no order is created.
+   *
+   * Refunds do NOT decrement usageCount (per issue scope) — the code was
+   * used at checkout, that's what the limit tracks.
+   */
+  async applyOnOrderCreate(
+    prismaClient: DiscountsPrismaClient,
+    args: { code: string; subtotalCents: number },
+  ): Promise<AppliedDiscount> {
+    const normalisedCode = args.code.toUpperCase()
+    const discount = await prismaClient.discount.findUnique({
+      where: { code: normalisedCode },
     })
+
+    if (!discount || discount.deletedAt) {
+      throw new BadRequestException(`Discount code "${normalisedCode}" not found`)
+    }
+    if (!discount.isActive) {
+      throw new BadRequestException('Discount code is not active')
+    }
+    if (discount.expiresAt && discount.expiresAt < new Date()) {
+      throw new BadRequestException('Discount code has expired')
+    }
+    if (args.subtotalCents < discount.minOrderCents) {
+      throw new BadRequestException(
+        `Minimum order ${(discount.minOrderCents / 100).toFixed(2)} not met`,
+      )
+    }
+
+    // Race-safe bump: two concurrent order-creates for a code with
+    // `maxUsages = usageCount + 1` remaining both pass the `<` check up top
+    // but only one wins the `updateMany` (the other matches 0 rows).
+    if (discount.maxUsages !== null) {
+      const bumped = await prismaClient.discount.updateMany({
+        where: { id: discount.id, usageCount: { lt: discount.maxUsages } },
+        data: { usageCount: { increment: 1 } },
+      })
+      if (bumped.count === 0) {
+        throw new BadRequestException('Discount code has reached its usage limit')
+      }
+    } else {
+      await prismaClient.discount.updateMany({
+        where: { id: discount.id },
+        data: { usageCount: { increment: 1 } },
+      })
+    }
+
+    return {
+      code: discount.code,
+      type: discount.type,
+      discountAmountCents: computeDiscountAmountCents(
+        discount.type,
+        discount.value,
+        args.subtotalCents,
+      ),
+    }
   }
 
   private assertValidValueForType(type: DiscountType, value: number): void {

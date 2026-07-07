@@ -4,6 +4,7 @@ import * as Sentry from '@sentry/nestjs'
 import { InputJsonValue } from '@prisma/client/runtime/library'
 import { buildCsvDocument } from '../common/csv/csv-formatter'
 import { paginate } from '../common/pagination/paginate'
+import { DiscountsService, type AppliedDiscount } from '../discounts/discounts.service'
 import { EmailService } from '../email/email.service'
 import { LoyaltyService } from '../loyalty/loyalty.service'
 import { PrismaService } from '../prisma/prisma.service'
@@ -73,6 +74,7 @@ export class OrdersService {
     private readonly prismaService: PrismaService,
     private readonly emailService: EmailService,
     private readonly loyaltyService: LoyaltyService,
+    private readonly discountsService: DiscountsService,
   ) {}
 
   async create(createOrderDto: CreateOrderDto) {
@@ -85,6 +87,7 @@ export class OrdersService {
       shippingCost,
       total,
       loyaltyPointsToRedeem,
+      discountCode,
       source,
     } = createOrderDto
 
@@ -104,6 +107,19 @@ export class OrdersService {
 
     try {
       const order = await this.prismaService.$transaction(async (tx) => {
+        // Discount applies before order.create so a rejected code aborts
+        // the whole transaction — the counter bump and the row insert
+        // succeed or fail together.
+        let appliedDiscount: AppliedDiscount | null = null
+        if (discountCode) {
+          appliedDiscount = await this.discountsService.applyOnOrderCreate(tx, {
+            code: discountCode,
+            subtotalCents: Math.round(subtotal * 100),
+          })
+          const discountUsd = appliedDiscount.discountAmountCents / 100
+          adjustedTotal = Math.max(0, Number((adjustedTotal - discountUsd).toFixed(2)))
+        }
+
         const created = await tx.order.create({
           data: {
             userId: userId ?? null,
@@ -112,6 +128,9 @@ export class OrdersService {
             shippingCost,
             total: adjustedTotal,
             loyaltyPointsUsed: pointsToRedeem,
+            discountCode: appliedDiscount?.code ?? null,
+            discountAmountCents: appliedDiscount?.discountAmountCents ?? null,
+            discountType: appliedDiscount?.type ?? null,
             shippingAddress: shippingAddress as unknown as InputJsonValue,
             source: source ?? 'web',
             status: OrderStatus.PENDING,

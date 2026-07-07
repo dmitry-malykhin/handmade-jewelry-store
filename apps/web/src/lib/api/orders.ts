@@ -25,6 +25,8 @@ export interface OrderItemPayload {
   }
 }
 
+export type DiscountType = 'PERCENTAGE' | 'FIXED_AMOUNT'
+
 export interface CreateOrderPayload {
   userId?: string
   guestEmail?: string
@@ -35,6 +37,9 @@ export interface CreateOrderPayload {
   total: number
   // Server clamps to balance + 50% subtotal.
   loyaltyPointsToRedeem?: number
+  // Server re-validates and computes the actual amount — client value is
+  // only used to display an expected total before submitting.
+  discountCode?: string
   source?: string
 }
 
@@ -108,6 +113,9 @@ export interface AdminOrderDetail extends OrderDetails {
   easypostTrackerId: string | null
   labelUrl: string | null
   shippingInsuranceCents: number
+  discountCode: string | null
+  discountAmountCents: number | null
+  discountType: DiscountType | null
 }
 
 export interface UpdateOrderTrackingPayload {

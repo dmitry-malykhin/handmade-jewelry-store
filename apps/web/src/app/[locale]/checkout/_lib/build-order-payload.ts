@@ -12,6 +12,8 @@ interface BuildOrderPayloadOptions {
   userId?: string
   /** Loyalty points the buyer chose to redeem. Server clamps. */
   loyaltyPointsToRedeem?: number
+  /** Discount code the buyer entered. Server re-validates and computes amount. */
+  discountCode?: string
 }
 
 export function buildOrderPayload(
@@ -48,6 +50,7 @@ export function buildOrderPayload(
     ...(options.loyaltyPointsToRedeem
       ? { loyaltyPointsToRedeem: options.loyaltyPointsToRedeem }
       : {}),
+    ...(options.discountCode ? { discountCode: options.discountCode } : {}),
     source: 'web',
   }
 }

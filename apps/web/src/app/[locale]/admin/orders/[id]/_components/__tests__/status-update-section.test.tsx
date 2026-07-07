@@ -47,6 +47,9 @@ function buildOrder(status: AdminOrderDetail['status']): AdminOrderDetail {
     easypostTrackerId: null,
     labelUrl: null,
     shippingInsuranceCents: 0,
+    discountCode: null,
+    discountAmountCents: null,
+    discountType: null,
   }
 }
 

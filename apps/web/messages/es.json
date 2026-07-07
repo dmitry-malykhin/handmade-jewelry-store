@@ -660,6 +660,7 @@
     "orderDetailFieldSubtotal": "Subtotal",
     "orderDetailFieldShipping": "Envío",
     "orderDetailFieldTotal": "Total",
+    "orderDetailFieldDiscount": "Descuento",
     "orderDetailFieldSource": "Origen",
     "orderDetailFieldPayment": "Pago",
     "orderDetailFieldEmail": "Email",

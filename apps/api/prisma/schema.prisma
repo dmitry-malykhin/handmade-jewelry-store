@@ -265,6 +265,14 @@ model Order {
   loyaltyPointsUsed   Int @default(0) // 1 point = $0.01
   loyaltyPointsEarned Int @default(0) // credited only at DELIVERED
 
+  // Discount snapshot (#347). Nullable so pre-launch orders (and orders
+  // placed without a code) stay valid. `discountCode` is a snapshot — the
+  // Discount row may be soft-deleted or its `value` edited later without
+  // affecting the historical order total.
+  discountCode        String?
+  discountAmountCents Int?
+  discountType        DiscountType?
+
   // Analytics
   source String? // "web" | "admin"
 
