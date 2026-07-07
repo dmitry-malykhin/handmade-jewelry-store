@@ -660,6 +660,7 @@
     "orderDetailFieldSubtotal": "Подытог",
     "orderDetailFieldShipping": "Доставка",
     "orderDetailFieldTotal": "Итого",
+    "orderDetailFieldDiscount": "Скидка",
     "orderDetailFieldSource": "Источник",
     "orderDetailFieldPayment": "Оплата",
     "orderDetailFieldEmail": "Email",

@@ -15,6 +15,7 @@ const mockPrismaService = {
     findUnique: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
+    updateMany: jest.fn(),
   },
 }
 
@@ -215,18 +216,99 @@ describe('DiscountsService', () => {
     })
   })
 
-  // ── incrementUsage ───────────────────────────────────────────────────────
+  // ── applyOnOrderCreate — called inside orders.service transaction (#347) ──
 
-  describe('incrementUsage()', () => {
-    it('atomically increments usageCount by 1', async () => {
-      mockPrismaService.discount.update.mockResolvedValueOnce(buildDiscount({ usageCount: 1 }))
+  describe('applyOnOrderCreate()', () => {
+    it('returns the snapshot + bumps usageCount for a valid code', async () => {
+      mockPrismaService.discount.findUnique.mockResolvedValueOnce(
+        buildDiscount({ type: DiscountType.PERCENTAGE, value: 10 }),
+      )
+      mockPrismaService.discount.updateMany.mockResolvedValueOnce({ count: 1 })
 
-      await discountsService.incrementUsage('disc-1')
+      const applied = await discountsService.applyOnOrderCreate(mockPrismaService, {
+        code: 'welcome10',
+        subtotalCents: 5000,
+      })
 
-      expect(mockPrismaService.discount.update).toHaveBeenCalledWith({
+      expect(applied).toEqual({
+        code: 'WELCOME10',
+        type: DiscountType.PERCENTAGE,
+        discountAmountCents: 500,
+      })
+      expect(mockPrismaService.discount.updateMany).toHaveBeenCalledWith({
         where: { id: 'disc-1' },
         data: { usageCount: { increment: 1 } },
       })
+    })
+
+    it('guards the bump with `usageCount < maxUsages` so concurrent orders cannot exceed the cap', async () => {
+      mockPrismaService.discount.findUnique.mockResolvedValueOnce(
+        buildDiscount({ maxUsages: 100, usageCount: 42 }),
+      )
+      mockPrismaService.discount.updateMany.mockResolvedValueOnce({ count: 1 })
+
+      await discountsService.applyOnOrderCreate(mockPrismaService, {
+        code: 'WELCOME10',
+        subtotalCents: 5000,
+      })
+
+      expect(mockPrismaService.discount.updateMany).toHaveBeenCalledWith({
+        where: { id: 'disc-1', usageCount: { lt: 100 } },
+        data: { usageCount: { increment: 1 } },
+      })
+    })
+
+    it('throws when the conditional bump matches zero rows (race lost)', async () => {
+      mockPrismaService.discount.findUnique.mockResolvedValueOnce(
+        buildDiscount({ maxUsages: 100, usageCount: 99 }),
+      )
+      // Another concurrent order won the race — our updateMany finds 0 rows.
+      mockPrismaService.discount.updateMany.mockResolvedValueOnce({ count: 0 })
+
+      await expect(
+        discountsService.applyOnOrderCreate(mockPrismaService, {
+          code: 'WELCOME10',
+          subtotalCents: 5000,
+        }),
+      ).rejects.toThrow(/usage limit/i)
+    })
+
+    it('rejects an expired code (BadRequest so orders.service transaction rolls back)', async () => {
+      mockPrismaService.discount.findUnique.mockResolvedValueOnce(
+        buildDiscount({ expiresAt: new Date('2020-01-01T00:00:00Z') }),
+      )
+
+      await expect(
+        discountsService.applyOnOrderCreate(mockPrismaService, {
+          code: 'WELCOME10',
+          subtotalCents: 5000,
+        }),
+      ).rejects.toThrow(BadRequestException)
+      expect(mockPrismaService.discount.updateMany).not.toHaveBeenCalled()
+    })
+
+    it('rejects when subtotal is below minOrderCents', async () => {
+      mockPrismaService.discount.findUnique.mockResolvedValueOnce(
+        buildDiscount({ minOrderCents: 5000 }),
+      )
+
+      await expect(
+        discountsService.applyOnOrderCreate(mockPrismaService, {
+          code: 'WELCOME10',
+          subtotalCents: 1000,
+        }),
+      ).rejects.toThrow(/minimum order/i)
+    })
+
+    it('rejects an unknown code (BadRequest at order-create, not the 404 the validate endpoint returns)', async () => {
+      mockPrismaService.discount.findUnique.mockResolvedValueOnce(null)
+
+      await expect(
+        discountsService.applyOnOrderCreate(mockPrismaService, {
+          code: 'NOPE',
+          subtotalCents: 5000,
+        }),
+      ).rejects.toThrow(BadRequestException)
     })
   })
 })

@@ -100,6 +100,9 @@ const mockOrder: AdminOrderDetailType = {
   easypostTrackerId: null,
   labelUrl: null,
   shippingInsuranceCents: 0,
+  discountCode: null,
+  discountAmountCents: null,
+  discountType: null,
   source: 'web',
   payment: {
     id: 'pay-1',

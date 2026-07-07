@@ -84,6 +84,9 @@ function buildOrder(overrides: Partial<AdminOrderDetail> = {}): AdminOrderDetail
     easypostTrackerId: null,
     labelUrl: null,
     shippingInsuranceCents: 0,
+    discountCode: null,
+    discountAmountCents: null,
+    discountType: null,
     ...overrides,
   }
 }

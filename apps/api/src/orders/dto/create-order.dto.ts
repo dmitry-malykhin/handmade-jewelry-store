@@ -9,6 +9,7 @@ import {
   IsOptional,
   IsPositive,
   IsString,
+  Length,
   Max,
   Min,
   registerDecorator,
@@ -143,6 +144,16 @@ export class CreateOrderDto {
   @Min(0)
   @IsOptional()
   loyaltyPointsToRedeem?: number
+
+  /**
+   * Discount code the buyer entered at checkout. Server re-validates the code
+   * (existence, active, expiry, min-order, usage cap) before applying — never
+   * trust the client's computed discount amount.
+   */
+  @IsString()
+  @Length(1, 30)
+  @IsOptional()
+  discountCode?: string
 
   @IsString()
   @IsOptional()

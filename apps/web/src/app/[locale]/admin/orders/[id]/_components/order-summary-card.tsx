@@ -56,6 +56,20 @@ export function OrderSummaryCard({ order }: { order: AdminOrderDetailType }) {
             </data>
           </dd>
         </div>
+        {order.discountCode && order.discountAmountCents !== null && (
+          <div>
+            <dt className="text-muted-foreground">{t('orderDetailFieldDiscount')}</dt>
+            <dd className="font-medium text-foreground">
+              <code className="rounded bg-muted px-1.5 py-0.5 text-xs">{order.discountCode}</code>
+              <span className="ml-2">
+                −
+                <data value={order.discountAmountCents / 100}>
+                  ${(order.discountAmountCents / 100).toFixed(2)}
+                </data>
+              </span>
+            </dd>
+          </div>
+        )}
         <div>
           <dt className="text-muted-foreground">{t('orderDetailFieldSource')}</dt>
           <dd className="capitalize text-foreground">{order.source ?? '—'}</dd>
