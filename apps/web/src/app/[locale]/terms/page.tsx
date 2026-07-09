@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { buildLocaleAlternates } from '@/lib/seo/alternates'
 import Link from 'next/link'
+import { getCompanyAddress, getLegalEmail, getSupportEmail } from '@/lib/config/contact'
 
 interface TermsPageProps {
   params: Promise<{ locale: string }>
@@ -29,6 +30,9 @@ export default async function TermsPage({ params }: TermsPageProps) {
   setRequestLocale(locale)
 
   const t = await getTranslations('termsPage')
+  const supportEmail = getSupportEmail()
+  const legalEmail = getLegalEmail()
+  const companyAddress = getCompanyAddress()
 
   return (
     <main>
@@ -149,8 +153,8 @@ export default async function TermsPage({ params }: TermsPageProps) {
               </li>
               <li>
                 To initiate a return, contact us at{' '}
-                <a href="mailto:support@example.com" className="underline hover:text-foreground">
-                  support@example.com
+                <a href={`mailto:${supportEmail}`} className="underline hover:text-foreground">
+                  {supportEmail}
                 </a>{' '}
                 within the return window with your order number and reason for return.
               </li>
@@ -301,10 +305,11 @@ export default async function TermsPage({ params }: TermsPageProps) {
             </p>
             <address className="not-italic text-muted-foreground">
               <p>Handmade Jewelry Store</p>
+              {companyAddress && <p>{companyAddress}</p>}
               <p>
                 Email:{' '}
-                <a href="mailto:legal@example.com" className="underline hover:text-foreground">
-                  legal@example.com
+                <a href={`mailto:${legalEmail}`} className="underline hover:text-foreground">
+                  {legalEmail}
                 </a>
               </p>
             </address>

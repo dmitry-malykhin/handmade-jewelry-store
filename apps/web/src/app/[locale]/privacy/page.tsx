@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { buildLocaleAlternates } from '@/lib/seo/alternates'
+import { getCompanyAddress, getPrivacyEmail } from '@/lib/config/contact'
 
 interface PrivacyPageProps {
   params: Promise<{ locale: string }>
@@ -28,6 +29,8 @@ export default async function PrivacyPage({ params }: PrivacyPageProps) {
   setRequestLocale(locale)
 
   const t = await getTranslations('privacyPage')
+  const privacyEmail = getPrivacyEmail()
+  const companyAddress = getCompanyAddress()
 
   return (
     <main>
@@ -222,8 +225,8 @@ export default async function PrivacyPage({ params }: PrivacyPageProps) {
             </ul>
             <p className="mt-4 text-muted-foreground">
               To exercise any of these rights, contact us at{' '}
-              <a href="mailto:privacy@example.com" className="underline hover:text-foreground">
-                privacy@example.com
+              <a href={`mailto:${privacyEmail}`} className="underline hover:text-foreground">
+                {privacyEmail}
               </a>
               . We will respond within 30 days.
             </p>
@@ -272,10 +275,11 @@ export default async function PrivacyPage({ params }: PrivacyPageProps) {
             </p>
             <address className="mt-4 not-italic text-muted-foreground">
               <p>Handmade Jewelry Store</p>
+              {companyAddress && <p>{companyAddress}</p>}
               <p>
                 Email:{' '}
-                <a href="mailto:privacy@example.com" className="underline hover:text-foreground">
-                  privacy@example.com
+                <a href={`mailto:${privacyEmail}`} className="underline hover:text-foreground">
+                  {privacyEmail}
                 </a>
               </p>
             </address>

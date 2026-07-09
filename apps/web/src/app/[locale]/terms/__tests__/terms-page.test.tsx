@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import messages from '../../../../../messages/en.json'
 import TermsPage from '../page'
@@ -30,11 +30,30 @@ async function renderTermsPage() {
   return render(jsx)
 }
 
+const ORIGINAL_SUPPORT_EMAIL = process.env.NEXT_PUBLIC_SUPPORT_EMAIL
+const ORIGINAL_LEGAL_EMAIL = process.env.NEXT_PUBLIC_LEGAL_EMAIL
+const ORIGINAL_COMPANY_ADDRESS = process.env.NEXT_PUBLIC_COMPANY_ADDRESS
+const TEST_SUPPORT_EMAIL = 'support@senichka.test'
+const TEST_LEGAL_EMAIL = 'legal@senichka.test'
+const TEST_COMPANY_ADDRESS = '123 Test Ave, Austin, TX, USA'
+
 beforeEach(async () => {
+  process.env.NEXT_PUBLIC_SUPPORT_EMAIL = TEST_SUPPORT_EMAIL
+  process.env.NEXT_PUBLIC_LEGAL_EMAIL = TEST_LEGAL_EMAIL
+  process.env.NEXT_PUBLIC_COMPANY_ADDRESS = TEST_COMPANY_ADDRESS
   if (!process.env.CI) return
   await $allureSuite('web/app/locale')
   await $allureSubSuite('terms-page')
   await $allureSeverity('normal')
+})
+
+afterEach(() => {
+  if (ORIGINAL_SUPPORT_EMAIL === undefined) delete process.env.NEXT_PUBLIC_SUPPORT_EMAIL
+  else process.env.NEXT_PUBLIC_SUPPORT_EMAIL = ORIGINAL_SUPPORT_EMAIL
+  if (ORIGINAL_LEGAL_EMAIL === undefined) delete process.env.NEXT_PUBLIC_LEGAL_EMAIL
+  else process.env.NEXT_PUBLIC_LEGAL_EMAIL = ORIGINAL_LEGAL_EMAIL
+  if (ORIGINAL_COMPANY_ADDRESS === undefined) delete process.env.NEXT_PUBLIC_COMPANY_ADDRESS
+  else process.env.NEXT_PUBLIC_COMPANY_ADDRESS = ORIGINAL_COMPANY_ADDRESS
 })
 
 describe('TermsPage — metadata', () => {
@@ -91,10 +110,10 @@ describe('TermsPage — returns and refund policy', () => {
     expect(screen.getByText(/custom or personalized pieces.*are exempt/i)).toBeInTheDocument()
   })
 
-  it('renders the support email link for returns', async () => {
+  it('renders the support email link for returns from NEXT_PUBLIC_SUPPORT_EMAIL', async () => {
     await renderTermsPage()
-    const supportLink = screen.getByRole('link', { name: 'support@example.com' })
-    expect(supportLink).toHaveAttribute('href', 'mailto:support@example.com')
+    const supportLink = screen.getByRole('link', { name: TEST_SUPPORT_EMAIL })
+    expect(supportLink).toHaveAttribute('href', `mailto:${TEST_SUPPORT_EMAIL}`)
   })
 })
 
@@ -116,10 +135,20 @@ describe('TermsPage — payment and legal', () => {
     expect(screen.getByText(/Afterpay/)).toBeInTheDocument()
   })
 
-  it('renders the legal@example.com contact email in the contact section', async () => {
+  it('renders the legal contact email from NEXT_PUBLIC_LEGAL_EMAIL', async () => {
     await renderTermsPage()
-    const legalEmailLink = screen.getByRole('link', { name: 'legal@example.com' })
-    expect(legalEmailLink).toHaveAttribute('href', 'mailto:legal@example.com')
+    const legalEmailLink = screen.getByRole('link', { name: TEST_LEGAL_EMAIL })
+    expect(legalEmailLink).toHaveAttribute('href', `mailto:${TEST_LEGAL_EMAIL}`)
+  })
+
+  it('renders the physical postal address from NEXT_PUBLIC_COMPANY_ADDRESS', async () => {
+    await renderTermsPage()
+    expect(screen.getByText(TEST_COMPANY_ADDRESS)).toBeInTheDocument()
+  })
+
+  it('never emits an @example.com placeholder — that would invalidate the Terms', async () => {
+    await renderTermsPage()
+    expect(screen.queryByText(/@example\.com/i)).not.toBeInTheDocument()
   })
 })
 

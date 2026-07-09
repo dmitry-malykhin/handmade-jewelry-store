@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import messages from '../../../../../messages/en.json'
 import PrivacyPage from '../page'
@@ -23,11 +23,25 @@ async function renderPrivacyPage() {
   return render(jsx)
 }
 
+const ORIGINAL_PRIVACY_EMAIL = process.env.NEXT_PUBLIC_PRIVACY_EMAIL
+const ORIGINAL_COMPANY_ADDRESS = process.env.NEXT_PUBLIC_COMPANY_ADDRESS
+const TEST_PRIVACY_EMAIL = 'privacy@senichka.test'
+const TEST_COMPANY_ADDRESS = '123 Test Ave, Austin, TX, USA'
+
 beforeEach(async () => {
+  process.env.NEXT_PUBLIC_PRIVACY_EMAIL = TEST_PRIVACY_EMAIL
+  process.env.NEXT_PUBLIC_COMPANY_ADDRESS = TEST_COMPANY_ADDRESS
   if (!process.env.CI) return
   await $allureSuite('web/app/locale')
   await $allureSubSuite('privacy-page')
   await $allureSeverity('normal')
+})
+
+afterEach(() => {
+  if (ORIGINAL_PRIVACY_EMAIL === undefined) delete process.env.NEXT_PUBLIC_PRIVACY_EMAIL
+  else process.env.NEXT_PUBLIC_PRIVACY_EMAIL = ORIGINAL_PRIVACY_EMAIL
+  if (ORIGINAL_COMPANY_ADDRESS === undefined) delete process.env.NEXT_PUBLIC_COMPANY_ADDRESS
+  else process.env.NEXT_PUBLIC_COMPANY_ADDRESS = ORIGINAL_COMPANY_ADDRESS
 })
 
 describe('PrivacyPage — structure', () => {
@@ -90,11 +104,21 @@ describe('PrivacyPage — structure', () => {
     expect(screen.getByText(/right to be forgotten/)).toBeInTheDocument()
   })
 
-  it('renders contact email links', async () => {
+  it('renders contact email links from NEXT_PUBLIC_PRIVACY_EMAIL', async () => {
     await renderPrivacyPage()
-    const emailLinks = screen.getAllByRole('link', { name: 'privacy@example.com' })
+    const emailLinks = screen.getAllByRole('link', { name: TEST_PRIVACY_EMAIL })
     expect(emailLinks.length).toBeGreaterThanOrEqual(1)
-    expect(emailLinks[0]).toHaveAttribute('href', 'mailto:privacy@example.com')
+    expect(emailLinks[0]).toHaveAttribute('href', `mailto:${TEST_PRIVACY_EMAIL}`)
+  })
+
+  it('renders the physical postal address from NEXT_PUBLIC_COMPANY_ADDRESS', async () => {
+    await renderPrivacyPage()
+    expect(screen.getByText(TEST_COMPANY_ADDRESS)).toBeInTheDocument()
+  })
+
+  it('never emits an @example.com placeholder — that would invalidate the policy', async () => {
+    await renderPrivacyPage()
+    expect(screen.queryByText(/@example\.com/i)).not.toBeInTheDocument()
   })
 
   it('uses a <main> landmark as root element', async () => {
