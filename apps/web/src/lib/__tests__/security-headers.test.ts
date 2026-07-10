@@ -46,6 +46,7 @@ describe('getSecurityHeaders — production-only headers', () => {
     expect(csp).toContain("style-src 'self' 'unsafe-inline'")
     expect(csp).toContain("font-src 'self' data:")
     expect(csp).toContain('frame-src')
+    expect(csp).toContain("worker-src 'self' blob:")
     expect(csp).toContain("object-src 'none'")
     expect(csp).toContain("base-uri 'self'")
     expect(csp).toContain("form-action 'self'")

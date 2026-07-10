@@ -8,12 +8,8 @@ interface AccountAuthGuardProps {
   children: React.ReactNode
 }
 
-/**
- * Client-side authentication guard for /account/* routes.
- * Redirects unauthenticated users to /login.
- * isHydrated flag prevents premature redirect before Zustand rehydrates from
- * localStorage — same pattern as AdminAuthGuard.
- */
+// Placeholder (not `null`) reserves viewport height so the footer doesn't
+// jump when children replace it — was CLS 0.92 on /account/* pre-hydration.
 export function AccountAuthGuard({ children }: AccountAuthGuardProps) {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
   const router = useRouter()
@@ -30,7 +26,7 @@ export function AccountAuthGuard({ children }: AccountAuthGuardProps) {
   }, [isHydrated, isAuthenticated, router])
 
   if (!isHydrated || !isAuthenticated) {
-    return null
+    return <div aria-hidden="true" className="min-h-screen" />
   }
 
   return <>{children}</>

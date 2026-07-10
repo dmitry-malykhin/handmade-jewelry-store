@@ -52,34 +52,36 @@ describe('AdminAuthGuard', () => {
     expect(screen.getByText('Admin content')).toBeInTheDocument()
   })
 
-  it('renders nothing when user is not authenticated', async () => {
+  it('renders a viewport-height placeholder (not empty) when user is not authenticated', async () => {
     mockAuthState(false, null)
 
-    let container!: HTMLElement
     await act(async () => {
-      ;({ container } = render(
+      render(
         <AdminAuthGuard>
           <div>Admin content</div>
         </AdminAuthGuard>,
-      ))
+      )
     })
 
-    expect(container).toBeEmptyDOMElement()
+    expect(screen.queryByText('Admin content')).not.toBeInTheDocument()
+    // Placeholder reserves height so the footer doesn't jump on hydration (CLS fix).
+    const placeholder = document.querySelector('div[aria-hidden="true"]')
+    expect(placeholder).toHaveClass('min-h-screen')
   })
 
-  it('renders nothing when user has USER role', async () => {
+  it('renders the placeholder (not children) when user has USER role', async () => {
     mockAuthState(true, 'USER')
 
-    let container!: HTMLElement
     await act(async () => {
-      ;({ container } = render(
+      render(
         <AdminAuthGuard>
           <div>Admin content</div>
         </AdminAuthGuard>,
-      ))
+      )
     })
 
-    expect(container).toBeEmptyDOMElement()
+    expect(screen.queryByText('Admin content')).not.toBeInTheDocument()
+    expect(document.querySelector('div[aria-hidden="true"]')).toBeInTheDocument()
   })
 
   it('redirects to / when user is not authenticated', async () => {

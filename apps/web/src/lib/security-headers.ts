@@ -46,6 +46,8 @@ function buildContentSecurityPolicy(): string {
     "style-src 'self' 'unsafe-inline'",
     "font-src 'self' data:",
     `frame-src ${FRAME_SRC_HOSTS.join(' ')}`,
+    // Stripe Elements spawns a worker from a blob: URL for card tokenisation.
+    "worker-src 'self' blob:",
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",
