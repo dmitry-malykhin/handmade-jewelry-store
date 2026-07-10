@@ -28,7 +28,7 @@ export function AdminAuthGuard({ children }: AdminAuthGuardProps) {
   }, [isHydrated, isAuthenticated, role, router])
 
   if (!isHydrated || !isAuthenticated || role !== 'ADMIN') {
-    return null
+    return <div aria-hidden="true" className="min-h-screen" />
   }
 
   return <>{children}</>
