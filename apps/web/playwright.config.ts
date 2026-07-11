@@ -1,6 +1,11 @@
 import { defineConfig, devices } from '@playwright/test'
 
 const isCI = !!process.env.CI
+// PLAYWRIGHT_BASE_URL: target a stack already running elsewhere (e.g. a prod
+// build served on :3100 during a smoke sweep). When set, skip the built-in
+// webServer so Playwright doesn't try to spawn a second Next.js.
+const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:3000'
+const useExternalStack = !!process.env.PLAYWRIGHT_BASE_URL
 
 export default defineConfig({
   testDir: './tests/e2e',
@@ -13,7 +18,7 @@ export default defineConfig({
     : 'html',
 
   use: {
-    baseURL: 'http://localhost:3000',
+    baseURL,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },
@@ -29,11 +34,13 @@ export default defineConfig({
     },
   ],
 
-  webServer: {
-    // CI uses production build (more stable than dev server).
-    command: isCI ? 'pnpm build && pnpm start' : 'pnpm dev',
-    url: 'http://localhost:3000',
-    reuseExistingServer: !isCI,
-    timeout: 120_000,
-  },
+  webServer: useExternalStack
+    ? undefined
+    : {
+        // CI uses production build (more stable than dev server).
+        command: isCI ? 'pnpm build && pnpm start' : 'pnpm dev',
+        url: baseURL,
+        reuseExistingServer: !isCI,
+        timeout: 120_000,
+      },
 })
