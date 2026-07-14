@@ -7,18 +7,15 @@ interface FacebookPixelProps {
   pixelId: string
 }
 
-/**
- * Loads Facebook Pixel script and fires PageView.
- * Only activates when the user has accepted marketing cookies.
- * FB Pixel auto-tracks SPA navigations via its internal history listener.
- */
+// lazyOnload: FB Pixel is not needed on LCP path — deferring until `window.load`
+// shaves ~50-100 KiB of blocking JS off first paint.
 export function FacebookPixel({ pixelId }: FacebookPixelProps) {
   const hasMarketingConsent = useMarketingConsent()
 
   if (!hasMarketingConsent) return null
 
   return (
-    <Script id="fb-pixel" strategy="afterInteractive">
+    <Script id="fb-pixel" strategy="lazyOnload">
       {`
         !function(f,b,e,v,n,t,s)
         {if(f.fbq)return;n=f.fbq=function(){n.callMethod?

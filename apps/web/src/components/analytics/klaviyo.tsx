@@ -7,10 +7,8 @@ interface KlaviyoProps {
   companyId: string
 }
 
-/**
- * Loads Klaviyo onsite tracking script.
- * Only activates when the user has accepted marketing cookies.
- */
+// lazyOnload: onsite tracking (popups, product signals) does not need to run
+// before LCP — deferring saves ~30-60 KiB of blocking JS.
 export function Klaviyo({ companyId }: KlaviyoProps) {
   const hasMarketingConsent = useMarketingConsent()
 
@@ -19,7 +17,7 @@ export function Klaviyo({ companyId }: KlaviyoProps) {
   return (
     <Script
       id="klaviyo"
-      strategy="afterInteractive"
+      strategy="lazyOnload"
       src={`https://static.klaviyo.com/onsite/js/klaviyo.js?company_id=${companyId}`}
     />
   )
