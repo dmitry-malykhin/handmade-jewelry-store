@@ -11,6 +11,7 @@ import { PinterestTag } from '@/components/analytics/pinterest-tag'
 import { Klaviyo } from '@/components/analytics/klaviyo'
 import { MicrosoftClarity } from '@/components/analytics/microsoft-clarity'
 import { PostHogAnalytics } from '@/components/analytics/posthog'
+import { getImageCdnOrigin } from '@/lib/config/image-cdn'
 import { getSiteUrl } from '@/lib/config/site-url'
 import './globals.css'
 
@@ -79,6 +80,7 @@ const jost = Jost({
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const headersList = await headers()
   const locale = headersList.get('x-next-intl-locale') ?? 'en'
+  const imageCdnOrigin = getImageCdnOrigin()
 
   return (
     <html
@@ -86,7 +88,16 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       suppressHydrationWarning
       className={`${cormorantGaramond.variable} ${jost.variable}`}
     >
-      <head />
+      <head>
+        {/* Preconnect to the LCP image origin — saves ~100-300 ms of TCP+TLS
+            handshake before the first hero image starts downloading. */}
+        {imageCdnOrigin && (
+          <>
+            <link rel="preconnect" href={imageCdnOrigin} crossOrigin="anonymous" />
+            <link rel="dns-prefetch" href={imageCdnOrigin} />
+          </>
+        )}
+      </head>
       <body className="flex min-h-screen flex-col font-sans antialiased">
         <ThemeProvider
           attribute="class"

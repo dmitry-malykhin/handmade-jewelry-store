@@ -50,12 +50,12 @@ describe('MicrosoftClarity', () => {
     expect(clarityScript?.textContent).toContain('abc1234xyz')
   })
 
-  it('loads the script with afterInteractive strategy (not blocking page load)', () => {
+  it('loads the script with lazyOnload strategy (deferred until window.load — LCP-safe)', () => {
     mockConsent = true
     render(<MicrosoftClarity projectId="abc1234xyz" />)
 
     const clarityScript = document.getElementById('microsoft-clarity')
-    expect(clarityScript).toHaveAttribute('data-strategy', 'afterInteractive')
+    expect(clarityScript).toHaveAttribute('data-strategy', 'lazyOnload')
   })
 
   it('embeds the exact projectId so swapping projects does not require a code change', () => {

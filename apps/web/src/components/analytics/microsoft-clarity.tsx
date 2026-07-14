@@ -10,13 +10,14 @@ interface MicrosoftClarityProps {
 // Strictly gated on analytics consent — script is never injected without it.
 // PII masking is configured in the Clarity dashboard (Balanced), not in code;
 // see docs/16_USER_ANALYTICS.md §4.
+// lazyOnload: session recording is fine to start after `window.load`.
 export function MicrosoftClarity({ projectId }: MicrosoftClarityProps) {
   const hasAnalyticsConsent = useAnalyticsConsent()
 
   if (!hasAnalyticsConsent) return null
 
   return (
-    <Script id="microsoft-clarity" strategy="afterInteractive">
+    <Script id="microsoft-clarity" strategy="lazyOnload">
       {`
         (function(c,l,a,r,i,t,y){
           c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};

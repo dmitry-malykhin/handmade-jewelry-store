@@ -64,10 +64,39 @@ None of these are cheap in-scope fixes; each is filed as its own issue.
 
 | Symptom                                     | Follow-up |
 | ------------------------------------------- | --------- |
-| LCP 5.3–6.5 s on every page (target 2.5 s)  | (see #364) |
+| LCP 5.3–6.5 s on every page (target 2.5 s)  | (see #364 — quick-win pass done, structural work still open) |
 | Unused JavaScript 138–337 KiB per page      | (see #365) |
 | Header/footer logo aspect-ratio mismatch    | (see #366) |
 | `meta-description` reported missing by LH even though the tag is present in the SSR HTML | (see #367) |
+
+## LCP re-audit after #364 quick-wins
+
+Local prod build, same Lighthouse conditions as the baseline. Consent
+banner not accepted (SDKs don't inject), `NEXT_PUBLIC_IMAGE_CDN_ORIGIN`
+unset — so the deferred trackers and the preconnect from #364 **do not
+emit in this measurement**. Numbers are within Lighthouse noise band.
+
+| Page       | LCP baseline | LCP after-#364 | Δ       | Perf baseline | Perf after-#364 |
+| ---------- | ------------ | -------------- | ------- | ------------- | --------------- |
+| /en        | 5381 ms      | 6754 ms        | +1373 ms | 79            | 76              |
+| /en/products/... | 6538 ms | 5812 ms       | −726 ms | 77            | 77              |
+| /en/about  | 5841 ms      | 5965 ms        | +124 ms | 77            | 78              |
+
+**Why the numbers barely moved:** the two levers #364 shipped only fire in
+scenarios Lighthouse does not exercise:
+
+1. **`strategy="lazyOnload"`** on FB Pixel / Clarity / Klaviyo / Pinterest
+   only matters *after* the user accepts the cookie banner — Lighthouse
+   never clicks it, so those `<Script>` tags are never emitted.
+2. **`<link rel="preconnect">`** to the image CDN needs
+   `NEXT_PUBLIC_IMAGE_CDN_ORIGIN` set — unset locally (seed uses
+   placehold.co, no CDN in front). It'll emit on staging/prod once the R2
+   host is configured.
+
+Real-world impact will show up in field-metrics (RUM) after launch, not in
+this synthetic baseline. To hit the 2.5 s LCP target we still need the
+structural work in #365 (unused-JS 138–337 KiB) and dynamic-importing
+Stripe/Sentry off the critical path — those stay in the follow-up queue.
 
 ## How to re-run
 

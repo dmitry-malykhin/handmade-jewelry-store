@@ -7,17 +7,15 @@ interface PinterestTagProps {
   tagId: string
 }
 
-/**
- * Loads Pinterest Tag script and fires page_visit.
- * Only activates when the user has accepted marketing cookies.
- */
+// lazyOnload: Pinterest Tag is not needed before `window.load` — page_visit
+// still fires reliably from the deferred script.
 export function PinterestTag({ tagId }: PinterestTagProps) {
   const hasMarketingConsent = useMarketingConsent()
 
   if (!hasMarketingConsent) return null
 
   return (
-    <Script id="pinterest-tag" strategy="afterInteractive">
+    <Script id="pinterest-tag" strategy="lazyOnload">
       {`
         !function(e){if(!window.pintrk){window.pintrk=function(){window.pintrk.queue.push(
         Array.prototype.slice.call(arguments))};var n=window.pintrk;n.queue=[],n.version="3.0";
