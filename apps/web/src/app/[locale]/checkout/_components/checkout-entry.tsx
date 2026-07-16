@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import dynamic from 'next/dynamic'
 import { useTranslations } from 'next-intl'
 import { Link } from '@/i18n/navigation'
 import { Button } from '@/components/ui/button'
@@ -9,10 +10,24 @@ import { useCheckoutItems, useCheckoutTotalPrice } from '@/store/cart.store'
 import { trackCheckoutStarted } from '@/lib/analytics/posthog'
 import { CheckoutAddressForm } from './checkout-address-form'
 import { CheckoutShippingMethodForm } from './checkout-shipping-method-form'
-import { CheckoutPaymentForm } from './checkout-payment-form'
 import { LoyaltyRedeemSection } from './loyalty-redeem-section'
 import type { CheckoutAddressFormValues } from './checkout-address-schema'
 import type { ShippingOption } from '../_lib/shipping-options'
+
+// Stripe Elements pulls ~165 KiB of stripe.js — dynamic-import so it only
+// downloads when the user actually reaches the payment step (#365).
+const CheckoutPaymentForm = dynamic(
+  () => import('./checkout-payment-form').then((mod) => mod.CheckoutPaymentForm),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="space-y-4" aria-busy="true" aria-label="Loading payment form">
+        <div className="h-40 animate-pulse rounded-lg bg-muted" />
+        <div className="h-10 animate-pulse rounded-md bg-muted" />
+      </div>
+    ),
+  },
+)
 
 type CheckoutPath = 'guest' | 'auth' | null
 type CheckoutStep = 1 | 2 | 3
