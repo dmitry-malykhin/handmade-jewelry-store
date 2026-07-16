@@ -98,6 +98,43 @@ this synthetic baseline. To hit the 2.5 s LCP target we still need the
 structural work in #365 (unused-JS 138–337 KiB) and dynamic-importing
 Stripe/Sentry off the critical path — those stay in the follow-up queue.
 
+## Unused-JS pass — #365 (Stripe removed from initial /checkout bundle)
+
+Top unused-JS offender on `/checkout` in the baseline was Stripe.js at
+**165 478 B (67.7% unused)** — every visitor entering `/checkout` paid the
+download cost even if they abandoned before reaching the payment step.
+
+Root cause: [checkout-entry.tsx](apps/web/src/app/[locale]/checkout/_components/checkout-entry.tsx)
+statically imported `CheckoutPaymentForm`, which pulled `lib/stripe.ts` +
+`@stripe/react-stripe-js` at initial parse. `stripePromise = getStripePromise()`
+on module-scope then kicked off `loadStripe()` immediately.
+
+Fix: `CheckoutPaymentForm` is now `next/dynamic({ ssr: false })`, so the
+Stripe bundle and its ~165 KiB script only download when `flowState.step === 3`
+(payment). Steps 1 (address) and 2 (shipping method) never touch it.
+
+**Verified deltas on `/checkout`** (Lighthouse mobile, simulated slow-4G):
+
+| Metric              | Before | After  | Δ         |
+| ------------------- | ------ | ------ | --------- |
+| Stripe.js in bundle | 165 478 B (top-1 unused-JS) | absent (0 entries) | fully removed |
+| Performance         | 72     | 77     | +5        |
+| Best-Practices      | 69     | 92     | +23 (CSP `worker-src` violation no longer fires at first paint) |
+| LCP                 | 6511 ms | 6196 ms | −315 ms  |
+| TBT                 | 248 ms | 106 ms | **−142 ms** — Stripe.js parse cost gone from critical path |
+| First Load JS (build report) | 406 KB | 401 KB | −5 KB (page shell) + Stripe now async |
+
+**Loading UX:** a two-block pulse-skeleton (identical to the one already
+inside `CheckoutStripeForm`'s `isLoading` path) renders while the chunk
+downloads — no layout shift, no blank frame.
+
+**Remaining unused-JS on `/checkout`** (top items after this PR): three
+shared framework chunks — 2504-*.js (~61 KiB, 48% unused), 6985-*.js
+(~30 KiB, 84%), 7361-*.js (~34 KiB, 83%). These are shared vendor code
+(React, Radix UI, next-intl, Sentry client) that can only be trimmed by
+`next/dynamic` on tree-shake-unfriendly imports — separate pass when
+Performance score reaches ≥ 85.
+
 ## How to re-run
 
 ```bash
