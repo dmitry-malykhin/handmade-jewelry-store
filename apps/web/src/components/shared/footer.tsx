@@ -59,14 +59,14 @@ export function Footer() {
             <Image
               src="/logo-light.svg"
               alt="Senichka — Handmade Beaded Jewelry"
-              width={140}
+              width={61}
               height={33}
               className="h-8 w-auto dark:hidden"
             />
             <Image
               src="/logo-dark.svg"
               alt="Senichka — Handmade Beaded Jewelry"
-              width={140}
+              width={61}
               height={33}
               className="hidden h-8 w-auto dark:block"
             />
