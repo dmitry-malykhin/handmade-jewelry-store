@@ -21,7 +21,7 @@ export function Header() {
           <Image
             src="/logo-light.svg"
             alt="Senichka — Handmade Beaded Jewelry"
-            width={160}
+            width={68}
             height={37}
             className="h-9 w-auto dark:hidden"
             priority
@@ -29,7 +29,7 @@ export function Header() {
           <Image
             src="/logo-dark.svg"
             alt="Senichka — Handmade Beaded Jewelry"
-            width={160}
+            width={68}
             height={37}
             className="hidden h-9 w-auto dark:block"
             priority
