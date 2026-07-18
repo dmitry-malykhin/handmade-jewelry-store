@@ -88,17 +88,15 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       suppressHydrationWarning
       className={`${cormorantGaramond.variable} ${jost.variable}`}
     >
-      <head>
-        {/* Preconnect to the LCP image origin — saves ~100-300 ms of TCP+TLS
-            handshake before the first hero image starts downloading. */}
+      <body className="flex min-h-screen flex-col font-sans antialiased">
+        {/* Do NOT wrap in an explicit <head> — it breaks Next's metadata
+            hoisting from child segments (description ends up in <body>). */}
         {imageCdnOrigin && (
           <>
             <link rel="preconnect" href={imageCdnOrigin} crossOrigin="anonymous" />
             <link rel="dns-prefetch" href={imageCdnOrigin} />
           </>
         )}
-      </head>
-      <body className="flex min-h-screen flex-col font-sans antialiased">
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
