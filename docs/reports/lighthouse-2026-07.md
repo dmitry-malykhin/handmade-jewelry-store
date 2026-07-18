@@ -170,7 +170,26 @@ done
   numbers as a floor for the metrics, not the ceiling.
 - INP is not measured — Lighthouse reports TBT as a proxy. Real INP will
   need RUM (PostHog web-vitals or CrUX) after launch.
-- Meta-description shows as failing on `/en`, `/en/checkout`, and
-  `/en/products/...` even though `<meta name="description">` is present in
-  the initial HTML. Reproducibly wrong across two Lighthouse presets;
-  tracking in the follow-up issue rather than trying to silence the score.
+
+## Meta-description fix — #367
+
+Baseline audit reported "Document does not have a meta description" on
+home, product, checkout, and account-orders — even though `curl` showed
+the tag present in the SSR HTML. Root cause turned out to be Next 15
+default-enabled **streaming metadata**: async `generateMetadata` renders
+`<meta>`/`<title>`/`<link canonical>` into `<body>` (React 19 auto-hoists
+them client-side), but Lighthouse (and any HTML-only crawler whose UA
+isn't in Next's built-in `HTML_LIMITED_BOT_UA_RE` regex) reads the raw
+SSR head and sees none of it.
+
+Fix: set the top-level `htmlLimitedBots: /.*/` regex in `next.config.ts`
+so **every** request gets blocking metadata. Extra cost is one `await
+getTranslations()` before the shell streams — negligible in our stack.
+
+Verified `after-#367` (mobile, /en, /product, /checkout):
+
+| Audit                 | Before | After |
+| --------------------- | ------ | ----- |
+| `meta-description`    | fail (score 0) | **pass (score 1)** |
+| SEO score (home + product) | 92     | 92 (canonical fails only because local `NEXT_PUBLIC_SITE_URL=:3000` while I served on :3100 — pass on real deploys) |
+| SEO score (checkout)  | 92     | 66 (is-crawlable fails intentionally — checkout is noindex) |

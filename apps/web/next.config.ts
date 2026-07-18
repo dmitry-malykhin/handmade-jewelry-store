@@ -9,6 +9,10 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   // standalone bundles a self-contained server — Docker image skips node_modules.
   output: 'standalone',
+  // Force blocking metadata for every request — Next 15 default streams async
+  // generateMetadata into <body>, so any UA outside its bot regex (LH CLI, most
+  // crawlers) sees an empty <head> in the SSR HTML.
+  htmlLimitedBots: /.*/,
   async headers() {
     return [{ source: '/(.*)', headers: getSecurityHeaders(process.env.NODE_ENV) }]
   },
