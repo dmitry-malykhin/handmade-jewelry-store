@@ -84,8 +84,13 @@ export default async function ConfirmationPage({ params, searchParams }: Confirm
       <OrderPlacedTracker
         orderId={order.id}
         totalUsd={order.total}
-        itemCount={order.items.reduce((sum, orderItem) => sum + orderItem.quantity, 0)}
         shippingCostUsd={order.shippingCost}
+        items={order.items.map((orderItem) => ({
+          productId: orderItem.productId,
+          title: orderItem.productSnapshot.title,
+          price: orderItem.price,
+          quantity: orderItem.quantity,
+        }))}
       />
       <div className="space-y-8">
         <ConfirmationSuccessHeader orderId={order.id} />
