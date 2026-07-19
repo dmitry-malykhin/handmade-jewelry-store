@@ -7,6 +7,10 @@ import { Link } from '@/i18n/navigation'
 import { Button } from '@/components/ui/button'
 import { useCartStore } from '@/store'
 import { trackProductAddedToCart } from '@/lib/analytics/posthog'
+import { trackAddToCart } from '@/lib/analytics/gtag'
+import { trackFbAddToCart } from '@/lib/analytics/fbq'
+import { klaviyoAddedToCart } from '@/lib/analytics/klaviyo'
+import { trackPinAddToCart } from '@/lib/analytics/pintrk'
 
 // Structural minimum — both catalog `Product` and `WishlistProduct` satisfy
 // this without forcing them to share a type.
@@ -36,11 +40,14 @@ export function AddToCartButton({ product, className }: AddToCartButtonProps) {
   )
 
   function handleAddToCart() {
+    const priceUsd = parseFloat(product.price)
+    const quantity = 1
+    const lineValueUsd = priceUsd * quantity
     addItem({
       productId: product.id,
       slug: product.slug,
       title: product.title,
-      price: parseFloat(product.price),
+      price: priceUsd,
       image: product.images[0] ?? '',
       productionDays: product.productionDays,
     })
@@ -48,9 +55,16 @@ export function AddToCartButton({ product, className }: AddToCartButtonProps) {
       productId: product.id,
       slug: product.slug,
       title: product.title,
-      priceUsd: parseFloat(product.price),
-      quantity: 1,
+      priceUsd,
+      quantity,
     })
+    trackAddToCart({ productId: product.id, title: product.title, price: priceUsd }, quantity)
+    trackFbAddToCart([product.id], lineValueUsd)
+    klaviyoAddedToCart(
+      { productId: product.id, title: product.title, price: priceUsd, quantity },
+      lineValueUsd,
+    )
+    trackPinAddToCart([product.id], lineValueUsd)
     toast.success(t('addedToast', { title: product.title }))
   }
 

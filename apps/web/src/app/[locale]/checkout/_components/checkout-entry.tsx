@@ -8,6 +8,9 @@ import { Button } from '@/components/ui/button'
 import { useAuthStore } from '@/store/auth.store'
 import { useCheckoutItems, useCheckoutTotalPrice } from '@/store/cart.store'
 import { trackCheckoutStarted } from '@/lib/analytics/posthog'
+import { trackBeginCheckout } from '@/lib/analytics/gtag'
+import { trackFbInitiateCheckout } from '@/lib/analytics/fbq'
+import { klaviyoStartedCheckout } from '@/lib/analytics/klaviyo'
 import { CheckoutAddressForm } from './checkout-address-form'
 import { CheckoutShippingMethodForm } from './checkout-shipping-method-form'
 import { LoyaltyRedeemSection } from './loyalty-redeem-section'
@@ -64,10 +67,17 @@ export function CheckoutEntry() {
   useEffect(() => {
     if (checkoutStartedFired.current) return
     if (cartItems.length === 0) return
-    trackCheckoutStarted({
-      cartItemCount: cartItems.reduce((sum, cartItem) => sum + cartItem.quantity, 0),
-      cartTotalUsd: cartSubtotal,
-    })
+    const itemCount = cartItems.reduce((sum, cartItem) => sum + cartItem.quantity, 0)
+    const trackerItems = cartItems.map((cartItem) => ({
+      productId: cartItem.productId,
+      title: cartItem.title,
+      price: cartItem.price,
+      quantity: cartItem.quantity,
+    }))
+    trackCheckoutStarted({ cartItemCount: itemCount, cartTotalUsd: cartSubtotal })
+    trackBeginCheckout(cartSubtotal, trackerItems)
+    trackFbInitiateCheckout(itemCount, cartSubtotal)
+    klaviyoStartedCheckout(trackerItems, cartSubtotal)
     checkoutStartedFired.current = true
   }, [cartItems, cartSubtotal])
 

@@ -109,6 +109,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
         priceUsd={parseFloat(product.price)}
         categorySlug={product.category?.slug}
         stockType={product.stockType}
+        imageUrl={product.images[0]}
       />
 
       <div className="container mx-auto px-4 py-8">

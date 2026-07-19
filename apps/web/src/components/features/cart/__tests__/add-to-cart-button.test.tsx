@@ -3,6 +3,11 @@ import { render, screen, act } from '@/test-utils'
 import userEvent from '@testing-library/user-event'
 import { AddToCartButton } from '../add-to-cart-button'
 import { useCartStore } from '@/store'
+import * as posthog from '@/lib/analytics/posthog'
+import * as gtag from '@/lib/analytics/gtag'
+import * as fbq from '@/lib/analytics/fbq'
+import * as klaviyo from '@/lib/analytics/klaviyo'
+import * as pintrk from '@/lib/analytics/pintrk'
 import type { Product } from '@jewelry/shared'
 import {
   suite as $allureSuite,
@@ -18,6 +23,12 @@ vi.mock('@/i18n/navigation', () => ({
     </a>
   ),
 }))
+
+vi.mock('@/lib/analytics/posthog', () => ({ trackProductAddedToCart: vi.fn() }))
+vi.mock('@/lib/analytics/gtag', () => ({ trackAddToCart: vi.fn() }))
+vi.mock('@/lib/analytics/fbq', () => ({ trackFbAddToCart: vi.fn() }))
+vi.mock('@/lib/analytics/klaviyo', () => ({ klaviyoAddedToCart: vi.fn() }))
+vi.mock('@/lib/analytics/pintrk', () => ({ trackPinAddToCart: vi.fn() }))
 
 const inStockProduct: Product = {
   id: 'prod-1',
@@ -58,6 +69,7 @@ const permanentlySoldOutProduct: Product = {
 
 beforeEach(() => {
   useCartStore.setState({ items: [] })
+  vi.clearAllMocks()
 })
 
 beforeEach(async () => {
@@ -143,6 +155,65 @@ describe('AddToCartButton — product already in cart', () => {
     await userEvent.click(screen.getByRole('button', { name: /add to cart/i }))
 
     expect(screen.getByRole('link', { name: /view cart/i })).toBeInTheDocument()
+  })
+})
+
+describe('AddToCartButton — dispatches add-to-cart to every consented channel', () => {
+  const expectedLineValueUsd = 49.99
+
+  it('fires PostHog product_added_to_cart with full product payload', async () => {
+    render(<AddToCartButton product={inStockProduct} />)
+
+    await userEvent.click(screen.getByRole('button', { name: /add to cart/i }))
+
+    expect(posthog.trackProductAddedToCart).toHaveBeenCalledExactlyOnceWith({
+      productId: 'prod-1',
+      slug: 'sterling-silver-ring',
+      title: 'Sterling Silver Ring',
+      priceUsd: 49.99,
+      quantity: 1,
+    })
+  })
+
+  it('fires GA4 add_to_cart with unit price + quantity', async () => {
+    render(<AddToCartButton product={inStockProduct} />)
+
+    await userEvent.click(screen.getByRole('button', { name: /add to cart/i }))
+
+    expect(gtag.trackAddToCart).toHaveBeenCalledExactlyOnceWith(
+      { productId: 'prod-1', title: 'Sterling Silver Ring', price: 49.99 },
+      1,
+    )
+  })
+
+  it('fires FB Pixel AddToCart with content_ids + added-line value', async () => {
+    render(<AddToCartButton product={inStockProduct} />)
+
+    await userEvent.click(screen.getByRole('button', { name: /add to cart/i }))
+
+    expect(fbq.trackFbAddToCart).toHaveBeenCalledExactlyOnceWith(['prod-1'], expectedLineValueUsd)
+  })
+
+  it('fires Klaviyo Added to Cart with added item + line total for abandoned-cart flow', async () => {
+    render(<AddToCartButton product={inStockProduct} />)
+
+    await userEvent.click(screen.getByRole('button', { name: /add to cart/i }))
+
+    expect(klaviyo.klaviyoAddedToCart).toHaveBeenCalledExactlyOnceWith(
+      { productId: 'prod-1', title: 'Sterling Silver Ring', price: 49.99, quantity: 1 },
+      expectedLineValueUsd,
+    )
+  })
+
+  it('fires Pinterest addtocart with content_ids + value for shopping ads attribution', async () => {
+    render(<AddToCartButton product={inStockProduct} />)
+
+    await userEvent.click(screen.getByRole('button', { name: /add to cart/i }))
+
+    expect(pintrk.trackPinAddToCart).toHaveBeenCalledExactlyOnceWith(
+      ['prod-1'],
+      expectedLineValueUsd,
+    )
   })
 })
 

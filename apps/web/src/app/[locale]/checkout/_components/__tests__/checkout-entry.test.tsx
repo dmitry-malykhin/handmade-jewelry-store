@@ -4,6 +4,11 @@ import userEvent from '@testing-library/user-event'
 import type { ReactNode } from 'react'
 import { CheckoutEntry } from '../checkout-entry'
 import { useAuthStore } from '@/store/auth.store'
+import { useCartStore } from '@/store'
+import * as posthog from '@/lib/analytics/posthog'
+import * as gtag from '@/lib/analytics/gtag'
+import * as fbq from '@/lib/analytics/fbq'
+import * as klaviyo from '@/lib/analytics/klaviyo'
 import {
   suite as $allureSuite,
   subSuite as $allureSubSuite,
@@ -13,6 +18,11 @@ import {
 vi.mock('next-intl', () => ({
   useTranslations: () => (key: string) => key,
 }))
+
+vi.mock('@/lib/analytics/posthog', () => ({ trackCheckoutStarted: vi.fn() }))
+vi.mock('@/lib/analytics/gtag', () => ({ trackBeginCheckout: vi.fn() }))
+vi.mock('@/lib/analytics/fbq', () => ({ trackFbInitiateCheckout: vi.fn() }))
+vi.mock('@/lib/analytics/klaviyo', () => ({ klaviyoStartedCheckout: vi.fn() }))
 
 vi.mock('@/i18n/navigation', () => ({
   useRouter: () => ({ push: vi.fn() }),
@@ -70,6 +80,8 @@ vi.mock('../loyalty-redeem-section', () => ({
 // Reset auth state between tests so the skip-gateway behaviour is deterministic.
 beforeEach(() => {
   useAuthStore.getState().clearTokens()
+  useCartStore.setState({ items: [] })
+  vi.clearAllMocks()
 })
 
 beforeEach(async () => {
@@ -160,6 +172,77 @@ describe('CheckoutEntry — multi-step flow', () => {
     await userEvent.click(screen.getByText('back-payment'))
 
     expect(screen.getByTestId('checkout-shipping-method-form')).toBeInTheDocument()
+  })
+})
+
+describe('CheckoutEntry — dispatches checkout-started to every consented channel', () => {
+  const twoItemCart = [
+    {
+      productId: 'prod-1',
+      slug: 'ring',
+      title: 'Ring',
+      price: 30,
+      image: '',
+      quantity: 2,
+    },
+    {
+      productId: 'prod-2',
+      slug: 'pendant',
+      title: 'Pendant',
+      price: 20,
+      image: '',
+      quantity: 1,
+    },
+  ]
+
+  beforeEach(() => {
+    useCartStore.setState({ items: twoItemCart })
+  })
+
+  it('fires PostHog checkout_started with aggregated item count + total', () => {
+    render(<CheckoutEntry />)
+
+    expect(posthog.trackCheckoutStarted).toHaveBeenCalledExactlyOnceWith({
+      cartItemCount: 3,
+      cartTotalUsd: 80,
+    })
+  })
+
+  it('fires GA4 begin_checkout with subtotal + normalised items array', () => {
+    render(<CheckoutEntry />)
+
+    expect(gtag.trackBeginCheckout).toHaveBeenCalledExactlyOnceWith(80, [
+      { productId: 'prod-1', title: 'Ring', price: 30, quantity: 2 },
+      { productId: 'prod-2', title: 'Pendant', price: 20, quantity: 1 },
+    ])
+  })
+
+  it('fires FB Pixel InitiateCheckout with num_items + value', () => {
+    render(<CheckoutEntry />)
+
+    expect(fbq.trackFbInitiateCheckout).toHaveBeenCalledExactlyOnceWith(3, 80)
+  })
+
+  it('fires Klaviyo Started Checkout with items + subtotal for abandoned-checkout flow', () => {
+    render(<CheckoutEntry />)
+
+    expect(klaviyo.klaviyoStartedCheckout).toHaveBeenCalledExactlyOnceWith(
+      [
+        { productId: 'prod-1', title: 'Ring', price: 30, quantity: 2 },
+        { productId: 'prod-2', title: 'Pendant', price: 20, quantity: 1 },
+      ],
+      80,
+    )
+  })
+
+  it('does NOT dispatch when cart is empty (redirect-to-cart edge case)', () => {
+    useCartStore.setState({ items: [] })
+    render(<CheckoutEntry />)
+
+    expect(posthog.trackCheckoutStarted).not.toHaveBeenCalled()
+    expect(gtag.trackBeginCheckout).not.toHaveBeenCalled()
+    expect(fbq.trackFbInitiateCheckout).not.toHaveBeenCalled()
+    expect(klaviyo.klaviyoStartedCheckout).not.toHaveBeenCalled()
   })
 })
 
