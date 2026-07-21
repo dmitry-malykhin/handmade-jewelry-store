@@ -1,5 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import { Fragment, cloneElement, createElement, isValidElement } from 'react'
+import type { ReactNode, ReactElement } from 'react'
 import messages from '../../../../../messages/en.json'
 import PrivacyPage from '../page'
 import {
@@ -13,7 +15,46 @@ vi.mock('next-intl/server', () => ({
     const namespace =
       typeof namespaceOrOptions === 'string' ? namespaceOrOptions : namespaceOrOptions.namespace
     const ns = (messages as unknown as Record<string, Record<string, string>>)[namespace] ?? {}
-    return (key: string) => ns[key] ?? key
+    // Mock t + t.rich — real next-intl returns React nodes, but tests only
+    // read text content, so string-substituting the tag/parameter markers is enough.
+    const t = (key: string) => ns[key] ?? key
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ;(t as any).rich = (key: string, tags?: Record<string, unknown>) => {
+      let raw = ns[key] ?? key
+      if (tags) {
+        for (const [name, val] of Object.entries(tags)) {
+          if (typeof val !== 'function') {
+            raw = raw.replace(new RegExp(`\\{${name}\\}`, 'g'), String(val))
+          }
+        }
+      }
+      // Split around <tag>content</tag> markers and call the matching tag fn
+      // so tests can query real <a>/<strong> nodes via getByRole('link'), etc.
+      const parts: ReactNode[] = []
+      let remaining = raw
+      let key_i = 0
+      const tagRegex = /<(\w+)>([^<]*)<\/\1>/
+      while (remaining) {
+        const m = tagRegex.exec(remaining)
+        if (!m) {
+          parts.push(remaining)
+          break
+        }
+        if (m.index > 0) parts.push(remaining.slice(0, m.index))
+        const tagName = m[1]!
+        const content = m[2]!
+        const fn = tags?.[tagName]
+        if (typeof fn === 'function') {
+          const rendered = (fn as (chunks: ReactNode) => ReactNode)(content)
+          parts.push(isValidElement(rendered) ? cloneElement(rendered, { key: key_i++ }) : rendered)
+        } else {
+          parts.push(content)
+        }
+        remaining = remaining.slice(m.index + m[0].length)
+      }
+      return createElement(Fragment, null, ...parts) as ReactElement
+    }
+    return t
   },
   setRequestLocale: vi.fn(),
 }))
