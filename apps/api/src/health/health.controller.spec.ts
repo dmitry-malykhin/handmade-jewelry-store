@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing'
-import { HealthCheckService } from '@nestjs/terminus'
+import { HealthCheckError, HealthCheckService } from '@nestjs/terminus'
 import { HealthController } from './health.controller'
 import { PrismaService } from '../prisma/prisma.service'
 import {
@@ -90,20 +90,28 @@ describe('HealthController', () => {
       expect(capturedIndicatorResult).toEqual({ database: { status: 'up' } })
     })
 
-    it('propagates database error so HealthCheckService can return 503', async () => {
+    it('throws HealthCheckError with a "down" payload so terminus returns 503', async () => {
       const databaseConnectionError = new Error('Connection refused')
       mockPrismaService.$queryRaw.mockRejectedValueOnce(databaseConnectionError)
 
+      let capturedError: unknown
       mockHealthCheckService.check.mockImplementationOnce(
         async (indicators: Array<() => Promise<unknown>>) => {
-          // HealthCheckService wraps thrown errors into a 503 response in real usage.
-          // Here we verify the indicator itself throws when the DB is down.
-          await expect(indicators[0]()).rejects.toThrow('Connection refused')
+          try {
+            await indicators[0]()
+          } catch (error) {
+            capturedError = error
+          }
           return { status: 'error' }
         },
       )
 
       await healthController.checkHealth()
+
+      expect(capturedError).toBeInstanceOf(HealthCheckError)
+      expect((capturedError as HealthCheckError).causes).toEqual({
+        database: { status: 'down', message: 'Connection refused' },
+      })
     })
   })
 })

@@ -4,8 +4,6 @@ import { SentryModule } from '@sentry/nestjs/setup'
 import { AddressesModule } from './addresses/addresses.module'
 import { AdminModule } from './admin/admin.module'
 import { AnalyticsModule } from './analytics/analytics.module'
-import { AppController } from './app.controller'
-import { AppService } from './app.service'
 import { AuthModule } from './auth/auth.module'
 import { CategoriesModule } from './categories/categories.module'
 import { RequestLoggerMiddleware } from './common/middleware/request-logger.middleware'
@@ -62,8 +60,6 @@ import { WishlistModule } from './wishlist/wishlist.module'
     WishlistModule,
     HealthModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
