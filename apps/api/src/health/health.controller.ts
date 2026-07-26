@@ -1,5 +1,10 @@
 import { Controller, Get } from '@nestjs/common'
-import { HealthCheck, HealthCheckService, HealthCheckResult } from '@nestjs/terminus'
+import {
+  HealthCheck,
+  HealthCheckError,
+  HealthCheckService,
+  HealthCheckResult,
+} from '@nestjs/terminus'
 import { PrismaService } from '../prisma/prisma.service'
 
 @Controller('health')
@@ -14,11 +19,19 @@ export class HealthController {
   checkHealth(): Promise<HealthCheckResult> {
     return this.healthCheckService.check([
       // Raw SELECT 1 — the lightest possible DB connectivity check.
-      // Returns { database: { status: 'up' } } on success.
-      // Returns HTTP 503 if the query fails — UptimeRobot treats non-200 as down.
+      // Wrap Prisma failures in HealthCheckError so terminus returns HTTP 503
+      // (its documented contract); without the wrap the raw Prisma error would
+      // bubble to the global exception filter and answer 500, which UptimeRobot
+      // would still treat as down but obscures the real cause in logs.
       async () => {
-        await this.prismaService.$queryRaw`SELECT 1`
-        return { database: { status: 'up' as const } }
+        try {
+          await this.prismaService.$queryRaw`SELECT 1`
+          return { database: { status: 'up' as const } }
+        } catch (error) {
+          throw new HealthCheckError('Database check failed', {
+            database: { status: 'down', message: (error as Error).message },
+          })
+        }
       },
     ])
   }
