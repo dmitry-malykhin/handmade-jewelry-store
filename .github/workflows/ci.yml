@@ -59,8 +59,10 @@ jobs:
       - name: Install dependencies
         run: HUSKY=0 pnpm install --frozen-lockfile
 
-      # tsc covers all files (incl. tests); next build only what it bundles —
-      # running tsc first surfaces broken fixtures / type drift early.
+      - name: Build @jewelry/shared
+        run: pnpm --filter @jewelry/shared build
+
+      # tsc catches type drift in test fixtures that next build skips.
       - name: Type-check (tsc --noEmit)
         run: pnpm --filter web exec tsc --noEmit
 
@@ -87,6 +89,9 @@ jobs:
 
       - name: Install dependencies
         run: HUSKY=0 pnpm install --frozen-lockfile
+
+      - name: Build @jewelry/shared
+        run: pnpm --filter @jewelry/shared build
 
       - name: Run Vitest
         run: pnpm --filter web test:run
@@ -118,6 +123,9 @@ jobs:
 
       - name: Install dependencies
         run: HUSKY=0 pnpm install --frozen-lockfile
+
+      - name: Build @jewelry/shared
+        run: pnpm --filter @jewelry/shared build
 
       - name: Generate Prisma client
         run: pnpm --filter api db:generate
@@ -178,6 +186,9 @@ jobs:
 
       - name: Install dependencies
         run: HUSKY=0 pnpm install --frozen-lockfile
+
+      - name: Build @jewelry/shared
+        run: pnpm --filter @jewelry/shared build
 
       - name: Install Playwright browsers
         run: pnpm --filter web exec playwright install --with-deps chromium webkit

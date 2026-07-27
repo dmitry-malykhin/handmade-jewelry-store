@@ -1,0 +1,13 @@
+#!/usr/bin/env sh
+# CI-parity gate. Bypass in emergency: --no-verify.
+set -e
+
+pnpm --filter @jewelry/shared build
+pnpm lint
+pnpm format:check
+pnpm audit --audit-level=critical
+pnpm --filter api exec tsc --noEmit
+pnpm --filter web exec tsc --noEmit
+pnpm --filter api test
+pnpm --filter web test:run
+SENTRY_SUPPRESS_INSTRUMENTATION_FILE_WARNING=1 pnpm --filter web build

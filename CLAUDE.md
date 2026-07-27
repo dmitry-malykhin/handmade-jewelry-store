@@ -63,8 +63,21 @@ Read the relevant document(s) **before writing code** for that task:
 ### Git — commits and pushes
 
 **Claude Code never runs `git commit`, `git push`, or `git tag`.**
-After finishing implementation: show changed files, suggest commit message, stop.
-User does all git write operations manually.
+User commits through the VS Code Source Control panel (staging + message
+field + Sync button). After finishing implementation:
+
+- Show changed files.
+- Give the commit message **only** — one line, in a fenced code block so the
+  copy button works. No `git add / commit / push` commands, no HEREDOC,
+  no bash syntax around it.
+- Stop.
+
+### CI parity — mandatory before "ready to push"
+
+Before declaring a task ready, run `pnpm precheck` (or `.husky/pre-push`) —
+same set CI runs. Any red = fix before pushing. `--no-verify` only for
+genuine emergencies; if you intentionally skip a check, say so in the task
+report before the user sees the CI badges.
 
 ### Naming — mandatory everywhere
 
