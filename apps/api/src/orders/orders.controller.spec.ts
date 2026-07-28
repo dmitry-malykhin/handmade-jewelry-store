@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing'
-import { OrderStatus } from '@prisma/client'
+import { OrderStatus, Role, type User } from '@prisma/client'
 import { CreateOrderDto } from './dto/create-order.dto'
 import { OrderQueryDto } from './dto/order-query.dto'
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto'
@@ -67,13 +67,23 @@ describe('OrdersController', () => {
   })
 
   describe('create()', () => {
-    it('delegates to OrdersService.create with the DTO and returns the created order', async () => {
+    it('passes null userId when the caller is anonymous', async () => {
       mockOrdersService.create.mockResolvedValue(mockOrder)
 
-      const result = await ordersController.create(mockCreateOrderDto)
+      const result = await ordersController.create(mockCreateOrderDto, null)
 
-      expect(mockOrdersService.create).toHaveBeenCalledWith(mockCreateOrderDto)
+      expect(mockOrdersService.create).toHaveBeenCalledWith(mockCreateOrderDto, null)
       expect(result).toEqual(mockOrder)
+    })
+
+    it('derives userId from the JWT-attached user, ignoring anything in the body', async () => {
+      mockOrdersService.create.mockResolvedValue(mockOrder)
+      const authedUser = { id: 'user-real', email: 'a@b.c', role: Role.USER } as User
+
+      await ordersController.create(mockCreateOrderDto, authedUser)
+
+      // Controller passes user.id, not any client-supplied field — the fix for #391.
+      expect(mockOrdersService.create).toHaveBeenCalledWith(mockCreateOrderDto, 'user-real')
     })
   })
 

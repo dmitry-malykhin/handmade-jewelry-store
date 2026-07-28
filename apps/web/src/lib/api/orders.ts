@@ -28,7 +28,6 @@ export interface OrderItemPayload {
 export type DiscountType = 'PERCENTAGE' | 'FIXED_AMOUNT'
 
 export interface CreateOrderPayload {
-  userId?: string
   guestEmail?: string
   items: OrderItemPayload[]
   shippingAddress: ShippingAddress
@@ -168,10 +167,15 @@ export async function fetchMyOrders(accessToken: string): Promise<OrderDetails[]
   })
 }
 
-export async function createOrder(payload: CreateOrderPayload): Promise<CreatedOrder> {
+export async function createOrder(
+  payload: CreateOrderPayload,
+  accessToken: string | null,
+): Promise<CreatedOrder> {
   return apiClient<CreatedOrder>('/api/orders', {
     method: 'POST',
     body: JSON.stringify(payload),
+    // Server derives userId from this JWT — no client-side userId in body.
+    headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
   })
 }
 

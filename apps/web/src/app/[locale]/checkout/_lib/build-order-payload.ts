@@ -8,8 +8,6 @@ import type { CheckoutAddressFormValues } from '../_components/checkout-address-
  * shipping address snapshot stored on the order.
  */
 interface BuildOrderPayloadOptions {
-  /** Logged-in user id (when present). Loyalty redemption requires a user. */
-  userId?: string
   /** Loyalty points the buyer chose to redeem. Server clamps. */
   loyaltyPointsToRedeem?: number
   /** Discount code the buyer entered. Server re-validates and computes amount. */
@@ -31,7 +29,6 @@ export function buildOrderPayload(
   const total = Math.max(0, Number((subtotal + shippingCost - loyaltyDiscountUsd).toFixed(2)))
 
   return {
-    userId: options.userId,
     guestEmail: email,
     items: cartItems.map((cartItem) => ({
       productId: cartItem.productId,

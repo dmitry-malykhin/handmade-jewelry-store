@@ -118,6 +118,7 @@ describe('OrdersService', () => {
 
       const order = (await ordersService.create(
         createOrderDto,
+        null,
       )) as unknown as typeof mockCreatedOrder
 
       expect(order.status).toBe(OrderStatus.PENDING)
@@ -131,7 +132,6 @@ describe('OrdersService', () => {
 
       // subtotal $100 → 50% cap = 5000 points. Caller asked 8000; balance is 10000 → use 5000.
       const dto: CreateOrderDto = {
-        userId: 'user-1',
         items: [mockOrderItem],
         shippingAddress: mockShippingAddress,
         subtotal: 100,
@@ -140,7 +140,7 @@ describe('OrdersService', () => {
         loyaltyPointsToRedeem: 8000,
       }
 
-      await ordersService.create(dto)
+      await ordersService.create(dto, 'user-1')
 
       const callData = mockPrismaService.order.create.mock.calls[0]?.[0] as {
         data: { loyaltyPointsUsed: number; total: number }
@@ -154,15 +154,17 @@ describe('OrdersService', () => {
       mockLoyaltyService.getBalance.mockResolvedValueOnce({ balance: 5000 })
       mockPrismaService.order.create.mockResolvedValue(mockCreatedOrder)
 
-      await ordersService.create({
-        userId: 'user-1',
-        items: [mockOrderItem],
-        shippingAddress: mockShippingAddress,
-        subtotal: 100,
-        shippingCost: 5,
-        total: 105,
-        loyaltyPointsToRedeem: 2000,
-      })
+      await ordersService.create(
+        {
+          items: [mockOrderItem],
+          shippingAddress: mockShippingAddress,
+          subtotal: 100,
+          shippingCost: 5,
+          total: 105,
+          loyaltyPointsToRedeem: 2000,
+        },
+        'user-1',
+      )
 
       expect(mockLoyaltyService.spendForCheckout).toHaveBeenCalledWith(expect.anything(), {
         userId: 'user-1',
@@ -181,14 +183,17 @@ describe('OrdersService', () => {
       })
       mockPrismaService.order.create.mockResolvedValue(mockCreatedOrder)
 
-      await ordersService.create({
-        items: [mockOrderItem],
-        shippingAddress: mockShippingAddress,
-        subtotal: 100,
-        shippingCost: 5,
-        total: 105,
-        discountCode: 'welcome10',
-      })
+      await ordersService.create(
+        {
+          items: [mockOrderItem],
+          shippingAddress: mockShippingAddress,
+          subtotal: 100,
+          shippingCost: 5,
+          total: 105,
+          discountCode: 'welcome10',
+        },
+        null,
+      )
 
       expect(mockDiscountsService.applyOnOrderCreate).toHaveBeenCalledWith(expect.anything(), {
         code: 'welcome10',
@@ -215,14 +220,17 @@ describe('OrdersService', () => {
       )
 
       await expect(
-        ordersService.create({
-          items: [mockOrderItem],
-          shippingAddress: mockShippingAddress,
-          subtotal: 100,
-          shippingCost: 5,
-          total: 105,
-          discountCode: 'EXPIRED',
-        }),
+        ordersService.create(
+          {
+            items: [mockOrderItem],
+            shippingAddress: mockShippingAddress,
+            subtotal: 100,
+            shippingCost: 5,
+            total: 105,
+            discountCode: 'EXPIRED',
+          },
+          null,
+        ),
       ).rejects.toThrow(BadRequestException)
 
       expect(mockPrismaService.order.create).not.toHaveBeenCalled()
@@ -231,13 +239,16 @@ describe('OrdersService', () => {
     it('leaves discount fields null when no code is provided', async () => {
       mockPrismaService.order.create.mockResolvedValue(mockCreatedOrder)
 
-      await ordersService.create({
-        items: [mockOrderItem],
-        shippingAddress: mockShippingAddress,
-        subtotal: 100,
-        shippingCost: 5,
-        total: 105,
-      })
+      await ordersService.create(
+        {
+          items: [mockOrderItem],
+          shippingAddress: mockShippingAddress,
+          subtotal: 100,
+          shippingCost: 5,
+          total: 105,
+        },
+        null,
+      )
 
       expect(mockDiscountsService.applyOnOrderCreate).not.toHaveBeenCalled()
       const callData = mockPrismaService.order.create.mock.calls[0]?.[0] as {
@@ -260,14 +271,17 @@ describe('OrdersService', () => {
       })
       mockPrismaService.order.create.mockResolvedValue(mockCreatedOrder)
 
-      await ordersService.create({
-        items: [mockOrderItem],
-        shippingAddress: mockShippingAddress,
-        subtotal: 100,
-        shippingCost: 5,
-        total: 105,
-        discountCode: 'BIGDEAL',
-      })
+      await ordersService.create(
+        {
+          items: [mockOrderItem],
+          shippingAddress: mockShippingAddress,
+          subtotal: 100,
+          shippingCost: 5,
+          total: 105,
+          discountCode: 'BIGDEAL',
+        },
+        null,
+      )
 
       const callData = mockPrismaService.order.create.mock.calls[0]?.[0] as {
         data: { total: number }
