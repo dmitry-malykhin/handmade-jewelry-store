@@ -105,9 +105,8 @@ export class ShippingAddressDto {
 }
 
 export class CreateOrderDto {
-  @IsString()
-  @IsOptional()
-  userId?: string
+  // No userId field — server derives it from the caller's JWT (null for guests).
+  // Accepting a client-supplied userId was CVE-worthy (issue #391).
 
   @IsEmail()
   @IsOptional()

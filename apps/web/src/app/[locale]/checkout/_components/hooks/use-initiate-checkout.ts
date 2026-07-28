@@ -5,7 +5,6 @@ import { createOrder } from '@/lib/api/orders'
 import { createPaymentIntent } from '@/lib/api/payments'
 import { useCheckoutItems } from '@/store/cart.store'
 import { useAuthStore } from '@/store/auth.store'
-import { decodeAuthUser } from '@/lib/analytics/posthog'
 import { buildOrderPayload } from '../../_lib/build-order-payload'
 import type { CheckoutAddressFormValues } from '../checkout-address-schema'
 
@@ -27,7 +26,6 @@ export function useInitiateCheckout(
 ): InitiateCheckoutResult {
   const checkoutItems = useCheckoutItems()
   const accessToken = useAuthStore((state) => state.accessToken)
-  const userId = decodeAuthUser(accessToken)?.userId
 
   const [orderId, setOrderId] = useState<string | null>(null)
   const [clientSecret, setClientSecret] = useState<string | null>(null)
@@ -40,10 +38,9 @@ export function useInitiateCheckout(
     async function initiate() {
       try {
         const orderPayload = buildOrderPayload(checkoutItems, addressValues, shippingCost, {
-          userId,
           loyaltyPointsToRedeem,
         })
-        const createdOrder = await createOrder(orderPayload)
+        const createdOrder = await createOrder(orderPayload, accessToken)
 
         if (isCancelled) return
 

@@ -12,6 +12,7 @@ import {
 } from '@nestjs/common'
 import { Role, type User } from '@prisma/client'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
+import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard'
 import { RolesGuard } from '../auth/guards/roles.guard'
 import { CurrentUser } from '../common/decorators/current-user.decorator'
 import { Roles } from '../common/decorators/roles.decorator'
@@ -26,8 +27,9 @@ export class OrdersController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  create(@Body() createOrderDto: CreateOrderDto) {
-    return this.ordersService.create(createOrderDto)
+  @UseGuards(OptionalJwtAuthGuard)
+  create(@Body() createOrderDto: CreateOrderDto, @CurrentUser() user: User | null) {
+    return this.ordersService.create(createOrderDto, user?.id ?? null)
   }
 
   @Get()

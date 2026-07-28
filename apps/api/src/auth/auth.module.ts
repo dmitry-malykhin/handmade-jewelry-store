@@ -9,6 +9,7 @@ import { AuthController } from './auth.controller'
 import { AuthService } from './auth.service'
 import { JwtAuthGuard } from './guards/jwt-auth.guard'
 import { JwtRefreshGuard } from './guards/jwt-refresh.guard'
+import { OptionalJwtAuthGuard } from './guards/optional-jwt-auth.guard'
 import { RolesGuard } from './guards/roles.guard'
 import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy'
 import { JwtStrategy } from './strategies/jwt.strategy'
@@ -40,10 +41,11 @@ import { LocalStrategy } from './strategies/local.strategy'
     LocalStrategy,
     JwtStrategy,
     JwtAuthGuard,
+    OptionalJwtAuthGuard,
     JwtRefreshStrategy,
     JwtRefreshGuard,
     RolesGuard,
   ],
-  exports: [JwtAuthGuard, RolesGuard, AuthService],
+  exports: [JwtAuthGuard, OptionalJwtAuthGuard, RolesGuard, AuthService],
 })
 export class AuthModule {}

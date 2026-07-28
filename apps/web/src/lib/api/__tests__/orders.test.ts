@@ -59,40 +59,58 @@ describe('orders API — public', () => {
     expect(receivedAuth).toBe('Bearer access-xyz')
   })
 
-  it('createOrder POSTs the payload as JSON body', async () => {
+  const guestOrderPayload: CreateOrderPayload = {
+    guestEmail: 'a@b.com',
+    items: [
+      {
+        productId: 'p1',
+        quantity: 2,
+        price: 10,
+        productSnapshot: { title: 'Ring', slug: 'ring' },
+      },
+    ],
+    shippingAddress: {
+      fullName: 'Jane',
+      addressLine1: '1 Main',
+      city: 'NY',
+      postalCode: '10001',
+      country: 'US',
+    },
+    subtotal: 20,
+    shippingCost: 5,
+    total: 25,
+  }
+
+  it('createOrder POSTs the payload without Authorization when the caller is a guest', async () => {
     let receivedBody: unknown = null
+    let receivedAuth: string | null = null
     server.use(
       http.post(`${API_BASE}/api/orders`, async ({ request }) => {
+        receivedAuth = request.headers.get('authorization')
         receivedBody = await request.json()
         return HttpResponse.json({ id: 'new-order', status: 'PENDING', total: 25 })
       }),
     )
 
-    const payload: CreateOrderPayload = {
-      guestEmail: 'a@b.com',
-      items: [
-        {
-          productId: 'p1',
-          quantity: 2,
-          price: 10,
-          productSnapshot: { title: 'Ring', slug: 'ring' },
-        },
-      ],
-      shippingAddress: {
-        fullName: 'Jane',
-        addressLine1: '1 Main',
-        city: 'NY',
-        postalCode: '10001',
-        country: 'US',
-      },
-      subtotal: 20,
-      shippingCost: 5,
-      total: 25,
-    }
-    const result = await createOrder(payload)
+    const result = await createOrder(guestOrderPayload, null)
 
-    expect(receivedBody).toEqual(payload)
+    expect(receivedAuth).toBeNull()
+    expect(receivedBody).toEqual(guestOrderPayload)
     expect(result.id).toBe('new-order')
+  })
+
+  it('createOrder sends Authorization: Bearer when the caller is authenticated', async () => {
+    let receivedAuth: string | null = null
+    server.use(
+      http.post(`${API_BASE}/api/orders`, async ({ request }) => {
+        receivedAuth = request.headers.get('authorization')
+        return HttpResponse.json({ id: 'new-order', status: 'PENDING', total: 25 })
+      }),
+    )
+
+    await createOrder(guestOrderPayload, 'access-xyz')
+
+    expect(receivedAuth).toBe('Bearer access-xyz')
   })
 })
 

@@ -77,11 +77,10 @@ export class OrdersService {
     private readonly discountsService: DiscountsService,
   ) {}
 
-  async create(createOrderDto: CreateOrderDto) {
+  async create(createOrderDto: CreateOrderDto, callerUserId: string | null) {
     const {
       items,
       shippingAddress,
-      userId,
       guestEmail,
       subtotal,
       shippingCost,
@@ -90,6 +89,10 @@ export class OrdersService {
       discountCode,
       source,
     } = createOrderDto
+    // Trust only the JWT. A client-supplied userId in the body used to be
+    // accepted here (see #391) — anyone could attach a guest order to any
+    // other user's account.
+    const userId = callerUserId
 
     // Re-verify the client's loyaltyPointsToRedeem against the real balance
     // and the per-order cap (50% of subtotal); recalculate `total` server-side.
