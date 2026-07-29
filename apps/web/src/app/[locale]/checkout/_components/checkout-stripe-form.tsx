@@ -9,6 +9,7 @@ import { usePaymentRequest } from './hooks/use-payment-request'
 
 interface CheckoutStripeFormProps {
   orderId: string
+  orderAccessToken: string | null
   totalAmount: number
   clientSecret: string
   returnUrl: string
@@ -19,6 +20,7 @@ interface CheckoutStripeFormProps {
 
 export function CheckoutStripeForm({
   orderId,
+  orderAccessToken,
   totalAmount,
   clientSecret,
   returnUrl,
@@ -36,6 +38,7 @@ export function CheckoutStripeForm({
     totalAmountInCents: totalAmount,
     clientSecret,
     orderId,
+    orderAccessToken,
     locale,
   })
 

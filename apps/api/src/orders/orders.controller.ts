@@ -46,8 +46,13 @@ export class OrdersController {
   }
 
   @Get(':id')
-  findOne(@Param('id') orderId: string) {
-    return this.ordersService.findOneById(orderId)
+  @UseGuards(OptionalJwtAuthGuard)
+  findOne(
+    @Param('id') orderId: string,
+    @CurrentUser() user: User | null,
+    @Query('token') orderAccessToken?: string,
+  ) {
+    return this.ordersService.findOneByIdForCaller(orderId, user, orderAccessToken ?? null)
   }
 
   @Patch(':id/status')

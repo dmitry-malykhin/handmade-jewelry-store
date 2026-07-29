@@ -9,6 +9,7 @@ interface UsePaymentRequestParams {
   totalAmountInCents: number
   clientSecret: string
   orderId: string
+  orderAccessToken: string | null
   locale: string
 }
 
@@ -24,6 +25,7 @@ export function usePaymentRequest({
   totalAmountInCents,
   clientSecret,
   orderId,
+  orderAccessToken,
   locale,
 }: UsePaymentRequestParams): UsePaymentRequestResult {
   const stripe = useStripe()
@@ -82,9 +84,10 @@ export function usePaymentRequest({
         }
       }
 
-      router.push(`/${locale}/checkout/confirmation/${orderId}`)
+      const query = orderAccessToken ? `?token=${encodeURIComponent(orderAccessToken)}` : ''
+      router.push(`/${locale}/checkout/confirmation/${orderId}${query}`)
     })
-  }, [stripe, clientSecret, totalAmountInCents, orderId, locale, router])
+  }, [stripe, clientSecret, totalAmountInCents, orderId, orderAccessToken, locale, router])
 
   return { paymentRequest, canMakePayment, paymentRequestError }
 }

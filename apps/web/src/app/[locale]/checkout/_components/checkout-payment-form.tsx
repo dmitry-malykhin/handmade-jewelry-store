@@ -40,7 +40,7 @@ export function CheckoutPaymentForm({
     Math.round((checkoutTotalPrice + shippingCost - loyaltyDiscountUsd) * 100),
   )
 
-  const { orderId, clientSecret, isLoading, error } = useInitiateCheckout(
+  const { orderId, orderAccessToken, clientSecret, isLoading, error } = useInitiateCheckout(
     addressValues,
     shippingCost,
     loyaltyPointsToRedeem,
@@ -50,7 +50,8 @@ export function CheckoutPaymentForm({
 
   const returnUrl =
     typeof window !== 'undefined' && orderId
-      ? `${window.location.origin}/${locale}/checkout/confirmation/${orderId}`
+      ? `${window.location.origin}/${locale}/checkout/confirmation/${orderId}` +
+        (orderAccessToken ? `?token=${encodeURIComponent(orderAccessToken)}` : '')
       : ''
 
   return (
@@ -103,6 +104,7 @@ export function CheckoutPaymentForm({
             >
               <CheckoutStripeForm
                 orderId={orderId}
+                orderAccessToken={orderAccessToken}
                 totalAmount={totalInCents}
                 clientSecret={clientSecret}
                 returnUrl={returnUrl}

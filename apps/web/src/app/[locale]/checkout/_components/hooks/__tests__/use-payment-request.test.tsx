@@ -36,6 +36,7 @@ const defaultParams = {
   totalAmountInCents: 4998,
   clientSecret: 'pi_test_secret',
   orderId: 'order_abc',
+  orderAccessToken: 'signed-order-token',
   locale: 'en',
 }
 
@@ -126,7 +127,9 @@ describe('usePaymentRequest', () => {
     })
 
     expect(mockEvent.complete).toHaveBeenCalledWith('success')
-    expect(mockRouterPush).toHaveBeenCalledWith('/en/checkout/confirmation/order_abc')
+    expect(mockRouterPush).toHaveBeenCalledWith(
+      '/en/checkout/confirmation/order_abc?token=signed-order-token',
+    )
   })
 
   it('calls event.complete("fail") and sets error when confirmCardPayment fails', async () => {

@@ -1,6 +1,12 @@
-import { BadRequestException, NotFoundException } from '@nestjs/common'
+import {
+  BadRequestException,
+  ForbiddenException,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common'
+import { JwtService } from '@nestjs/jwt'
 import { Test, TestingModule } from '@nestjs/testing'
-import { DiscountType, OrderStatus } from '@prisma/client'
+import { DiscountType, OrderStatus, Role, type User } from '@prisma/client'
 import { Decimal } from '@prisma/client/runtime/library'
 import {
   suite as $allureSuite,
@@ -76,6 +82,11 @@ const mockDiscountsService = {
   applyOnOrderCreate: jest.fn(),
 }
 
+const mockJwtService = {
+  sign: jest.fn().mockReturnValue('signed-order-token'),
+  verify: jest.fn(),
+}
+
 beforeEach(async () => {
   if (!process.env.CI) return
   await $allureSuite('api/orders')
@@ -94,6 +105,7 @@ describe('OrdersService', () => {
         { provide: EmailService, useValue: mockEmailService },
         { provide: LoyaltyService, useValue: mockLoyaltyService },
         { provide: DiscountsService, useValue: mockDiscountsService },
+        { provide: JwtService, useValue: mockJwtService },
       ],
     }).compile()
 
@@ -287,6 +299,92 @@ describe('OrdersService', () => {
         data: { total: number }
       }
       expect(callData.data.total).toBe(0)
+    })
+
+    it('returns a signed accessToken alongside the order (guest confirmation-page reads)', async () => {
+      mockPrismaService.order.create.mockResolvedValue(mockCreatedOrder)
+
+      const result = (await ordersService.create(
+        {
+          items: [mockOrderItem],
+          shippingAddress: mockShippingAddress,
+          subtotal: 100,
+          shippingCost: 5,
+          total: 105,
+        },
+        null,
+      )) as { accessToken: string }
+
+      expect(mockJwtService.sign).toHaveBeenCalledWith(
+        { orderId: mockCreatedOrder.id, purpose: 'order-access' },
+        { expiresIn: '24h' },
+      )
+      expect(result.accessToken).toBe('signed-order-token')
+    })
+  })
+
+  // ── findOneByIdForCaller (#392) ───────────────────────────────────────────
+
+  describe('findOneByIdForCaller()', () => {
+    const ownedOrder = { ...mockCreatedOrder, userId: 'owner-id' }
+    const owner = { id: 'owner-id', role: Role.USER } as User
+    const otherUser = { id: 'someone-else', role: Role.USER } as User
+    const admin = { id: 'admin-id', role: Role.ADMIN } as User
+
+    it('returns the order when the caller owns it', async () => {
+      mockPrismaService.order.findUnique.mockResolvedValueOnce(ownedOrder)
+      const result = await ordersService.findOneByIdForCaller('order-1', owner, null)
+      expect(result).toEqual(ownedOrder)
+    })
+
+    it('returns the order for an admin caller regardless of ownership', async () => {
+      mockPrismaService.order.findUnique.mockResolvedValueOnce(ownedOrder)
+      const result = await ordersService.findOneByIdForCaller('order-1', admin, null)
+      expect(result).toEqual(ownedOrder)
+    })
+
+    it('throws ForbiddenException when a signed-in caller is not owner or admin', async () => {
+      mockPrismaService.order.findUnique.mockResolvedValueOnce(ownedOrder)
+      await expect(
+        ordersService.findOneByIdForCaller('order-1', otherUser, null),
+      ).rejects.toBeInstanceOf(ForbiddenException)
+    })
+
+    it('throws UnauthorizedException when anonymous and no token is presented', async () => {
+      mockPrismaService.order.findUnique.mockResolvedValueOnce(ownedOrder)
+      await expect(
+        ordersService.findOneByIdForCaller('order-1', null, null),
+      ).rejects.toBeInstanceOf(UnauthorizedException)
+    })
+
+    it('returns the order when the guest presents a valid order-access token', async () => {
+      mockPrismaService.order.findUnique.mockResolvedValueOnce(mockCreatedOrder)
+      mockJwtService.verify.mockReturnValueOnce({ orderId: 'order-1', purpose: 'order-access' })
+
+      const result = await ordersService.findOneByIdForCaller('order-1', null, 'valid-token')
+
+      expect(result).toEqual(mockCreatedOrder)
+    })
+
+    it('throws UnauthorizedException when the token is expired or malformed', async () => {
+      mockPrismaService.order.findUnique.mockResolvedValueOnce(mockCreatedOrder)
+      mockJwtService.verify.mockImplementationOnce(() => {
+        throw new Error('jwt expired')
+      })
+      await expect(
+        ordersService.findOneByIdForCaller('order-1', null, 'expired-token'),
+      ).rejects.toBeInstanceOf(UnauthorizedException)
+    })
+
+    it('throws UnauthorizedException when the token was issued for a different order', async () => {
+      mockPrismaService.order.findUnique.mockResolvedValueOnce(mockCreatedOrder)
+      mockJwtService.verify.mockReturnValueOnce({
+        orderId: 'other-order',
+        purpose: 'order-access',
+      })
+      await expect(
+        ordersService.findOneByIdForCaller('order-1', null, 'wrong-order-token'),
+      ).rejects.toBeInstanceOf(UnauthorizedException)
     })
   })
 

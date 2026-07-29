@@ -60,6 +60,7 @@ describe('useInitiateCheckout', () => {
       id: 'order_abc',
       status: 'PENDING',
       total: 55.97,
+      accessToken: 'signed-order-token',
     })
     vi.mocked(paymentsApi.createPaymentIntent).mockResolvedValueOnce({
       clientSecret: 'pi_test_secret_xyz',
@@ -94,6 +95,7 @@ describe('useInitiateCheckout', () => {
       id: 'order_abc',
       status: 'PENDING',
       total: 55.97,
+      accessToken: 'signed-order-token',
     })
     vi.mocked(paymentsApi.createPaymentIntent).mockRejectedValueOnce(
       new Error('Payment init failed'),

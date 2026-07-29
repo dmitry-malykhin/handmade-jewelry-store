@@ -122,6 +122,7 @@ describe('CheckoutPaymentForm', () => {
     const { useInitiateCheckout } = await import('../hooks/use-initiate-checkout')
     vi.mocked(useInitiateCheckout).mockReturnValueOnce({
       orderId: null,
+      orderAccessToken: null,
       clientSecret: null,
       isLoading: false,
       error: new Error('Network error'),
@@ -143,6 +144,7 @@ describe('CheckoutPaymentForm', () => {
     const { useInitiateCheckout } = await import('../hooks/use-initiate-checkout')
     vi.mocked(useInitiateCheckout).mockReturnValueOnce({
       orderId: 'order_123',
+      orderAccessToken: 'signed-order-token',
       clientSecret: 'pi_test_secret',
       isLoading: false,
       error: null,
