@@ -45,6 +45,34 @@ describe('orders API — public', () => {
     expect(order.status).toBe('PAID')
   })
 
+  it('fetchOrderById forwards the order-access token as ?token= (guest confirmation-page path)', async () => {
+    let receivedSearch: string | null = null
+    server.use(
+      http.get(`${API_BASE}/api/orders/order-abc`, ({ request }) => {
+        receivedSearch = new URL(request.url).search
+        return HttpResponse.json({ id: 'order-abc', status: 'PAID', total: 49.99 })
+      }),
+    )
+
+    await fetchOrderById('order-abc', { orderAccessToken: 'signed-token' })
+
+    expect(receivedSearch).toBe('?token=signed-token')
+  })
+
+  it('fetchOrderById attaches Bearer JWT when a signed-in user provides one', async () => {
+    let receivedAuth: string | null = null
+    server.use(
+      http.get(`${API_BASE}/api/orders/order-abc`, ({ request }) => {
+        receivedAuth = request.headers.get('authorization')
+        return HttpResponse.json({ id: 'order-abc', status: 'PAID', total: 49.99 })
+      }),
+    )
+
+    await fetchOrderById('order-abc', { jwt: 'user-jwt' })
+
+    expect(receivedAuth).toBe('Bearer user-jwt')
+  })
+
   it('fetchMyOrders sends bearer token in Authorization header', async () => {
     let receivedAuth: string | null = null
     server.use(

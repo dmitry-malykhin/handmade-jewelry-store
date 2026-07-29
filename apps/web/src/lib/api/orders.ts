@@ -46,6 +46,9 @@ export interface CreatedOrder {
   id: string
   status: string
   total: number
+  // Short-lived JWT for guest confirmation-page reads (#392). Backend also
+  // accepts this token via ?token=... on GET /api/orders/:id.
+  accessToken: string
 }
 
 export interface OrderItem {
@@ -157,8 +160,24 @@ export interface UpdateOrderStatusPayload {
   trackingNumber?: string
 }
 
-export async function fetchOrderById(orderId: string): Promise<OrderDetails> {
-  return apiClient<OrderDetails>(`/api/orders/${orderId}`)
+interface FetchOrderByIdOptions {
+  // User JWT (owner or admin) — attached as Authorization: Bearer.
+  jwt?: string | null
+  // Order-access token from POST /orders response — appended as ?token=...
+  // Guests use this to read their own order without an account.
+  orderAccessToken?: string | null
+}
+
+export async function fetchOrderById(
+  orderId: string,
+  options: FetchOrderByIdOptions = {},
+): Promise<OrderDetails> {
+  const query = options.orderAccessToken
+    ? `?token=${encodeURIComponent(options.orderAccessToken)}`
+    : ''
+  return apiClient<OrderDetails>(`/api/orders/${orderId}${query}`, {
+    headers: options.jwt ? { Authorization: `Bearer ${options.jwt}` } : undefined,
+  })
 }
 
 export async function fetchMyOrders(accessToken: string): Promise<OrderDetails[]> {

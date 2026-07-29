@@ -15,7 +15,7 @@ import { PaymentFailedContent } from './_components/payment-failed-content'
 
 interface ConfirmationPageProps {
   params: Promise<{ locale: string; orderId: string }>
-  searchParams: Promise<{ redirect_status?: string }>
+  searchParams: Promise<{ redirect_status?: string; token?: string }>
 }
 
 export async function generateMetadata({
@@ -55,7 +55,7 @@ export async function generateMetadata({
 
 export default async function ConfirmationPage({ params, searchParams }: ConfirmationPageProps) {
   const { orderId } = await params
-  const { redirect_status } = await searchParams
+  const { redirect_status, token } = await searchParams
 
   // Stripe appends redirect_status to return_url after 3DS or redirect-based payment flows.
   // "requires_payment_method" means the PaymentIntent was reset after a failed attempt.
@@ -73,7 +73,7 @@ export default async function ConfirmationPage({ params, searchParams }: Confirm
 
   // .catch(() => null) + sync notFound() — see comment on products/[slug]/page.tsx
   // for the streaming/404-status rationale.
-  const order = await fetchOrderById(orderId).catch(() => null)
+  const order = await fetchOrderById(orderId, { orderAccessToken: token ?? null }).catch(() => null)
   if (!order) notFound()
 
   const t = await getTranslations('confirmationPage')

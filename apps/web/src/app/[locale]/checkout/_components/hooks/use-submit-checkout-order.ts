@@ -24,7 +24,10 @@ export function useSubmitCheckoutOrder() {
       return createOrder(orderPayload, accessToken)
     },
     onSuccess: (createdOrder) => {
-      router.push(`/checkout/confirmation/${createdOrder.id}`)
+      const query = createdOrder.accessToken
+        ? `?token=${encodeURIComponent(createdOrder.accessToken)}`
+        : ''
+      router.push(`/checkout/confirmation/${createdOrder.id}${query}`)
     },
   })
 

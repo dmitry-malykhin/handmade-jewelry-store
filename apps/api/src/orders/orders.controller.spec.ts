@@ -15,6 +15,7 @@ const mockOrdersService = {
   create: jest.fn(),
   findAll: jest.fn(),
   findOneById: jest.fn(),
+  findOneByIdForCaller: jest.fn(),
   updateStatus: jest.fn(),
 }
 
@@ -104,13 +105,30 @@ describe('OrdersController', () => {
   })
 
   describe('findOne()', () => {
-    it('delegates to OrdersService.findOneById with the id param', async () => {
-      mockOrdersService.findOneById.mockResolvedValue(mockOrder)
+    it('delegates to findOneByIdForCaller passing the JWT-attached user and no token (owner path)', async () => {
+      mockOrdersService.findOneByIdForCaller.mockResolvedValue(mockOrder)
+      const authedUser = { id: 'user-real', email: 'a@b.c', role: Role.USER } as User
 
-      const result = await ordersController.findOne('order-1')
+      const result = await ordersController.findOne('order-1', authedUser, undefined)
 
-      expect(mockOrdersService.findOneById).toHaveBeenCalledWith('order-1')
+      expect(mockOrdersService.findOneByIdForCaller).toHaveBeenCalledWith(
+        'order-1',
+        authedUser,
+        null,
+      )
       expect(result).toEqual(mockOrder)
+    })
+
+    it('delegates with null user + the ?token= access token (guest confirmation-page path)', async () => {
+      mockOrdersService.findOneByIdForCaller.mockResolvedValue(mockOrder)
+
+      await ordersController.findOne('order-1', null, 'signed-order-token')
+
+      expect(mockOrdersService.findOneByIdForCaller).toHaveBeenCalledWith(
+        'order-1',
+        null,
+        'signed-order-token',
+      )
     })
   })
 

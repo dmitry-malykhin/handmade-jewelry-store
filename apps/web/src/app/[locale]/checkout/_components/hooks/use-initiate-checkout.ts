@@ -10,6 +10,7 @@ import type { CheckoutAddressFormValues } from '../checkout-address-schema'
 
 interface InitiateCheckoutResult {
   orderId: string | null
+  orderAccessToken: string | null
   clientSecret: string | null
   isLoading: boolean
   error: Error | null
@@ -28,6 +29,7 @@ export function useInitiateCheckout(
   const accessToken = useAuthStore((state) => state.accessToken)
 
   const [orderId, setOrderId] = useState<string | null>(null)
+  const [orderAccessToken, setOrderAccessToken] = useState<string | null>(null)
   const [clientSecret, setClientSecret] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
@@ -49,6 +51,7 @@ export function useInitiateCheckout(
         if (isCancelled) return
 
         setOrderId(createdOrder.id)
+        setOrderAccessToken(createdOrder.accessToken)
         setClientSecret(paymentIntent.clientSecret)
       } catch (caughtError) {
         if (!isCancelled) {
@@ -67,5 +70,5 @@ export function useInitiateCheckout(
     // Run once on mount — addressValues and shippingCost are stable when step 3 renders
   }, [])
 
-  return { orderId, clientSecret, isLoading, error }
+  return { orderId, orderAccessToken, clientSecret, isLoading, error }
 }

@@ -1,5 +1,13 @@
-import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common'
-import { OrderStatus, Prisma } from '@prisma/client'
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  Logger,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common'
+import { JwtService } from '@nestjs/jwt'
+import { OrderStatus, Prisma, Role, type User } from '@prisma/client'
 import * as Sentry from '@sentry/nestjs'
 import { InputJsonValue } from '@prisma/client/runtime/library'
 import { buildCsvDocument } from '../common/csv/csv-formatter'
@@ -75,7 +83,15 @@ export class OrdersService {
     private readonly emailService: EmailService,
     private readonly loyaltyService: LoyaltyService,
     private readonly discountsService: DiscountsService,
+    private readonly jwtService: JwtService,
   ) {}
+
+  // Signed short-lived credential returned by POST /orders. The confirmation
+  // page uses it via ?token= so guests can fetch their own order without a
+  // user JWT (#392).
+  private issueOrderAccessToken(orderId: string): string {
+    return this.jwtService.sign({ orderId, purpose: 'order-access' as const }, { expiresIn: '24h' })
+  }
 
   async create(createOrderDto: CreateOrderDto, callerUserId: string | null) {
     const {
@@ -170,7 +186,7 @@ export class OrdersService {
         return created
       })
 
-      return order
+      return { ...order, accessToken: this.issueOrderAccessToken(order.id) }
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2003') {
@@ -272,6 +288,39 @@ export class OrdersService {
 
     if (!order) {
       throw new NotFoundException(`Order with id "${orderId}" not found`)
+    }
+
+    return order
+  }
+
+  // Called by GET /orders/:id. Fetches the order and rejects unless the caller
+  // is the owner, is an admin, or presented a valid order-access token issued
+  // at creation. Prevents the pre-#392 IDOR where any UUID leaked full PII.
+  async findOneByIdForCaller(
+    orderId: string,
+    caller: User | null,
+    orderAccessToken: string | null,
+  ) {
+    const order = await this.findOneById(orderId)
+
+    if (caller) {
+      if (caller.role === Role.ADMIN || order.userId === caller.id) return order
+      throw new ForbiddenException('You do not have access to this order')
+    }
+
+    if (!orderAccessToken) {
+      throw new UnauthorizedException('Authentication required to view this order')
+    }
+
+    let payload: { orderId?: string; purpose?: string }
+    try {
+      payload = this.jwtService.verify(orderAccessToken)
+    } catch {
+      throw new UnauthorizedException('Invalid or expired order access token')
+    }
+
+    if (payload.purpose !== 'order-access' || payload.orderId !== orderId) {
+      throw new UnauthorizedException('Order access token does not match this order')
     }
 
     return order
