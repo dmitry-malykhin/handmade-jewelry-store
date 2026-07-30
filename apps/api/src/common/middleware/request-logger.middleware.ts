@@ -1,11 +1,16 @@
-import { Injectable, NestMiddleware, Logger } from '@nestjs/common'
+import { Inject, Injectable, NestMiddleware } from '@nestjs/common'
+import { WINSTON_MODULE_PROVIDER } from 'nest-winston'
 import type { Request, Response, NextFunction } from 'express'
 import { randomUUID } from 'node:crypto'
+import type { Logger } from 'winston'
 import { requestContext } from '../context/request-context'
 
 @Injectable()
 export class RequestLoggerMiddleware implements NestMiddleware {
-  private readonly logger = new Logger('HTTP')
+  // Raw Winston logger — accepts meta natively. NestJS built-in Logger treats
+  // the second arg as `context: string`, so passing an object printed
+  // "[object Object]" (see #397).
+  constructor(@Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger) {}
 
   use(request: Request, response: Response, next: NextFunction): void {
     const requestId = (request.headers['x-request-id'] as string | undefined) ?? randomUUID()
@@ -20,6 +25,7 @@ export class RequestLoggerMiddleware implements NestMiddleware {
       const duration = Date.now() - startTime
 
       const logData = {
+        context: 'HTTP',
         requestId,
         method,
         path: originalUrl,
@@ -34,7 +40,7 @@ export class RequestLoggerMiddleware implements NestMiddleware {
       } else if (statusCode >= 400) {
         this.logger.warn('Request client error', logData)
       } else {
-        this.logger.log('Request completed', logData)
+        this.logger.info('Request completed', logData)
       }
     })
 

@@ -1,5 +1,6 @@
 import { RequestLoggerMiddleware } from '../request-logger.middleware'
 import type { Request, Response } from 'express'
+import type { Logger } from 'winston'
 import {
   suite as $allureSuite,
   subSuite as $allureSubSuite,
@@ -38,12 +39,15 @@ beforeEach(async () => {
 
 describe('RequestLoggerMiddleware', () => {
   let middleware: RequestLoggerMiddleware
+  let mockLogger: Pick<Logger, 'info' | 'warn' | 'error'>
 
   beforeEach(() => {
-    middleware = new RequestLoggerMiddleware()
-    jest.spyOn(middleware['logger'], 'log').mockImplementation(() => undefined)
-    jest.spyOn(middleware['logger'], 'warn').mockImplementation(() => undefined)
-    jest.spyOn(middleware['logger'], 'error').mockImplementation(() => undefined)
+    mockLogger = {
+      info: jest.fn(),
+      warn: jest.fn(),
+      error: jest.fn(),
+    }
+    middleware = new RequestLoggerMiddleware(mockLogger as unknown as Logger)
   })
 
   it('sets X-Request-Id response header', () => {
@@ -93,7 +97,7 @@ describe('RequestLoggerMiddleware', () => {
     middleware.use(request, response, jest.fn())
     response.finishListeners.forEach((listener) => listener())
 
-    expect(middleware['logger'].log).toHaveBeenCalledWith(
+    expect(mockLogger.info).toHaveBeenCalledWith(
       'Request completed',
       expect.objectContaining({ statusCode: 200 }),
     )
@@ -107,7 +111,7 @@ describe('RequestLoggerMiddleware', () => {
     middleware.use(request, response, jest.fn())
     response.finishListeners.forEach((listener) => listener())
 
-    expect(middleware['logger'].warn).toHaveBeenCalledWith(
+    expect(mockLogger.warn).toHaveBeenCalledWith(
       'Request client error',
       expect.objectContaining({ statusCode: 400 }),
     )
@@ -121,7 +125,7 @@ describe('RequestLoggerMiddleware', () => {
     middleware.use(request, response, jest.fn())
     response.finishListeners.forEach((listener) => listener())
 
-    expect(middleware['logger'].error).toHaveBeenCalledWith(
+    expect(mockLogger.error).toHaveBeenCalledWith(
       'Request failed',
       expect.objectContaining({ statusCode: 500 }),
     )
@@ -135,7 +139,7 @@ describe('RequestLoggerMiddleware', () => {
     middleware.use(request, response, jest.fn())
     response.finishListeners.forEach((listener) => listener())
 
-    expect(middleware['logger'].log).toHaveBeenCalledWith(
+    expect(mockLogger.info).toHaveBeenCalledWith(
       'Request completed',
       expect.objectContaining({ method: 'POST', path: '/api/orders' }),
     )
