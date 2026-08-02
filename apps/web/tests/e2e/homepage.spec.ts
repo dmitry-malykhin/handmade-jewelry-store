@@ -23,7 +23,8 @@ test.describe('Homepage', () => {
 
   test('displays the site logo', async ({ page }) => {
     await page.goto('/en')
-    await expect(page.getByRole('link', { name: /handmade jewelry store/i })).toBeVisible()
+    // aria-label comes from messages.header.logoLabel — match brand name only.
+    await expect(page.getByRole('link', { name: /senichka/i }).first()).toBeVisible()
   })
 
   test('displays the main navigation links on desktop', async ({ page }) => {
