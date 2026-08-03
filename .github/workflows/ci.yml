@@ -191,7 +191,7 @@ jobs:
         run: pnpm --filter @jewelry/shared build
 
       - name: Install Playwright browsers
-        run: pnpm --filter web exec playwright install --with-deps chromium webkit
+        run: pnpm --filter web exec playwright install --with-deps chromium
 
       - name: Run Playwright E2E tests
         run: pnpm --filter web test:e2e

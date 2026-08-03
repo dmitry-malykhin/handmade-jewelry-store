@@ -7,7 +7,7 @@ listening there — use the local script below instead.
 ## One-time setup
 
 ```
-pnpm exec playwright install chromium webkit
+pnpm exec playwright install chromium
 ```
 
 ## Every run
@@ -27,7 +27,9 @@ pnpm --filter web test:e2e:local
 The script sets `PLAYWRIGHT_BASE_URL=http://localhost:3100` and pins the
 `Desktop Chrome` project so it will not try to spin its own dev server.
 
-Mobile iPhone project needs webkit installed (see #394).
+Mobile viewports are set per spec via `test.use({ viewport })`; a dedicated
+Mobile iPhone (WebKit) project was removed in #394 — every mobile assertion
+still runs, it just runs on Chromium mobile-emulation instead of WebKit.
 
 ## Known skipped suites
 

@@ -24,13 +24,11 @@ export default defineConfig({
   },
 
   projects: [
+    // Mobile viewport is set per spec via test.use — a WebKit project would
+    // only duplicate the runs. Add one back if a Safari-only bug ships.
     {
       name: 'Desktop Chrome',
       use: { ...devices['Desktop Chrome'] },
-    },
-    {
-      name: 'Mobile iPhone',
-      use: { ...devices['iPhone 13'] },
     },
   ],
 
