@@ -10,6 +10,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common'
+import { Throttle } from '@nestjs/throttler'
 import { Role, type User } from '@prisma/client'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
 import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard'
@@ -27,6 +28,7 @@ export class OrdersController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @UseGuards(OptionalJwtAuthGuard)
   create(@Body() createOrderDto: CreateOrderDto, @CurrentUser() user: User | null) {
     return this.ordersService.create(createOrderDto, user?.id ?? null)

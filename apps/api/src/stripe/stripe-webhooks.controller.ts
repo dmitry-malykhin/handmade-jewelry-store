@@ -8,11 +8,15 @@ import {
   RawBodyRequest,
   Req,
 } from '@nestjs/common'
+import { SkipThrottle } from '@nestjs/throttler'
 import type { Request } from 'express'
 import type Stripe from 'stripe'
 import { StripeService } from './stripe.service'
 import { StripeWebhooksService } from './stripe-webhooks.service'
 
+// Stripe retries failed webhook deliveries — a 429 would drop legitimate events
+// on the floor. Auth here is HMAC signature verification, not rate limiting.
+@SkipThrottle()
 @Controller('webhooks/stripe')
 export class StripeWebhooksController {
   constructor(

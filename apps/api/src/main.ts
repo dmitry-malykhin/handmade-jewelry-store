@@ -4,6 +4,7 @@ import './instrument'
 
 import { ValidationPipe } from '@nestjs/common'
 import { HttpAdapterHost, NestFactory } from '@nestjs/core'
+import type { NestExpressApplication } from '@nestjs/platform-express'
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston'
 import { ProxyAgent, setGlobalDispatcher } from 'undici'
 import { getFrontendUrl } from './common/config/urls'
@@ -23,7 +24,12 @@ if (proxyUrl) {
 
 async function bootstrap() {
   // rawBody: true — Stripe.webhooks.constructEvent() needs the raw Buffer.
-  const app = await NestFactory.create(AppModule, { rawBody: true })
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, { rawBody: true })
+
+  // Trust one proxy hop (Fly.io / CloudFront / ALB) so req.ip resolves to the
+  // real client from X-Forwarded-For — otherwise ThrottlerGuard sees the LB IP
+  // and every request looks like the same client.
+  app.set('trust proxy', 1)
 
   app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER))
 
