@@ -1,5 +1,7 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
+import { APP_GUARD } from '@nestjs/core'
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler'
 import { SentryModule } from '@sentry/nestjs/setup'
 import { AddressesModule } from './addresses/addresses.module'
 import { AdminModule } from './admin/admin.module'
@@ -31,6 +33,10 @@ import { WishlistModule } from './wishlist/wishlist.module'
     // Загружает apps/api/.env в process.env автоматически при старте
     // isGlobal: true — не нужно импортировать ConfigModule в каждом модуле
     ConfigModule.forRoot({ isGlobal: true }),
+    // Default 60 req/min per IP; sensitive endpoints override via @Throttle.
+    ThrottlerModule.forRoot({
+      throttlers: [{ ttl: 60_000, limit: 60 }],
+    }),
     // LoggerModule is @Global() — provides WinstonModule logger to all modules
     LoggerModule,
     // SentryModule.forRoot() wires Sentry into NestJS request lifecycle:
@@ -59,6 +65,10 @@ import { WishlistModule } from './wishlist/wishlist.module'
     SiteSettingsModule,
     WishlistModule,
     HealthModule,
+  ],
+  providers: [
+    // Global throttler — every route rate-limited by IP unless @SkipThrottle.
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
   ],
 })
 export class AppModule implements NestModule {

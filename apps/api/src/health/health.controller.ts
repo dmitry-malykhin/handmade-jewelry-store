@@ -5,8 +5,12 @@ import {
   HealthCheckService,
   HealthCheckResult,
 } from '@nestjs/terminus'
+import { SkipThrottle } from '@nestjs/throttler'
 import { PrismaService } from '../prisma/prisma.service'
 
+// UptimeRobot pings this every minute — 60 default throttler limit would eat
+// alerts. Health is unauthenticated and cheap.
+@SkipThrottle()
 @Controller('health')
 export class HealthController {
   constructor(
