@@ -361,6 +361,60 @@ describe('StripeWebhooksService', () => {
 
       expect(mockPrismaService.$transaction).not.toHaveBeenCalled()
     })
+
+    // Stripe may deliver payment_intent either as an id string or an expanded
+    // object depending on the API configuration — the handler must accept both.
+    it('resolves the payment when payment_intent arrives as an expanded object', async () => {
+      mockPrismaService.payment.findUnique.mockResolvedValueOnce(
+        buildMockPayment({ order: { id: ORDER_ID, status: OrderStatus.DELIVERED } }),
+      )
+
+      await stripeWebhooksService.handleChargeRefunded(
+        buildMockCharge({
+          payment_intent: { id: STRIPE_INTENT_ID } as Stripe.PaymentIntent,
+        }),
+      )
+
+      expect(mockPrismaService.payment.findUnique).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { stripeId: STRIPE_INTENT_ID } }),
+      )
+      expect(mockPrismaService.order.update).toHaveBeenCalled()
+    })
+
+    it('records an OrderStatusHistory entry with the from/to status and Stripe charge note', async () => {
+      mockPrismaService.payment.findUnique.mockResolvedValueOnce(
+        buildMockPayment({ order: { id: ORDER_ID, status: OrderStatus.DELIVERED } }),
+      )
+
+      await stripeWebhooksService.handleChargeRefunded(buildMockCharge())
+
+      expect(mockPrismaService.order.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            statusHistory: {
+              create: {
+                fromStatus: OrderStatus.DELIVERED,
+                toStatus: OrderStatus.REFUNDED,
+                note: `Stripe charge ${STRIPE_CHARGE_ID} refunded — $49.98`,
+                createdBy: 'system',
+              },
+            },
+          }),
+        }),
+      )
+    })
+
+    it('does not send a refund email when the order has no guest email (registered user)', async () => {
+      mockPrismaService.payment.findUnique.mockResolvedValueOnce(
+        buildMockPayment({
+          order: { id: ORDER_ID, status: OrderStatus.DELIVERED, guestEmail: null },
+        }),
+      )
+
+      await stripeWebhooksService.handleChargeRefunded(buildMockCharge())
+
+      expect(mockEmailService.sendRefundProcessed).not.toHaveBeenCalled()
+    })
   })
 
   describe('handleChargeDisputeCreated', () => {
