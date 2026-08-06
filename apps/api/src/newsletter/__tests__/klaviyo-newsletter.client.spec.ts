@@ -55,7 +55,7 @@ describe('KlaviyoNewsletterClient', () => {
     expect(result).toEqual({ status: 'queued' })
     expect(fetchSpy).toHaveBeenCalledTimes(1)
 
-    const [url, init] = fetchSpy.mock.calls[0]
+    const [url, init] = fetchSpy.mock.calls[0]!
     expect(url).toBe('https://a.klaviyo.com/api/profile-subscription-bulk-create-jobs/')
     expect(init?.method).toBe('POST')
     const headers = init?.headers as Record<string, string>

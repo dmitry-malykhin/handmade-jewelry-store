@@ -7,6 +7,14 @@ export async function hashPasswordForSeed(plainText: string): Promise<string> {
   return bcrypt.hash(plainText, SEED_BCRYPT_ROUNDS)
 }
 
+// noUncheckedIndexedAccess: Record<string, T>[key] returns T | undefined.
+// Seed fixtures are hand-written — a missing slug is a data bug, fail loudly.
+function requireEntry<T>(map: Record<string, T>, key: string, label: string): T {
+  const value = map[key]
+  if (!value) throw new Error(`Seed references unknown ${label}: "${key}"`)
+  return value
+}
+
 export async function seedCategories(prisma: PrismaClient) {
   const categoryData = [
     { name: 'Rings', slug: 'rings' },
@@ -158,7 +166,7 @@ export async function seedProducts(
         create: {
           ...product,
           price: product.price,
-          categoryId: categoryMap[categorySlug].id,
+          categoryId: requireEntry(categoryMap, categorySlug, 'category').id,
         },
       }),
     ),
@@ -217,7 +225,7 @@ export async function seedReviews(
         where: {
           userId_productId: {
             userId: testUserId,
-            productId: productMap[review.productSlug].id,
+            productId: requireEntry(productMap, review.productSlug, 'product').id,
           },
         },
         update: {},
@@ -225,7 +233,7 @@ export async function seedReviews(
           rating: review.rating,
           comment: review.comment,
           userId: testUserId,
-          productId: productMap[review.productSlug].id,
+          productId: requireEntry(productMap, review.productSlug, 'product').id,
         },
       }),
     ),
@@ -286,8 +294,8 @@ export async function seedWishlist(
   productMap: Record<string, { id: string }>,
 ) {
   const wishedProductIds = [
-    productMap['turquoise-layered-necklace'].id,
-    productMap['rose-quartz-jewelry-set'].id,
+    requireEntry(productMap, 'turquoise-layered-necklace', 'product').id,
+    requireEntry(productMap, 'rose-quartz-jewelry-set', 'product').id,
   ]
 
   await prisma.wishlist.upsert({
