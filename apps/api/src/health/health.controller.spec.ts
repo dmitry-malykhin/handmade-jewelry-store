@@ -64,7 +64,7 @@ describe('HealthController', () => {
       // Extract and invoke the indicator function passed to check()
       mockHealthCheckService.check.mockImplementationOnce(
         async (indicators: Array<() => Promise<unknown>>) => {
-          const databaseIndicatorResult = await indicators[0]()
+          const databaseIndicatorResult = await indicators[0]!()
           return { status: 'ok', result: databaseIndicatorResult }
         },
       )
@@ -80,7 +80,7 @@ describe('HealthController', () => {
       let capturedIndicatorResult: unknown
       mockHealthCheckService.check.mockImplementationOnce(
         async (indicators: Array<() => Promise<unknown>>) => {
-          capturedIndicatorResult = await indicators[0]()
+          capturedIndicatorResult = await indicators[0]!()
           return { status: 'ok' }
         },
       )
@@ -98,7 +98,7 @@ describe('HealthController', () => {
       mockHealthCheckService.check.mockImplementationOnce(
         async (indicators: Array<() => Promise<unknown>>) => {
           try {
-            await indicators[0]()
+            await indicators[0]!()
           } catch (error) {
             capturedError = error
           }
