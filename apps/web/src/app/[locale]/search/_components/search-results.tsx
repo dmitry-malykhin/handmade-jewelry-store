@@ -71,6 +71,8 @@ export function SearchResults({ initialQuery }: SearchResultsProps) {
           value={inputValue}
           onChange={(event) => setInputValue(event.target.value)}
           placeholder={t('inputPlaceholder')}
+          // /search is a dedicated search page — the user arrived with intent to type.
+          // eslint-disable-next-line jsx-a11y/no-autofocus
           autoFocus
           className="max-w-2xl"
         />

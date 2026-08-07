@@ -178,6 +178,8 @@ function InventoryRow({ item, onSaveStock, isSaving }: InventoryRowProps) {
             min={0}
             max={9999}
             value={draftStock}
+            // Admin clicks the cell explicitly to enter edit mode — focus is expected.
+            // eslint-disable-next-line jsx-a11y/no-autofocus
             autoFocus
             onChange={(event) => setDraftStock(Number(event.target.value))}
             onBlur={commit}
