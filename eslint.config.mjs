@@ -1,5 +1,6 @@
 // @ts-check
 import tseslint from 'typescript-eslint'
+import jsxA11yPlugin from 'eslint-plugin-jsx-a11y'
 import prettierConfig from 'eslint-config-prettier'
 
 export default tseslint.config(
@@ -51,6 +52,21 @@ export default tseslint.config(
     },
   },
 
+  // JSX a11y — recommended set on the web frontend only.
+  {
+    files: ['apps/web/**/*.jsx', 'apps/web/**/*.tsx'],
+    plugins: { 'jsx-a11y': jsxA11yPlugin },
+    rules: {
+      ...jsxA11yPlugin.configs.recommended.rules,
+      // CLAUDE.md mandates `<ul role="list">` — Safari drops the implicit
+      // list role when `list-style: none` is applied, so the explicit role
+      // is a deliberate workaround, not redundancy.
+      'jsx-a11y/no-redundant-roles': 'off',
+    },
+  },
+
+  // Test-file overrides — must come AFTER jsx-a11y so it can relax a11y rules
+  // that only apply to render-time components.
   {
     files: [
       '**/__tests__/**/*.ts',
@@ -62,6 +78,9 @@ export default tseslint.config(
     ],
     rules: {
       '@typescript-eslint/no-non-null-assertion': 'off',
+      // Test mocks routinely stub <Link> with a bare <a> — production rendering
+      // is what jsx-a11y should actually gate.
+      'jsx-a11y/anchor-is-valid': 'off',
     },
   },
 )
