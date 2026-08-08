@@ -8,8 +8,12 @@ import { PrismaModule } from '../prisma/prisma.module'
 import { StripeModule } from '../stripe/stripe.module'
 import { AdminOrdersController } from './admin-orders.controller'
 import { OrdersController } from './orders.controller'
+import { OrdersCreateService } from './orders-create.service'
+import { OrdersExportService } from './orders-export.service'
 import { OrdersProductionService } from './orders-production.service'
+import { OrdersQueryService } from './orders-query.service'
 import { OrdersRefundsService } from './orders-refunds.service'
+import { OrdersStatusService } from './orders-status.service'
 import { OrdersService } from './orders.service'
 
 @Module({
@@ -23,6 +27,14 @@ import { OrdersService } from './orders.service'
     DiscountsModule,
   ],
   controllers: [OrdersController, AdminOrdersController],
-  providers: [OrdersService, OrdersRefundsService, OrdersProductionService],
+  providers: [
+    OrdersService,
+    OrdersCreateService,
+    OrdersQueryService,
+    OrdersStatusService,
+    OrdersExportService,
+    OrdersRefundsService,
+    OrdersProductionService,
+  ],
 })
 export class OrdersModule {}

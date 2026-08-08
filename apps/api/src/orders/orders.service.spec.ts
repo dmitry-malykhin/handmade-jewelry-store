@@ -18,6 +18,10 @@ import { EmailService } from '../email/email.service'
 import { LoyaltyService } from '../loyalty/loyalty.service'
 import { PrismaService } from '../prisma/prisma.service'
 import { CreateOrderDto } from './dto/create-order.dto'
+import { OrdersCreateService } from './orders-create.service'
+import { OrdersExportService } from './orders-export.service'
+import { OrdersQueryService } from './orders-query.service'
+import { OrdersStatusService } from './orders-status.service'
 import { OrdersService } from './orders.service'
 
 const mockShippingAddress = {
@@ -101,6 +105,10 @@ describe('OrdersService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         OrdersService,
+        OrdersCreateService,
+        OrdersQueryService,
+        OrdersStatusService,
+        OrdersExportService,
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: EmailService, useValue: mockEmailService },
         { provide: LoyaltyService, useValue: mockLoyaltyService },
