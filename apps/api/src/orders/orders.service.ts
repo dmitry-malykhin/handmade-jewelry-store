@@ -1,415 +1,56 @@
-import {
-  BadRequestException,
-  ForbiddenException,
-  Injectable,
-  Logger,
-  NotFoundException,
-  UnauthorizedException,
-} from '@nestjs/common'
-import { JwtService } from '@nestjs/jwt'
-import { OrderStatus, Prisma, Role, type User } from '@prisma/client'
-import * as Sentry from '@sentry/nestjs'
-import { InputJsonValue } from '@prisma/client/runtime/library'
-import { buildCsvDocument } from '../common/csv/csv-formatter'
-import { paginate } from '../common/pagination/paginate'
-import { DiscountsService, type AppliedDiscount } from '../discounts/discounts.service'
-import { EmailService } from '../email/email.service'
-import { LoyaltyService } from '../loyalty/loyalty.service'
-import { PrismaService } from '../prisma/prisma.service'
+import { Injectable } from '@nestjs/common'
+import type { User } from '@prisma/client'
 import { CreateOrderDto } from './dto/create-order.dto'
 import { OrderExportQueryDto } from './dto/order-export-query.dto'
 import { OrderQueryDto } from './dto/order-query.dto'
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto'
 import { UpdateOrderTrackingDto } from './dto/update-order-tracking.dto'
-import { isValidOrderStatusTransition } from './order-status.transitions'
+import { OrdersCreateService } from './orders-create.service'
+import { OrdersExportService } from './orders-export.service'
+import { OrdersQueryService } from './orders-query.service'
+import { OrdersStatusService } from './orders-status.service'
 
-const ORDER_EXPORT_HEADERS = [
-  'order_id',
-  'date',
-  'customer_email',
-  'customer_name',
-  'shipping_address',
-  'items',
-  'subtotal',
-  'shipping',
-  'total',
-  'status',
-  'tracking_number',
-] as const
-
-interface ShippingAddressSnapshot {
-  fullName?: string
-  addressLine1?: string
-  addressLine2?: string
-  city?: string
-  state?: string
-  postalCode?: string
-  country?: string
-}
-
-function formatShippingAddress(snapshot: unknown): string {
-  if (!snapshot || typeof snapshot !== 'object') return ''
-  const address = snapshot as ShippingAddressSnapshot
-  const streetLines = [address.addressLine1, address.addressLine2].filter(Boolean).join(' ')
-  const cityLine = [address.city, address.state, address.postalCode].filter(Boolean).join(' ')
-  return [streetLines, cityLine, address.country].filter(Boolean).join(', ')
-}
-
-interface OrderItemForExport {
-  productSnapshot: unknown
-  quantity: number
-}
-
-// Renders as `"Title × 2 | Title × 1"` — a single readable CSV cell.
-function formatOrderItems(items: readonly OrderItemForExport[]): string {
-  return items
-    .map((item) => {
-      const snapshot = item.productSnapshot
-      const title =
-        snapshot && typeof snapshot === 'object' && 'title' in snapshot
-          ? String((snapshot as { title: unknown }).title)
-          : '(deleted product)'
-      return `${title} × ${item.quantity}`
-    })
-    .join(' | ')
-}
-
+// Thin facade preserved so controllers keep a single OrdersService injection.
+// Every method delegates to a focused sub-service; add new methods to whichever
+// sub-service owns the concern, never here.
 @Injectable()
 export class OrdersService {
-  private readonly logger = new Logger(OrdersService.name)
-
   constructor(
-    private readonly prismaService: PrismaService,
-    private readonly emailService: EmailService,
-    private readonly loyaltyService: LoyaltyService,
-    private readonly discountsService: DiscountsService,
-    private readonly jwtService: JwtService,
+    private readonly ordersCreateService: OrdersCreateService,
+    private readonly ordersQueryService: OrdersQueryService,
+    private readonly ordersStatusService: OrdersStatusService,
+    private readonly ordersExportService: OrdersExportService,
   ) {}
 
-  // Signed short-lived credential returned by POST /orders. The confirmation
-  // page uses it via ?token= so guests can fetch their own order without a
-  // user JWT (#392).
-  private issueOrderAccessToken(orderId: string): string {
-    return this.jwtService.sign({ orderId, purpose: 'order-access' as const }, { expiresIn: '24h' })
+  create(createOrderDto: CreateOrderDto, callerUserId: string | null) {
+    return this.ordersCreateService.create(createOrderDto, callerUserId)
   }
 
-  async create(createOrderDto: CreateOrderDto, callerUserId: string | null) {
-    const {
-      items,
-      shippingAddress,
-      guestEmail,
-      subtotal,
-      shippingCost,
-      total,
-      loyaltyPointsToRedeem,
-      discountCode,
-      source,
-    } = createOrderDto
-    // Trust only the JWT. A client-supplied userId in the body used to be
-    // accepted here (see #391) — anyone could attach a guest order to any
-    // other user's account.
-    const userId = callerUserId
-
-    // Re-verify the client's loyaltyPointsToRedeem against the real balance
-    // and the per-order cap (50% of subtotal); recalculate `total` server-side.
-    let pointsToRedeem = 0
-    let adjustedTotal = total
-    if (userId && loyaltyPointsToRedeem && loyaltyPointsToRedeem > 0) {
-      const { balance } = await this.loyaltyService.getBalance(userId)
-      const maxRedeemable = Math.floor(subtotal * 100 * 0.5)
-      pointsToRedeem = Math.min(loyaltyPointsToRedeem, balance, maxRedeemable)
-      if (pointsToRedeem > 0) {
-        const redemptionUsd = pointsToRedeem / 100
-        adjustedTotal = Math.max(0, Number((total - redemptionUsd).toFixed(2)))
-      }
-    }
-
-    try {
-      const order = await this.prismaService.$transaction(async (tx) => {
-        // Discount applies before order.create so a rejected code aborts
-        // the whole transaction — the counter bump and the row insert
-        // succeed or fail together.
-        let appliedDiscount: AppliedDiscount | null = null
-        if (discountCode) {
-          appliedDiscount = await this.discountsService.applyOnOrderCreate(tx, {
-            code: discountCode,
-            subtotalCents: Math.round(subtotal * 100),
-          })
-          const discountUsd = appliedDiscount.discountAmountCents / 100
-          adjustedTotal = Math.max(0, Number((adjustedTotal - discountUsd).toFixed(2)))
-        }
-
-        const created = await tx.order.create({
-          data: {
-            userId: userId ?? null,
-            guestEmail: guestEmail ?? null,
-            subtotal,
-            shippingCost,
-            total: adjustedTotal,
-            loyaltyPointsUsed: pointsToRedeem,
-            discountCode: appliedDiscount?.code ?? null,
-            discountAmountCents: appliedDiscount?.discountAmountCents ?? null,
-            discountType: appliedDiscount?.type ?? null,
-            shippingAddress: shippingAddress as unknown as InputJsonValue,
-            source: source ?? 'web',
-            status: OrderStatus.PENDING,
-            items: {
-              create: items.map((orderItem) => ({
-                productId: orderItem.productId,
-                quantity: orderItem.quantity,
-                price: orderItem.price,
-                productSnapshot: orderItem.productSnapshot,
-              })),
-            },
-            statusHistory: {
-              create: {
-                fromStatus: null,
-                toStatus: OrderStatus.PENDING,
-                createdBy: userId ?? guestEmail ?? 'guest',
-              },
-            },
-          },
-          include: {
-            items: true,
-            statusHistory: true,
-          },
-        })
-
-        if (pointsToRedeem > 0 && userId) {
-          await this.loyaltyService.spendForCheckout(tx, {
-            userId,
-            orderId: created.id,
-            points: pointsToRedeem,
-          })
-        }
-
-        return created
-      })
-
-      return { ...order, accessToken: this.issueOrderAccessToken(order.id) }
-    } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        if (error.code === 'P2003') {
-          const field = error.meta?.field_name ?? 'unknown field'
-          this.logger.warn(`Order creation failed — foreign key constraint on ${field}`)
-          throw new BadRequestException(
-            `One or more items reference a product that does not exist (${field})`,
-          )
-        }
-        if (error.code === 'P2025') {
-          throw new BadRequestException('One or more referenced records do not exist')
-        }
-      }
-      throw error
-    }
+  findAll(orderQueryDto: OrderQueryDto) {
+    return this.ordersQueryService.findAll(orderQueryDto)
   }
 
-  // Returns the whole filtered set as a single CSV string — admins clicking
-  // Export expect the full result. Newest first so the relevant rows lead.
-  async exportToCsv(query: OrderExportQueryDto): Promise<string> {
-    const { status, from, to } = query
-
-    const whereClause: Prisma.OrderWhereInput = {
-      ...(status && { status }),
-      ...((from || to) && {
-        createdAt: {
-          ...(from && { gte: new Date(from) }),
-          ...(to && { lte: new Date(to) }),
-        },
-      }),
-    }
-
-    const orders = await this.prismaService.order.findMany({
-      where: whereClause,
-      include: { items: true },
-      orderBy: { createdAt: 'desc' },
-    })
-
-    const rows = orders.map((order) => {
-      const shippingAddress = formatShippingAddress(order.shippingAddress)
-      const customerName = (order.shippingAddress as ShippingAddressSnapshot | null)?.fullName ?? ''
-      return [
-        order.id,
-        order.createdAt.toISOString(),
-        order.guestEmail ?? order.userId ?? '',
-        customerName,
-        shippingAddress,
-        formatOrderItems(order.items),
-        order.subtotal.toFixed(2),
-        order.shippingCost.toFixed(2),
-        order.total.toFixed(2),
-        order.status,
-        order.trackingNumber ?? '',
-      ]
-    })
-
-    return buildCsvDocument(ORDER_EXPORT_HEADERS, rows)
+  findUserOrders(userId: string) {
+    return this.ordersQueryService.findUserOrders(userId)
   }
 
-  async findAll(orderQueryDto: OrderQueryDto) {
-    const { page, limit, status, userId } = orderQueryDto
-
-    const whereClause = {
-      ...(status && { status }),
-      ...(userId && { userId }),
-    }
-
-    return paginate(
-      { page, limit },
-      (skip, take) =>
-        this.prismaService.order.findMany({
-          where: whereClause,
-          skip,
-          take,
-          include: { items: true },
-          orderBy: { createdAt: 'desc' },
-        }),
-      () => this.prismaService.order.count({ where: whereClause }),
-    )
+  findOneById(orderId: string) {
+    return this.ordersQueryService.findOneById(orderId)
   }
 
-  async findUserOrders(userId: string) {
-    return this.prismaService.order.findMany({
-      where: { userId },
-      include: { items: true },
-      orderBy: { createdAt: 'desc' },
-    })
+  findOneByIdForCaller(orderId: string, caller: User | null, orderAccessToken: string | null) {
+    return this.ordersQueryService.findOneByIdForCaller(orderId, caller, orderAccessToken)
   }
 
-  async findOneById(orderId: string) {
-    const order = await this.prismaService.order.findUnique({
-      where: { id: orderId },
-      include: {
-        items: true,
-        payment: true,
-        statusHistory: { orderBy: { createdAt: 'asc' } },
-      },
-    })
-
-    if (!order) {
-      throw new NotFoundException(`Order with id "${orderId}" not found`)
-    }
-
-    return order
+  updateStatus(orderId: string, updateOrderStatusDto: UpdateOrderStatusDto) {
+    return this.ordersStatusService.updateStatus(orderId, updateOrderStatusDto)
   }
 
-  // Called by GET /orders/:id. Fetches the order and rejects unless the caller
-  // is the owner, is an admin, or presented a valid order-access token issued
-  // at creation. Prevents the pre-#392 IDOR where any UUID leaked full PII.
-  async findOneByIdForCaller(
-    orderId: string,
-    caller: User | null,
-    orderAccessToken: string | null,
-  ) {
-    const order = await this.findOneById(orderId)
-
-    if (caller) {
-      if (caller.role === Role.ADMIN || order.userId === caller.id) return order
-      throw new ForbiddenException('You do not have access to this order')
-    }
-
-    if (!orderAccessToken) {
-      throw new UnauthorizedException('Authentication required to view this order')
-    }
-
-    let payload: { orderId?: string; purpose?: string }
-    try {
-      payload = this.jwtService.verify(orderAccessToken)
-    } catch {
-      throw new UnauthorizedException('Invalid or expired order access token')
-    }
-
-    if (payload.purpose !== 'order-access' || payload.orderId !== orderId) {
-      throw new UnauthorizedException('Order access token does not match this order')
-    }
-
-    return order
+  updateTracking(orderId: string, updateOrderTrackingDto: UpdateOrderTrackingDto) {
+    return this.ordersStatusService.updateTracking(orderId, updateOrderTrackingDto)
   }
 
-  async updateStatus(orderId: string, updateOrderStatusDto: UpdateOrderStatusDto) {
-    const order = await this.findOneById(orderId)
-
-    Sentry.setContext('order', {
-      orderId,
-      fromStatus: order.status,
-      toStatus: updateOrderStatusDto.status,
-    })
-    Sentry.addBreadcrumb({
-      category: 'orders.status',
-      message: `updateStatus ${orderId} ${order.status} → ${updateOrderStatusDto.status}`,
-      level: 'info',
-      data: { orderId, fromStatus: order.status, toStatus: updateOrderStatusDto.status },
-    })
-
-    if (!isValidOrderStatusTransition(order.status, updateOrderStatusDto.status)) {
-      throw new BadRequestException(
-        `Cannot transition order from ${order.status} to ${updateOrderStatusDto.status}`,
-      )
-    }
-
-    // Atomic with loyalty bookkeeping — a DELIVERED that didn't credit points
-    // would show inconsistent state on the account page until fixed by hand.
-    const updatedOrder = await this.prismaService.$transaction(async (tx) => {
-      const next = await tx.order.update({
-        where: { id: orderId },
-        data: {
-          status: updateOrderStatusDto.status,
-          statusHistory: {
-            create: {
-              fromStatus: order.status,
-              toStatus: updateOrderStatusDto.status,
-              note: updateOrderStatusDto.note,
-              createdBy: 'admin',
-            },
-          },
-        },
-        include: {
-          items: true,
-          statusHistory: { orderBy: { createdAt: 'asc' } },
-        },
-      })
-
-      // Both loyalty helpers are idempotent — they bail when there's nothing
-      // to do (guest order, points already awarded, etc.).
-      if (updateOrderStatusDto.status === OrderStatus.DELIVERED) {
-        await this.loyaltyService.awardForDelivered(tx, next)
-      }
-      if (updateOrderStatusDto.status === OrderStatus.CANCELLED) {
-        await this.loyaltyService.reverseForCancellationOrRefund(tx, next)
-      }
-
-      return next
-    })
-
-    if (updateOrderStatusDto.status === OrderStatus.SHIPPED) {
-      const recipientEmail = updatedOrder.guestEmail
-      if (recipientEmail) {
-        await this.emailService.sendShippingNotification({
-          recipientEmail,
-          orderId: updatedOrder.id,
-          trackingNumber: updateOrderStatusDto.trackingNumber,
-        })
-      }
-    }
-
-    return updatedOrder
-  }
-
-  async updateTracking(orderId: string, updateOrderTrackingDto: UpdateOrderTrackingDto) {
-    await this.findOneById(orderId)
-
-    return this.prismaService.order.update({
-      where: { id: orderId },
-      data: {
-        trackingNumber: updateOrderTrackingDto.trackingNumber,
-        shippingCarrier: updateOrderTrackingDto.shippingCarrier,
-        shippedAt: new Date(),
-      },
-      include: {
-        items: true,
-        payment: true,
-        statusHistory: { orderBy: { createdAt: 'asc' } },
-      },
-    })
+  exportToCsv(query: OrderExportQueryDto) {
+    return this.ordersExportService.exportToCsv(query)
   }
 }
