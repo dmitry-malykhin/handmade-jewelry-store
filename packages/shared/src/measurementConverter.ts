@@ -1,6 +1,6 @@
 export type MeasurementSystem = 'imperial' | 'metric'
 
-export interface ConvertedLength {
+interface ConvertedLength {
   value: number
   unit: string
   formatted: string
@@ -19,19 +19,4 @@ export function convertLength(valueCm: number, system: MeasurementSystem): Conve
 
   const roundedCm = Math.round(valueCm * 10) / 10
   return { value: roundedCm, unit: 'cm', formatted: `${roundedCm} cm` }
-}
-
-export function convertDimensions(
-  lengthCm: number,
-  widthCm: number,
-  system: MeasurementSystem,
-): string {
-  if (system === 'imperial') {
-    const l = Math.round(lengthCm * CM_TO_INCHES * 100) / 100
-    const w = Math.round(widthCm * CM_TO_INCHES * 100) / 100
-    return `${l} × ${w}"`
-  }
-  const l = Math.round(lengthCm * 10) / 10
-  const w = Math.round(widthCm * 10) / 10
-  return `${l} × ${w} cm`
 }

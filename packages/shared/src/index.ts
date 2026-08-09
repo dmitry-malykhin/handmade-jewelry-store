@@ -1,5 +1,5 @@
-export type { MeasurementSystem, ConvertedLength } from './measurementConverter'
-export { convertLength, convertDimensions } from './measurementConverter'
+export type { MeasurementSystem } from './measurementConverter'
+export { convertLength } from './measurementConverter'
 
 export type { DisplayCurrency } from './formatCurrencyPrice'
 export {
@@ -58,17 +58,6 @@ export interface ProductsResponse {
     limit: number
     totalPages: number
   }
-}
-
-export type ApiResponse<T> = {
-  data: T
-  message?: string
-}
-
-export type PaginatedResponse<T> = ApiResponse<T[]> & {
-  total: number
-  page: number
-  limit: number
 }
 
 export interface CartItem {

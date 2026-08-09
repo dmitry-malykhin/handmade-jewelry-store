@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { convertLength, convertDimensions } from '@jewelry/shared'
+import { convertLength } from '@jewelry/shared'
 import {
   suite as $allureSuite,
   subSuite as $allureSubSuite,
@@ -62,16 +62,5 @@ describe('convertLength — imperial system', () => {
   it('converts small pendant: 3 cm → nearest 0.25"', () => {
     // 3 cm × 0.393701 = 1.181 → rounds to 1.25"
     expect(convertLength(3, 'imperial').value).toBe(1.25)
-  })
-})
-
-describe('convertDimensions', () => {
-  it('returns metric formatted string for metric system', () => {
-    expect(convertDimensions(3, 2, 'metric')).toBe('3 × 2 cm')
-  })
-
-  it('returns imperial formatted string for imperial system', () => {
-    // 3 cm = 1.18 in, 2 cm = 0.79 in
-    expect(convertDimensions(3, 2, 'imperial')).toBe('1.18 × 0.79"')
   })
 })
