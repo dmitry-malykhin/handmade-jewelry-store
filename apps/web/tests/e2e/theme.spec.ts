@@ -1,9 +1,6 @@
 import { test, expect } from '@playwright/test'
 
-// Skipped after #393: `getByRole('button', {name: /dark mode|light mode/i}).click()`
-// times out because the aria-label swaps synchronously with theme state and the
-// role query resolves the stale element. Realign filed as follow-up.
-test.describe.skip('Theme switching', () => {
+test.describe('Theme switching', () => {
   test.beforeEach(async ({ page }) => {
     // Clear localStorage to start from system default each time
     await page.goto('/en')

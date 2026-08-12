@@ -32,12 +32,14 @@ test.describe('Mobile navigation', () => {
     await expect(page.getByRole('button', { name: /open menu/i })).toBeVisible()
   })
 
-  // toBeVisible() fires before the 300ms translate-x transition completes on Chromium — realign in #406.
-  test.skip('opens the mobile sidebar when hamburger is clicked', async ({ page }) => {
+  test('opens the mobile sidebar when hamburger is clicked', async ({ page }) => {
     await page.goto('/en')
 
-    await page.getByRole('button', { name: /open menu/i }).click()
-    await expect(page.getByRole('dialog')).toBeVisible()
+    // The dialog is always in the DOM (translate-x-full when closed) so
+    // toBeVisible() is meaningless; assert the hamburger's aria-expanded flip.
+    const toggle = page.locator('[aria-controls="mobile-menu"]')
+    await toggle.click()
+    await expect(toggle).toHaveAttribute('aria-expanded', 'true')
   })
 
   test('shows all nav links in the mobile sidebar', async ({ page }) => {
@@ -50,15 +52,12 @@ test.describe('Mobile navigation', () => {
     await expect(dialog.getByRole('link', { name: /contact/i })).toBeVisible()
   })
 
-  // Skipped after #393: aria-expanded read races React setState across the
-  // second click. Realign filed as follow-up.
-  test.skip('closes the sidebar when the toggle is clicked again', async ({ page }) => {
+  test('closes the sidebar when the toggle is clicked again', async ({ page }) => {
     await page.goto('/en')
 
     const toggle = page.locator('[aria-controls="mobile-menu"]')
 
     await toggle.click()
-    await expect(page.getByRole('dialog')).toBeVisible()
     await expect(toggle).toHaveAttribute('aria-expanded', 'true')
 
     await toggle.click()
