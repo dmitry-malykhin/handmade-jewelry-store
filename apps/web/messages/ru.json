@@ -534,7 +534,7 @@
     "oneOfAKindReorderableMain": "Изначально единственный экземпляр — повторим за {days} рабочих дней",
     "oneOfAKindReorderableHelper": "Затем отправка стандартной почтой 5–7 рабочих дней",
     "deliveryByDate": "прибудет к {date}",
-    "trustReturns": "Возврат в течение 30 дней",
+    "trustReturns": "Возврат в течение 14 дней",
     "trustSecure": "Защищённая оплата",
     "trustHandcrafted": "Ручная работа из {city}",
     "makerLine": "Изготовлено в нашей мастерской {studio}",
