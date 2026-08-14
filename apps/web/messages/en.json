@@ -534,7 +534,7 @@
     "oneOfAKindReorderableMain": "Originally one of a kind — re-crafted in {days} business days",
     "oneOfAKindReorderableHelper": "Then ships in 5–7 business days standard",
     "deliveryByDate": "arrives by {date}",
-    "trustReturns": "Free returns within 30 days",
+    "trustReturns": "Free returns within 14 days",
     "trustSecure": "Secure checkout",
     "trustHandcrafted": "Handcrafted in {city}",
     "makerLine": "Crafted in our {studio} studio",
