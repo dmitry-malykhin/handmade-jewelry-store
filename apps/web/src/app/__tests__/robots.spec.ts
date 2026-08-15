@@ -27,7 +27,7 @@ describe('robots', () => {
     expect(wildcardRule?.allow).toContain('/')
   })
 
-  it('disallows admin, checkout, and cart paths', () => {
+  it('disallows admin, checkout, cart, and account paths', () => {
     const result = robots()
     const rules = Array.isArray(result.rules) ? result.rules : [result.rules]
     const wildcardRule = rules.find((rule) => rule.userAgent === '*')
@@ -37,6 +37,7 @@ describe('robots', () => {
     expect(disallowedList).toContain('/admin/')
     expect(disallowedList).toContain('/checkout/')
     expect(disallowedList).toContain('/cart/')
+    expect(disallowedList).toContain('/account/')
   })
 
   it('includes sitemap URL pointing to /sitemap.xml', () => {
