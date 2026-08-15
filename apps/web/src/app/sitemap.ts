@@ -60,6 +60,26 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'yearly' as const,
       priority: 0.5,
     },
+    {
+      url: `${SITE_URL}/${locale}/about`,
+      changeFrequency: 'monthly' as const,
+      priority: 0.7,
+    },
+    {
+      url: `${SITE_URL}/${locale}/contact`,
+      changeFrequency: 'yearly' as const,
+      priority: 0.6,
+    },
+    {
+      url: `${SITE_URL}/${locale}/privacy`,
+      changeFrequency: 'yearly' as const,
+      priority: 0.3,
+    },
+    {
+      url: `${SITE_URL}/${locale}/terms`,
+      changeFrequency: 'yearly' as const,
+      priority: 0.3,
+    },
     ...categories.map((category) => ({
       url: `${SITE_URL}/${locale}?categorySlug=${category.slug}`,
       changeFrequency: 'weekly' as const,

@@ -50,8 +50,8 @@ describe('sitemap', () => {
     const { default: sitemap } = await import('../sitemap')
     const result = await sitemap()
 
-    // 3 locales × 5 static pages (home/catalog + ring-size-guide + faq + shipping + care)
-    expect(result.length).toBe(15)
+    // 3 locales × 9 static pages (home + ring-size-guide + faq + shipping + care + about + contact + privacy + terms)
+    expect(result.length).toBe(27)
   })
 
   it('includes the locale root (home = catalog) for each locale', async () => {
@@ -105,7 +105,7 @@ describe('sitemap', () => {
     const { default: sitemap } = await import('../sitemap')
     const result = await sitemap()
 
-    expect(result.length).toBe(15)
+    expect(result.length).toBe(27)
     expect(result.every((entry) => !entry.url.includes('silver-moonstone-ring'))).toBe(true)
 
     // Failure must NOT be silent — logger.error tells ops something is wrong
@@ -126,7 +126,7 @@ describe('sitemap', () => {
     expect(guideUrls).toHaveLength(3)
   })
 
-  it.each(['/faq', '/shipping', '/care'])(
+  it.each(['/faq', '/shipping', '/care', '/about', '/contact', '/privacy', '/terms'])(
     'includes %s entry for each locale',
     async (trustPath) => {
       mockFetchAllProducts.mockResolvedValue([])
