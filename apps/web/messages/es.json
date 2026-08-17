@@ -43,7 +43,13 @@
     "validationNameRequired": "El nombre es obligatorio.",
     "validationEmailInvalid": "Por favor, introduce una dirección de correo válida.",
     "validationSubjectRequired": "El asunto es obligatorio.",
-    "validationMessageTooShort": "El mensaje debe tener al menos 10 caracteres."
+    "validationMessageTooShort": "El mensaje debe tener al menos 10 caracteres.",
+    "infoBlockTitle": "Contáctanos directamente",
+    "infoBlockBusinessName": "Senichka Handcrafted Jewelry",
+    "infoBlockEmailLabel": "Correo",
+    "infoBlockAddressLabel": "Dirección postal",
+    "infoBlockHoursLabel": "Horario de atención",
+    "infoBlockHoursValue": "Lun–Vie, 10:00–18:00 CET"
   },
   "aboutPage": {
     "metaTitle": "Nosotros — Joyería artesanal con corazón",

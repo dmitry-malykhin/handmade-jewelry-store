@@ -43,7 +43,13 @@
     "validationNameRequired": "Пожалуйста, введите ваше имя.",
     "validationEmailInvalid": "Пожалуйста, введите корректный email.",
     "validationSubjectRequired": "Пожалуйста, укажите тему.",
-    "validationMessageTooShort": "Сообщение должно содержать не менее 10 символов."
+    "validationMessageTooShort": "Сообщение должно содержать не менее 10 символов.",
+    "infoBlockTitle": "Связаться напрямую",
+    "infoBlockBusinessName": "Senichka Handcrafted Jewelry",
+    "infoBlockEmailLabel": "Email",
+    "infoBlockAddressLabel": "Почтовый адрес",
+    "infoBlockHoursLabel": "Часы поддержки",
+    "infoBlockHoursValue": "Пн–Пт, 10:00–18:00 CET"
   },
   "aboutPage": {
     "metaTitle": "О нас — украшения ручной работы с душой",

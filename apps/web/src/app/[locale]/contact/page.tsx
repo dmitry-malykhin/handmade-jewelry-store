@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { buildLocaleAlternates } from '@/lib/seo/alternates'
 import { ContactForm } from './_components/contact-form'
+import { ContactInfoBlock } from './_components/contact-info-block'
 
 interface ContactPageProps {
   params: Promise<{ locale: string }>
@@ -42,6 +43,7 @@ export default async function ContactPage({ params }: ContactPageProps) {
       </section>
 
       <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6">
+        <ContactInfoBlock locale={locale} />
         <ContactForm />
       </div>
     </main>
