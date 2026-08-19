@@ -27,6 +27,10 @@ import {
   type BackInStockEmailData,
 } from './templates/back-in-stock.template'
 import { buildDisputeAlertEmail, type DisputeAlertData } from './templates/dispute-alert.template'
+import {
+  buildReviewRequestEmail,
+  type ReviewRequestData,
+} from './templates/review-request.template'
 
 // Resend's onboarding domain — accepted for testing, but flagged as spam by
 // most receivers. Production MUST set RESEND_FROM_ADDRESS to a verified
@@ -71,6 +75,11 @@ export class EmailService {
 
   async sendRefundProcessed(data: RefundProcessedData): Promise<void> {
     const { subject, html } = buildRefundProcessedEmail(data)
+    await this.send({ to: data.recipientEmail, subject, html })
+  }
+
+  async sendReviewRequest(data: ReviewRequestData): Promise<void> {
+    const { subject, html } = buildReviewRequestEmail(data)
     await this.send({ to: data.recipientEmail, subject, html })
   }
 
