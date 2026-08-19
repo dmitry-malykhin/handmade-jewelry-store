@@ -73,6 +73,7 @@ const mockPrismaService = {
 
 const mockEmailService = {
   sendShippingNotification: jest.fn(),
+  sendReviewRequest: jest.fn(),
 }
 
 const mockLoyaltyService = {
@@ -544,6 +545,100 @@ describe('OrdersService', () => {
       await ordersService.updateStatus('order-1', { status: OrderStatus.SHIPPED })
 
       expect(mockEmailService.sendShippingNotification).not.toHaveBeenCalled()
+    })
+
+    it('sends review-request email when transitioning to DELIVERED with guest email', async () => {
+      const shippedOrder = {
+        ...mockCreatedOrder,
+        status: OrderStatus.SHIPPED,
+        guestEmail: 'guest@example.com',
+      }
+      const deliveredOrder = {
+        ...shippedOrder,
+        status: OrderStatus.DELIVERED,
+        items: [
+          {
+            id: 'item-1',
+            productSnapshot: { slug: 'silver-ring', title: 'Silver Ring' },
+            quantity: 1,
+          },
+        ],
+      }
+      mockPrismaService.order.findUnique.mockResolvedValue(shippedOrder)
+      mockPrismaService.order.update.mockResolvedValue(deliveredOrder)
+
+      await ordersService.updateStatus('order-1', { status: OrderStatus.DELIVERED })
+
+      expect(mockEmailService.sendReviewRequest).toHaveBeenCalledWith(
+        expect.objectContaining({
+          recipientEmail: 'guest@example.com',
+          orderId: 'order-1',
+          items: [{ productSlug: 'silver-ring', title: 'Silver Ring' }],
+        }),
+      )
+    })
+
+    it('does not send review-request when guestEmail is absent (registered user)', async () => {
+      const shippedOrder = {
+        ...mockCreatedOrder,
+        status: OrderStatus.SHIPPED,
+        guestEmail: null,
+      }
+      const deliveredOrder = { ...shippedOrder, status: OrderStatus.DELIVERED }
+      mockPrismaService.order.findUnique.mockResolvedValue(shippedOrder)
+      mockPrismaService.order.update.mockResolvedValue(deliveredOrder)
+
+      await ordersService.updateStatus('order-1', { status: OrderStatus.DELIVERED })
+
+      expect(mockEmailService.sendReviewRequest).not.toHaveBeenCalled()
+    })
+
+    it('skips review-request when items have no snapshot slug (deleted products)', async () => {
+      const shippedOrder = {
+        ...mockCreatedOrder,
+        status: OrderStatus.SHIPPED,
+        guestEmail: 'guest@example.com',
+      }
+      const deliveredOrder = {
+        ...shippedOrder,
+        status: OrderStatus.DELIVERED,
+        items: [{ id: 'item-1', productSnapshot: null, quantity: 1 }],
+      }
+      mockPrismaService.order.findUnique.mockResolvedValue(shippedOrder)
+      mockPrismaService.order.update.mockResolvedValue(deliveredOrder)
+
+      await ordersService.updateStatus('order-1', { status: OrderStatus.DELIVERED })
+
+      expect(mockEmailService.sendReviewRequest).not.toHaveBeenCalled()
+    })
+
+    it('does not roll back DELIVERED transition when review-request email throws', async () => {
+      const shippedOrder = {
+        ...mockCreatedOrder,
+        status: OrderStatus.SHIPPED,
+        guestEmail: 'guest@example.com',
+      }
+      const deliveredOrder = {
+        ...shippedOrder,
+        status: OrderStatus.DELIVERED,
+        items: [
+          {
+            id: 'item-1',
+            productSnapshot: { slug: 'silver-ring', title: 'Silver Ring' },
+            quantity: 1,
+          },
+        ],
+      }
+      mockPrismaService.order.findUnique.mockResolvedValue(shippedOrder)
+      mockPrismaService.order.update.mockResolvedValue(deliveredOrder)
+      mockEmailService.sendReviewRequest.mockRejectedValueOnce(new Error('Resend down'))
+
+      const result = await ordersService.updateStatus('order-1', {
+        status: OrderStatus.DELIVERED,
+      })
+
+      expect(result.status).toBe(OrderStatus.DELIVERED)
+      expect(mockLoyaltyService.awardForDelivered).toHaveBeenCalled()
     })
   })
 
