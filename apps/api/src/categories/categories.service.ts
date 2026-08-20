@@ -22,6 +22,7 @@ export class CategoriesService {
         id: true,
         name: true,
         slug: true,
+        description: true,
         _count: { select: { products: true } },
       },
       orderBy: { name: 'asc' },
@@ -31,7 +32,7 @@ export class CategoriesService {
   async findOne(categoryId: string) {
     const category = await this.prismaService.category.findUnique({
       where: { id: categoryId },
-      select: { id: true, name: true, slug: true },
+      select: { id: true, name: true, slug: true, description: true },
     })
 
     if (!category) {
@@ -53,8 +54,12 @@ export class CategoriesService {
     }
 
     return this.prismaService.category.create({
-      data: { name: createCategoryDto.name, slug },
-      select: { id: true, name: true, slug: true },
+      data: {
+        name: createCategoryDto.name,
+        slug,
+        description: createCategoryDto.description ?? null,
+      },
+      select: { id: true, name: true, slug: true, description: true },
     })
   }
 
@@ -80,8 +85,11 @@ export class CategoriesService {
       data: {
         ...(updateCategoryDto.name !== undefined && { name: updateCategoryDto.name }),
         ...(slugToSet !== undefined && { slug: slugToSet }),
+        ...(updateCategoryDto.description !== undefined && {
+          description: updateCategoryDto.description || null,
+        }),
       },
-      select: { id: true, name: true, slug: true },
+      select: { id: true, name: true, slug: true, description: true },
     })
   }
 

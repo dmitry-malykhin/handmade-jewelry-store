@@ -17,18 +17,43 @@ function requireEntry<T>(map: Record<string, T>, key: string, label: string): T 
 
 export async function seedCategories(prisma: PrismaClient) {
   const categoryData = [
-    { name: 'Rings', slug: 'rings' },
-    { name: 'Necklaces', slug: 'necklaces' },
-    { name: 'Bracelets', slug: 'bracelets' },
-    { name: 'Earrings', slug: 'earrings' },
-    { name: 'Sets', slug: 'sets' },
+    {
+      name: 'Rings',
+      slug: 'rings',
+      description:
+        'Handmade sterling silver rings set with natural moonstone, onyx, and rose quartz. Every ring is crafted after your order — expect small variations that mark it as one of a kind.',
+    },
+    {
+      name: 'Necklaces',
+      slug: 'necklaces',
+      description:
+        'Delicate handcrafted necklaces built around ethically sourced gemstones and sterling silver. Layerable lengths from choker to opera, each hallmarked and finished by hand.',
+    },
+    {
+      name: 'Bracelets',
+      slug: 'bracelets',
+      description:
+        'Beaded and chain bracelets, hand-strung and assembled to order. Custom sizing is standard — leave a wrist measurement at checkout and every bracelet is sized to fit.',
+    },
+    {
+      name: 'Earrings',
+      slug: 'earrings',
+      description:
+        'Studs, hoops, and drop earrings in hypoallergenic sterling silver posts. Small-batch construction means the pair you receive is the pair in the photo.',
+    },
+    {
+      name: 'Sets',
+      slug: 'sets',
+      description:
+        'Coordinated jewelry sets — a necklace paired with matching earrings or a bracelet — designed to be worn together or as separates. Priced below the individual total.',
+    },
   ]
 
   const categories = await Promise.all(
     categoryData.map((category) =>
       prisma.category.upsert({
         where: { slug: category.slug },
-        update: {},
+        update: { description: category.description },
         create: category,
       }),
     ),

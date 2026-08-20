@@ -22,6 +22,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import type { Category } from '@jewelry/shared'
 
 const categoryFormSchema = z.object({
@@ -32,6 +33,7 @@ const categoryFormSchema = z.object({
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'lowercase kebab-case only (e.g. sterling-silver)')
     .optional()
     .or(z.literal('')),
+  description: z.string().max(500).optional().or(z.literal('')),
 })
 
 type CategoryFormValues = z.infer<typeof categoryFormSchema>
@@ -56,7 +58,7 @@ export function CategoryFormModal({
 
   const form = useForm<CategoryFormValues>({
     resolver: zodResolver(categoryFormSchema),
-    defaultValues: { name: '', slug: '' },
+    defaultValues: { name: '', slug: '', description: '' },
   })
 
   useEffect(() => {
@@ -64,6 +66,7 @@ export function CategoryFormModal({
       form.reset({
         name: editingCategory?.name ?? '',
         slug: editingCategory?.slug ?? '',
+        description: editingCategory?.description ?? '',
       })
     }
   }, [isOpen, editingCategory, form])
@@ -72,6 +75,9 @@ export function CategoryFormModal({
     const payload = {
       name: values.name,
       ...(values.slug ? { slug: values.slug } : {}),
+      // Explicit '' → null semantics: an empty textarea in edit mode clears
+      // the description; using ?? would silently drop the clear intent.
+      description: values.description ?? '',
     }
     onSubmit(payload)
   }
@@ -115,6 +121,25 @@ export function CategoryFormModal({
                     <Input
                       placeholder={t('categoriesFieldSlugPlaceholder')}
                       aria-label={t('categoriesFieldSlug')}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('categoriesFieldDescription')}</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      rows={4}
+                      placeholder={t('categoriesFieldDescriptionPlaceholder')}
+                      aria-label={t('categoriesFieldDescription')}
                       {...field}
                     />
                   </FormControl>

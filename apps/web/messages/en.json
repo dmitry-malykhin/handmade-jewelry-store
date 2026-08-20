@@ -605,6 +605,8 @@
     "categoriesFieldNamePlaceholder": "e.g. Sterling Silver",
     "categoriesFieldSlug": "Slug (optional — auto-generated from name)",
     "categoriesFieldSlugPlaceholder": "e.g. sterling-silver",
+    "categoriesFieldDescription": "Description (SEO body text, up to 500 characters)",
+    "categoriesFieldDescriptionPlaceholder": "Short paragraph shown on the catalog filter page — helps Google understand what this category is about.",
     "categoriesCreate": "Create",
     "categoriesSaveChanges": "Save changes",
     "categoriesSaving": "Saving...",

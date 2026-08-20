@@ -128,12 +128,28 @@ export default async function HomePage({ params, searchParams }: HomePageProps) 
     resolvedSearchParams.sortBy,
   ].filter(Boolean).length
 
+  const activeCategory = categorySlug
+    ? categories.find((category) => category.slug === categorySlug)
+    : undefined
+
   return (
     <div className="container mx-auto px-4 py-8">
       <CatalogHeader
         title={t('title')}
         productsCount={t('productsCount', { count: meta.totalCount })}
       />
+
+      {activeCategory?.description && (
+        <section
+          aria-labelledby="category-heading"
+          className="mb-6 rounded-lg border border-border bg-accent/30 p-6"
+        >
+          <h2 id="category-heading" className="text-xl font-semibold text-foreground">
+            {activeCategory.name}
+          </h2>
+          <p className="mt-2 text-sm text-muted-foreground">{activeCategory.description}</p>
+        </section>
+      )}
 
       {/* Mobile filters trigger — visible below lg breakpoint */}
       <div className="mb-4 lg:hidden">

@@ -174,10 +174,11 @@ model RefreshToken {
 }
 
 model Category {
-  id       String    @id @default(cuid())
-  name     String
-  slug     String    @unique // mandatory for SEO URLs: /catalog/rings
-  products Product[]
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique // mandatory for SEO URLs: /catalog/rings
+  description String?   @db.Text // SEO body text shown on the catalog filter page; MVP is EN-only
+  products    Product[]
 }
 
 model Product {

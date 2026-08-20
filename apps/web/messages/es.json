@@ -605,6 +605,8 @@
     "categoriesFieldNamePlaceholder": "ej. Plata esterlina",
     "categoriesFieldSlug": "Slug (opcional — se genera desde el nombre)",
     "categoriesFieldSlugPlaceholder": "ej. plata-esterlina",
+    "categoriesFieldDescription": "Descripción (texto SEO, hasta 500 caracteres)",
+    "categoriesFieldDescriptionPlaceholder": "Párrafo breve que se muestra en la página de la categoría — ayuda a Google a entender de qué trata esta categoría.",
     "categoriesCreate": "Crear",
     "categoriesSaveChanges": "Guardar cambios",
     "categoriesSaving": "Guardando...",
