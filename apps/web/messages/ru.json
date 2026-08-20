@@ -605,6 +605,8 @@
     "categoriesFieldNamePlaceholder": "например, Серебряные украшения",
     "categoriesFieldSlug": "Слаг (необязательно — генерируется из названия)",
     "categoriesFieldSlugPlaceholder": "например, silver-jewelry",
+    "categoriesFieldDescription": "Описание (SEO-текст, до 500 символов)",
+    "categoriesFieldDescriptionPlaceholder": "Короткий абзац, отображаемый на странице категории — помогает Google понять, о чём эта категория.",
     "categoriesCreate": "Создать",
     "categoriesSaveChanges": "Сохранить",
     "categoriesSaving": "Сохранение...",

@@ -13,4 +13,9 @@ export class CreateCategoryDto {
   })
   @MaxLength(100)
   slug?: string
+
+  @IsString()
+  @IsOptional()
+  @MaxLength(500)
+  description?: string
 }

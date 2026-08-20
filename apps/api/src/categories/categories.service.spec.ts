@@ -55,6 +55,7 @@ describe('CategoriesService', () => {
           id: true,
           name: true,
           slug: true,
+          description: true,
           _count: { select: { products: true } },
         },
         orderBy: { name: 'asc' },
@@ -96,8 +97,8 @@ describe('CategoriesService', () => {
       const result = await categoriesService.create({ name: 'Sterling Silver' })
 
       expect(mockPrismaService.category.create).toHaveBeenCalledWith({
-        data: { name: 'Sterling Silver', slug: 'sterling-silver' },
-        select: { id: true, name: true, slug: true },
+        data: { name: 'Sterling Silver', slug: 'sterling-silver', description: null },
+        select: { id: true, name: true, slug: true, description: true },
       })
       expect(result).toEqual(createdCategory)
     })
@@ -110,8 +111,8 @@ describe('CategoriesService', () => {
       await categoriesService.create({ name: 'Rings', slug: 'custom-rings' })
 
       expect(mockPrismaService.category.create).toHaveBeenCalledWith({
-        data: { name: 'Rings', slug: 'custom-rings' },
-        select: { id: true, name: true, slug: true },
+        data: { name: 'Rings', slug: 'custom-rings', description: null },
+        select: { id: true, name: true, slug: true, description: true },
       })
     })
 
