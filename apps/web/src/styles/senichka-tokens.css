@@ -119,11 +119,13 @@
   /* Text */
   --color-text-primary:     #2B2B2B;
   --color-text-secondary:   #6E5F5B;
-  --color-text-tertiary:    #9A8A86;
-  --color-text-accent:      #B76E79;
+  /* Was #9A8A86 (3.1:1 on --bg-primary). WCAG AA needs 4.5:1 → darkened to #75655F (~5.2:1). */
+  --color-text-tertiary:    #75655F;
+  --color-text-accent:      #9A4E58;
   --color-text-on-dark:     #F4E7E3;
   --color-text-on-blush:    #7D3B44;
-  --color-text-on-accent:   #F4E7E3;
+  /* Pure white for max contrast on --color-accent-secondary (deep rose). */
+  --color-text-on-accent:   #FFFFFF;
   --color-text-disabled:    #D4B9B3;
   --color-text-placeholder: #B89B94;
 
@@ -131,8 +133,9 @@
   --color-accent-primary:   #E8B7B1;
   --color-accent-hover:     #D99B95;
   --color-accent-active:    #C47E78;
-  --color-accent-secondary: #B76E79;
-  --color-accent-sec-hover: #A25A64;
+  /* Was #B76E79 — even pure white gave 3.8:1. Darkened to #9A4E58 (~5.7:1 with white). */
+  --color-accent-secondary: #9A4E58;
+  --color-accent-sec-hover: #7D3B44;
   --color-accent-deep:      #7D3B44;
   --color-accent-subtle:    #FAE9E7;
 
@@ -300,7 +303,8 @@
   --color-text-accent:      #E8B7B1;
   --color-text-on-dark:     #F4E7E3;
   --color-text-on-blush:    #2B2B2B;
-  --color-text-on-accent:   #F4E7E3;
+  /* Dark theme accent-secondary is light rose #E8B7B1 — needs dark text for AA. */
+  --color-text-on-accent:   #2B2B2B;
   --color-text-disabled:    #4E3B38;
   --color-text-placeholder: #6E5F5B;
 
