@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import { trackProductViewed } from '@/lib/analytics/posthog'
 import { trackViewItem } from '@/lib/analytics/gtag'
 import { trackFbViewContent } from '@/lib/analytics/fbq'
+import { trackPinPageVisit } from '@/lib/analytics/pintrk'
 import { klaviyoViewedProduct } from '@/lib/analytics/klaviyo'
 
 interface ProductViewTrackerProps {
@@ -44,6 +45,7 @@ export function ProductViewTracker({
     })
     trackViewItem({ productId, title, price: priceUsd })
     trackFbViewContent({ productId, price: priceUsd })
+    trackPinPageVisit({ productId, price: priceUsd })
     klaviyoViewedProduct({ productId, title, price: priceUsd, image: imageUrl, slug })
   }, [productId, slug, title, priceUsd, categorySlug, stockType, imageUrl])
 

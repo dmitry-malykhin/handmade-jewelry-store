@@ -4,6 +4,7 @@ import { ProductViewTracker } from '../product-view-tracker'
 import * as posthog from '@/lib/analytics/posthog'
 import * as gtag from '@/lib/analytics/gtag'
 import * as fbq from '@/lib/analytics/fbq'
+import * as pintrk from '@/lib/analytics/pintrk'
 import * as klaviyo from '@/lib/analytics/klaviyo'
 import {
   suite as $allureSuite,
@@ -14,6 +15,7 @@ import {
 vi.mock('@/lib/analytics/posthog', () => ({ trackProductViewed: vi.fn() }))
 vi.mock('@/lib/analytics/gtag', () => ({ trackViewItem: vi.fn() }))
 vi.mock('@/lib/analytics/fbq', () => ({ trackFbViewContent: vi.fn() }))
+vi.mock('@/lib/analytics/pintrk', () => ({ trackPinPageVisit: vi.fn() }))
 vi.mock('@/lib/analytics/klaviyo', () => ({ klaviyoViewedProduct: vi.fn() }))
 
 const productProps = {
@@ -65,6 +67,15 @@ describe('ProductViewTracker — dispatches to every consented channel', () => {
     render(<ProductViewTracker {...productProps} />)
 
     expect(fbq.trackFbViewContent).toHaveBeenCalledExactlyOnceWith({
+      productId: 'prod-1',
+      price: 49.99,
+    })
+  })
+
+  it('fires Pinterest pagevisit with product id + price for retargeting audiences', () => {
+    render(<ProductViewTracker {...productProps} />)
+
+    expect(pintrk.trackPinPageVisit).toHaveBeenCalledExactlyOnceWith({
       productId: 'prod-1',
       price: 49.99,
     })
