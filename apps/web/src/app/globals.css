@@ -88,6 +88,14 @@
     @apply border-border outline-ring/50;
   }
 
+  /* Mobile nav slides in from the right via `translate-x-full`, which parks
+     it off-screen but browsers still count that width toward the scroll box.
+     `clip` prevents the horizontal scroll without breaking `position: sticky`. */
+  html,
+  body {
+    overflow-x: clip;
+  }
+
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-sans);
