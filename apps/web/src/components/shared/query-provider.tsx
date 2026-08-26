@@ -1,8 +1,19 @@
 'use client'
 
 import { useState, type ReactNode } from 'react'
+import dynamic from 'next/dynamic'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
+
+// Devtools shipped only in dev — the floating open button was visible in prod
+// and overlapped the cookie banner on mobile. `next/dynamic` also excludes the
+// bundle (~50 KiB gzipped) from the prod build.
+const ReactQueryDevtools =
+  process.env.NODE_ENV === 'development'
+    ? dynamic(
+        () => import('@tanstack/react-query-devtools').then((mod) => mod.ReactQueryDevtools),
+        { ssr: false },
+      )
+    : null
 
 function makeQueryClient() {
   return new QueryClient({
@@ -25,7 +36,7 @@ export function QueryProvider({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       {children}
-      <ReactQueryDevtools initialIsOpen={false} />
+      {ReactQueryDevtools && <ReactQueryDevtools initialIsOpen={false} />}
     </QueryClientProvider>
   )
 }
