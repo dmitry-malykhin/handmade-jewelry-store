@@ -26,6 +26,8 @@ vi.mock('@/store/auth.store', () => {
   }
 })
 
+vi.mock('@/lib/analytics/klaviyo', () => ({ klaviyoIdentify: vi.fn() }))
+
 async function getMockSetTokens() {
   const authStoreModule = await import('@/store/auth.store')
   return (authStoreModule as unknown as { _mockSetTokens: ReturnType<typeof vi.fn> })._mockSetTokens
@@ -118,6 +120,21 @@ describe('RegisterForm — successful registration', () => {
     })
 
     expect(mockRouterPush).toHaveBeenCalledWith('/')
+  })
+
+  it('identifies the new user in Klaviyo so post-purchase / newsletter flows have a $email tag', async () => {
+    const { klaviyoIdentify } = await import('@/lib/analytics/klaviyo')
+    vi.mocked(klaviyoIdentify).mockClear()
+
+    render(<RegisterForm />)
+
+    await userEvent.type(screen.getByLabelText('Email'), 'user@example.com')
+    await userEvent.type(screen.getByLabelText('Password'), 'Password123')
+    await userEvent.click(screen.getByRole('button', { name: 'Create Account' }))
+
+    await waitFor(() => {
+      expect(klaviyoIdentify).toHaveBeenCalledWith('user@example.com')
+    })
   })
 
   it('shows the submitting label while the request is in flight', async () => {

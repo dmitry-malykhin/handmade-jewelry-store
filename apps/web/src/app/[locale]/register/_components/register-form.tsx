@@ -12,6 +12,7 @@ import { useWishlistStore } from '@/store/wishlist.store'
 import { registerUser } from '@/lib/api/auth'
 import { ApiError } from '@/lib/api/client'
 import { mergeGuestWishlist } from '@/lib/api/wishlist'
+import { klaviyoIdentify } from '@/lib/analytics/klaviyo'
 
 export function RegisterForm() {
   const t = useTranslations('auth')
@@ -57,6 +58,9 @@ export function RegisterForm() {
     try {
       const tokens = await registerUser(email, password)
       setTokens(tokens.accessToken, tokens.refreshToken)
+      // Klaviyo needs a $email tag to attach flows (win-back, abandoned cart)
+      // to a real profile — no-op if marketing consent is off.
+      klaviyoIdentify(email)
       // Carry over the guest wishlist (localStorage) so the user keeps the items
       // they bookmarked before creating the account. Failures are silent — the
       // local list remains as a fallback.

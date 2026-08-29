@@ -13,6 +13,7 @@ import { useWishlistStore } from '@/store/wishlist.store'
 import { loginUser } from '@/lib/api/auth'
 import { ApiError } from '@/lib/api/client'
 import { mergeGuestWishlist } from '@/lib/api/wishlist'
+import { klaviyoIdentify } from '@/lib/analytics/klaviyo'
 
 export function LoginForm() {
   const t = useTranslations('auth')
@@ -33,6 +34,9 @@ export function LoginForm() {
     try {
       const tokens = await loginUser(email, password)
       setTokens(tokens.accessToken, tokens.refreshToken)
+      // Klaviyo needs a $email tag to attach flows (win-back, abandoned cart)
+      // to a real profile — no-op if marketing consent is off.
+      klaviyoIdentify(email)
       // Merge guest wishlist (localStorage) into the user's server-side wishlist.
       // Failures here must not block login, so the call is fire-and-forget with a
       // catch — the local wishlist stays as a fallback if the merge fails.
