@@ -10,6 +10,7 @@ import { test, expect, type Page } from '@playwright/test'
 
 const CRITICAL_PAGES = [
   '/en',
+  '/en/products',
   '/en/cart',
   '/en/search',
   '/en/account',
