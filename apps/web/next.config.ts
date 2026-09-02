@@ -18,6 +18,8 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     // Legacy /shop → new layout (#280). Locale-prefixed because [locale] is a routing segment.
+    // /products (no slug) → home: catalog lives at locale root; the bare listing URL is a natural
+    // guess but returns 404 without this. (#452)
     return [
       {
         source: '/:locale(en|ru|es)/shop',
@@ -27,6 +29,11 @@ const nextConfig: NextConfig = {
       {
         source: '/:locale(en|ru|es)/shop/:slug',
         destination: '/:locale/products/:slug',
+        permanent: true,
+      },
+      {
+        source: '/:locale(en|ru|es)/products',
+        destination: '/:locale',
         permanent: true,
       },
     ]
