@@ -79,6 +79,39 @@ describe('ContactForm — client-side validation', () => {
   })
 })
 
+describe('ContactForm — honeypot', () => {
+  it('renders a hidden website input that assistive tech skips', () => {
+    render(<ContactForm />)
+    const honeypot = document.querySelector<HTMLInputElement>('input[name="website"]')
+    expect(honeypot).not.toBeNull()
+    expect(honeypot?.tabIndex).toBe(-1)
+    expect(honeypot?.getAttribute('autocomplete')).toBe('off')
+    expect(honeypot?.closest('[aria-hidden="true"]')).not.toBeNull()
+  })
+
+  it('sends an empty website field on real user submission', async () => {
+    const capturedBodies: Record<string, unknown>[] = []
+    server.use(
+      http.post('http://localhost:4000/api/contact', async ({ request }) => {
+        capturedBodies.push((await request.json()) as Record<string, unknown>)
+        return new HttpResponse(null, { status: 204 })
+      }),
+    )
+
+    render(<ContactForm />)
+    await userEvent.type(screen.getByLabelText('Your name'), VALID_FORM.name)
+    await userEvent.type(screen.getByLabelText('Email address'), VALID_FORM.email)
+    await userEvent.type(screen.getByLabelText('Subject'), VALID_FORM.subject)
+    await userEvent.type(screen.getByLabelText('Message'), VALID_FORM.message)
+    await userEvent.click(screen.getByRole('button', { name: 'Send message' }))
+
+    await waitFor(() => {
+      expect(capturedBodies).toHaveLength(1)
+    })
+    expect(capturedBodies[0]?.website).toBe('')
+  })
+})
+
 describe('ContactForm — successful submission', () => {
   it('shows success state after successful API call', async () => {
     render(<ContactForm />)

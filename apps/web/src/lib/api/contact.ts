@@ -5,6 +5,7 @@ export interface ContactFormValues {
   email: string
   subject: string
   message: string
+  website?: string // honeypot
 }
 
 export async function sendContactMessage(values: ContactFormValues): Promise<void> {
