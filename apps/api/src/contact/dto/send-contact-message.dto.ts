@@ -1,4 +1,4 @@
-import { IsEmail, IsString, MaxLength, MinLength } from 'class-validator'
+import { IsEmail, IsEmpty, IsOptional, IsString, MaxLength, MinLength } from 'class-validator'
 
 export class SendContactMessageDto {
   @IsString()
@@ -19,4 +19,9 @@ export class SendContactMessageDto {
   @MinLength(10)
   @MaxLength(2000)
   message: string
+
+  // Honeypot — @IsEmpty rejects (400) any non-empty value; real users never see it.
+  @IsOptional()
+  @IsEmpty()
+  website?: string
 }

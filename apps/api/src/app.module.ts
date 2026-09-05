@@ -33,9 +33,12 @@ import { WishlistModule } from './wishlist/wishlist.module'
     // Загружает apps/api/.env в process.env автоматически при старте
     // isGlobal: true — не нужно импортировать ConfigModule в каждом модуле
     ConfigModule.forRoot({ isGlobal: true }),
-    // Default 60 req/min per IP; sensitive endpoints override via @Throttle.
+    // contactDaily is a second named window; per-minute alone lets slow-drip through.
     ThrottlerModule.forRoot({
-      throttlers: [{ ttl: 60_000, limit: 60 }],
+      throttlers: [
+        { name: 'default', ttl: 60_000, limit: 60 },
+        { name: 'contactDaily', ttl: 86_400_000, limit: 20 },
+      ],
     }),
     // LoggerModule is @Global() — provides WinstonModule logger to all modules
     LoggerModule,

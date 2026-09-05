@@ -14,6 +14,7 @@ interface ContactFormState {
   email: string
   subject: string
   message: string
+  website: string // honeypot
 }
 
 interface ContactFormErrors {
@@ -33,6 +34,7 @@ export function ContactForm() {
     email: '',
     subject: '',
     message: '',
+    website: '',
   })
   const [fieldErrors, setFieldErrors] = useState<ContactFormErrors>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -48,7 +50,7 @@ export function ContactForm() {
     return errors
   }
 
-  function handleFieldChange(field: keyof ContactFormState, value: string) {
+  function handleFieldChange(field: keyof ContactFormErrors, value: string) {
     setFormValues((prev) => ({ ...prev, [field]: value }))
     // Clear the error for this field as soon as the user edits it
     if (fieldErrors[field]) {
@@ -185,6 +187,24 @@ export function ContactForm() {
             {submitError}
           </p>
         )}
+
+        <div
+          aria-hidden="true"
+          className="absolute left-[-9999px] top-auto h-0 w-0 overflow-hidden"
+        >
+          <label htmlFor="contact-website">Website (leave blank)</label>
+          <input
+            id="contact-website"
+            type="text"
+            name="website"
+            tabIndex={-1}
+            autoComplete="off"
+            value={formValues.website}
+            onChange={(event) =>
+              setFormValues((prev) => ({ ...prev, website: event.target.value }))
+            }
+          />
+        </div>
 
         <Button type="submit" size="lg" disabled={isSubmitting}>
           {isSubmitting ? t('submitting') : t('submitButton')}
