@@ -33,11 +33,12 @@ import { WishlistModule } from './wishlist/wishlist.module'
     // Загружает apps/api/.env в process.env автоматически при старте
     // isGlobal: true — не нужно импортировать ConfigModule в каждом модуле
     ConfigModule.forRoot({ isGlobal: true }),
-    // contactDaily is a second named window; per-minute alone lets slow-drip through.
+    // Per-endpoint daily windows catch slow-drip that stays under the per-minute cap.
     ThrottlerModule.forRoot({
       throttlers: [
         { name: 'default', ttl: 60_000, limit: 60 },
         { name: 'contactDaily', ttl: 86_400_000, limit: 20 },
+        { name: 'newsletterDaily', ttl: 86_400_000, limit: 20 },
       ],
     }),
     // LoggerModule is @Global() — provides WinstonModule logger to all modules
