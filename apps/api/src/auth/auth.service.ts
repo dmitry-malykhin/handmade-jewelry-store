@@ -20,6 +20,15 @@ const REFRESH_TOKEN_EXPIRES_IN_SECONDS = 7 * 24 * 60 * 60
 const PASSWORD_RESET_TOKEN_HASH_ROUNDS = 10
 const PASSWORD_RESET_TOKEN_EXPIRY_MS = 60 * 60 * 1000
 
+// Cost 12 must match UsersService.BCRYPT_SALT_ROUNDS or timing side-channel stays.
+let cachedDummyHash: string | null = null
+function getDummyPasswordHash(): string {
+  if (cachedDummyHash === null) {
+    cachedDummyHash = bcrypt.hashSync('never-matches-any-password', 12)
+  }
+  return cachedDummyHash
+}
+
 export interface AuthTokens {
   accessToken: string
   refreshToken: string
@@ -38,7 +47,11 @@ export class AuthService {
   async validateUserCredentials(email: string, plainPassword: string): Promise<User | null> {
     const normalizedEmail = email.trim().toLowerCase()
     const user = await this.usersService.findByEmail(normalizedEmail)
-    if (!user) return null
+    if (!user) {
+      // Constant-time defense (CWE-208) — timing must not reveal registered emails.
+      await bcrypt.compare(plainPassword, getDummyPasswordHash())
+      return null
+    }
 
     const passwordMatches = await this.usersService.verifyPassword(plainPassword, user.password)
     if (!passwordMatches) return null
