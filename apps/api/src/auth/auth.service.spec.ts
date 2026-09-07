@@ -16,9 +16,11 @@ import {
 
 const mockBcryptHash = jest.fn().mockResolvedValue('hashed_value')
 const mockBcryptCompare = jest.fn()
+const mockBcryptHashSync = jest.fn().mockReturnValue('$2b$12$dummyhashsyncvalue')
 jest.mock('bcrypt', () => ({
   hash: (...args: unknown[]) => mockBcryptHash(...args),
   compare: (...args: unknown[]) => mockBcryptCompare(...args),
+  hashSync: (...args: unknown[]) => mockBcryptHashSync(...args),
 }))
 
 const MOCK_TOKEN_ID = 'mock-token-id-uuid'
@@ -130,6 +132,20 @@ describe('AuthService', () => {
       const result = await authService.validateUserCredentials('unknown@example.com', 'password123')
 
       expect(result).toBeNull()
+    })
+
+    it('runs a dummy bcrypt.compare when user is not found so timing does not leak enumeration', async () => {
+      mockUsersService.findByEmail.mockResolvedValueOnce(null)
+      mockBcryptCompare.mockClear()
+      mockBcryptCompare.mockResolvedValueOnce(false)
+
+      await authService.validateUserCredentials('unknown@example.com', 'password123')
+
+      expect(mockBcryptCompare).toHaveBeenCalledTimes(1)
+      const [pw, hashArg] = mockBcryptCompare.mock.calls[0]
+      expect(pw).toBe('password123')
+      // Dummy must be a valid bcrypt hash at cost 12 — otherwise timing still leaks
+      expect(hashArg).toMatch(/^\$2[aby]\$12\$/)
     })
 
     it('returns null when password does not match', async () => {
