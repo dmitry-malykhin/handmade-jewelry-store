@@ -19,6 +19,8 @@ export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh'
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
       secretOrKey: configService.getOrThrow<string>('JWT_REFRESH_SECRET'),
+      // Pin HS256 — blocks alg=none + HS/RS confusion (CVE-2015-9235 class).
+      algorithms: ['HS256'],
       // passReqToCallback allows extracting the raw token from the request
       // so AuthService can verify it against the stored hash
       passReqToCallback: true,

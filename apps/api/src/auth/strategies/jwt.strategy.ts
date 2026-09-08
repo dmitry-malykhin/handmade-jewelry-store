@@ -24,6 +24,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
       secretOrKey: configService.getOrThrow<string>('JWT_SECRET'),
+      // Pin HS256 — blocks alg=none + HS/RS confusion (CVE-2015-9235 class).
+      algorithms: ['HS256'],
     })
   }
 
