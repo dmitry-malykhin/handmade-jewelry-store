@@ -27,6 +27,8 @@ import { LocalStrategy } from './strategies/local.strategy'
       useFactory: (configService: ConfigService) => ({
         secret: configService.getOrThrow<string>('JWT_SECRET'),
         signOptions: {
+          // Pin HS256 — must match strategies' `algorithms` allowlist below.
+          algorithm: 'HS256',
           expiresIn: configService.get(
             'JWT_EXPIRES_IN',
             '15m',
