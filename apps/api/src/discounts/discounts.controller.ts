@@ -10,6 +10,7 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common'
+import { Throttle } from '@nestjs/throttler'
 import { Role } from '@prisma/client'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
 import { RolesGuard } from '../auth/guards/roles.guard'
@@ -28,8 +29,13 @@ import { ValidateDiscountDto } from './dto/validate-discount.dto'
 export class DiscountsController {
   constructor(private readonly discountsService: DiscountsService) {}
 
+  // Two windows: 3/min blocks burst, 20/day blocks slow-drip code enumeration.
   @Post('validate')
   @HttpCode(HttpStatus.OK)
+  @Throttle({
+    default: { limit: 3, ttl: 60_000 },
+    discountsDaily: { limit: 20, ttl: 86_400_000 },
+  })
   validate(@Body() validateDiscountDto: ValidateDiscountDto) {
     return this.discountsService.validate(validateDiscountDto)
   }
