@@ -39,6 +39,7 @@ import { WishlistModule } from './wishlist/wishlist.module'
         { name: 'default', ttl: 60_000, limit: 60 },
         { name: 'contactDaily', ttl: 86_400_000, limit: 20 },
         { name: 'newsletterDaily', ttl: 86_400_000, limit: 20 },
+        { name: 'discountsDaily', ttl: 86_400_000, limit: 20 },
       ],
     }),
     // LoggerModule is @Global() — provides WinstonModule logger to all modules
