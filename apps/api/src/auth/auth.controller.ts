@@ -79,7 +79,12 @@ export class AuthController {
   @Get('me')
   @UseGuards(JwtAuthGuard)
   me(@CurrentUser() user: User) {
-    const { password: _, ...safeUser } = user
+    const {
+      password: _p,
+      passwordResetToken: _prt,
+      passwordResetTokenAt: _prtAt,
+      ...safeUser
+    } = user
     return safeUser
   }
 }

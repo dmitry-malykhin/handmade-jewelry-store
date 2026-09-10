@@ -124,5 +124,19 @@ describe('AuthController', () => {
 
       expect(mockUser.password).toBe('hashed_password')
     })
+
+    it('strips passwordResetToken and passwordResetTokenAt even when populated', () => {
+      const userWithReset = {
+        ...mockUser,
+        passwordResetToken: '$2b$10$hashed_reset_token',
+        passwordResetTokenAt: new Date('2026-01-01T00:00:00Z'),
+      }
+
+      const result = authController.me(userWithReset)
+
+      expect(result).not.toHaveProperty('passwordResetToken')
+      expect(result).not.toHaveProperty('passwordResetTokenAt')
+      expect(result).not.toHaveProperty('password')
+    })
   })
 })
