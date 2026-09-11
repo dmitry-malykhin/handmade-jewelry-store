@@ -74,6 +74,41 @@ describe('getSecurityHeaders — production-only headers', () => {
     },
   )
 
+  describe('CSP connect-src — explicit allowlist (no wildcard schemes)', () => {
+    function getConnectSrcDirective(): string {
+      const csp =
+        getHeader(getSecurityHeaders('production'), 'Content-Security-Policy')?.value ?? ''
+      const found = csp.split(';').find((directive) => directive.trim().startsWith('connect-src'))
+      return found?.trim() ?? ''
+    }
+
+    it.each([' http:', ' https:', ' wss:', ' ws:'])(
+      'does NOT contain wildcard scheme "%s" (would allow XSS exfiltration to any host)',
+      (badToken) => {
+        const connectSrc = getConnectSrcDirective()
+        // Trailing space + colon delimits a bare scheme token (vs "https://x.com").
+        expect(connectSrc).not.toMatch(new RegExp(`${badToken.trim()}\\s|${badToken.trim()}$`))
+      },
+    )
+
+    it.each([
+      'https://us.i.posthog.com',
+      'https://www.google-analytics.com',
+      'https://www.facebook.com',
+      'https://ct.pinterest.com',
+      'https://*.clarity.ms',
+      'https://*.klaviyo.com',
+      'https://api.stripe.com',
+      'https://*.ingest.sentry.io',
+    ])('whitelists %s (analytics/payment/error ingest)', (host) => {
+      expect(getConnectSrcDirective()).toContain(host)
+    })
+
+    it("includes 'self' as the first allowed source", () => {
+      expect(getConnectSrcDirective()).toMatch(/^connect-src 'self'/)
+    })
+  })
+
   it('emits Cross-Origin-Opener-Policy: same-origin and Cross-Origin-Resource-Policy: same-site', () => {
     const headers = getSecurityHeaders('production')
     expect(getHeader(headers, 'Cross-Origin-Opener-Policy')?.value).toBe('same-origin')
