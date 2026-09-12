@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Headers,
   HttpCode,
   HttpStatus,
   Param,
@@ -52,9 +53,11 @@ export class OrdersController {
   findOne(
     @Param('id') orderId: string,
     @CurrentUser() user: User | null,
-    @Query('token') orderAccessToken?: string,
+    // Header preferred — query kept for Stripe redirect callback (return_url).
+    @Headers('x-order-access-token') headerToken?: string,
+    @Query('token') queryToken?: string,
   ) {
-    return this.ordersService.findOneByIdForCaller(orderId, user, orderAccessToken ?? null)
+    return this.ordersService.findOneByIdForCaller(orderId, user, headerToken ?? queryToken ?? null)
   }
 
   @Patch(':id/status')

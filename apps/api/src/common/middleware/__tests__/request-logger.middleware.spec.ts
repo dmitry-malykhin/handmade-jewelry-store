@@ -1,4 +1,4 @@
-import { RequestLoggerMiddleware } from '../request-logger.middleware'
+import { RequestLoggerMiddleware, redactSensitiveQueryParams } from '../request-logger.middleware'
 import type { Request, Response } from 'express'
 import type { Logger } from 'winston'
 import {
@@ -143,5 +143,39 @@ describe('RequestLoggerMiddleware', () => {
       'Request completed',
       expect.objectContaining({ method: 'POST', path: '/api/orders' }),
     )
+  })
+
+  it('redacts sensitive query-string tokens in the logged path', () => {
+    const request = buildMockRequest({
+      originalUrl: '/api/orders/abc?token=eyJhbGciOiJIUzI1NiJ9.leaked&status=ok',
+    })
+    const response = buildMockResponse()
+    response.statusCode = 200
+
+    middleware.use(request, response, jest.fn())
+    response.finishListeners.forEach((listener) => listener())
+
+    expect(mockLogger.info).toHaveBeenCalledWith(
+      'Request completed',
+      expect.objectContaining({
+        path: '/api/orders/abc?token=[REDACTED]&status=ok',
+      }),
+    )
+  })
+})
+
+describe('redactSensitiveQueryParams', () => {
+  it.each([
+    ['/api/orders/x?token=abc', '/api/orders/x?token=[REDACTED]'],
+    ['/api/orders/x?token=abc&status=ok', '/api/orders/x?token=[REDACTED]&status=ok'],
+    ['/api/orders/x?status=ok&token=abc', '/api/orders/x?status=ok&token=[REDACTED]'],
+    ['/reset?code=xyz', '/reset?code=[REDACTED]'],
+    ['/auth?access_token=jwt.value.here', '/auth?access_token=[REDACTED]'],
+  ])('redacts sensitive values: %s → %s', (input, expected) => {
+    expect(redactSensitiveQueryParams(input)).toBe(expected)
+  })
+
+  it('leaves URLs without sensitive params untouched', () => {
+    expect(redactSensitiveQueryParams('/api/products?page=2')).toBe('/api/products?page=2')
   })
 })

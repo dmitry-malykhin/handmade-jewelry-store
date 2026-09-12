@@ -109,7 +109,7 @@ describe('OrdersController', () => {
       mockOrdersService.findOneByIdForCaller.mockResolvedValue(mockOrder)
       const authedUser = { id: 'user-real', email: 'a@b.c', role: Role.USER } as User
 
-      const result = await ordersController.findOne('order-1', authedUser, undefined)
+      const result = await ordersController.findOne('order-1', authedUser, undefined, undefined)
 
       expect(mockOrdersService.findOneByIdForCaller).toHaveBeenCalledWith(
         'order-1',
@@ -119,15 +119,39 @@ describe('OrdersController', () => {
       expect(result).toEqual(mockOrder)
     })
 
-    it('delegates with null user + the ?token= access token (guest confirmation-page path)', async () => {
+    it('accepts the guest order-access token via X-Order-Access-Token header', async () => {
       mockOrdersService.findOneByIdForCaller.mockResolvedValue(mockOrder)
 
-      await ordersController.findOne('order-1', null, 'signed-order-token')
+      await ordersController.findOne('order-1', null, 'signed-order-token', undefined)
 
       expect(mockOrdersService.findOneByIdForCaller).toHaveBeenCalledWith(
         'order-1',
         null,
         'signed-order-token',
+      )
+    })
+
+    it('falls back to ?token= query when header is absent (Stripe redirect callback)', async () => {
+      mockOrdersService.findOneByIdForCaller.mockResolvedValue(mockOrder)
+
+      await ordersController.findOne('order-1', null, undefined, 'signed-order-token')
+
+      expect(mockOrdersService.findOneByIdForCaller).toHaveBeenCalledWith(
+        'order-1',
+        null,
+        'signed-order-token',
+      )
+    })
+
+    it('prefers header over query when both provided', async () => {
+      mockOrdersService.findOneByIdForCaller.mockResolvedValue(mockOrder)
+
+      await ordersController.findOne('order-1', null, 'header-token', 'query-token')
+
+      expect(mockOrdersService.findOneByIdForCaller).toHaveBeenCalledWith(
+        'order-1',
+        null,
+        'header-token',
       )
     })
   })

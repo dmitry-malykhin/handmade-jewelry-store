@@ -12,6 +12,7 @@ import { ConfirmationSuccessHeader } from './_components/confirmation-success-he
 import { ExpressCheckoutCleanup } from './_components/express-checkout-cleanup'
 import { OrderPlacedTracker } from './_components/order-placed-tracker'
 import { PaymentFailedContent } from './_components/payment-failed-content'
+import { ScrubTokenFromUrl } from './_components/scrub-token-from-url'
 
 interface ConfirmationPageProps {
   params: Promise<{ locale: string; orderId: string }>
@@ -80,6 +81,7 @@ export default async function ConfirmationPage({ params, searchParams }: Confirm
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-12 sm:px-6">
+      <ScrubTokenFromUrl />
       <ExpressCheckoutCleanup />
       <OrderPlacedTracker
         orderId={order.id}
