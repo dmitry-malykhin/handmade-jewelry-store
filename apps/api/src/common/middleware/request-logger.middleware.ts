@@ -5,6 +5,17 @@ import { randomUUID } from 'node:crypto'
 import type { Logger } from 'winston'
 import { requestContext } from '../context/request-context'
 
+// Query-string keys that carry short-lived credentials (order-access JWT,
+// password-reset token). Redacted in logs to prevent leak via Grafana/Loki.
+const SENSITIVE_QUERY_KEYS = ['token', 'access_token', 'code']
+
+export function redactSensitiveQueryParams(url: string): string {
+  return url.replace(
+    new RegExp(`([?&](?:${SENSITIVE_QUERY_KEYS.join('|')})=)[^&]*`, 'gi'),
+    '$1[REDACTED]',
+  )
+}
+
 @Injectable()
 export class RequestLoggerMiddleware implements NestMiddleware {
   // Raw Winston logger — accepts meta natively. NestJS built-in Logger treats
@@ -28,7 +39,7 @@ export class RequestLoggerMiddleware implements NestMiddleware {
         context: 'HTTP',
         requestId,
         method,
-        path: originalUrl,
+        path: redactSensitiveQueryParams(originalUrl),
         statusCode,
         duration,
         userAgent: request.get('user-agent'),

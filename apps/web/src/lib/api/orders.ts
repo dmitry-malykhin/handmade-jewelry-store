@@ -163,8 +163,8 @@ export interface UpdateOrderStatusPayload {
 interface FetchOrderByIdOptions {
   // User JWT (owner or admin) — attached as Authorization: Bearer.
   jwt?: string | null
-  // Order-access token from POST /orders response — appended as ?token=...
-  // Guests use this to read their own order without an account.
+  // Guest order-access token — sent as X-Order-Access-Token header to keep
+  // it out of URLs (was ?token= — leaked to logs, session-replay, Referer).
   orderAccessToken?: string | null
 }
 
@@ -172,11 +172,11 @@ export async function fetchOrderById(
   orderId: string,
   options: FetchOrderByIdOptions = {},
 ): Promise<OrderDetails> {
-  const query = options.orderAccessToken
-    ? `?token=${encodeURIComponent(options.orderAccessToken)}`
-    : ''
-  return apiClient<OrderDetails>(`/api/orders/${orderId}${query}`, {
-    headers: options.jwt ? { Authorization: `Bearer ${options.jwt}` } : undefined,
+  const headers: Record<string, string> = {}
+  if (options.jwt) headers.Authorization = `Bearer ${options.jwt}`
+  if (options.orderAccessToken) headers['X-Order-Access-Token'] = options.orderAccessToken
+  return apiClient<OrderDetails>(`/api/orders/${orderId}`, {
+    headers: Object.keys(headers).length > 0 ? headers : undefined,
   })
 }
 

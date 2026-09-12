@@ -45,10 +45,12 @@ describe('orders API — public', () => {
     expect(order.status).toBe('PAID')
   })
 
-  it('fetchOrderById forwards the order-access token as ?token= (guest confirmation-page path)', async () => {
+  it('fetchOrderById forwards the order-access token via X-Order-Access-Token header (keeps token out of URLs)', async () => {
+    let receivedHeader: string | null = null
     let receivedSearch: string | null = null
     server.use(
       http.get(`${API_BASE}/api/orders/order-abc`, ({ request }) => {
+        receivedHeader = request.headers.get('x-order-access-token')
         receivedSearch = new URL(request.url).search
         return HttpResponse.json({ id: 'order-abc', status: 'PAID', total: 49.99 })
       }),
@@ -56,7 +58,8 @@ describe('orders API — public', () => {
 
     await fetchOrderById('order-abc', { orderAccessToken: 'signed-token' })
 
-    expect(receivedSearch).toBe('?token=signed-token')
+    expect(receivedHeader).toBe('signed-token')
+    expect(receivedSearch).toBe('')
   })
 
   it('fetchOrderById attaches Bearer JWT when a signed-in user provides one', async () => {
