@@ -16,6 +16,9 @@ export async function apiClient<T>(path: string, options?: RequestInit): Promise
   // discards the JSON body.
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...options,
+    // Send HttpOnly refresh cookie on /auth/refresh + /auth/logout.
+    // API CORS explicitly allowlists our origin with credentials:true.
+    credentials: options?.credentials ?? 'include',
     headers: {
       'Content-Type': 'application/json',
       ...options?.headers,

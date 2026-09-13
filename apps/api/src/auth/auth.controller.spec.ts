@@ -51,37 +51,57 @@ describe('AuthController', () => {
     authController = module.get<AuthController>(AuthController)
   })
 
-  describe('register', () => {
-    it('calls authService.register with email and password from DTO', async () => {
-      mockAuthService.register.mockResolvedValueOnce(mockTokens)
+  function buildMockResponse() {
+    return { cookie: jest.fn(), clearCookie: jest.fn() } as unknown as Parameters<
+      typeof authController.login
+    >[2]
+  }
 
-      const result = await authController.register({
-        email: 'new@example.com',
-        password: 'password123',
-      })
+  describe('register', () => {
+    it('calls authService.register and sets refresh cookie', async () => {
+      mockAuthService.register.mockResolvedValueOnce(mockTokens)
+      const response = buildMockResponse()
+
+      const result = await authController.register(
+        { email: 'new@example.com', password: 'password123' },
+        response,
+      )
 
       expect(mockAuthService.register).toHaveBeenCalledWith('new@example.com', 'password123')
       expect(result).toEqual(mockTokens)
+      expect(response.cookie).toHaveBeenCalledWith(
+        'refreshToken',
+        mockTokens.refreshToken,
+        expect.objectContaining({ httpOnly: true, sameSite: 'lax', path: '/api/auth' }),
+      )
     })
   })
 
   describe('login', () => {
-    it('calls authService.login with the authenticated user from LocalAuthGuard', async () => {
+    it('calls authService.login and sets refresh cookie', async () => {
       mockAuthService.login.mockResolvedValueOnce(mockTokens)
+      const response = buildMockResponse()
 
-      const result = await authController.login(mockUser, {
-        email: mockUser.email,
-        password: 'password123',
-      })
+      const result = await authController.login(
+        mockUser,
+        { email: mockUser.email, password: 'password123' },
+        response,
+      )
 
       expect(mockAuthService.login).toHaveBeenCalledWith(mockUser)
       expect(result).toEqual(mockTokens)
+      expect(response.cookie).toHaveBeenCalledWith(
+        'refreshToken',
+        mockTokens.refreshToken,
+        expect.objectContaining({ httpOnly: true }),
+      )
     })
   })
 
   describe('refresh', () => {
-    it('calls authService.refreshTokens with userId, tokenId, and raw refresh token', async () => {
+    it('calls authService.refreshTokens and re-sets refresh cookie (rotation)', async () => {
       mockAuthService.refreshTokens.mockResolvedValueOnce(mockTokens)
+      const response = buildMockResponse()
 
       const refreshPayload = {
         sub: mockUser.id,
@@ -90,7 +110,7 @@ describe('AuthController', () => {
         tokenId: 'mock-token-id',
         refreshToken: 'old_raw_refresh_token',
       }
-      const result = await authController.refresh(refreshPayload)
+      const result = await authController.refresh(refreshPayload, response)
 
       expect(mockAuthService.refreshTokens).toHaveBeenCalledWith(
         mockUser.id,
@@ -98,16 +118,23 @@ describe('AuthController', () => {
         'old_raw_refresh_token',
       )
       expect(result).toEqual(mockTokens)
+      expect(response.cookie).toHaveBeenCalledWith(
+        'refreshToken',
+        mockTokens.refreshToken,
+        expect.objectContaining({ httpOnly: true }),
+      )
     })
   })
 
   describe('logout', () => {
-    it('calls authService.logout with userId and tokenId from the access token payload', async () => {
+    it('calls authService.logout and clears refresh cookie', async () => {
       mockAuthService.logout.mockResolvedValueOnce(undefined)
+      const response = buildMockResponse()
 
-      await authController.logout(mockUser)
+      await authController.logout(mockUser, response)
 
       expect(mockAuthService.logout).toHaveBeenCalledWith(mockUser.id, mockUser.tokenId)
+      expect(response.clearCookie).toHaveBeenCalledWith('refreshToken', { path: '/api/auth' })
     })
   })
 

@@ -21,7 +21,6 @@ beforeEach(() => {
   vi.clearAllMocks()
   useAuthStore.setState({
     accessToken: 'test-token',
-    refreshToken: null,
     isAuthenticated: true,
     role: 'USER',
   })

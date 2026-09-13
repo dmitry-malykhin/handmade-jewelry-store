@@ -29,7 +29,6 @@ const mockLogoutUser = vi.mocked(logoutUser)
 
 interface AuthSelectorState {
   isAuthenticated: boolean
-  refreshToken: string | null
   accessToken: string | null
   clearTokens: () => void
 }
@@ -40,7 +39,6 @@ function setAuthState(overrides: Partial<AuthSelectorState>): {
   const clearTokens = vi.fn()
   const state: AuthSelectorState = {
     isAuthenticated: false,
-    refreshToken: null,
     accessToken: null,
     clearTokens,
     ...overrides,
@@ -83,7 +81,7 @@ describe('AccountIconButton — unauthenticated', () => {
 
 describe('AccountIconButton — authenticated', () => {
   it('shows My account / My orders / Sign out entries', async () => {
-    setAuthState({ isAuthenticated: true, refreshToken: 'rt' })
+    setAuthState({ isAuthenticated: true, accessToken: 'access-rt' })
     render(<AccountIconButton />)
 
     await userEvent.click(screen.getByRole('button', { name: /account menu/i }))
@@ -100,7 +98,7 @@ describe('AccountIconButton — authenticated', () => {
   })
 
   it('clearTokens + best-effort logoutUser + router.push on Sign out click', async () => {
-    const { clearTokens } = setAuthState({ isAuthenticated: true, refreshToken: 'rt-xyz' })
+    const { clearTokens } = setAuthState({ isAuthenticated: true, accessToken: 'access-xyz' })
     mockLogoutUser.mockResolvedValue(undefined)
     render(<AccountIconButton />)
 
@@ -108,12 +106,12 @@ describe('AccountIconButton — authenticated', () => {
     await userEvent.click(await screen.findByRole('menuitem', { name: /sign out/i }))
 
     await waitFor(() => expect(clearTokens).toHaveBeenCalledTimes(1))
-    expect(mockLogoutUser).toHaveBeenCalledWith('rt-xyz')
+    expect(mockLogoutUser).toHaveBeenCalledWith('access-xyz')
     expect(mockPush).toHaveBeenCalled()
   })
 
   it('swallows logoutUser API failure — local state is still cleared and user is navigated', async () => {
-    const { clearTokens } = setAuthState({ isAuthenticated: true, refreshToken: 'rt-xyz' })
+    const { clearTokens } = setAuthState({ isAuthenticated: true, accessToken: 'access-xyz' })
     mockLogoutUser.mockRejectedValueOnce(new Error('Network down'))
     render(<AccountIconButton />)
 
