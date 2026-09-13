@@ -1,12 +1,23 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { PassportStrategy } from '@nestjs/passport'
+import type { Request } from 'express'
 import { ExtractJwt, Strategy } from 'passport-jwt'
 import { UsersService } from '../../users/users.service'
 import type { JwtPayload } from './jwt.strategy'
 
 export interface JwtRefreshPayload extends JwtPayload {
-  refreshToken: string // raw token extracted from Authorization header for bcrypt.compare
+  refreshToken: string // raw token for bcrypt.compare against stored hash
+}
+
+// Cookie preferred (HttpOnly — XSS cannot read); Authorization header is legacy
+// fallback for old clients still on localStorage during rollout.
+function extractRefreshToken(request: Request): string | null {
+  const cookieToken = (request as unknown as { cookies?: Record<string, string> }).cookies
+    ?.refreshToken
+  if (cookieToken) return cookieToken
+  const authHeader = request.headers.authorization
+  return authHeader?.startsWith('Bearer ') ? authHeader.slice('Bearer '.length) : null
 }
 
 @Injectable()
@@ -16,7 +27,7 @@ export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh'
     private readonly usersService: UsersService,
   ) {
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      jwtFromRequest: ExtractJwt.fromExtractors([extractRefreshToken]),
       ignoreExpiration: false,
       secretOrKey: configService.getOrThrow<string>('JWT_REFRESH_SECRET'),
       // Pin HS256 — blocks alg=none + HS/RS confusion (CVE-2015-9235 class).
@@ -27,11 +38,8 @@ export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh'
     })
   }
 
-  async validate(
-    request: { headers: { authorization?: string } },
-    payload: JwtPayload,
-  ): Promise<JwtRefreshPayload> {
-    const rawRefreshToken = request.headers.authorization?.replace('Bearer ', '') ?? ''
+  async validate(request: Request, payload: JwtPayload): Promise<JwtRefreshPayload> {
+    const rawRefreshToken = extractRefreshToken(request) ?? ''
 
     // Lightweight guard: reject tokens that pre-date the RefreshToken table (no tokenId).
     // Full validation (hash comparison, expiry) happens in AuthService.refreshTokens.

@@ -23,14 +23,17 @@ function decodeJwtPayload(token: string): JwtPayload | null {
 
 interface AuthStore {
   accessToken: string | null
-  refreshToken: string | null
   isAuthenticated: boolean
   role: UserRole | null
 
-  /** Store tokens after successful login or register. */
-  setTokens: (accessToken: string, refreshToken: string) => void
+  /**
+   * Store the access token after login/register/refresh. The refresh token now
+   * lives in an HttpOnly cookie set by the API — never touches JS/localStorage.
+   * 2nd arg ignored — kept for call-site backward compat during rollout.
+   */
+  setTokens: (accessToken: string, _legacyRefreshTokenIgnored?: string) => void
 
-  /** Clear tokens on logout. */
+  /** Clear the access token on logout. Cookie is cleared by the API. */
   clearTokens: () => void
 }
 
@@ -38,27 +41,21 @@ export const useAuthStore = create<AuthStore>()(
   persist(
     (set) => ({
       accessToken: null,
-      refreshToken: null,
       isAuthenticated: false,
       role: null,
 
-      setTokens: (accessToken, refreshToken) => {
+      setTokens: (accessToken) => {
         const payload = decodeJwtPayload(accessToken)
-        set({ accessToken, refreshToken, isAuthenticated: true, role: payload?.role ?? null })
+        set({ accessToken, isAuthenticated: true, role: payload?.role ?? null })
       },
 
       clearTokens: () => {
-        set({ accessToken: null, refreshToken: null, isAuthenticated: false, role: null })
+        set({ accessToken: null, isAuthenticated: false, role: null })
       },
     }),
     {
       name: 'auth-store',
-      // Only persist tokens — isAuthenticated and role are derived on rehydration
-      partialize: (state) => ({
-        accessToken: state.accessToken,
-        refreshToken: state.refreshToken,
-      }),
-      // Derive isAuthenticated and role from persisted tokens on rehydration
+      partialize: (state) => ({ accessToken: state.accessToken }),
       onRehydrateStorage: () => (rehydratedState: AuthStore | undefined) => {
         if (rehydratedState?.accessToken) {
           const payload = decodeJwtPayload(rehydratedState.accessToken)

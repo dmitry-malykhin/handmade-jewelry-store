@@ -5,6 +5,7 @@ import './instrument'
 import { ValidationPipe } from '@nestjs/common'
 import { HttpAdapterHost, NestFactory } from '@nestjs/core'
 import type { NestExpressApplication } from '@nestjs/platform-express'
+import * as cookieParser from 'cookie-parser'
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston'
 import { ProxyAgent, setGlobalDispatcher } from 'undici'
 import { getFrontendUrl } from './common/config/urls'
@@ -34,6 +35,10 @@ async function bootstrap() {
   app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER))
 
   app.setGlobalPrefix('api')
+
+  // Parses Cookie header into req.cookies — used by JwtRefreshStrategy to read
+  // the HttpOnly refresh cookie (XSS-inaccessible, unlike localStorage).
+  app.use(cookieParser())
 
   app.enableCors({
     origin: getFrontendUrl(),

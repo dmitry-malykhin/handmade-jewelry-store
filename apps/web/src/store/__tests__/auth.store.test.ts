@@ -26,7 +26,6 @@ const noRoleJwt =
 beforeEach(() => {
   useAuthStore.setState({
     accessToken: null,
-    refreshToken: null,
     isAuthenticated: false,
     role: null,
   })
@@ -49,7 +48,6 @@ describe('useAuthStore', () => {
       })
 
       expect(result.current.accessToken).toBe(adminJwt)
-      expect(result.current.refreshToken).toBe('refresh-token')
       expect(result.current.isAuthenticated).toBe(true)
     })
 
@@ -106,7 +104,6 @@ describe('useAuthStore', () => {
       })
 
       expect(result.current.role).toBe('ADMIN')
-      expect(result.current.refreshToken).toBe('refresh-token-v2')
     })
   })
 
@@ -116,7 +113,6 @@ describe('useAuthStore', () => {
       // inject a persisted state that only has tokens (no isAuthenticated/role)
       useAuthStore.setState({
         accessToken: adminJwt,
-        refreshToken: 'refresh-token',
         isAuthenticated: false, // not yet derived
         role: null,
       })
@@ -133,7 +129,6 @@ describe('useAuthStore', () => {
     it('leaves isAuthenticated false when accessToken is null in persisted state', () => {
       useAuthStore.setState({
         accessToken: null,
-        refreshToken: null,
         isAuthenticated: false,
         role: null,
       })
@@ -158,7 +153,6 @@ describe('useAuthStore', () => {
       })
 
       expect(result.current.accessToken).toBeNull()
-      expect(result.current.refreshToken).toBeNull()
       expect(result.current.isAuthenticated).toBe(false)
       expect(result.current.role).toBeNull()
     })

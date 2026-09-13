@@ -1,8 +1,19 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Patch, Post, UseGuards } from '@nestjs/common'
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Patch,
+  Post,
+  Res,
+  UseGuards,
+} from '@nestjs/common'
 import { Throttle } from '@nestjs/throttler'
 import type { User } from '@prisma/client'
+import type { Response } from 'express'
 import { CurrentUser } from '../common/decorators/current-user.decorator'
-import { AuthService } from './auth.service'
+import { AuthService, type AuthTokens } from './auth.service'
 import { ChangePasswordDto } from './dto/change-password.dto'
 import { ForgotPasswordDto } from './dto/forgot-password.dto'
 import { LoginDto } from './dto/login.dto'
@@ -14,6 +25,25 @@ import { LocalAuthGuard } from './guards/local-auth.guard'
 import type { JwtRefreshPayload } from './strategies/jwt-refresh.strategy'
 import type { JwtPayload } from './strategies/jwt.strategy'
 
+const REFRESH_COOKIE_NAME = 'refreshToken'
+const REFRESH_COOKIE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000
+
+// HttpOnly + Secure + SameSite=Lax + narrow Path — XSS cannot read this cookie
+// from JS. Lax lets Stripe-return-URL navigation still carry it back.
+function setRefreshCookie(response: Response, refreshToken: string): void {
+  response.cookie(REFRESH_COOKIE_NAME, refreshToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/api/auth',
+    maxAge: REFRESH_COOKIE_MAX_AGE_MS,
+  })
+}
+
+function clearRefreshCookie(response: Response): void {
+  response.clearCookie(REFRESH_COOKIE_NAME, { path: '/api/auth' })
+}
+
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -21,34 +51,55 @@ export class AuthController {
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
   @Throttle({ default: { limit: 3, ttl: 60_000 } })
-  register(@Body() registerDto: RegisterDto) {
-    return this.authService.register(registerDto.email, registerDto.password)
+  async register(
+    @Body() registerDto: RegisterDto,
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<AuthTokens> {
+    const tokens = await this.authService.register(registerDto.email, registerDto.password)
+    setRefreshCookie(response, tokens.refreshToken)
+    return tokens
   }
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
   @Throttle({ default: { limit: 5, ttl: 60_000 } })
   @UseGuards(LocalAuthGuard)
-  login(
+  async login(
     @CurrentUser() user: User,
     // LoginDto is declared here for Swagger documentation — actual validation is done by LocalAuthGuard
     @Body() _loginDto: LoginDto,
-  ) {
-    return this.authService.login(user)
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<AuthTokens> {
+    const tokens = await this.authService.login(user)
+    setRefreshCookie(response, tokens.refreshToken)
+    return tokens
   }
 
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtRefreshGuard)
-  refresh(@CurrentUser() payload: JwtRefreshPayload) {
-    return this.authService.refreshTokens(payload.sub, payload.tokenId, payload.refreshToken)
+  async refresh(
+    @CurrentUser() payload: JwtRefreshPayload,
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<AuthTokens> {
+    const tokens = await this.authService.refreshTokens(
+      payload.sub,
+      payload.tokenId,
+      payload.refreshToken,
+    )
+    setRefreshCookie(response, tokens.refreshToken)
+    return tokens
   }
 
   @Post('logout')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(JwtAuthGuard)
-  logout(@CurrentUser() user: User & Pick<JwtPayload, 'tokenId'>) {
-    return this.authService.logout(user.id, user.tokenId)
+  async logout(
+    @CurrentUser() user: User & Pick<JwtPayload, 'tokenId'>,
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<void> {
+    await this.authService.logout(user.id, user.tokenId)
+    clearRefreshCookie(response)
   }
 
   @Post('forgot-password')
