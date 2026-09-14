@@ -5,17 +5,18 @@ import { useMarketingConsent } from '@/store/cookie-consent.store'
 
 interface PinterestTagProps {
   tagId: string
+  nonce?: string
 }
 
 // lazyOnload: Pinterest Tag is not needed before `window.load` — page_visit
 // still fires reliably from the deferred script.
-export function PinterestTag({ tagId }: PinterestTagProps) {
+export function PinterestTag({ tagId, nonce }: PinterestTagProps) {
   const hasMarketingConsent = useMarketingConsent()
 
   if (!hasMarketingConsent) return null
 
   return (
-    <Script id="pinterest-tag" strategy="lazyOnload">
+    <Script id="pinterest-tag" strategy="lazyOnload" nonce={nonce}>
       {`
         !function(e){if(!window.pintrk){window.pintrk=function(){window.pintrk.queue.push(
         Array.prototype.slice.call(arguments))};var n=window.pintrk;n.queue=[],n.version="3.0";

@@ -7,6 +7,7 @@ import { useAnalyticsConsent } from '@/store/cookie-consent.store'
 
 interface GoogleAnalyticsProps {
   measurementId: string
+  nonce?: string
 }
 
 /**
@@ -14,7 +15,7 @@ interface GoogleAnalyticsProps {
  * Only activates when the user has accepted analytics cookies.
  * send_page_view: false — we send page_view manually to capture SPA navigations.
  */
-export function GoogleAnalytics({ measurementId }: GoogleAnalyticsProps) {
+export function GoogleAnalytics({ measurementId, nonce }: GoogleAnalyticsProps) {
   const hasAnalyticsConsent = useAnalyticsConsent()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -33,8 +34,9 @@ export function GoogleAnalytics({ measurementId }: GoogleAnalyticsProps) {
       <Script
         src={`https://www.googletagmanager.com/gtag/js?id=${measurementId}`}
         strategy="afterInteractive"
+        nonce={nonce}
       />
-      <Script id="google-analytics" strategy="afterInteractive">
+      <Script id="google-analytics" strategy="afterInteractive" nonce={nonce}>
         {`
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}

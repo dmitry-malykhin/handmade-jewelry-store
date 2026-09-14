@@ -5,17 +5,18 @@ import { useMarketingConsent } from '@/store/cookie-consent.store'
 
 interface FacebookPixelProps {
   pixelId: string
+  nonce?: string
 }
 
 // lazyOnload: FB Pixel is not needed on LCP path — deferring until `window.load`
 // shaves ~50-100 KiB of blocking JS off first paint.
-export function FacebookPixel({ pixelId }: FacebookPixelProps) {
+export function FacebookPixel({ pixelId, nonce }: FacebookPixelProps) {
   const hasMarketingConsent = useMarketingConsent()
 
   if (!hasMarketingConsent) return null
 
   return (
-    <Script id="fb-pixel" strategy="lazyOnload">
+    <Script id="fb-pixel" strategy="lazyOnload" nonce={nonce}>
       {`
         !function(f,b,e,v,n,t,s)
         {if(f.fbq)return;n=f.fbq=function(){n.callMethod?

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
+import { readCspNonce } from '@/lib/csp-nonce'
 import { buildLocaleAlternates } from '@/lib/seo/alternates'
 import { generateHowToJsonLd } from '@/lib/seo/json-ld'
 import { RingSizeTable } from './_components/ring-size-table'
@@ -45,11 +46,14 @@ export default async function RingSizeGuidePage({ params }: RingSizeGuidePagePro
     ],
   })
 
+  const nonce = await readCspNonce()
+
   return (
     <main className="mx-auto max-w-3xl px-4 py-12 sm:px-6 sm:py-16">
       {/* JSON-LD HowTo for SEO rich results */}
       <script
         type="application/ld+json"
+        nonce={nonce}
         dangerouslySetInnerHTML={{ __html: JSON.stringify(howToJsonLd) }}
       />
 
