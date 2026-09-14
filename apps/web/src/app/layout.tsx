@@ -80,6 +80,8 @@ const jost = Jost({
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const headersList = await headers()
   const locale = headersList.get('x-next-intl-locale') ?? 'en'
+  // Middleware sets x-nonce; empty in dev (no CSP) or where middleware skips.
+  const nonce = headersList.get('x-nonce') ?? ''
   const imageCdnOrigin = getImageCdnOrigin()
 
   return (
@@ -107,14 +109,17 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           <Toaster richColors position="top-right" />
           {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
             <Suspense fallback={null}>
-              <GoogleAnalytics measurementId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} />
+              <GoogleAnalytics
+                measurementId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}
+                nonce={nonce}
+              />
             </Suspense>
           )}
           {process.env.NEXT_PUBLIC_FB_PIXEL_ID && (
-            <FacebookPixel pixelId={process.env.NEXT_PUBLIC_FB_PIXEL_ID} />
+            <FacebookPixel pixelId={process.env.NEXT_PUBLIC_FB_PIXEL_ID} nonce={nonce} />
           )}
           {process.env.NEXT_PUBLIC_PINTEREST_TAG_ID && (
-            <PinterestTag tagId={process.env.NEXT_PUBLIC_PINTEREST_TAG_ID} />
+            <PinterestTag tagId={process.env.NEXT_PUBLIC_PINTEREST_TAG_ID} nonce={nonce} />
           )}
           {process.env.NEXT_PUBLIC_KLAVIYO_COMPANY_ID && (
             <Klaviyo companyId={process.env.NEXT_PUBLIC_KLAVIYO_COMPANY_ID} />
@@ -128,7 +133,10 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
             </Suspense>
           )}
           {process.env.NEXT_PUBLIC_CLARITY_PROJECT_ID && (
-            <MicrosoftClarity projectId={process.env.NEXT_PUBLIC_CLARITY_PROJECT_ID} />
+            <MicrosoftClarity
+              projectId={process.env.NEXT_PUBLIC_CLARITY_PROJECT_ID}
+              nonce={nonce}
+            />
           )}
         </ThemeProvider>
       </body>

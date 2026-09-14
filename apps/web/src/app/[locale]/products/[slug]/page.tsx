@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
+import { readCspNonce } from '@/lib/csp-nonce'
 import { fetchProductBySlug } from '@/lib/api/products'
 import { generateBreadcrumbJsonLd, generateProductJsonLd } from '@/lib/seo/json-ld'
 import { buildLocaleAlternates } from '@/lib/seo/alternates'
@@ -91,14 +92,18 @@ export default async function ProductPage({ params }: ProductPageProps) {
     { name: product.title, href: `/${locale}/products/${slug}` },
   ])
 
+  const nonce = await readCspNonce()
+
   return (
     <>
       <script
         type="application/ld+json"
+        nonce={nonce}
         dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
       />
       <script
         type="application/ld+json"
+        nonce={nonce}
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
 

@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { notFound } from 'next/navigation'
 import { NextIntlClientProvider } from 'next-intl'
 import { getMessages, getTranslations, setRequestLocale } from 'next-intl/server'
+import { readCspNonce } from '@/lib/csp-nonce'
 import { routing, type Locale } from '@/i18n/routing'
 import { Header } from '@/components/shared/header'
 import { Footer } from '@/components/shared/footer'
@@ -37,6 +38,7 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
   setRequestLocale(locale)
 
   const messages = await getMessages()
+  const nonce = await readCspNonce()
 
   const organizationJsonLd = generateOrganizationJsonLd()
 
@@ -46,6 +48,7 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
         {/* Organization structured data — rendered once per locale layout for Google */}
         <script
           type="application/ld+json"
+          nonce={nonce}
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
         />
         <StoreHydration />

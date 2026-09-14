@@ -4,7 +4,7 @@ import {
   subSuite as $allureSubSuite,
   severity as $allureSeverity,
 } from 'allure-js-commons'
-import { getSecurityHeaders } from '../security-headers'
+import { buildContentSecurityPolicy, getSecurityHeaders } from '../security-headers'
 
 beforeEach(async () => {
   if (!process.env.CI) return
@@ -36,77 +36,8 @@ describe('getSecurityHeaders — production-only headers', () => {
     expect(hsts?.value).toBe('max-age=63072000; includeSubDomains; preload')
   })
 
-  it('emits Content-Security-Policy with all required directives', () => {
-    const csp = getHeader(getSecurityHeaders('production'), 'Content-Security-Policy')?.value ?? ''
-
-    expect(csp).toContain("default-src 'self'")
-    expect(csp).toContain('script-src')
-    expect(csp).toContain('connect-src')
-    expect(csp).toContain("img-src 'self' data: https:")
-    expect(csp).toContain("style-src 'self' 'unsafe-inline'")
-    expect(csp).toContain("font-src 'self' data:")
-    expect(csp).toContain('frame-src')
-    expect(csp).toContain("worker-src 'self' blob:")
-    expect(csp).toContain("object-src 'none'")
-    expect(csp).toContain("base-uri 'self'")
-    expect(csp).toContain("form-action 'self'")
-  })
-
-  it.each([
-    'https://js.stripe.com',
-    'https://www.googletagmanager.com',
-    'https://connect.facebook.net',
-    'https://static.klaviyo.com',
-    'https://us.i.posthog.com',
-    'https://us-assets.i.posthog.com',
-    'https://www.clarity.ms',
-  ])('CSP script-src whitelists %s (third-party SDK host)', (host) => {
-    const csp = getHeader(getSecurityHeaders('production'), 'Content-Security-Policy')?.value ?? ''
-    expect(csp).toContain(host)
-  })
-
-  it.each(['https://js.stripe.com', 'https://hooks.stripe.com'])(
-    'CSP frame-src whitelists %s (Stripe Elements + 3DS challenge)',
-    (host) => {
-      const csp =
-        getHeader(getSecurityHeaders('production'), 'Content-Security-Policy')?.value ?? ''
-      expect(csp).toContain(host)
-    },
-  )
-
-  describe('CSP connect-src — explicit allowlist (no wildcard schemes)', () => {
-    function getConnectSrcDirective(): string {
-      const csp =
-        getHeader(getSecurityHeaders('production'), 'Content-Security-Policy')?.value ?? ''
-      const found = csp.split(';').find((directive) => directive.trim().startsWith('connect-src'))
-      return found?.trim() ?? ''
-    }
-
-    it.each([' http:', ' https:', ' wss:', ' ws:'])(
-      'does NOT contain wildcard scheme "%s" (would allow XSS exfiltration to any host)',
-      (badToken) => {
-        const connectSrc = getConnectSrcDirective()
-        // Trailing space + colon delimits a bare scheme token (vs "https://x.com").
-        expect(connectSrc).not.toMatch(new RegExp(`${badToken.trim()}\\s|${badToken.trim()}$`))
-      },
-    )
-
-    it.each([
-      'https://us.i.posthog.com',
-      'https://www.google-analytics.com',
-      'https://www.facebook.com',
-      'https://ct.pinterest.com',
-      'https://*.clarity.ms',
-      'https://*.klaviyo.com',
-      'https://api.stripe.com',
-      'https://*.ingest.sentry.io',
-    ])('whitelists %s (analytics/payment/error ingest)', (host) => {
-      expect(getConnectSrcDirective()).toContain(host)
-    })
-
-    it("includes 'self' as the first allowed source", () => {
-      expect(getConnectSrcDirective()).toMatch(/^connect-src 'self'/)
-    })
+  it('does NOT emit Content-Security-Policy — middleware sets it per-request with nonce', () => {
+    expect(getHeader(getSecurityHeaders('production'), 'Content-Security-Policy')).toBeUndefined()
   })
 
   it('emits Cross-Origin-Opener-Policy: same-origin and Cross-Origin-Resource-Policy: same-site', () => {
@@ -126,14 +57,6 @@ describe('getSecurityHeaders — non-production environments', () => {
   )
 
   it.each(['development', 'test', undefined])(
-    'does NOT emit CSP (NODE_ENV=%s) — Next.js HMR uses eval() and inline scripts that fail prod policy',
-    (nodeEnv) => {
-      const headers = getSecurityHeaders(nodeEnv)
-      expect(getHeader(headers, 'Content-Security-Policy')).toBeUndefined()
-    },
-  )
-
-  it.each(['development', 'test', undefined])(
     'does NOT emit COOP / CORP (NODE_ENV=%s)',
     (nodeEnv) => {
       const headers = getSecurityHeaders(nodeEnv)
@@ -141,4 +64,96 @@ describe('getSecurityHeaders — non-production environments', () => {
       expect(getHeader(headers, 'Cross-Origin-Resource-Policy')).toBeUndefined()
     },
   )
+})
+
+describe('buildContentSecurityPolicy — with nonce', () => {
+  const NONCE = 'abc123RandomBase64'
+  function getCsp() {
+    return buildContentSecurityPolicy(NONCE)
+  }
+  function getDirective(name: string): string {
+    const found = getCsp()
+      .split(';')
+      .find((directive) => directive.trim().startsWith(name))
+    return found?.trim() ?? ''
+  }
+
+  it('all required directives present', () => {
+    const csp = getCsp()
+    expect(csp).toContain("default-src 'self'")
+    expect(csp).toContain('script-src')
+    expect(csp).toContain('connect-src')
+    expect(csp).toContain("img-src 'self' data: https:")
+    expect(csp).toContain("style-src 'self' 'unsafe-inline'")
+    expect(csp).toContain("font-src 'self' data:")
+    expect(csp).toContain('frame-src')
+    expect(csp).toContain("worker-src 'self' blob:")
+    expect(csp).toContain("object-src 'none'")
+    expect(csp).toContain("base-uri 'self'")
+    expect(csp).toContain("form-action 'self'")
+  })
+
+  it('script-src pins nonce + strict-dynamic (blocks XSS-injected inline scripts)', () => {
+    const scriptSrc = getDirective('script-src')
+    expect(scriptSrc).toContain(`'nonce-${NONCE}'`)
+    expect(scriptSrc).toContain("'strict-dynamic'")
+  })
+
+  it("script-src does NOT contain 'unsafe-inline' when nonce is provided", () => {
+    expect(getDirective('script-src')).not.toContain("'unsafe-inline'")
+  })
+
+  it.each([
+    'https://js.stripe.com',
+    'https://www.googletagmanager.com',
+    'https://connect.facebook.net',
+    'https://static.klaviyo.com',
+    'https://us.i.posthog.com',
+    'https://us-assets.i.posthog.com',
+    'https://www.clarity.ms',
+  ])('script-src still whitelists %s (third-party SDK host)', (host) => {
+    expect(getDirective('script-src')).toContain(host)
+  })
+
+  it.each(['https://js.stripe.com', 'https://hooks.stripe.com'])(
+    'frame-src whitelists %s (Stripe Elements + 3DS challenge)',
+    (host) => {
+      expect(getDirective('frame-src')).toContain(host)
+    },
+  )
+
+  describe('connect-src — explicit allowlist (no wildcard schemes)', () => {
+    it.each([' http:', ' https:', ' wss:', ' ws:'])(
+      'does NOT contain wildcard scheme "%s"',
+      (badToken) => {
+        const connectSrc = getDirective('connect-src')
+        expect(connectSrc).not.toMatch(new RegExp(`${badToken.trim()}\\s|${badToken.trim()}$`))
+      },
+    )
+
+    it.each([
+      'https://us.i.posthog.com',
+      'https://www.google-analytics.com',
+      'https://www.facebook.com',
+      'https://ct.pinterest.com',
+      'https://*.clarity.ms',
+      'https://*.klaviyo.com',
+      'https://api.stripe.com',
+      'https://*.ingest.sentry.io',
+    ])('whitelists %s (analytics/payment/error ingest)', (host) => {
+      expect(getDirective('connect-src')).toContain(host)
+    })
+
+    it("includes 'self' as the first allowed source", () => {
+      expect(getDirective('connect-src')).toMatch(/^connect-src 'self'/)
+    })
+  })
+})
+
+describe('buildContentSecurityPolicy — without nonce (build-time fallback)', () => {
+  it("falls back to 'unsafe-inline' when no nonce is provided (static-header path)", () => {
+    const csp = buildContentSecurityPolicy()
+    expect(csp).toContain("script-src 'self' 'unsafe-inline'")
+    expect(csp).not.toContain("'nonce-")
+  })
 })

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
+import { readCspNonce } from '@/lib/csp-nonce'
 import { buildLocaleAlternates } from '@/lib/seo/alternates'
 import { generateFaqJsonLd } from '@/lib/seo/json-ld'
 
@@ -53,10 +54,13 @@ export default async function FaqPage({ params }: FaqPageProps) {
     })),
   )
 
+  const nonce = await readCspNonce()
+
   return (
     <main className="mx-auto max-w-3xl px-4 py-12 sm:px-6 sm:py-16">
       <script
         type="application/ld+json"
+        nonce={nonce}
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
 

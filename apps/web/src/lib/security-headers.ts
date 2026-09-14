@@ -69,15 +69,20 @@ function extractOrigin(url: string | undefined): string | null {
   }
 }
 
-function buildContentSecurityPolicy(): string {
+// Build CSP with a per-request nonce. Without nonce (static build-time CSP)
+// falls back to unsafe-inline — but that path is only used when middleware is
+// bypassed. Runtime path is always nonce-based via middleware.
+export function buildContentSecurityPolicy(nonce?: string): string {
   const apiOrigin = extractOrigin(process.env.NEXT_PUBLIC_API_URL)
   const connectSrcHosts = apiOrigin ? [apiOrigin, ...CONNECT_SRC_HOSTS] : CONNECT_SRC_HOSTS
+  // strict-dynamic: a nonce'd script may load additional scripts (Next.js
+  // hydration chunks). Explicit host allowlist stays for browsers ignoring it.
+  const scriptSrc = nonce
+    ? `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' ${SCRIPT_SRC_HOSTS.join(' ')}`
+    : `script-src 'self' 'unsafe-inline' ${SCRIPT_SRC_HOSTS.join(' ')}`
   return [
     "default-src 'self'",
-    // 'unsafe-inline': Next.js App Router emits inline <script> chunks for
-    // streaming. A nonce-based policy would be cleaner but requires every
-    // third-party SDK to support nonces — none of ours do.
-    `script-src 'self' 'unsafe-inline' ${SCRIPT_SRC_HOSTS.join(' ')}`,
+    scriptSrc,
     `connect-src 'self' ${connectSrcHosts.join(' ')}`,
     // CDN images (R2 / S3) + base64 data URIs (next/image blur placeholders)
     "img-src 'self' data: https:",
@@ -116,7 +121,7 @@ function productionOnlyHeaders(): SecurityHeader[] {
       key: 'Strict-Transport-Security',
       value: 'max-age=63072000; includeSubDomains; preload',
     },
-    { key: 'Content-Security-Policy', value: buildContentSecurityPolicy() },
+    // Content-Security-Policy is set by middleware with a per-request nonce.
     // Cross-origin isolation. same-origin lets OAuth popups still postMessage
     // back; same-site lets our own CDN serve images without CORP rejections.
     { key: 'Cross-Origin-Opener-Policy', value: 'same-origin' },
