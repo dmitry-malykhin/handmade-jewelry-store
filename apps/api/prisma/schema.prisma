@@ -24,15 +24,15 @@ enum Role {
 }
 
 enum OrderStatus {
-  PENDING            // Order created, awaiting payment confirmation
-  PAID               // Payment confirmed via Stripe webhook
-  PROCESSING         // Item being packed or manufactured
-  SHIPPED            // Tracking number added, parcel dispatched
-  DELIVERED          // Confirmed by customer or auto after 14 days
-  CANCELLED          // Order cancelled (allowed before SHIPPED)
-  REFUNDED           // Full refund executed via Stripe
+  PENDING // Order created, awaiting payment confirmation
+  PAID // Payment confirmed via Stripe webhook
+  PROCESSING // Item being packed or manufactured
+  SHIPPED // Tracking number added, parcel dispatched
+  DELIVERED // Confirmed by customer or auto after 14 days
+  CANCELLED // Order cancelled (allowed before SHIPPED)
+  REFUNDED // Full refund executed via Stripe
   PARTIALLY_REFUNDED // Partial refund — e.g. MADE_TO_ORDER cancelled mid-production
-  ON_HOLD            // Chargeback dispute or fraud flag — admin action required
+  ON_HOLD // Chargeback dispute or fraud flag — admin action required
 }
 
 enum PaymentStatus {
@@ -44,77 +44,81 @@ enum PaymentStatus {
 }
 
 enum ProductStatus {
-  ACTIVE   // Visible in catalog and search
-  DRAFT    // Hidden from public catalog, editable by admin
+  ACTIVE // Visible in catalog and search
+  DRAFT // Hidden from public catalog, editable by admin
   ARCHIVED // Discontinued, hidden from catalog, read-only
 }
 
 enum StockType {
-  IN_STOCK      // Ready item on shelf — ships in 1-2 days
+  IN_STOCK // Ready item on shelf — ships in 1-2 days
   MADE_TO_ORDER // Made after payment — productionDays applies
   ONE_OF_A_KIND // Unique piece, 1 unit, ships like IN_STOCK
 }
 
 enum CancelReason {
   CUSTOMER_REQUEST // Customer changed their mind
-  DUPLICATE_ORDER  // Customer placed the same order twice
-  OUT_OF_STOCK     // Materials unavailable (force majeure)
-  PAYMENT_FAILED   // Technical payment failure
-  SHIPPING_ISSUE   // Delivery problem
-  ITEM_DAMAGED     // Defect found before shipment (handmade-specific)
-  FRAUD_SUSPECTED  // Fraud signal
+  DUPLICATE_ORDER // Customer placed the same order twice
+  OUT_OF_STOCK // Materials unavailable (force majeure)
+  PAYMENT_FAILED // Technical payment failure
+  SHIPPING_ISSUE // Delivery problem
+  ITEM_DAMAGED // Defect found before shipment (handmade-specific)
+  FRAUD_SUSPECTED // Fraud signal
   OTHER
 }
 
 enum RefundReason {
-  ITEM_DAMAGED          // Damage in transit or quality issue
+  ITEM_DAMAGED // Damage in transit or quality issue
   ITEM_NOT_AS_DESCRIBED // Mismatch with product description
   CUSTOMER_CHANGED_MIND // Return-policy refund
-  DUPLICATE_ORDER       // Customer paid twice for same order
+  DUPLICATE_ORDER // Customer paid twice for same order
   OTHER
 }
 
 enum ProductionStatus {
-  QUEUED         // Paid, not yet started — default for orders with MTO items
-  IN_PRODUCTION  // Maker actively crafting the piece
-  READY_TO_SHIP  // Finished, awaiting tracking number / dispatch
+  QUEUED // Paid, not yet started — default for orders with MTO items
+  IN_PRODUCTION // Maker actively crafting the piece
+  READY_TO_SHIP // Finished, awaiting tracking number / dispatch
 }
 
 enum DiscountType {
-  PERCENTAGE   // value is 1-100, applied as percent off subtotal
+  PERCENTAGE // value is 1-100, applied as percent off subtotal
   FIXED_AMOUNT // value is in cents, flat $ off
 }
 
 // ─── Models ──────────────────────────────────────────────────────────────────
 
 model User {
-  id                   String         @id @default(cuid())
-  email                String         @unique
-  password             String
-  role                 Role           @default(USER)
+  id                       String               @id @default(cuid())
+  email                    String               @unique
+  password                 String
+  role                     Role                 @default(USER)
   // Hashed password reset token — cleared after use or expiry (1h window)
-  passwordResetToken   String?
-  passwordResetTokenAt DateTime?
+  passwordResetToken       String?
+  passwordResetTokenAt     DateTime?
+  // Email verification — timestamp set on successful verify; null blocks login.
+  emailVerifiedAt          DateTime?
+  emailVerificationToken   String?
+  emailVerificationTokenAt DateTime?
   // Loyalty points balance (#124). 1 point = $0.01 USD. Earned at DELIVERED,
   // reversed on CANCELLED/REFUNDED, spent at checkout. The canonical truth
   // lives here — LoyaltyTransaction is the audit log.
-  loyaltyBalance       Int            @default(0)
-  refreshTokens        RefreshToken[]
-  orders               Order[]
-  reviews              Review[]
-  wishlist             Wishlist?
-  addresses            Address[]
-  loyaltyTransactions  LoyaltyTransaction[]
-  createdAt            DateTime       @default(now())
-  updatedAt            DateTime       @updatedAt
+  loyaltyBalance           Int                  @default(0)
+  refreshTokens            RefreshToken[]
+  orders                   Order[]
+  reviews                  Review[]
+  wishlist                 Wishlist?
+  addresses                Address[]
+  loyaltyTransactions      LoyaltyTransaction[]
+  createdAt                DateTime             @default(now())
+  updatedAt                DateTime             @updatedAt
 }
 
 // Audit log of every loyalty point movement (#124). Append-only — we never
 // edit or delete rows; a corrected mistake becomes a REVERSED entry. The
 // sum of `points` across all rows for a user must equal User.loyaltyBalance.
 enum LoyaltyTransactionType {
-  EARNED   // Awarded when an order transitions to DELIVERED
-  SPENT    // Used at checkout to reduce order total
+  EARNED // Awarded when an order transitions to DELIVERED
+  SPENT // Used at checkout to reduce order total
   REVERSED // Awarded points clawed back on CANCELLED / REFUNDED orders
 }
 
@@ -126,7 +130,7 @@ model LoyaltyTransaction {
   // SUM(points) = current balance without per-row sign arithmetic.
   points    Int
   type      LoyaltyTransactionType
-  orderId   String?                // null only for future manual admin adjustments
+  orderId   String? // null only for future manual admin adjustments
   // Human-readable note shown in the account page transaction list.
   note      String?
   createdAt DateTime               @default(now())
@@ -182,20 +186,20 @@ model Category {
 }
 
 model Product {
-  id             String     @id @default(cuid())
+  id             String        @id @default(cuid())
   title          String
   description    String
-  price          Decimal    @db.Decimal(10, 2)
+  price          Decimal       @db.Decimal(10, 2)
   // Binary stock — 0 (made on order) or 1 (one piece ready). DB-level CHECK constraint
   // installed in migration 20260501000000_stock_zero_or_one_check.
-  stock          Int        @default(0)
-  images         String[]   // S3 URLs, uploaded in Issue #21
-  slug           String     @unique // mandatory for SEO URLs: /products/silver-ring
-  sku            String?             // for Google Shopping feed
-  weight         Float?              // grams, for shipping cost calculation
-  material       String?             // "Sterling Silver 925"
-  avgRating      Float      @default(0)
-  reviewCount    Int        @default(0)
+  stock          Int           @default(0)
+  images         String[] // S3 URLs, uploaded in Issue #21
+  slug           String        @unique // mandatory for SEO URLs: /products/silver-ring
+  sku            String? // for Google Shopping feed
+  weight         Float? // grams, for shipping cost calculation
+  material       String? // "Sterling Silver 925"
+  avgRating      Float         @default(0)
+  reviewCount    Int           @default(0)
   status         ProductStatus @default(ACTIVE)
   stockType      StockType     @default(IN_STOCK)
   productionDays Int           @default(0) // 0 = in stock; 3-7 = made to order
@@ -208,24 +212,24 @@ model Product {
   weightGrams Float? // display weight in grams (universal in jewelry — never convert)
   beadSizeMm  Float? // bead diameter in mm (industry standard — never convert)
 
-  categoryId     String
-  category       Category   @relation(fields: [categoryId], references: [id])
-  orderItems     OrderItem[]
-  reviews        Review[]
-  wishlists      Wishlist[] @relation("WishlistProducts")
-  createdAt      DateTime   @default(now())
-  updatedAt      DateTime   @updatedAt
+  categoryId String
+  category   Category    @relation(fields: [categoryId], references: [id])
+  orderItems OrderItem[]
+  reviews    Review[]
+  wishlists  Wishlist[]  @relation("WishlistProducts")
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
 }
 
 model Order {
-  id              String        @id @default(cuid())
-  userId          String?       // nullable: guest checkout supported
-  user            User?         @relation(fields: [userId], references: [id])
-  guestEmail      String?       // email for guest orders — used for confirmation emails
-  status          OrderStatus   @default(PENDING)
-  total           Decimal       @db.Decimal(10, 2)
-  subtotal        Decimal       @db.Decimal(10, 2) // before discounts/shipping
-  shippingCost    Decimal       @db.Decimal(10, 2) @default(0)
+  id           String      @id @default(cuid())
+  userId       String? // nullable: guest checkout supported
+  user         User?       @relation(fields: [userId], references: [id])
+  guestEmail   String? // email for guest orders — used for confirmation emails
+  status       OrderStatus @default(PENDING)
+  total        Decimal     @db.Decimal(10, 2)
+  subtotal     Decimal     @db.Decimal(10, 2) // before discounts/shipping
+  shippingCost Decimal     @default(0) @db.Decimal(10, 2)
 
   // Shipping address — JSON snapshot at checkout time (not FK; address may change later)
   shippingAddress Json
@@ -240,27 +244,27 @@ model Order {
   // EasyPost (#125) — populated when admin clicks "Purchase Label". In dry-run
   // mode (no EASYPOST_API_KEY) the mock client still fills these so the UI
   // exercises the same code paths as the live integration.
-  easypostShipmentId      String? // Shipment object id from EasyPost
-  easypostTrackerId       String? // Tracker id used by webhook callbacks
-  labelUrl                String? // PDF/PNG URL of the purchased shipping label
-  shippingInsuranceCents  Int     @default(0) // 0 = no insurance purchased
+  easypostShipmentId     String? // Shipment object id from EasyPost
+  easypostTrackerId      String? // Tracker id used by webhook callbacks
+  labelUrl               String? // PDF/PNG URL of the purchased shipping label
+  shippingInsuranceCents Int     @default(0) // 0 = no insurance purchased
 
   // Cancellation
   cancelledAt  DateTime?
   cancelReason CancelReason?
-  cancelNote   String?       // human-readable note shown to customer
+  cancelNote   String? // human-readable note shown to customer
 
   // Refund
   refundedAt   DateTime?
   refundAmount Decimal?      @db.Decimal(10, 2) // may be less than total (partial refund)
   refundReason RefundReason?
-  refundNote   String?       // admin-facing internal note shown in refunds list
+  refundNote   String? // admin-facing internal note shown in refunds list
 
   // Production tracking — only meaningful when order contains MADE_TO_ORDER
   // items. Defaults to QUEUED so the admin /production board surfaces every
   // newly-paid MTO order without an explicit admin step.
   productionStatus ProductionStatus @default(QUEUED)
-  productionNotes  String?          // admin-only context ("customer wants extra polish")
+  productionNotes  String? // admin-only context ("customer wants extra polish")
 
   // Loyalty points — Post-MVP; schema added now to avoid future migration
   loyaltyPointsUsed   Int @default(0) // 1 point = $0.01
@@ -290,8 +294,8 @@ model OrderStatusHistory {
   order      Order        @relation(fields: [orderId], references: [id])
   fromStatus OrderStatus? // null for the initial PENDING entry
   toStatus   OrderStatus
-  note       String?      // admin comment
-  createdBy  String?      // userId or "system" for automatic transitions
+  note       String? // admin comment
+  createdBy  String? // userId or "system" for automatic transitions
   createdAt  DateTime     @default(now())
 }
 
@@ -299,9 +303,9 @@ model OrderItem {
   id              String   @id @default(cuid())
   orderId         String
   order           Order    @relation(fields: [orderId], references: [id])
-  productId       String?  // nullable: product may be deleted after order
+  productId       String? // nullable: product may be deleted after order
   product         Product? @relation(fields: [productId], references: [id])
-  productSnapshot Json     // { title, slug, sku, image } — snapshot at purchase time
+  productSnapshot Json // { title, slug, sku, image } — snapshot at purchase time
   quantity        Int
   price           Decimal  @db.Decimal(10, 2) // snapshot of price at purchase time
 }
@@ -328,7 +332,7 @@ enum ReviewStatus {
 
 model Review {
   id              String       @id @default(cuid())
-  rating          Int          // 1–5 stars
+  rating          Int // 1–5 stars
   comment         String?
   status          ReviewStatus @default(PENDING)
   // Seller (admin) reply shown publicly under the customer review. Optional —
@@ -343,7 +347,7 @@ model Review {
   createdAt       DateTime     @default(now())
 
   @@unique([userId, productId]) // one review per user per product
-  @@index([status])             // admin filter by status
+  @@index([status]) // admin filter by status
 }
 
 model Wishlist {
@@ -360,11 +364,11 @@ model Discount {
   id            String       @id @default(cuid())
   code          String       @unique // UPPERCASE; service normalises on write/read
   type          DiscountType
-  value         Int          // PERCENTAGE: 1-100, FIXED_AMOUNT: cents
+  value         Int // PERCENTAGE: 1-100, FIXED_AMOUNT: cents
   minOrderCents Int          @default(0) // 0 = no minimum
-  maxUsages     Int?         // null = unlimited
+  maxUsages     Int? // null = unlimited
   usageCount    Int          @default(0)
-  expiresAt     DateTime?    // null = never expires
+  expiresAt     DateTime? // null = never expires
   isActive      Boolean      @default(true)
   // Soft delete keeps historical orders referencing the code while hiding
   // it from the admin list and rejecting it at the validate endpoint.

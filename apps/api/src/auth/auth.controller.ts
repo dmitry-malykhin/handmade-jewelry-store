@@ -18,7 +18,9 @@ import { ChangePasswordDto } from './dto/change-password.dto'
 import { ForgotPasswordDto } from './dto/forgot-password.dto'
 import { LoginDto } from './dto/login.dto'
 import { RegisterDto } from './dto/register.dto'
+import { ResendVerificationDto } from './dto/resend-verification.dto'
 import { ResetPasswordDto } from './dto/reset-password.dto'
+import { VerifyEmailDto } from './dto/verify-email.dto'
 import { JwtAuthGuard } from './guards/jwt-auth.guard'
 import { JwtRefreshGuard } from './guards/jwt-refresh.guard'
 import { LocalAuthGuard } from './guards/local-auth.guard'
@@ -51,13 +53,26 @@ export class AuthController {
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
   @Throttle({ default: { limit: 3, ttl: 60_000 } })
-  async register(
-    @Body() registerDto: RegisterDto,
-    @Res({ passthrough: true }) response: Response,
-  ): Promise<AuthTokens> {
-    const tokens = await this.authService.register(registerDto.email, registerDto.password)
-    setRefreshCookie(response, tokens.refreshToken)
-    return tokens
+  async register(@Body() registerDto: RegisterDto): Promise<{ email: string }> {
+    return this.authService.register(registerDto.email, registerDto.password)
+  }
+
+  @Post('verify-email')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  async verifyEmail(@Body() verifyEmailDto: VerifyEmailDto): Promise<{ verified: true }> {
+    await this.authService.verifyEmail(verifyEmailDto.token)
+    return { verified: true }
+  }
+
+  @Post('resend-verification')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 3, ttl: 60_000 } })
+  async resendVerification(
+    @Body() resendVerificationDto: ResendVerificationDto,
+  ): Promise<{ status: 'ok' }> {
+    await this.authService.resendVerificationEmail(resendVerificationDto.email)
+    return { status: 'ok' }
   }
 
   @Post('login')

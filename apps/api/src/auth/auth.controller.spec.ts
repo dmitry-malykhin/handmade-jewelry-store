@@ -15,6 +15,9 @@ const mockUser = {
   role: Role.USER,
   tokenId: 'mock-token-id',
   passwordResetToken: null,
+  emailVerifiedAt: new Date(),
+  emailVerificationToken: null,
+  emailVerificationTokenAt: null,
   passwordResetTokenAt: null,
   loyaltyBalance: 0,
   createdAt: new Date(),
@@ -28,6 +31,8 @@ const mockAuthService = {
   login: jest.fn(),
   refreshTokens: jest.fn(),
   logout: jest.fn(),
+  verifyEmail: jest.fn(),
+  resendVerificationEmail: jest.fn(),
 }
 
 beforeEach(async () => {
@@ -58,22 +63,38 @@ describe('AuthController', () => {
   }
 
   describe('register', () => {
-    it('calls authService.register and sets refresh cookie', async () => {
-      mockAuthService.register.mockResolvedValueOnce(mockTokens)
-      const response = buildMockResponse()
+    it('calls authService.register and returns just the email (no session started)', async () => {
+      mockAuthService.register.mockResolvedValueOnce({ email: 'new@example.com' })
 
-      const result = await authController.register(
-        { email: 'new@example.com', password: 'password123' },
-        response,
-      )
+      const result = await authController.register({
+        email: 'new@example.com',
+        password: 'password123',
+      })
 
       expect(mockAuthService.register).toHaveBeenCalledWith('new@example.com', 'password123')
-      expect(result).toEqual(mockTokens)
-      expect(response.cookie).toHaveBeenCalledWith(
-        'refreshToken',
-        mockTokens.refreshToken,
-        expect.objectContaining({ httpOnly: true, sameSite: 'lax', path: '/api/auth' }),
-      )
+      expect(result).toEqual({ email: 'new@example.com' })
+    })
+  })
+
+  describe('verify-email', () => {
+    it('delegates to authService.verifyEmail with the token and returns { verified: true }', async () => {
+      mockAuthService.verifyEmail.mockResolvedValueOnce(undefined)
+
+      const result = await authController.verifyEmail({ token: 'plain-verify-token' })
+
+      expect(mockAuthService.verifyEmail).toHaveBeenCalledWith('plain-verify-token')
+      expect(result).toEqual({ verified: true })
+    })
+  })
+
+  describe('resend-verification', () => {
+    it('delegates to authService.resendVerificationEmail with the email', async () => {
+      mockAuthService.resendVerificationEmail.mockResolvedValueOnce(undefined)
+
+      const result = await authController.resendVerification({ email: 'test@example.com' })
+
+      expect(mockAuthService.resendVerificationEmail).toHaveBeenCalledWith('test@example.com')
+      expect(result).toEqual({ status: 'ok' })
     })
   })
 

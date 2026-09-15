@@ -17,6 +17,10 @@ import {
   buildPasswordResetEmail,
   type PasswordResetEmailData,
 } from './templates/password-reset.template'
+import {
+  buildEmailVerificationEmail,
+  type EmailVerificationData,
+} from './templates/email-verification.template'
 import { buildWelcomeEmail, type WelcomeEmailData } from './templates/welcome.template'
 import {
   buildContactMessageEmail,
@@ -70,6 +74,11 @@ export class EmailService {
 
   async sendPasswordReset(data: PasswordResetEmailData): Promise<void> {
     const { subject, html } = buildPasswordResetEmail(data)
+    await this.send({ to: data.recipientEmail, subject, html })
+  }
+
+  async sendEmailVerification(data: EmailVerificationData): Promise<void> {
+    const { subject, html } = buildEmailVerificationEmail(data)
     await this.send({ to: data.recipientEmail, subject, html })
   }
 

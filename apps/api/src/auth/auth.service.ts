@@ -19,6 +19,10 @@ const REFRESH_TOKEN_HASH_ROUNDS = 10
 const REFRESH_TOKEN_EXPIRES_IN_SECONDS = 7 * 24 * 60 * 60
 const PASSWORD_RESET_TOKEN_HASH_ROUNDS = 10
 const PASSWORD_RESET_TOKEN_EXPIRY_MS = 60 * 60 * 1000
+const EMAIL_VERIFICATION_TOKEN_HASH_ROUNDS = 10
+const EMAIL_VERIFICATION_TOKEN_EXPIRY_MS = 24 * 60 * 60 * 1000
+// One resend per 24h per email — blocks welcome-mail-bombing via /register.
+const EMAIL_VERIFICATION_RESEND_COOLDOWN_MS = 24 * 60 * 60 * 1000
 
 // Cost 12 must match UsersService.BCRYPT_SALT_ROUNDS or timing side-channel stays.
 let cachedDummyHash: string | null = null
@@ -59,7 +63,7 @@ export class AuthService {
     return user
   }
 
-  async register(email: string, plainPassword: string): Promise<AuthTokens> {
+  async register(email: string, plainPassword: string): Promise<{ email: string }> {
     const normalizedEmail = email.trim().toLowerCase()
 
     const existingUser = await this.usersService.findByEmail(normalizedEmail)
@@ -68,12 +72,85 @@ export class AuthService {
     }
 
     const newUser = await this.usersService.createUser(normalizedEmail, plainPassword)
-    void this.emailService.sendWelcome({ recipientEmail: newUser.email })
-    return this.generateTokens(newUser)
+    await this.issueEmailVerificationToken(newUser.id, newUser.email)
+    return { email: newUser.email }
   }
 
   async login(user: User): Promise<AuthTokens> {
+    if (!user.emailVerifiedAt) {
+      throw new UnauthorizedException('Email not verified — check your inbox for the link')
+    }
     return this.generateTokens(user)
+  }
+
+  async verifyEmail(plainToken: string): Promise<void> {
+    const expiryThreshold = new Date(Date.now() - EMAIL_VERIFICATION_TOKEN_EXPIRY_MS)
+
+    // Same sequential-compare pattern as resetPassword — constant-time guarantee.
+    const candidates = await this.prismaService.user.findMany({
+      where: {
+        emailVerificationToken: { not: null },
+        emailVerificationTokenAt: { gte: expiryThreshold },
+        emailVerifiedAt: null,
+      },
+    })
+
+    let matchedUserId: string | null = null
+    for (const candidate of candidates) {
+      if (!candidate.emailVerificationToken) continue
+      const tokenMatches = await bcrypt.compare(plainToken, candidate.emailVerificationToken)
+      if (tokenMatches) {
+        matchedUserId = candidate.id
+        break
+      }
+    }
+
+    if (!matchedUserId) {
+      throw new BadRequestException('Invalid or expired email verification token')
+    }
+
+    await this.prismaService.user.update({
+      where: { id: matchedUserId },
+      data: {
+        emailVerifiedAt: new Date(),
+        emailVerificationToken: null,
+        emailVerificationTokenAt: null,
+      },
+    })
+  }
+
+  async resendVerificationEmail(email: string): Promise<void> {
+    const normalizedEmail = email.trim().toLowerCase()
+    const user = await this.usersService.findByEmail(normalizedEmail)
+    // Always void — do not reveal whether the email is registered or already verified.
+    if (!user || user.emailVerifiedAt) return
+
+    // Per-email cooldown blocks welcome-mail-bombing even when per-IP throttle bypassed.
+    if (
+      user.emailVerificationTokenAt &&
+      Date.now() - user.emailVerificationTokenAt.getTime() < EMAIL_VERIFICATION_RESEND_COOLDOWN_MS
+    ) {
+      return
+    }
+
+    await this.issueEmailVerificationToken(user.id, user.email)
+  }
+
+  private async issueEmailVerificationToken(userId: string, recipientEmail: string): Promise<void> {
+    const plainToken = crypto.randomUUID()
+    const hashedToken = await bcrypt.hash(plainToken, EMAIL_VERIFICATION_TOKEN_HASH_ROUNDS)
+
+    await this.prismaService.user.update({
+      where: { id: userId },
+      data: { emailVerificationToken: hashedToken, emailVerificationTokenAt: new Date() },
+    })
+
+    const frontendUrl = getFrontendUrl()
+    void this.emailService.sendEmailVerification({
+      recipientEmail,
+      verificationToken: plainToken,
+      frontendUrl,
+    })
   }
 
   async refreshTokens(
