@@ -31,6 +31,9 @@ const mockUser = {
   password: 'hashed_password',
   role: Role.USER,
   passwordResetToken: null,
+  emailVerifiedAt: new Date(),
+  emailVerificationToken: null,
+  emailVerificationTokenAt: null,
   passwordResetTokenAt: null,
   loyaltyBalance: 0,
   createdAt: new Date(),
@@ -68,6 +71,7 @@ const mockConfigService = {
 const mockEmailService = {
   sendWelcome: jest.fn().mockResolvedValue(undefined),
   sendPasswordReset: jest.fn().mockResolvedValue(undefined),
+  sendEmailVerification: jest.fn().mockResolvedValue(undefined),
 }
 
 const mockPrismaService = {
@@ -159,31 +163,29 @@ describe('AuthService', () => {
   })
 
   describe('register', () => {
-    it('creates user, creates RefreshToken record, and returns token pair', async () => {
+    it('creates user and returns only the email (no tokens — must verify first)', async () => {
       mockUsersService.findByEmail.mockResolvedValueOnce(null)
       mockUsersService.createUser.mockResolvedValueOnce(mockUser)
 
       const result = await authService.register('new@example.com', 'password123')
 
       expect(mockUsersService.createUser).toHaveBeenCalledWith('new@example.com', 'password123')
-      expect(mockPrismaService.refreshToken.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({ id: MOCK_TOKEN_ID, userId: mockUser.id }),
-        }),
-      )
-      expect(result).toEqual({ accessToken: 'mock_jwt_token', refreshToken: 'mock_jwt_token' })
+      // No RefreshToken row — session is not started until email is verified
+      expect(mockPrismaService.refreshToken.create).not.toHaveBeenCalled()
+      expect(result).toEqual({ email: mockUser.email })
     })
 
-    it('sends welcome email after creating a new user', async () => {
+    it('sends email verification (not welcome) after creating a new user', async () => {
       mockUsersService.findByEmail.mockResolvedValueOnce(null)
       mockUsersService.createUser.mockResolvedValueOnce(mockUser)
 
       await authService.register('new@example.com', 'password123')
 
       await new Promise((resolve) => setImmediate(resolve))
-      expect(mockEmailService.sendWelcome).toHaveBeenCalledWith({
-        recipientEmail: mockUser.email,
-      })
+      expect(mockEmailService.sendWelcome).not.toHaveBeenCalled()
+      expect(mockEmailService.sendEmailVerification).toHaveBeenCalledWith(
+        expect.objectContaining({ recipientEmail: mockUser.email }),
+      )
     })
 
     it('throws ConflictException when email is already registered', async () => {
@@ -192,6 +194,96 @@ describe('AuthService', () => {
       await expect(authService.register('test@example.com', 'password123')).rejects.toThrow(
         ConflictException,
       )
+    })
+  })
+
+  describe('login (email verification guard)', () => {
+    it('throws UnauthorizedException when emailVerifiedAt is null', async () => {
+      const unverifiedUser = { ...mockUser, emailVerifiedAt: null }
+      await expect(authService.login(unverifiedUser)).rejects.toThrow(UnauthorizedException)
+    })
+
+    it('returns tokens when emailVerifiedAt is set', async () => {
+      const result = await authService.login(mockUser)
+      expect(result).toHaveProperty('accessToken')
+      expect(result).toHaveProperty('refreshToken')
+    })
+  })
+
+  describe('verifyEmail', () => {
+    it('sets emailVerifiedAt and clears the token on a valid match', async () => {
+      const unverifiedCandidate = {
+        ...mockUser,
+        emailVerificationToken: '$2b$10$hashedToken',
+        emailVerificationTokenAt: new Date(),
+        emailVerifiedAt: null,
+      }
+      mockPrismaService.user.findMany.mockResolvedValueOnce([unverifiedCandidate])
+      mockBcryptCompare.mockResolvedValueOnce(true)
+
+      await authService.verifyEmail('plain-verification-token')
+
+      expect(mockPrismaService.user.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            emailVerifiedAt: expect.any(Date),
+            emailVerificationToken: null,
+            emailVerificationTokenAt: null,
+          }),
+        }),
+      )
+    })
+
+    it('throws BadRequestException when no candidate matches', async () => {
+      mockPrismaService.user.findMany.mockResolvedValueOnce([])
+
+      await expect(authService.verifyEmail('bad-token')).rejects.toThrow(BadRequestException)
+    })
+  })
+
+  describe('resendVerificationEmail', () => {
+    it('does nothing when user is already verified', async () => {
+      mockUsersService.findByEmail.mockResolvedValueOnce(mockUser)
+
+      await authService.resendVerificationEmail('test@example.com')
+
+      expect(mockEmailService.sendEmailVerification).not.toHaveBeenCalled()
+    })
+
+    it('does nothing when user is unknown (no enumeration)', async () => {
+      mockUsersService.findByEmail.mockResolvedValueOnce(null)
+
+      await authService.resendVerificationEmail('unknown@example.com')
+
+      expect(mockEmailService.sendEmailVerification).not.toHaveBeenCalled()
+    })
+
+    it('sends verification email when unverified and last-send > 24h ago (or absent)', async () => {
+      const unverifiedUser = {
+        ...mockUser,
+        emailVerifiedAt: null,
+        emailVerificationToken: null,
+        emailVerificationTokenAt: null,
+      }
+      mockUsersService.findByEmail.mockResolvedValueOnce(unverifiedUser)
+
+      await authService.resendVerificationEmail(unverifiedUser.email)
+
+      await new Promise((resolve) => setImmediate(resolve))
+      expect(mockEmailService.sendEmailVerification).toHaveBeenCalled()
+    })
+
+    it('respects 24h cooldown — does NOT resend when last-sent was recent', async () => {
+      const recentlyResent = {
+        ...mockUser,
+        emailVerifiedAt: null,
+        emailVerificationTokenAt: new Date(Date.now() - 60 * 60 * 1000), // 1h ago
+      }
+      mockUsersService.findByEmail.mockResolvedValueOnce(recentlyResent)
+
+      await authService.resendVerificationEmail(recentlyResent.email)
+
+      expect(mockEmailService.sendEmailVerification).not.toHaveBeenCalled()
     })
   })
 
