@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label'
 import { Link } from '@/i18n/navigation'
 import { useAuthStore } from '@/store/auth.store'
 import { useWishlistStore } from '@/store/wishlist.store'
-import { loginUser } from '@/lib/api/auth'
+import { loginUser, resendVerificationEmail } from '@/lib/api/auth'
 import { ApiError } from '@/lib/api/client'
 import { mergeGuestWishlist } from '@/lib/api/wishlist'
 import { klaviyoIdentify } from '@/lib/analytics/klaviyo'
@@ -24,11 +24,29 @@ export function LoginForm() {
   const [password, setPassword] = useState('')
   const [isPasswordVisible, setIsPasswordVisible] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [isUnverified, setIsUnverified] = useState(false)
+  const [isResending, setIsResending] = useState(false)
+  const [resendConfirmation, setResendConfirmation] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  async function handleResend() {
+    setIsResending(true)
+    setResendConfirmation(null)
+    try {
+      await resendVerificationEmail(email)
+    } catch {
+      // Silent — endpoint is always 200 even if endpoint 500s, do not leak.
+    } finally {
+      setResendConfirmation(t('verifyResendConfirmation'))
+      setIsResending(false)
+    }
+  }
 
   async function handleSubmit(event: React.SyntheticEvent<HTMLFormElement>) {
     event.preventDefault()
     setErrorMessage(null)
+    setIsUnverified(false)
+    setResendConfirmation(null)
     setIsSubmitting(true)
 
     try {
@@ -53,7 +71,13 @@ export function LoginForm() {
       router.push('/')
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) {
-        setErrorMessage(t('errorInvalidCredentials'))
+        // Backend message contract: "Email not verified" for unverified accounts
+        if (error.message.toLowerCase().includes('not verified')) {
+          setIsUnverified(true)
+          setErrorMessage(t('errorEmailNotVerified'))
+        } else {
+          setErrorMessage(t('errorInvalidCredentials'))
+        }
       } else {
         setErrorMessage(t('errorGeneric'))
       }
@@ -121,6 +145,23 @@ export function LoginForm() {
         {errorMessage !== null && (
           <p role="alert" className="text-sm text-destructive">
             {errorMessage}
+          </p>
+        )}
+
+        {isUnverified && (
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full"
+            onClick={handleResend}
+            disabled={isResending}
+          >
+            {isResending ? t('verifyResendSubmitting') : t('verifyResend')}
+          </Button>
+        )}
+        {resendConfirmation !== null && (
+          <p role="status" className="text-sm text-muted-foreground">
+            {resendConfirmation}
           </p>
         )}
 

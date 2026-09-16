@@ -31,14 +31,16 @@ describe('auth API', () => {
     server.use(
       http.post(`${API_BASE}/api/auth/register`, async ({ request }) => {
         receivedBody = await request.json()
-        return HttpResponse.json({ accessToken: 'a-tok', refreshToken: 'r-tok' })
+        // Backend no longer auto-issues tokens — just echoes the email so the
+        // frontend can show the "check inbox" state.
+        return HttpResponse.json({ email: 'a@b.com' })
       }),
     )
 
     const result = await registerUser('a@b.com', 'pass1234')
 
     expect(receivedBody).toEqual({ email: 'a@b.com', password: 'pass1234' })
-    expect(result.accessToken).toBe('a-tok')
+    expect(result.email).toBe('a@b.com')
   })
 
   it('loginUser POSTs to /login with credentials', async () => {
