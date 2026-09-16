@@ -5,10 +5,25 @@ export interface AuthTokens {
   refreshToken: string
 }
 
-export async function registerUser(email: string, password: string): Promise<AuthTokens> {
-  return apiClient<AuthTokens>('/api/auth/register', {
+// Register no longer auto-issues tokens — user must verify email first (#558).
+export async function registerUser(email: string, password: string): Promise<{ email: string }> {
+  return apiClient<{ email: string }>('/api/auth/register', {
     method: 'POST',
     body: JSON.stringify({ email, password }),
+  })
+}
+
+export async function verifyEmail(token: string): Promise<{ verified: true }> {
+  return apiClient<{ verified: true }>('/api/auth/verify-email', {
+    method: 'POST',
+    body: JSON.stringify({ token }),
+  })
+}
+
+export async function resendVerificationEmail(email: string): Promise<void> {
+  await apiClient<void>('/api/auth/resend-verification', {
+    method: 'POST',
+    body: JSON.stringify({ email }),
   })
 }
 

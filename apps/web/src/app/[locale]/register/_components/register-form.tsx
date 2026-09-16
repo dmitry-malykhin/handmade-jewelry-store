@@ -1,23 +1,17 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
-import { Eye, EyeOff } from 'lucide-react'
+import { CheckCircle, Eye, EyeOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { useAuthStore } from '@/store/auth.store'
-import { useWishlistStore } from '@/store/wishlist.store'
-import { registerUser } from '@/lib/api/auth'
+import { registerUser, resendVerificationEmail } from '@/lib/api/auth'
 import { ApiError } from '@/lib/api/client'
-import { mergeGuestWishlist } from '@/lib/api/wishlist'
 import { klaviyoIdentify } from '@/lib/analytics/klaviyo'
 
 export function RegisterForm() {
   const t = useTranslations('auth')
-  const router = useRouter()
-  const setTokens = useAuthStore((state) => state.setTokens)
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -25,6 +19,9 @@ export function RegisterForm() {
   const [passwordError, setPasswordError] = useState<string | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [registeredEmail, setRegisteredEmail] = useState<string | null>(null)
+  const [isResending, setIsResending] = useState(false)
+  const [resendConfirmation, setResendConfirmation] = useState<string | null>(null)
 
   function validatePasswordStrength(value: string): string | null {
     if (value.length < 8) return t('errorPasswordWeak')
@@ -56,25 +53,11 @@ export function RegisterForm() {
     setIsSubmitting(true)
 
     try {
-      const tokens = await registerUser(email, password)
-      setTokens(tokens.accessToken, tokens.refreshToken)
-      // Klaviyo needs a $email tag to attach flows (win-back, abandoned cart)
-      // to a real profile — no-op if marketing consent is off.
-      klaviyoIdentify(email)
-      // Carry over the guest wishlist (localStorage) so the user keeps the items
-      // they bookmarked before creating the account. Failures are silent — the
-      // local list remains as a fallback.
-      const guestProductIds = useWishlistStore.getState().productIds
-      if (guestProductIds.length > 0) {
-        mergeGuestWishlist(tokens.accessToken, guestProductIds)
-          .then((merged) => {
-            useWishlistStore.getState().setAll(merged.map((product) => product.id))
-          })
-          .catch(() => {
-            // No-op — see comment above.
-          })
-      }
-      router.push('/')
+      const { email: registered } = await registerUser(email, password)
+      // Klaviyo needs a $email tag to attach flows even before verification —
+      // registered profile is a valid lead for win-back / verification-reminder.
+      klaviyoIdentify(registered)
+      setRegisteredEmail(registered)
     } catch (error) {
       if (error instanceof ApiError && error.status === 409) {
         setErrorMessage(t('errorEmailTaken'))
@@ -84,6 +67,52 @@ export function RegisterForm() {
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  async function handleResend() {
+    if (!registeredEmail) return
+    setIsResending(true)
+    setResendConfirmation(null)
+    try {
+      await resendVerificationEmail(registeredEmail)
+      // Endpoint is always 200 (never leaks existence). Message is generic on purpose.
+      setResendConfirmation(t('verifyResendConfirmation'))
+    } catch {
+      setResendConfirmation(t('verifyResendConfirmation'))
+    } finally {
+      setIsResending(false)
+    }
+  }
+
+  if (registeredEmail !== null) {
+    return (
+      <div
+        role="status"
+        className="flex flex-col items-center gap-4 rounded-lg border border-border bg-card p-8 text-center"
+      >
+        <CheckCircle className="size-12 text-green-500" aria-hidden="true" />
+        <div className="space-y-2">
+          <h2 className="text-xl font-semibold text-foreground">{t('verifyCheckInboxTitle')}</h2>
+          <p className="text-muted-foreground">
+            {t('verifyCheckInboxBody', { email: registeredEmail })}
+          </p>
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={handleResend}
+          disabled={isResending}
+          className="mt-2"
+        >
+          {isResending ? t('verifyResendSubmitting') : t('verifyResend')}
+        </Button>
+        {resendConfirmation !== null && (
+          <p role="status" className="text-sm text-muted-foreground">
+            {resendConfirmation}
+          </p>
+        )}
+      </div>
+    )
   }
 
   return (

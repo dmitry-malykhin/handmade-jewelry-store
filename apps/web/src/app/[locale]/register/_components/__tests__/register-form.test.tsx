@@ -105,7 +105,12 @@ describe('RegisterForm — password visibility toggle', () => {
 })
 
 describe('RegisterForm — successful registration', () => {
-  it('calls setTokens with the returned tokens and redirects to home', async () => {
+  it('shows the check-inbox success state (no auto-login, no redirect)', async () => {
+    server.use(
+      http.post('http://localhost:4000/api/auth/register', () =>
+        HttpResponse.json({ email: 'user@example.com' }),
+      ),
+    )
     const mockSetTokens = await getMockSetTokens()
     mockSetTokens.mockClear()
 
@@ -116,13 +121,21 @@ describe('RegisterForm — successful registration', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Create Account' }))
 
     await waitFor(() => {
-      expect(mockSetTokens).toHaveBeenCalledWith('access-token', 'refresh-token')
+      expect(screen.getByRole('status')).toHaveTextContent('Check your inbox')
     })
 
-    expect(mockRouterPush).toHaveBeenCalledWith('/')
+    // No tokens set — user must verify email first, then log in
+    expect(mockSetTokens).not.toHaveBeenCalled()
+    // No redirect — the check-inbox screen replaces the form
+    expect(mockRouterPush).not.toHaveBeenCalled()
   })
 
   it('identifies the new user in Klaviyo so post-purchase / newsletter flows have a $email tag', async () => {
+    server.use(
+      http.post('http://localhost:4000/api/auth/register', () =>
+        HttpResponse.json({ email: 'user@example.com' }),
+      ),
+    )
     const { klaviyoIdentify } = await import('@/lib/analytics/klaviyo')
     vi.mocked(klaviyoIdentify).mockClear()
 
@@ -137,12 +150,40 @@ describe('RegisterForm — successful registration', () => {
     })
   })
 
+  it('offers a Resend button that calls /resend-verification', async () => {
+    server.use(
+      http.post('http://localhost:4000/api/auth/register', () =>
+        HttpResponse.json({ email: 'user@example.com' }),
+      ),
+    )
+    let resendCalled = false
+    server.use(
+      http.post('http://localhost:4000/api/auth/resend-verification', () => {
+        resendCalled = true
+        return HttpResponse.json({ status: 'ok' })
+      }),
+    )
+
+    render(<RegisterForm />)
+
+    await userEvent.type(screen.getByLabelText('Email'), 'user@example.com')
+    await userEvent.type(screen.getByLabelText('Password'), 'Password123')
+    await userEvent.click(screen.getByRole('button', { name: 'Create Account' }))
+
+    const resendButton = await screen.findByRole('button', { name: /resend verification email/i })
+    await userEvent.click(resendButton)
+
+    await waitFor(() => {
+      expect(resendCalled).toBe(true)
+    })
+  })
+
   it('shows the submitting label while the request is in flight', async () => {
     // Delay the response so we can assert the in-flight state
     server.use(
       http.post('http://localhost:4000/api/auth/register', async () => {
         await new Promise((resolve) => setTimeout(resolve, 50))
-        return HttpResponse.json({ accessToken: 'access-token', refreshToken: 'refresh-token' })
+        return HttpResponse.json({ email: 'user@example.com' })
       }),
     )
 
