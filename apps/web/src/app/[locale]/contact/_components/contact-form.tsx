@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Link } from '@/i18n/navigation'
 import { sendContactMessage } from '@/lib/api/contact'
 
 interface ContactFormState {
@@ -210,9 +209,9 @@ export function ContactForm() {
         <p className="text-xs text-muted-foreground">
           {t.rich('gdprNotice', {
             privacy: (chunks) => (
-              <Link href="/privacy" className="underline underline-offset-2 hover:text-foreground">
+              <a href="/privacy" className="underline underline-offset-2 hover:text-foreground">
                 {chunks}
-              </Link>
+              </a>
             ),
           })}
         </p>
