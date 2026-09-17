@@ -39,6 +39,7 @@
     "submitting": "Sending…",
     "successTitle": "Message sent!",
     "successMessage": "Thank you for reaching out. We'll get back to you within 1–2 business days.",
+    "gdprNotice": "We use your name, email and message only to reply to this enquiry (legal basis: legitimate interest). Messages are kept for up to 90 days, then deleted. You can request access, correction or deletion at any time — see our <privacy>Privacy Policy</privacy>.",
     "errorGeneric": "Something went wrong. Please try again.",
     "validationNameRequired": "Name is required.",
     "validationEmailInvalid": "Please enter a valid email address.",

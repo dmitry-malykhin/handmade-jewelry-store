@@ -39,6 +39,7 @@
     "submitting": "Enviando…",
     "successTitle": "¡Mensaje enviado!",
     "successMessage": "Gracias por contactarnos. Te responderemos en 1–2 días hábiles.",
+    "gdprNotice": "Usamos tu nombre, correo y mensaje solo para responder a esta consulta (base legal: interés legítimo). Los mensajes se conservan hasta 90 días y luego se eliminan. Puedes solicitar acceso, corrección o eliminación en cualquier momento — consulta nuestra <privacy>Política de privacidad</privacy>.",
     "errorGeneric": "Algo salió mal. Por favor, inténtalo de nuevo.",
     "validationNameRequired": "El nombre es obligatorio.",
     "validationEmailInvalid": "Por favor, introduce una dirección de correo válida.",
