@@ -206,6 +206,16 @@ export function ContactForm() {
           />
         </div>
 
+        <p className="text-xs text-muted-foreground">
+          {t.rich('gdprNotice', {
+            privacy: (chunks) => (
+              <a href="/privacy" className="underline underline-offset-2 hover:text-foreground">
+                {chunks}
+              </a>
+            ),
+          })}
+        </p>
+
         <Button type="submit" size="lg" disabled={isSubmitting}>
           {isSubmitting ? t('submitting') : t('submitButton')}
         </Button>
