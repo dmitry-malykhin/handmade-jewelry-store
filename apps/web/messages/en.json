@@ -134,6 +134,20 @@
     "learnMore": "Privacy Policy",
     "changePreferences": "Cookie preferences"
   },
+  "impressumPage": {
+    "metaTitle": "Legal Notice — Senichka",
+    "metaDescription": "Trader identity, contact details and business register information as required by EU consumer law (§5 TMG / EU Directive 2011/83).",
+    "title": "Legal Notice",
+    "legalBasis": "Trader identity per §5 German Telemedia Act (TMG) and EU Consumer Rights Directive Art. 6.",
+    "legalNameLabel": "Legal name",
+    "addressLabel": "Registered address",
+    "contactLabel": "Contact",
+    "registerLabel": "Trade register",
+    "vatIdLabel": "VAT ID",
+    "responsiblePersonLabel": "Responsible for content",
+    "disputeResolutionTitle": "Online dispute resolution",
+    "disputeResolutionBody": "The European Commission provides a platform for online dispute resolution:"
+  },
   "termsPage": {
     "metaTitle": "Terms of Service — Senichka",
     "metaDescription": "Read our Terms of Service to understand your rights and responsibilities when shopping at Senichka.",
@@ -267,6 +281,7 @@
     "copyright": "Senichka. All rights reserved.",
     "privacy": "Privacy Policy",
     "terms": "Terms of Service",
+    "impressum": "Legal Notice",
     "newsletterHeading": "Stay in the loop",
     "newsletterDescription": "New collections, restocks, and subscriber-only discounts — straight to your inbox.",
     "faq": "FAQ",

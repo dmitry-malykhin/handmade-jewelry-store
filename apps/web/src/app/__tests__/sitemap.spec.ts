@@ -50,8 +50,8 @@ describe('sitemap', () => {
     const { default: sitemap } = await import('../sitemap')
     const result = await sitemap()
 
-    // 3 locales × 9 static pages (home + ring-size-guide + faq + shipping + care + about + contact + privacy + terms)
-    expect(result.length).toBe(27)
+    // 3 locales × 10 static pages (home + ring-size-guide + faq + shipping + care + about + contact + privacy + terms + impressum)
+    expect(result.length).toBe(30)
   })
 
   it('includes the locale root (home = catalog) for each locale', async () => {
@@ -105,7 +105,7 @@ describe('sitemap', () => {
     const { default: sitemap } = await import('../sitemap')
     const result = await sitemap()
 
-    expect(result.length).toBe(27)
+    expect(result.length).toBe(30)
     expect(result.every((entry) => !entry.url.includes('silver-moonstone-ring'))).toBe(true)
 
     // Failure must NOT be silent — logger.error tells ops something is wrong

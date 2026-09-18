@@ -103,6 +103,9 @@ export function Footer() {
             <Link href="/terms" className="text-sm text-muted-foreground hover:text-foreground">
               {t('terms')}
             </Link>
+            <Link href="/impressum" className="text-sm text-muted-foreground hover:text-foreground">
+              {t('impressum')}
+            </Link>
             <CookiePreferencesButton />
           </div>
         </div>
