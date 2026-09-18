@@ -22,6 +22,7 @@ const CRITICAL_PAGES = [
   '/en/ring-size-guide',
   '/en/privacy',
   '/en/terms',
+  '/en/impressum',
   '/en/login',
   '/en/register',
   '/en/forgot-password',

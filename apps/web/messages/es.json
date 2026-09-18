@@ -134,6 +134,20 @@
     "learnMore": "Política de Privacidad",
     "changePreferences": "Preferencias de cookies"
   },
+  "impressumPage": {
+    "metaTitle": "Aviso legal — Senichka",
+    "metaDescription": "Identidad del vendedor, datos de contacto e información del registro mercantil según la normativa UE (§5 TMG / Directiva 2011/83).",
+    "title": "Aviso legal",
+    "legalBasis": "Identidad del comerciante conforme al §5 de la Ley de Telemedios de Alemania (TMG) y al artículo 6 de la Directiva UE sobre los derechos de los consumidores.",
+    "legalNameLabel": "Denominación legal",
+    "addressLabel": "Dirección registrada",
+    "contactLabel": "Contacto",
+    "registerLabel": "Registro mercantil",
+    "vatIdLabel": "Número de IVA (VAT ID)",
+    "responsiblePersonLabel": "Responsable del contenido",
+    "disputeResolutionTitle": "Resolución de litigios en línea",
+    "disputeResolutionBody": "La Comisión Europea proporciona una plataforma de resolución de litigios en línea:"
+  },
   "termsPage": {
     "metaTitle": "Términos de Servicio — Senichka",
     "metaDescription": "Lee nuestros términos de servicio para entender tus derechos y responsabilidades al comprar en nuestra tienda de joyería artesanal.",
@@ -267,6 +281,7 @@
     "copyright": "Senichka. Todos los derechos reservados.",
     "privacy": "Política de privacidad",
     "terms": "Términos de servicio",
+    "impressum": "Aviso legal",
     "newsletterHeading": "Mantente al día",
     "newsletterDescription": "Nuevas colecciones, reposiciones y descuentos exclusivos para suscriptores — directo a tu correo.",
     "faq": "Preguntas frecuentes",
