@@ -6,10 +6,15 @@ export interface AuthTokens {
 }
 
 // Register no longer auto-issues tokens — user must verify email first (#558).
-export async function registerUser(email: string, password: string): Promise<{ email: string }> {
+// termsAccepted must be `true` — server rejects otherwise (GDPR Art. 7(1)).
+export async function registerUser(
+  email: string,
+  password: string,
+  termsAccepted: boolean,
+): Promise<{ email: string }> {
   return apiClient<{ email: string }>('/api/auth/register', {
     method: 'POST',
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ email, password, termsAccepted }),
   })
 }
 
@@ -48,12 +53,10 @@ export async function resetPassword(token: string, newPassword: string): Promise
   })
 }
 
-// Logout sends the refresh token (not access token) to identify which session to
-// revoke. The access token expiry handles short-term invalidation automatically.
-export async function logoutUser(refreshToken: string): Promise<void> {
+export async function logoutUser(accessToken: string): Promise<void> {
   await apiClient<void>('/api/auth/logout', {
     method: 'POST',
-    headers: { Authorization: `Bearer ${refreshToken}` },
+    headers: { Authorization: `Bearer ${accessToken}` },
   })
 }
 

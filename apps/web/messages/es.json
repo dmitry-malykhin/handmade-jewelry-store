@@ -513,6 +513,8 @@
     "verifyPageErrorBody": "Este enlace no es válido o ha caducado. Regístrate de nuevo para recibir uno nuevo.",
     "verifyPageErrorCta": "Volver al registro",
     "errorPasswordWeak": "La contraseña debe tener al menos 8 caracteres e incluir una letra mayúscula, una minúscula y un número.",
+    "errorTermsRequired": "Debes aceptar los Términos de servicio y la Política de privacidad.",
+    "termsAcceptance": "He leído y acepto los <terms>Términos de servicio</terms> y la <privacy>Política de privacidad</privacy>.",
     "forgotPasswordMetaTitle": "¿Olvidaste tu contraseña?",
     "forgotPasswordMetaDescription": "Restablece tu contraseña mediante un enlace por correo.",
     "forgotPasswordTitle": "¿Olvidaste tu contraseña?",

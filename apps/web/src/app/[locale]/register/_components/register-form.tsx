@@ -15,6 +15,8 @@ export function RegisterForm() {
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [termsAccepted, setTermsAccepted] = useState(false)
+  const [termsError, setTermsError] = useState<string | null>(null)
   const [isPasswordVisible, setIsPasswordVisible] = useState(false)
   const [passwordError, setPasswordError] = useState<string | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
@@ -32,7 +34,6 @@ export function RegisterForm() {
   function handlePasswordChange(event: React.ChangeEvent<HTMLInputElement>) {
     const value = event.target.value
     setPassword(value)
-    // Clear inline error while user is typing so it doesn't distract mid-input
     if (passwordError !== null) setPasswordError(null)
   }
 
@@ -43,6 +44,7 @@ export function RegisterForm() {
   async function handleSubmit(event: React.SyntheticEvent<HTMLFormElement>) {
     event.preventDefault()
     setErrorMessage(null)
+    setTermsError(null)
 
     const strengthError = validatePasswordStrength(password)
     if (strengthError !== null) {
@@ -50,10 +52,15 @@ export function RegisterForm() {
       return
     }
 
+    if (!termsAccepted) {
+      setTermsError(t('errorTermsRequired'))
+      return
+    }
+
     setIsSubmitting(true)
 
     try {
-      const { email: registered } = await registerUser(email, password)
+      const { email: registered } = await registerUser(email, password, termsAccepted)
       // Klaviyo needs a $email tag to attach flows even before verification —
       // registered profile is a valid lead for win-back / verification-reminder.
       klaviyoIdentify(registered)
@@ -167,6 +174,44 @@ export function RegisterForm() {
           {passwordError !== null && (
             <p id="register-password-error" role="alert" className="mt-1 text-sm text-destructive">
               {passwordError}
+            </p>
+          )}
+        </div>
+
+        <div className="space-y-1">
+          <label className="flex items-start gap-2 text-sm text-muted-foreground">
+            <input
+              id="register-terms"
+              type="checkbox"
+              checked={termsAccepted}
+              onChange={(event) => {
+                setTermsAccepted(event.target.checked)
+                if (event.target.checked && termsError !== null) setTermsError(null)
+              }}
+              required
+              aria-required="true"
+              aria-invalid={termsError !== null}
+              aria-describedby={termsError !== null ? 'register-terms-error' : undefined}
+              className="mt-0.5 size-4 shrink-0 rounded border-input"
+            />
+            <span>
+              {t.rich('termsAcceptance', {
+                terms: (chunks) => (
+                  <a href="/terms" className="underline underline-offset-2 hover:text-foreground">
+                    {chunks}
+                  </a>
+                ),
+                privacy: (chunks) => (
+                  <a href="/privacy" className="underline underline-offset-2 hover:text-foreground">
+                    {chunks}
+                  </a>
+                ),
+              })}
+            </span>
+          </label>
+          {termsError !== null && (
+            <p id="register-terms-error" role="alert" className="text-sm text-destructive">
+              {termsError}
             </p>
           )}
         </div>
