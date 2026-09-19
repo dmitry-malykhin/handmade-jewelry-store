@@ -69,6 +69,7 @@ describe('AuthController', () => {
       const result = await authController.register({
         email: 'new@example.com',
         password: 'password123',
+        termsAccepted: true,
       })
 
       expect(mockAuthService.register).toHaveBeenCalledWith('new@example.com', 'password123')

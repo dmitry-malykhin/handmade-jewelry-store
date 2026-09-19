@@ -513,6 +513,8 @@
     "verifyPageErrorBody": "This link is invalid or expired. Try registering again to receive a new one.",
     "verifyPageErrorCta": "Back to registration",
     "errorPasswordWeak": "Password must be at least 8 characters and include an uppercase letter, a lowercase letter, and a number.",
+    "errorTermsRequired": "You must accept the Terms of Service and Privacy Policy.",
+    "termsAcceptance": "I have read and accept the <terms>Terms of Service</terms> and <privacy>Privacy Policy</privacy>.",
     "forgotPasswordMetaTitle": "Forgot Password",
     "forgotPasswordMetaDescription": "Reset your password via email link.",
     "forgotPasswordTitle": "Forgot your password?",

@@ -118,6 +118,7 @@ describe('RegisterForm — successful registration', () => {
 
     await userEvent.type(screen.getByLabelText('Email'), 'user@example.com')
     await userEvent.type(screen.getByLabelText('Password'), 'Password123')
+    await userEvent.click(screen.getByLabelText(/terms of service/i))
     await userEvent.click(screen.getByRole('button', { name: 'Create Account' }))
 
     await waitFor(() => {
@@ -143,6 +144,7 @@ describe('RegisterForm — successful registration', () => {
 
     await userEvent.type(screen.getByLabelText('Email'), 'user@example.com')
     await userEvent.type(screen.getByLabelText('Password'), 'Password123')
+    await userEvent.click(screen.getByLabelText(/terms of service/i))
     await userEvent.click(screen.getByRole('button', { name: 'Create Account' }))
 
     await waitFor(() => {
@@ -168,6 +170,7 @@ describe('RegisterForm — successful registration', () => {
 
     await userEvent.type(screen.getByLabelText('Email'), 'user@example.com')
     await userEvent.type(screen.getByLabelText('Password'), 'Password123')
+    await userEvent.click(screen.getByLabelText(/terms of service/i))
     await userEvent.click(screen.getByRole('button', { name: 'Create Account' }))
 
     const resendButton = await screen.findByRole('button', { name: /resend verification email/i })
@@ -191,6 +194,7 @@ describe('RegisterForm — successful registration', () => {
 
     await userEvent.type(screen.getByLabelText('Email'), 'user@example.com')
     await userEvent.type(screen.getByLabelText('Password'), 'Password123')
+    await userEvent.click(screen.getByLabelText(/terms of service/i))
     userEvent.click(screen.getByRole('button', { name: 'Create Account' }))
 
     await waitFor(() => {
@@ -211,6 +215,7 @@ describe('RegisterForm — error handling', () => {
 
     await userEvent.type(screen.getByLabelText('Email'), 'taken@example.com')
     await userEvent.type(screen.getByLabelText('Password'), 'Password123')
+    await userEvent.click(screen.getByLabelText(/terms of service/i))
     await userEvent.click(screen.getByRole('button', { name: 'Create Account' }))
 
     await waitFor(() => {
@@ -231,6 +236,7 @@ describe('RegisterForm — error handling', () => {
 
     await userEvent.type(screen.getByLabelText('Email'), 'user@example.com')
     await userEvent.type(screen.getByLabelText('Password'), 'Password123')
+    await userEvent.click(screen.getByLabelText(/terms of service/i))
     await userEvent.click(screen.getByRole('button', { name: 'Create Account' }))
 
     await waitFor(() => {
@@ -249,6 +255,7 @@ describe('RegisterForm — error handling', () => {
 
     await userEvent.type(screen.getByLabelText('Email'), 'taken@example.com')
     await userEvent.type(screen.getByLabelText('Password'), 'Password123')
+    await userEvent.click(screen.getByLabelText(/terms of service/i))
     await userEvent.click(screen.getByRole('button', { name: 'Create Account' }))
 
     await waitFor(() => {

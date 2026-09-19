@@ -37,9 +37,9 @@ describe('auth API', () => {
       }),
     )
 
-    const result = await registerUser('a@b.com', 'pass1234')
+    const result = await registerUser('a@b.com', 'pass1234', true)
 
-    expect(receivedBody).toEqual({ email: 'a@b.com', password: 'pass1234' })
+    expect(receivedBody).toEqual({ email: 'a@b.com', password: 'pass1234', termsAccepted: true })
     expect(result.email).toBe('a@b.com')
   })
 
