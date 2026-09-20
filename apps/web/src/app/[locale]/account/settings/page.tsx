@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { ChangePasswordForm } from './_components/change-password-form'
+import { ProfileForm } from './_components/profile-form'
 
 interface SettingsPageProps {
   params: Promise<{ locale: string }>
@@ -29,6 +30,7 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
         <p className="mt-2 text-sm text-muted-foreground">{t('description')}</p>
       </div>
 
+      <ProfileForm />
       <ChangePasswordForm />
     </section>
   )

@@ -20,6 +20,8 @@ const mockUser = {
   emailVerificationTokenAt: null,
   passwordResetTokenAt: null,
   loyaltyBalance: 0,
+  name: null,
+  phone: null,
   createdAt: new Date(),
   updatedAt: new Date(),
 }

@@ -1186,6 +1186,20 @@
       "metaDescription": "Change your password and manage account preferences.",
       "title": "Account Settings",
       "description": "Update your password and account preferences.",
+      "profile": {
+        "title": "Profile",
+        "description": "Your name and phone appear on order confirmations.",
+        "emailLabel": "Email",
+        "emailReadOnlyHint": "Email cannot be changed here. Contact support to update your address.",
+        "nameLabel": "Name",
+        "phoneLabel": "Phone",
+        "submit": "Save changes",
+        "submitting": "Saving...",
+        "successMessage": "Profile updated.",
+        "errorLoad": "Could not load your profile. Please refresh the page.",
+        "errorUnauthorized": "You must be signed in to edit your profile.",
+        "errorGeneric": "Could not update profile. Please try again."
+      },
       "changePassword": {
         "title": "Change password",
         "currentPasswordLabel": "Current password",
