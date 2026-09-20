@@ -16,6 +16,7 @@ const mockPrismaService = {
     findMany: jest.fn(),
     count: jest.fn(),
     create: jest.fn(),
+    update: jest.fn(),
   },
 }
 
@@ -270,6 +271,67 @@ describe('UsersService', () => {
       expect(result.totalOrders).toBe(2)
       expect(result.addresses).toHaveLength(1)
       expect(result.orders.map((order) => order.id)).toEqual(['o1', 'o2'])
+    })
+  })
+
+  describe('getProfile', () => {
+    it('returns id, email, name and phone for the caller', async () => {
+      mockPrismaService.user.findUnique.mockResolvedValueOnce({
+        id: 'u1',
+        email: 'a@b.com',
+        name: 'Ada',
+        phone: '+34123',
+      })
+
+      const result = await usersService.getProfile('u1')
+
+      expect(mockPrismaService.user.findUnique).toHaveBeenCalledWith({
+        where: { id: 'u1' },
+        select: { id: true, email: true, name: true, phone: true },
+      })
+      expect(result).toEqual({ id: 'u1', email: 'a@b.com', name: 'Ada', phone: '+34123' })
+    })
+
+    it('throws NotFoundException when the user is missing', async () => {
+      mockPrismaService.user.findUnique.mockResolvedValueOnce(null)
+
+      await expect(usersService.getProfile('missing')).rejects.toThrow(NotFoundException)
+    })
+  })
+
+  describe('updateProfile', () => {
+    it('updates only fields that were provided', async () => {
+      mockPrismaService.user.update.mockResolvedValueOnce({
+        id: 'u1',
+        email: 'a@b.com',
+        name: 'Ada Lovelace',
+        phone: null,
+      })
+
+      await usersService.updateProfile('u1', { name: 'Ada Lovelace' })
+
+      expect(mockPrismaService.user.update).toHaveBeenCalledWith({
+        where: { id: 'u1' },
+        data: { name: 'Ada Lovelace' },
+        select: { id: true, email: true, name: true, phone: true },
+      })
+    })
+
+    it('clears a field when an empty string is passed (GDPR Art. 16 erasure of value)', async () => {
+      mockPrismaService.user.update.mockResolvedValueOnce({
+        id: 'u1',
+        email: 'a@b.com',
+        name: null,
+        phone: null,
+      })
+
+      await usersService.updateProfile('u1', { name: '', phone: '' })
+
+      expect(mockPrismaService.user.update).toHaveBeenCalledWith({
+        where: { id: 'u1' },
+        data: { name: null, phone: null },
+        select: { id: true, email: true, name: true, phone: true },
+      })
     })
   })
 })

@@ -1186,6 +1186,20 @@
       "metaDescription": "Cambia tu contraseña y gestiona las preferencias de cuenta.",
       "title": "Configuración de Cuenta",
       "description": "Actualiza tu contraseña y preferencias de cuenta.",
+      "profile": {
+        "title": "Perfil",
+        "description": "Tu nombre y teléfono aparecen en las confirmaciones de pedido.",
+        "emailLabel": "Email",
+        "emailReadOnlyHint": "El email no se puede cambiar aquí. Contacta con soporte para actualizarlo.",
+        "nameLabel": "Nombre",
+        "phoneLabel": "Teléfono",
+        "submit": "Guardar cambios",
+        "submitting": "Guardando...",
+        "successMessage": "Perfil actualizado.",
+        "errorLoad": "No se pudo cargar tu perfil. Actualiza la página.",
+        "errorUnauthorized": "Debes iniciar sesión para editar tu perfil.",
+        "errorGeneric": "No se pudo actualizar el perfil. Inténtalo de nuevo."
+      },
       "changePassword": {
         "title": "Cambiar contraseña",
         "currentPasswordLabel": "Contraseña actual",

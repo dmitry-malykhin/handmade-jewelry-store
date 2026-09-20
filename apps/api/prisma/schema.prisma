@@ -92,6 +92,8 @@ model User {
   email                    String               @unique
   password                 String
   role                     Role                 @default(USER)
+  name                     String?
+  phone                    String?
   // Hashed password reset token — cleared after use or expiry (1h window)
   passwordResetToken       String?
   passwordResetTokenAt     DateTime?

@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common'
 import { AdminCustomersController } from './admin-customers.controller'
+import { UsersController } from './users.controller'
 import { UsersService } from './users.service'
 
 // Note: we do NOT import AuthModule here — AuthModule already imports
@@ -7,7 +8,7 @@ import { UsersService } from './users.service'
 // and RolesGuard work via @UseGuards() because AuthModule (registered at the
 // app root) makes the JWT strategy globally available through PassportModule.
 @Module({
-  controllers: [AdminCustomersController],
+  controllers: [AdminCustomersController, UsersController],
   providers: [UsersService],
   exports: [UsersService],
 })

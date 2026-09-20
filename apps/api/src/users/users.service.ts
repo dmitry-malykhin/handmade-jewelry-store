@@ -4,6 +4,7 @@ import * as bcrypt from 'bcrypt'
 import { paginate } from '../common/pagination/paginate'
 import { PrismaService } from '../prisma/prisma.service'
 import { AdminCustomerQueryDto } from './dto/admin-customer-query.dto'
+import { UpdateProfileDto } from './dto/update-profile.dto'
 
 const BCRYPT_SALT_ROUNDS = 12
 
@@ -131,5 +132,29 @@ export class UsersService {
       orders: user.orders,
       addresses: user.addresses,
     }
+  }
+
+  async getProfile(userId: string) {
+    const user = await this.prismaService.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true, name: true, phone: true },
+    })
+    if (!user) {
+      throw new NotFoundException(`User ${userId} not found`)
+    }
+    return user
+  }
+
+  async updateProfile(userId: string, updateProfileDto: UpdateProfileDto) {
+    const { name, phone } = updateProfileDto
+    const updated = await this.prismaService.user.update({
+      where: { id: userId },
+      data: {
+        ...(name !== undefined && { name: name || null }),
+        ...(phone !== undefined && { phone: phone || null }),
+      },
+      select: { id: true, email: true, name: true, phone: true },
+    })
+    return updated
   }
 }
