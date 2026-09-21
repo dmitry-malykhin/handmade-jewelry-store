@@ -1,0 +1,139 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - banner [ref=e3]:
+    - generic [ref=e4]:
+      - link "Senichka — Handmade Beaded Jewelry — home" [ref=e5] [cursor=pointer]:
+        - /url: /en
+        - img "Senichka — Handmade Beaded Jewelry" [ref=e6]
+      - navigation "Main navigation" [ref=e7]:
+        - list [ref=e8]:
+          - listitem [ref=e9]:
+            - link "Shop" [ref=e10] [cursor=pointer]:
+              - /url: /en
+          - listitem [ref=e11]:
+            - link "About" [ref=e12] [cursor=pointer]:
+              - /url: /en/about
+          - listitem [ref=e13]:
+            - link "Contact" [ref=e14] [cursor=pointer]:
+              - /url: /en/contact
+      - generic [ref=e15]:
+        - link "Search" [ref=e16] [cursor=pointer]:
+          - /url: /en/search
+          - img
+        - button "Account menu" [ref=e17]:
+          - img
+        - link "Shopping cart" [ref=e18] [cursor=pointer]:
+          - /url: /en/cart
+          - img
+        - button "Dark mode" [ref=e19]:
+          - img
+        - generic [ref=e20]:
+          - 'button "Display currency: USD. Click to change." [ref=e21]':
+            - generic [ref=e22]: $
+            - generic [ref=e23]: USD
+            - img [ref=e24]
+          - 'button "Language: English. Click to change" [ref=e26]':
+            - generic [ref=e27]: 🇺🇸
+            - generic [ref=e28]: EN
+            - img [ref=e29]
+  - main [ref=e31]:
+    - main [ref=e32]:
+      - generic [ref=e33]:
+        - img [ref=e34]
+        - generic [ref=e37]:
+          - heading "Your cart is empty" [level=2] [ref=e38]
+          - paragraph [ref=e39]: Looks like you haven't added anything yet. Browse our collection to find something you'll love.
+        - link "Continue shopping" [ref=e40] [cursor=pointer]:
+          - /url: /en
+  - contentinfo [ref=e41]:
+    - generic [ref=e42]:
+      - region "Stay in the loop" [ref=e43]:
+        - generic [ref=e44]:
+          - heading "Stay in the loop" [level=2] [ref=e45]
+          - paragraph [ref=e46]: New collections, restocks, and subscriber-only discounts — straight to your inbox.
+        - form "Newsletter signup" [ref=e48]:
+          - group "Newsletter signup" [ref=e49]:
+            - generic [ref=e50]: Newsletter signup
+            - generic [ref=e51]: Email address
+            - generic [ref=e52]:
+              - textbox "Email address" [ref=e53]:
+                - /placeholder: you@example.com
+              - button "Subscribe" [ref=e54]
+            - generic [ref=e56]:
+              - checkbox "I agree to receive marketing emails from ✦ Jewelry. I understand I can unsubscribe at any time and have read the Privacy Policy." [ref=e57]
+              - generic [ref=e58]: I agree to receive marketing emails from ✦ Jewelry. I understand I can unsubscribe at any time and have read the Privacy Policy.
+      - generic [ref=e59]:
+        - generic [ref=e60]:
+          - img "Senichka — Handmade Beaded Jewelry" [ref=e61]
+          - paragraph [ref=e62]: Unique handmade jewelry crafted with love using ethically sourced materials.
+        - navigation "Shop" [ref=e63]:
+          - paragraph [ref=e64]: Shop
+          - list [ref=e65]:
+            - listitem [ref=e66]:
+              - link "All Jewelry" [ref=e67] [cursor=pointer]:
+                - /url: /en
+            - listitem [ref=e68]:
+              - link "Rings" [ref=e69] [cursor=pointer]:
+                - /url: /en?categorySlug=rings
+            - listitem [ref=e70]:
+              - link "Necklaces" [ref=e71] [cursor=pointer]:
+                - /url: /en?categorySlug=necklaces
+            - listitem [ref=e72]:
+              - link "Earrings" [ref=e73] [cursor=pointer]:
+                - /url: /en?categorySlug=earrings
+        - navigation "Company" [ref=e74]:
+          - paragraph [ref=e75]: Company
+          - list [ref=e76]:
+            - listitem [ref=e77]:
+              - link "About Us" [ref=e78] [cursor=pointer]:
+                - /url: /en/about
+            - listitem [ref=e79]:
+              - link "Our Story" [ref=e80] [cursor=pointer]:
+                - /url: /en/about#story
+            - listitem [ref=e81]:
+              - link "Contact" [ref=e82] [cursor=pointer]:
+                - /url: /en/contact
+        - navigation "Support" [ref=e83]:
+          - paragraph [ref=e84]: Support
+          - list [ref=e85]:
+            - listitem [ref=e86]:
+              - link "FAQ" [ref=e87] [cursor=pointer]:
+                - /url: /en/faq
+            - listitem [ref=e88]:
+              - link "Shipping & Returns" [ref=e89] [cursor=pointer]:
+                - /url: /en/shipping
+            - listitem [ref=e90]:
+              - link "Care Guide" [ref=e91] [cursor=pointer]:
+                - /url: /en/care
+            - listitem [ref=e92]:
+              - link "Size Guide" [ref=e93] [cursor=pointer]:
+                - /url: /en/ring-size-guide
+      - generic [ref=e94]:
+        - paragraph [ref=e95]: © 2026 Senichka. All rights reserved.
+        - generic [ref=e96]:
+          - link "Privacy Policy" [ref=e97] [cursor=pointer]:
+            - /url: /en/privacy
+          - link "Terms of Service" [ref=e98] [cursor=pointer]:
+            - /url: /en/terms
+          - link "Legal Notice" [ref=e99] [cursor=pointer]:
+            - /url: /en/impressum
+          - button "Cookie preferences" [ref=e100]
+  - dialog "We use cookies" [ref=e101]:
+    - generic [ref=e103]:
+      - generic [ref=e104]:
+        - paragraph [ref=e105]: We use cookies
+        - paragraph [ref=e106]:
+          - text: We use strictly necessary cookies to keep the site working and optional cookies for analytics and marketing. You can accept all, reject optional cookies, or customise your preferences.
+          - link "Privacy Policy" [ref=e107] [cursor=pointer]:
+            - /url: /privacy
+      - generic [ref=e108]:
+        - button "Customise" [ref=e109]
+        - button "Reject optional" [ref=e110]
+        - button "Accept all" [ref=e111]
+  - region "Notifications alt+T"
+  - alert [ref=e112]
+```

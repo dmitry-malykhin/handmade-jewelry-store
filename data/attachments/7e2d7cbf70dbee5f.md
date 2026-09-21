@@ -1,0 +1,153 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - banner [ref=e3]:
+    - generic [ref=e4]:
+      - link "Senichka — Handmade Beaded Jewelry — home" [ref=e5] [cursor=pointer]:
+        - /url: /en
+        - img "Senichka — Handmade Beaded Jewelry" [ref=e6]
+      - navigation "Main navigation" [ref=e7]:
+        - list [ref=e8]:
+          - listitem [ref=e9]:
+            - link "Shop" [ref=e10] [cursor=pointer]:
+              - /url: /en
+          - listitem [ref=e11]:
+            - link "About" [ref=e12] [cursor=pointer]:
+              - /url: /en/about
+          - listitem [ref=e13]:
+            - link "Contact" [ref=e14] [cursor=pointer]:
+              - /url: /en/contact
+      - generic [ref=e15]:
+        - link "Search" [ref=e16] [cursor=pointer]:
+          - /url: /en/search
+          - img
+        - button "Account menu" [ref=e17]:
+          - img
+        - link "Shopping cart" [ref=e18] [cursor=pointer]:
+          - /url: /en/cart
+          - img
+        - button "Dark mode" [ref=e19]:
+          - img
+        - generic [ref=e20]:
+          - 'button "Display currency: USD. Click to change." [ref=e21]':
+            - generic [ref=e22]: $
+            - generic [ref=e23]: USD
+            - img [ref=e24]
+          - 'button "Language: English. Click to change" [ref=e26]':
+            - generic [ref=e27]: 🇺🇸
+            - generic [ref=e28]: EN
+            - img [ref=e29]
+  - main [ref=e31]:
+    - main [ref=e32]:
+      - generic [ref=e33]:
+        - heading "Legal Notice" [level=1] [ref=e34]
+        - paragraph [ref=e35]: Trader identity per §5 German Telemedia Act (TMG) and EU Consumer Rights Directive Art. 6.
+      - generic [ref=e36]:
+        - generic [ref=e37]:
+          - term [ref=e38]: Legal name
+          - definition [ref=e39]: "[Legal name not set]"
+        - generic [ref=e40]:
+          - term [ref=e41]: Registered address
+          - definition [ref=e42]: "[Address line 1 not set] [Postal code not set] [City not set] [Country not set]"
+        - generic [ref=e43]:
+          - term [ref=e44]: Contact
+          - definition [ref=e45]:
+            - link "[Email not set]" [ref=e46] [cursor=pointer]:
+              - /url: mailto:[Email not set]
+      - generic [ref=e47]:
+        - heading "Online dispute resolution" [level=2] [ref=e48]
+        - paragraph [ref=e49]:
+          - text: "The European Commission provides a platform for online dispute resolution:"
+          - link "https://ec.europa.eu/consumers/odr/" [ref=e50] [cursor=pointer]:
+            - /url: https://ec.europa.eu/consumers/odr/
+  - contentinfo [ref=e51]:
+    - generic [ref=e52]:
+      - region "Stay in the loop" [ref=e53]:
+        - generic [ref=e54]:
+          - heading "Stay in the loop" [level=2] [ref=e55]
+          - paragraph [ref=e56]: New collections, restocks, and subscriber-only discounts — straight to your inbox.
+        - form "Newsletter signup" [ref=e58]:
+          - group "Newsletter signup" [ref=e59]:
+            - generic [ref=e60]: Newsletter signup
+            - generic [ref=e61]: Email address
+            - generic [ref=e62]:
+              - textbox "Email address" [ref=e63]:
+                - /placeholder: you@example.com
+              - button "Subscribe" [ref=e64]
+            - generic [ref=e66]:
+              - checkbox "I agree to receive marketing emails from ✦ Jewelry. I understand I can unsubscribe at any time and have read the Privacy Policy." [ref=e67]
+              - generic [ref=e68]: I agree to receive marketing emails from ✦ Jewelry. I understand I can unsubscribe at any time and have read the Privacy Policy.
+      - generic [ref=e69]:
+        - generic [ref=e70]:
+          - img "Senichka — Handmade Beaded Jewelry" [ref=e71]
+          - paragraph [ref=e72]: Unique handmade jewelry crafted with love using ethically sourced materials.
+        - navigation "Shop" [ref=e73]:
+          - paragraph [ref=e74]: Shop
+          - list [ref=e75]:
+            - listitem [ref=e76]:
+              - link "All Jewelry" [ref=e77] [cursor=pointer]:
+                - /url: /en
+            - listitem [ref=e78]:
+              - link "Rings" [ref=e79] [cursor=pointer]:
+                - /url: /en?categorySlug=rings
+            - listitem [ref=e80]:
+              - link "Necklaces" [ref=e81] [cursor=pointer]:
+                - /url: /en?categorySlug=necklaces
+            - listitem [ref=e82]:
+              - link "Earrings" [ref=e83] [cursor=pointer]:
+                - /url: /en?categorySlug=earrings
+        - navigation "Company" [ref=e84]:
+          - paragraph [ref=e85]: Company
+          - list [ref=e86]:
+            - listitem [ref=e87]:
+              - link "About Us" [ref=e88] [cursor=pointer]:
+                - /url: /en/about
+            - listitem [ref=e89]:
+              - link "Our Story" [ref=e90] [cursor=pointer]:
+                - /url: /en/about#story
+            - listitem [ref=e91]:
+              - link "Contact" [ref=e92] [cursor=pointer]:
+                - /url: /en/contact
+        - navigation "Support" [ref=e93]:
+          - paragraph [ref=e94]: Support
+          - list [ref=e95]:
+            - listitem [ref=e96]:
+              - link "FAQ" [ref=e97] [cursor=pointer]:
+                - /url: /en/faq
+            - listitem [ref=e98]:
+              - link "Shipping & Returns" [ref=e99] [cursor=pointer]:
+                - /url: /en/shipping
+            - listitem [ref=e100]:
+              - link "Care Guide" [ref=e101] [cursor=pointer]:
+                - /url: /en/care
+            - listitem [ref=e102]:
+              - link "Size Guide" [ref=e103] [cursor=pointer]:
+                - /url: /en/ring-size-guide
+      - generic [ref=e104]:
+        - paragraph [ref=e105]: © 2026 Senichka. All rights reserved.
+        - generic [ref=e106]:
+          - link "Privacy Policy" [ref=e107] [cursor=pointer]:
+            - /url: /en/privacy
+          - link "Terms of Service" [ref=e108] [cursor=pointer]:
+            - /url: /en/terms
+          - link "Legal Notice" [ref=e109] [cursor=pointer]:
+            - /url: /en/impressum
+          - button "Cookie preferences" [ref=e110]
+  - dialog "We use cookies" [ref=e111]:
+    - generic [ref=e113]:
+      - generic [ref=e114]:
+        - paragraph [ref=e115]: We use cookies
+        - paragraph [ref=e116]:
+          - text: We use strictly necessary cookies to keep the site working and optional cookies for analytics and marketing. You can accept all, reject optional cookies, or customise your preferences.
+          - link "Privacy Policy" [ref=e117] [cursor=pointer]:
+            - /url: /privacy
+      - generic [ref=e118]:
+        - button "Customise" [ref=e119]
+        - button "Reject optional" [ref=e120]
+        - button "Accept all" [ref=e121]
+  - region "Notifications alt+T"
+  - alert [ref=e122]
+```
