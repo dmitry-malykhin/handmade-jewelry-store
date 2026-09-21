@@ -1,5 +1,7 @@
-import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common'
+import { Body, Controller, HttpCode, HttpStatus, Post, Req } from '@nestjs/common'
 import { Throttle } from '@nestjs/throttler'
+import type { Request } from 'express'
+import { ConfirmNewsletterDto } from './dto/confirm.dto'
 import { SubscribeNewsletterDto } from './dto/subscribe.dto'
 import { NewsletterService } from './newsletter.service'
 
@@ -14,8 +16,26 @@ export class NewsletterController {
     default: { limit: 3, ttl: 60_000 },
     newsletterDaily: { limit: 20, ttl: 86_400_000 },
   })
-  async subscribe(@Body() dto: SubscribeNewsletterDto): Promise<{ status: string }> {
-    const result = await this.newsletterService.subscribe(dto.email)
+  async subscribe(
+    @Body() dto: SubscribeNewsletterDto,
+    @Req() request: Request,
+  ): Promise<{ status: string }> {
+    const result = await this.newsletterService.subscribe({
+      email: dto.email,
+      ipAddress: request.ip ?? null,
+      userAgent: request.headers['user-agent'] ?? null,
+      sourceUrl: dto.sourceUrl ?? null,
+    })
+    return { status: result.status }
+  }
+
+  @Post('confirm')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({
+    default: { limit: 10, ttl: 60_000 },
+  })
+  async confirm(@Body() dto: ConfirmNewsletterDto): Promise<{ status: string }> {
+    const result = await this.newsletterService.confirm(dto.email, dto.token)
     return { status: result.status }
   }
 }

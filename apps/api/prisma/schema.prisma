@@ -85,6 +85,13 @@ enum DiscountType {
   FIXED_AMOUNT // value is in cents, flat $ off
 }
 
+enum NewsletterConsentStatus {
+  PENDING // Awaiting confirmation click — Klaviyo not yet called
+  CONFIRMED // Confirm link clicked — Klaviyo now holds SUBSCRIBED
+  EXPIRED // Confirmation token past its 7-day window without a click
+  UNSUBSCRIBED // Later opt-out
+}
+
 // ─── Models ──────────────────────────────────────────────────────────────────
 
 model User {
@@ -405,4 +412,29 @@ model SiteSettings {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// GDPR Art. 7(1) audit trail for newsletter opt-in (#552).
+// One row per submission, persisted BEFORE Klaviyo is called so consent is
+// provable even if the user later unsubscribes. IP/UA/formVersion/sourceUrl
+// capture the environment in which consent was given.
+model NewsletterConsent {
+  id                    String                  @id @default(cuid())
+  email                 String
+  status                NewsletterConsentStatus @default(PENDING)
+  // Hashed confirmation token, cleared after use or on expiry.
+  confirmationTokenHash String?
+  confirmationTokenAt   DateTime?
+  ipAddress             String?
+  userAgent             String?
+  // Bumped when the on-form consent copy changes so we can prove which text
+  // the user agreed to at the time of submission.
+  formVersion           String
+  sourceUrl             String?
+  createdAt             DateTime                @default(now())
+  confirmedAt           DateTime?
+  unsubscribedAt        DateTime?
+
+  @@index([email])
+  @@index([status, createdAt])
 }
