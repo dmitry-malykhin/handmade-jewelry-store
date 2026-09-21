@@ -23,6 +23,10 @@ import {
 } from './templates/email-verification.template'
 import { buildWelcomeEmail, type WelcomeEmailData } from './templates/welcome.template'
 import {
+  buildNewsletterConfirmationEmail,
+  type NewsletterConfirmationData,
+} from './templates/newsletter-confirmation.template'
+import {
   buildContactMessageEmail,
   type ContactMessageEmailData,
 } from './templates/contact-message.template'
@@ -79,6 +83,11 @@ export class EmailService {
 
   async sendEmailVerification(data: EmailVerificationData): Promise<void> {
     const { subject, html } = buildEmailVerificationEmail(data)
+    await this.send({ to: data.recipientEmail, subject, html })
+  }
+
+  async sendNewsletterConfirmation(data: NewsletterConfirmationData): Promise<void> {
+    const { subject, html } = buildNewsletterConfirmationEmail(data)
     await this.send({ to: data.recipientEmail, subject, html })
   }
 

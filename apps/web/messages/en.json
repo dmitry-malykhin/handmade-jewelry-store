@@ -1285,11 +1285,24 @@
     "placeholder": "you@example.com",
     "submit": "Subscribe",
     "submitting": "Subscribing…",
-    "helper": "We'll send a confirmation email. Unsubscribe anytime.",
-    "successTitle": "Almost there!",
-    "successMessage": "Check your inbox to confirm your subscription.",
+    "successTitle": "Check your inbox",
+    "successMessage": "We sent a confirmation link to your email. Click it to complete your subscription. The link expires in 7 days.",
     "errorInvalidEmail": "Please enter a valid email address.",
-    "errorGeneric": "Could not subscribe. Please try again later."
+    "errorGeneric": "Could not subscribe. Please try again later.",
+    "consentLabel": "I agree to receive marketing emails from ✦ Jewelry. I understand I can unsubscribe at any time and have read the Privacy Policy.",
+    "errorConsentRequired": "Please confirm you agree to receive marketing emails.",
+    "confirmPage": {
+      "metaTitle": "Confirming newsletter subscription",
+      "pending": "Confirming your subscription…",
+      "successTitle": "You're subscribed",
+      "successBody": "Thanks for confirming. You'll be the first to hear about new pieces, restocks and exclusive offers.",
+      "successCta": "Back to shop",
+      "alreadyTitle": "Already subscribed",
+      "alreadyBody": "This email is already on our newsletter list. No action needed.",
+      "errorTitle": "Confirmation failed",
+      "errorBody": "This link is invalid or has expired. Please try subscribing again from any page.",
+      "errorCta": "Back to shop"
+    }
   },
   "wishlist": {
     "addToWishlist": "Add to wishlist",

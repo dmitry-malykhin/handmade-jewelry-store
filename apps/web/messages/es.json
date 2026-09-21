@@ -1285,11 +1285,24 @@
     "placeholder": "tu@ejemplo.com",
     "submit": "Suscribirse",
     "submitting": "Suscribiendo…",
-    "helper": "Te enviaremos un correo de confirmación. Cancela cuando quieras.",
-    "successTitle": "¡Casi listo!",
-    "successMessage": "Revisa tu correo para confirmar la suscripción.",
+    "successTitle": "Revisa tu correo",
+    "successMessage": "Enviamos un enlace de confirmación a tu email. Haz clic para completar la suscripción. El enlace expira en 7 días.",
     "errorInvalidEmail": "Introduce un correo electrónico válido.",
-    "errorGeneric": "No se pudo suscribir. Inténtalo más tarde."
+    "errorGeneric": "No se pudo suscribir. Inténtalo más tarde.",
+    "consentLabel": "Acepto recibir emails de marketing de ✦ Jewelry. Entiendo que puedo darme de baja en cualquier momento y he leído la Política de Privacidad.",
+    "errorConsentRequired": "Por favor confirma que aceptas recibir emails de marketing.",
+    "confirmPage": {
+      "metaTitle": "Confirmando suscripción a la newsletter",
+      "pending": "Confirmando tu suscripción…",
+      "successTitle": "Estás suscrito",
+      "successBody": "Gracias por confirmar. Serás el primero en enterarte de nuevas piezas, reposiciones y ofertas exclusivas.",
+      "successCta": "Volver a la tienda",
+      "alreadyTitle": "Ya estás suscrito",
+      "alreadyBody": "Este email ya está en nuestra lista. No hace falta hacer nada más.",
+      "errorTitle": "No se pudo confirmar",
+      "errorBody": "Este enlace no es válido o ha expirado. Prueba a suscribirte de nuevo desde cualquier página.",
+      "errorCta": "Volver a la tienda"
+    }
   },
   "wishlist": {
     "addToWishlist": "Añadir a favoritos",

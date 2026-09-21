@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { http, HttpResponse } from 'msw'
 import { server } from '@/test-utils/msw/server'
-import { subscribeToNewsletter } from '../newsletter'
+import { confirmNewsletterSubscription, subscribeToNewsletter } from '../newsletter'
 import {
   suite as $allureSuite,
   subSuite as $allureSubSuite,
@@ -14,34 +14,57 @@ beforeEach(async () => {
   if (!process.env.CI) return
   await $allureSuite('web/lib/api')
   await $allureSubSuite('newsletter')
-  await $allureSeverity('normal')
+  await $allureSeverity('critical')
 })
 
 describe('newsletter API', () => {
-  it('subscribeToNewsletter POSTs the email and returns queued status', async () => {
+  it('subscribeToNewsletter POSTs email + consent + sourceUrl and returns pending-confirmation', async () => {
     let receivedBody: unknown = null
     server.use(
       http.post(`${API_BASE}/api/newsletter/subscribe`, async ({ request }) => {
         receivedBody = await request.json()
-        return HttpResponse.json({ status: 'queued' })
+        return HttpResponse.json({ status: 'pending-confirmation' })
       }),
     )
 
-    const result = await subscribeToNewsletter('a@b.com')
+    const result = await subscribeToNewsletter({
+      email: 'a@b.com',
+      consent: true,
+      sourceUrl: '/en/products',
+    })
 
-    expect(receivedBody).toEqual({ email: 'a@b.com' })
-    expect(result.status).toBe('queued')
+    expect(receivedBody).toEqual({
+      email: 'a@b.com',
+      consent: true,
+      sourceUrl: '/en/products',
+    })
+    expect(result.status).toBe('pending-confirmation')
   })
 
-  it('returns skipped when server reports already-subscribed', async () => {
+  it('confirmNewsletterSubscription POSTs email + token and returns confirmed', async () => {
+    let receivedBody: unknown = null
     server.use(
-      http.post(`${API_BASE}/api/newsletter/subscribe`, () =>
-        HttpResponse.json({ status: 'skipped' }),
+      http.post(`${API_BASE}/api/newsletter/confirm`, async ({ request }) => {
+        receivedBody = await request.json()
+        return HttpResponse.json({ status: 'confirmed' })
+      }),
+    )
+
+    const result = await confirmNewsletterSubscription('a@b.com', 'tok-xyz')
+
+    expect(receivedBody).toEqual({ email: 'a@b.com', token: 'tok-xyz' })
+    expect(result.status).toBe('confirmed')
+  })
+
+  it('returns already-confirmed when the server reports the email is already on the list', async () => {
+    server.use(
+      http.post(`${API_BASE}/api/newsletter/confirm`, () =>
+        HttpResponse.json({ status: 'already-confirmed' }),
       ),
     )
 
-    const result = await subscribeToNewsletter('a@b.com')
+    const result = await confirmNewsletterSubscription('a@b.com', 'tok-xyz')
 
-    expect(result.status).toBe('skipped')
+    expect(result.status).toBe('already-confirmed')
   })
 })

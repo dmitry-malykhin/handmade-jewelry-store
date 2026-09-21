@@ -1,8 +1,9 @@
 'use client'
 
 import { useState } from 'react'
+import { usePathname } from 'next/navigation'
 import { useTranslations } from 'next-intl'
-import { CheckCircle } from 'lucide-react'
+import { Mail } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -13,15 +14,18 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 interface NewsletterFormProps {
   // 'footer' renders compact inline layout, 'hero' renders larger centered layout.
-  // Same logic, only Tailwind classes differ — keeps a single source of truth for the form.
+  // Same logic, only Tailwind classes differ, keeping a single source of truth for the form.
   variant?: 'footer' | 'hero'
 }
 
 export function NewsletterForm({ variant = 'footer' }: NewsletterFormProps) {
   const t = useTranslations('newsletter')
+  const pathname = usePathname()
 
   const [email, setEmail] = useState('')
+  const [consent, setConsent] = useState(false)
   const [validationError, setValidationError] = useState<string | null>(null)
+  const [consentError, setConsentError] = useState<string | null>(null)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
@@ -30,18 +34,28 @@ export function NewsletterForm({ variant = 'footer' }: NewsletterFormProps) {
     event.preventDefault()
     setSubmitError(null)
     setValidationError(null)
+    setConsentError(null)
 
     const trimmed = email.trim()
     if (!EMAIL_REGEX.test(trimmed)) {
       setValidationError(t('errorInvalidEmail'))
       return
     }
+    if (!consent) {
+      setConsentError(t('errorConsentRequired'))
+      return
+    }
 
     setIsSubmitting(true)
     try {
-      await subscribeToNewsletter(trimmed)
+      await subscribeToNewsletter({
+        email: trimmed,
+        consent: true,
+        sourceUrl: pathname,
+      })
       setIsSuccess(true)
       setEmail('')
+      setConsent(false)
     } catch (error) {
       const message = error instanceof ApiError ? error.message : t('errorGeneric')
       setSubmitError(message)
@@ -56,11 +70,11 @@ export function NewsletterForm({ variant = 'footer' }: NewsletterFormProps) {
         role="status"
         className={
           variant === 'hero'
-            ? 'mx-auto flex max-w-md items-center justify-center gap-3 rounded-lg border border-border bg-card p-4 text-center'
+            ? 'mx-auto flex max-w-md items-start gap-3 rounded-lg border border-border bg-card p-4'
             : 'flex items-start gap-2 rounded-md border border-border bg-card p-3'
         }
       >
-        <CheckCircle className="size-5 shrink-0 text-green-600" aria-hidden="true" />
+        <Mail className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden="true" />
         <div>
           <p className="text-sm font-medium text-foreground">{t('successTitle')}</p>
           <p className="text-xs text-muted-foreground">{t('successMessage')}</p>
@@ -76,7 +90,7 @@ export function NewsletterForm({ variant = 'footer' }: NewsletterFormProps) {
       aria-label={t('formLabel')}
       className={variant === 'hero' ? 'mx-auto w-full max-w-md' : 'w-full'}
     >
-      <fieldset disabled={isSubmitting} className="space-y-2">
+      <fieldset disabled={isSubmitting} className="space-y-3">
         <legend className="sr-only">{t('formLabel')}</legend>
 
         <Label htmlFor={`newsletter-email-${variant}`} className="text-sm font-medium">
@@ -108,12 +122,44 @@ export function NewsletterForm({ variant = 'footer' }: NewsletterFormProps) {
             {validationError}
           </p>
         )}
+
+        <div className="space-y-1">
+          <label
+            htmlFor={`newsletter-consent-${variant}`}
+            className="flex items-start gap-2 text-xs text-muted-foreground"
+          >
+            <input
+              id={`newsletter-consent-${variant}`}
+              type="checkbox"
+              checked={consent}
+              onChange={(event) => {
+                setConsent(event.target.checked)
+                if (event.target.checked && consentError) setConsentError(null)
+              }}
+              required
+              aria-required="true"
+              aria-invalid={!!consentError}
+              aria-describedby={consentError ? `newsletter-consent-error-${variant}` : undefined}
+              className="mt-0.5 size-4 shrink-0 rounded border-input"
+            />
+            <span>{t('consentLabel')}</span>
+          </label>
+          {consentError && (
+            <p
+              id={`newsletter-consent-error-${variant}`}
+              role="alert"
+              className="text-sm text-destructive"
+            >
+              {consentError}
+            </p>
+          )}
+        </div>
+
         {submitError && (
           <p role="alert" className="text-sm text-destructive">
             {submitError}
           </p>
         )}
-        <p className="text-xs text-muted-foreground">{t('helper')}</p>
       </fieldset>
     </form>
   )

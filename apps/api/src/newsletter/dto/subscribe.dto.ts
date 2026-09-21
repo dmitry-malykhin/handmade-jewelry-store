@@ -1,4 +1,4 @@
-import { IsEmail, MaxLength } from 'class-validator'
+import { Equals, IsBoolean, IsEmail, IsOptional, IsString, MaxLength } from 'class-validator'
 import { Transform } from 'class-transformer'
 
 export class SubscribeNewsletterDto {
@@ -6,4 +6,15 @@ export class SubscribeNewsletterDto {
   @IsEmail()
   @MaxLength(254)
   email!: string
+
+  @IsBoolean()
+  @Equals(true, {
+    message: 'You must accept the newsletter consent statement.',
+  })
+  consent!: boolean
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(2048)
+  sourceUrl?: string
 }

@@ -8,11 +8,20 @@ import {
   subSuite as $allureSubSuite,
   severity as $allureSeverity,
 } from 'allure-js-commons'
+import { EmailService } from '../../email/email.service'
+import { PrismaService } from '../../prisma/prisma.service'
 import { KlaviyoNewsletterClient } from '../klaviyo-newsletter.client'
 import { NewsletterController } from '../newsletter.controller'
 import { NewsletterService } from '../newsletter.service'
 
 const subscribeEmail = jest.fn()
+const sendNewsletterConfirmation = jest.fn()
+const newsletterConsent = {
+  create: jest.fn(),
+  findMany: jest.fn(),
+  findFirst: jest.fn(),
+  update: jest.fn(),
+}
 
 beforeEach(async () => {
   if (!process.env.CI) return
@@ -21,15 +30,15 @@ beforeEach(async () => {
   await $allureSeverity('critical')
 })
 
-describe('NewsletterController — rate limit', () => {
+describe('NewsletterController rate limit', () => {
   let app: INestApplication
 
   beforeEach(async () => {
-    subscribeEmail.mockReset()
+    jest.clearAllMocks()
     subscribeEmail.mockResolvedValue({ status: 'queued' })
+    newsletterConsent.create.mockResolvedValue({ id: 'nc-any' })
 
     const moduleRef: TestingModule = await Test.createTestingModule({
-      // Mirror AppModule so @Throttle('newsletterDaily') resolves.
       imports: [
         ThrottlerModule.forRoot({
           throttlers: [
@@ -41,7 +50,9 @@ describe('NewsletterController — rate limit', () => {
       controllers: [NewsletterController],
       providers: [
         NewsletterService,
+        { provide: PrismaService, useValue: { newsletterConsent } },
         { provide: KlaviyoNewsletterClient, useValue: { subscribeEmail } },
+        { provide: EmailService, useValue: { sendNewsletterConfirmation } },
         { provide: APP_GUARD, useClass: ThrottlerGuard },
       ],
     }).compile()
@@ -61,9 +72,9 @@ describe('NewsletterController — rate limit', () => {
   it('accepts a valid subscribe request with 202', async () => {
     const response = await request(app.getHttpServer())
       .post('/api/newsletter/subscribe')
-      .send({ email: 'user@example.com' })
+      .send({ email: 'user@example.com', consent: true })
     expect(response.status).toBe(202)
-    expect(subscribeEmail).toHaveBeenCalledTimes(1)
+    expect(newsletterConsent.create).toHaveBeenCalledTimes(1)
   })
 
   it('returns 429 after the per-minute limit of 3 is exceeded', async () => {
@@ -72,14 +83,13 @@ describe('NewsletterController — rate limit', () => {
     for (let attempt = 1; attempt <= 3; attempt += 1) {
       const ok = await request(server)
         .post('/api/newsletter/subscribe')
-        .send({ email: `user${attempt}@example.com` })
+        .send({ email: `user${attempt}@example.com`, consent: true })
       expect(ok.status).toBe(202)
     }
     const throttled = await request(server)
       .post('/api/newsletter/subscribe')
-      .send({ email: 'user4@example.com' })
+      .send({ email: 'user4@example.com', consent: true })
     expect(throttled.status).toBe(429)
-    // Klaviyo side-effect never fires past the throttle boundary
-    expect(subscribeEmail).toHaveBeenCalledTimes(3)
+    expect(newsletterConsent.create).toHaveBeenCalledTimes(3)
   })
 })
