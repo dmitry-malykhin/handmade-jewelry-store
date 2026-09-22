@@ -434,7 +434,15 @@
     "craftingLine": "Elaboración: hasta {days} días hábiles",
     "shippingLineStandard": "Envío: 5–7 días hábiles estándar",
     "shippingLineExpress": "Envío: 2–3 días hábiles exprés",
-    "installmentPreview": "O paga en {count} cuotas sin intereses de ${amount} con Klarna o Afterpay."
+    "installmentPreview": "O paga en {count} cuotas sin intereses de ${amount} con Klarna o Afterpay.",
+    "acknowledgementTitle": "Antes de realizar el pedido",
+    "acknowledgementTotal": "Se te cobrarán {amount} en total, envío incluido.",
+    "acknowledgementDelivery": "El plazo de entrega estimado se muestra en el resumen del pedido a la derecha.",
+    "acknowledgementWithdrawal": "Tienes 14 días para desistir de esta compra tras la entrega. Consulta nuestra <policy>Política de Reembolsos</policy>.",
+    "termsAcceptance": "Acepto los <terms>Términos del Servicio</terms>, la <privacy>Política de Privacidad</privacy> y la <refund>Política de Reembolsos</refund>. Entiendo que este pedido es vinculante y se paga al enviarlo.",
+    "termsRequiredError": "Acepta los Términos, la Política de Privacidad y la Política de Reembolsos para realizar el pedido.",
+    "termsRecordFailedError": "No se pudo registrar tu aceptación. Inténtalo de nuevo.",
+    "placeOrderCta": "Realizar pedido (paga {amount})"
   },
   "confirmationPage": {
     "metaTitle": "Pedido confirmado",

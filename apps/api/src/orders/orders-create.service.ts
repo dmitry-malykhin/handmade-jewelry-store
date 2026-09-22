@@ -1,11 +1,29 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common'
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  Logger,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
-import { OrderStatus, Prisma } from '@prisma/client'
+import { OrderStatus, Prisma, Role, type User } from '@prisma/client'
 import { InputJsonValue } from '@prisma/client/runtime/library'
 import { DiscountsService, type AppliedDiscount } from '../discounts/discounts.service'
 import { LoyaltyService } from '../loyalty/loyalty.service'
 import { PrismaService } from '../prisma/prisma.service'
+import { AcceptOrderTermsDto } from './dto/accept-order-terms.dto'
 import { CreateOrderDto } from './dto/create-order.dto'
+import {
+  CURRENT_PRIVACY_VERSION,
+  CURRENT_REFUND_POLICY_VERSION,
+  CURRENT_TERMS_VERSION,
+} from './legal-versions'
+
+export interface AcceptTermsCallerContext {
+  ipAddress: string | null
+  userAgent: string | null
+}
 
 @Injectable()
 export class OrdersCreateService {
@@ -133,6 +151,78 @@ export class OrdersCreateService {
         }
       }
       throw error
+    }
+  }
+
+  // Records the buyer's acceptance of Terms/Privacy/Refund-Policy on their
+  // Order. Called before stripe.confirmPayment so we hold the evidence
+  // required by EU CRD Art. 8(2) and GDPR Art. 7(1) before any charge fires.
+  // Idempotent: re-submitting for the same order is a no-op that returns the
+  // existing row (buyer may retry payment after a decline).
+  async acceptTerms(
+    orderId: string,
+    dto: AcceptOrderTermsDto,
+    caller: User | null,
+    orderAccessToken: string | null,
+    context: AcceptTermsCallerContext,
+  ) {
+    if (
+      dto.termsVersion !== CURRENT_TERMS_VERSION ||
+      dto.privacyVersion !== CURRENT_PRIVACY_VERSION ||
+      dto.refundPolicyVersion !== CURRENT_REFUND_POLICY_VERSION
+    ) {
+      throw new BadRequestException(
+        'Legal policy versions have changed. Reload the page and re-accept the updated terms.',
+      )
+    }
+
+    const order = await this.prismaService.order.findUnique({
+      where: { id: orderId },
+      select: { id: true, userId: true, terms: { select: { id: true } } },
+    })
+    if (!order) {
+      throw new NotFoundException('Order not found')
+    }
+
+    this.authorizeOrderAccess(order.id, order.userId, caller, orderAccessToken)
+
+    if (order.terms) {
+      return this.prismaService.orderTerms.findUniqueOrThrow({ where: { orderId } })
+    }
+
+    return this.prismaService.orderTerms.create({
+      data: {
+        orderId,
+        termsVersion: dto.termsVersion,
+        privacyVersion: dto.privacyVersion,
+        refundPolicyVersion: dto.refundPolicyVersion,
+        ipAddress: context.ipAddress,
+        userAgent: context.userAgent,
+      },
+    })
+  }
+
+  private authorizeOrderAccess(
+    orderId: string,
+    orderOwnerUserId: string | null,
+    caller: User | null,
+    orderAccessToken: string | null,
+  ): void {
+    if (caller) {
+      if (caller.role === Role.ADMIN || orderOwnerUserId === caller.id) return
+      throw new ForbiddenException('You do not have access to this order')
+    }
+    if (!orderAccessToken) {
+      throw new UnauthorizedException('Authentication required to accept terms for this order')
+    }
+    let payload: { orderId?: string; purpose?: string }
+    try {
+      payload = this.jwtService.verify(orderAccessToken)
+    } catch {
+      throw new UnauthorizedException('Invalid or expired order access token')
+    }
+    if (payload.purpose !== 'order-access' || payload.orderId !== orderId) {
+      throw new UnauthorizedException('Order access token does not match this order')
     }
   }
 }

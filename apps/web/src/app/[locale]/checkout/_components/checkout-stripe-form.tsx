@@ -4,6 +4,13 @@ import { useState } from 'react'
 import { useStripe, useElements, PaymentElement } from '@stripe/react-stripe-js'
 import { useLocale, useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
+import { acceptOrderTerms } from '@/lib/api/orders'
+import {
+  CURRENT_PRIVACY_VERSION,
+  CURRENT_REFUND_POLICY_VERSION,
+  CURRENT_TERMS_VERSION,
+} from '@/lib/legal/versions'
+import { useAuthStore } from '@/store/auth.store'
 import { CheckoutPaymentRequestButton } from './checkout-payment-request-button'
 import { usePaymentRequest } from './hooks/use-payment-request'
 
@@ -32,7 +39,10 @@ export function CheckoutStripeForm({
   const locale = useLocale()
   const stripe = useStripe()
   const elements = useElements()
+  const accessToken = useAuthStore((state) => state.accessToken)
   const [stripeError, setStripeError] = useState<string | null>(null)
+  const [termsAccepted, setTermsAccepted] = useState(false)
+  const [termsError, setTermsError] = useState<string | null>(null)
 
   const { paymentRequest, canMakePayment, paymentRequestError } = usePaymentRequest({
     totalAmountInCents: totalAmount,
@@ -48,7 +58,34 @@ export function CheckoutStripeForm({
     if (!stripe || !elements) return
 
     setStripeError(null)
+    setTermsError(null)
+
+    if (!termsAccepted) {
+      setTermsError(t('termsRequiredError'))
+      return
+    }
+
     onSubmittingChange(true)
+
+    try {
+      await acceptOrderTerms(
+        orderId,
+        {
+          termsVersion: CURRENT_TERMS_VERSION,
+          privacyVersion: CURRENT_PRIVACY_VERSION,
+          refundPolicyVersion: CURRENT_REFUND_POLICY_VERSION,
+        },
+        { accessToken, orderAccessToken },
+      )
+    } catch (termsAcceptanceError) {
+      setStripeError(
+        termsAcceptanceError instanceof Error
+          ? termsAcceptanceError.message
+          : t('termsRecordFailedError'),
+      )
+      onSubmittingChange(false)
+      return
+    }
 
     const { error } = await stripe.confirmPayment({
       elements,
@@ -57,15 +94,12 @@ export function CheckoutStripeForm({
       },
     })
 
-    // confirmPayment only returns here if it encounters an error.
-    // On success, Stripe redirects to return_url automatically.
     if (error) {
       setStripeError(error.message ?? t('submitError'))
       onSubmittingChange(false)
     }
   }
 
-  // Format total for display: cents → dollars
   const formattedTotal = new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
@@ -74,7 +108,6 @@ export function CheckoutStripeForm({
   return (
     <form onSubmit={handleSubmit} noValidate>
       <div className="space-y-6">
-        {/* Apple Pay / Google Pay — shown above card form when browser supports it */}
         {canMakePayment && paymentRequest && (
           <>
             <CheckoutPaymentRequestButton paymentRequest={paymentRequest} />
@@ -85,7 +118,6 @@ export function CheckoutStripeForm({
               </p>
             )}
 
-            {/* Divider between native pay button and card form */}
             <div className="relative my-2">
               <div className="absolute inset-0 flex items-center">
                 <span className="w-full border-t border-border" />
@@ -99,7 +131,6 @@ export function CheckoutStripeForm({
           </>
         )}
 
-        {/* Card form — always shown as fallback */}
         <PaymentElement id={`payment-element-${orderId}`} options={{ layout: 'tabs' }} />
 
         {stripeError && (
@@ -108,6 +139,89 @@ export function CheckoutStripeForm({
           </p>
         )}
 
+        <div className="rounded-md border border-border bg-muted/40 p-4 text-xs text-muted-foreground">
+          <p className="mb-2 font-medium text-foreground">{t('acknowledgementTitle')}</p>
+          <ul role="list" className="list-disc space-y-1 pl-5">
+            <li>{t('acknowledgementTotal', { amount: formattedTotal })}</li>
+            <li>{t('acknowledgementDelivery')}</li>
+            <li>
+              {t.rich('acknowledgementWithdrawal', {
+                policy: (chunks) => (
+                  <a
+                    href={`/${locale}/terms#returns-and-refunds`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline underline-offset-2 hover:text-foreground"
+                  >
+                    {chunks}
+                  </a>
+                ),
+              })}
+            </li>
+          </ul>
+        </div>
+
+        <div className="space-y-1">
+          <label
+            htmlFor="checkout-terms"
+            className="flex items-start gap-2 text-sm text-muted-foreground"
+          >
+            <input
+              id="checkout-terms"
+              type="checkbox"
+              checked={termsAccepted}
+              onChange={(event) => {
+                setTermsAccepted(event.target.checked)
+                if (event.target.checked && termsError) setTermsError(null)
+              }}
+              required
+              aria-required="true"
+              aria-invalid={!!termsError}
+              aria-describedby={termsError ? 'checkout-terms-error' : undefined}
+              className="mt-0.5 size-4 shrink-0 rounded border-input"
+            />
+            <span>
+              {t.rich('termsAcceptance', {
+                terms: (chunks) => (
+                  <a
+                    href={`/${locale}/terms`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline underline-offset-2 hover:text-foreground"
+                  >
+                    {chunks}
+                  </a>
+                ),
+                privacy: (chunks) => (
+                  <a
+                    href={`/${locale}/privacy`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline underline-offset-2 hover:text-foreground"
+                  >
+                    {chunks}
+                  </a>
+                ),
+                refund: (chunks) => (
+                  <a
+                    href={`/${locale}/terms#returns-and-refunds`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline underline-offset-2 hover:text-foreground"
+                  >
+                    {chunks}
+                  </a>
+                ),
+              })}
+            </span>
+          </label>
+          {termsError && (
+            <p id="checkout-terms-error" role="alert" className="text-sm text-destructive">
+              {termsError}
+            </p>
+          )}
+        </div>
+
         <div className="flex flex-col gap-3 sm:flex-row-reverse">
           <Button
             type="submit"
@@ -115,7 +229,7 @@ export function CheckoutStripeForm({
             className="w-full sm:w-auto sm:min-w-48"
             disabled={!stripe || !elements || isSubmitting}
           >
-            {isSubmitting ? t('submitting') : t('payNow', { amount: formattedTotal })}
+            {isSubmitting ? t('submitting') : t('placeOrderCta', { amount: formattedTotal })}
           </Button>
           <Button
             type="button"

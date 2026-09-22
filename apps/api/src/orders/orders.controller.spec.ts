@@ -17,6 +17,7 @@ const mockOrdersService = {
   findOneById: jest.fn(),
   findOneByIdForCaller: jest.fn(),
   updateStatus: jest.fn(),
+  acceptTerms: jest.fn(),
 }
 
 const mockCreateOrderDto: CreateOrderDto = {
@@ -153,6 +154,56 @@ describe('OrdersController', () => {
         null,
         'header-token',
       )
+    })
+  })
+
+  describe('acceptTerms()', () => {
+    const mockRequest = { ip: '203.0.113.4', headers: { 'user-agent': 'jest/1' } }
+
+    it('delegates DTO + auth context to OrdersService.acceptTerms', async () => {
+      mockOrdersService.acceptTerms.mockResolvedValue({ id: 'terms-1' })
+      const dto = {
+        termsVersion: 'v1-2026-09',
+        privacyVersion: 'v1-2026-09',
+        refundPolicyVersion: 'v1-2026-09',
+      }
+      const authedUser = { id: 'user-real', email: 'a@b.c', role: Role.USER } as User
+
+      const result = await ordersController.acceptTerms(
+        'order-1',
+        dto,
+        authedUser,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        mockRequest as any,
+        'signed-order-token',
+      )
+
+      expect(mockOrdersService.acceptTerms).toHaveBeenCalledWith(
+        'order-1',
+        dto,
+        authedUser,
+        'signed-order-token',
+        { ipAddress: '203.0.113.4', userAgent: 'jest/1' },
+      )
+      expect(result).toEqual({ id: 'terms-1' })
+    })
+
+    it('passes null orderAccessToken when the header is absent (owner path)', async () => {
+      mockOrdersService.acceptTerms.mockResolvedValue({ id: 'terms-1' })
+      const authedUser = { id: 'user-real', email: 'a@b.c', role: Role.USER } as User
+      const dto = {
+        termsVersion: 'v1-2026-09',
+        privacyVersion: 'v1-2026-09',
+        refundPolicyVersion: 'v1-2026-09',
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await ordersController.acceptTerms('order-1', dto, authedUser, mockRequest as any, undefined)
+
+      expect(mockOrdersService.acceptTerms).toHaveBeenCalledWith('order-1', dto, authedUser, null, {
+        ipAddress: '203.0.113.4',
+        userAgent: 'jest/1',
+      })
     })
   })
 

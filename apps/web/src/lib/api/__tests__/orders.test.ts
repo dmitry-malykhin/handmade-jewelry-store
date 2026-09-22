@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { http, HttpResponse } from 'msw'
 import { server } from '@/test-utils/msw/server'
 import {
+  acceptOrderTerms,
   createOrder,
   downloadAdminOrdersCsv,
   fetchAdminOrderById,
@@ -328,5 +329,62 @@ describe('orders API — refunds & production', () => {
     }
 
     expect(receivedPath).toBe('/api/admin/orders/export?status=PAID')
+  })
+
+  describe('acceptOrderTerms', () => {
+    it('POSTs the versions and forwards Bearer + x-order-access-token headers', async () => {
+      let receivedBody: unknown = null
+      let receivedAuth: string | null = null
+      let receivedOrderToken: string | null = null
+      server.use(
+        http.post(`${API_BASE}/api/orders/order-1/terms`, async ({ request }) => {
+          receivedBody = await request.json()
+          receivedAuth = request.headers.get('authorization')
+          receivedOrderToken = request.headers.get('x-order-access-token')
+          return HttpResponse.json({ id: 'terms-1' })
+        }),
+      )
+
+      const result = await acceptOrderTerms(
+        'order-1',
+        {
+          termsVersion: 'v1-2026-09',
+          privacyVersion: 'v1-2026-09',
+          refundPolicyVersion: 'v1-2026-09',
+        },
+        { accessToken: 'user-jwt', orderAccessToken: 'guest-token' },
+      )
+
+      expect(receivedBody).toEqual({
+        termsVersion: 'v1-2026-09',
+        privacyVersion: 'v1-2026-09',
+        refundPolicyVersion: 'v1-2026-09',
+      })
+      expect(receivedAuth).toBe('Bearer user-jwt')
+      expect(receivedOrderToken).toBe('guest-token')
+      expect(result.id).toBe('terms-1')
+    })
+
+    it('omits the Authorization header for anonymous guests', async () => {
+      let receivedAuth: string | null = null
+      server.use(
+        http.post(`${API_BASE}/api/orders/order-1/terms`, ({ request }) => {
+          receivedAuth = request.headers.get('authorization')
+          return HttpResponse.json({ id: 'terms-1' })
+        }),
+      )
+
+      await acceptOrderTerms(
+        'order-1',
+        {
+          termsVersion: 'v1-2026-09',
+          privacyVersion: 'v1-2026-09',
+          refundPolicyVersion: 'v1-2026-09',
+        },
+        { orderAccessToken: 'guest-token' },
+      )
+
+      expect(receivedAuth).toBeNull()
+    })
   })
 })
