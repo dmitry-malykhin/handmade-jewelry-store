@@ -198,6 +198,27 @@ export async function createOrder(
   })
 }
 
+export interface AcceptOrderTermsPayload {
+  termsVersion: string
+  privacyVersion: string
+  refundPolicyVersion: string
+}
+
+export async function acceptOrderTerms(
+  orderId: string,
+  payload: AcceptOrderTermsPayload,
+  authOptions: { accessToken?: string | null; orderAccessToken?: string | null },
+): Promise<{ id: string }> {
+  const headers: Record<string, string> = {}
+  if (authOptions.accessToken) headers.Authorization = `Bearer ${authOptions.accessToken}`
+  if (authOptions.orderAccessToken) headers['x-order-access-token'] = authOptions.orderAccessToken
+  return apiClient<{ id: string }>(`/api/orders/${orderId}/terms`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+    headers,
+  })
+}
+
 export interface AdminOrdersExportParams {
   status?: OrderStatus
   // ISO 8601, inclusive bounds on `createdAt`.

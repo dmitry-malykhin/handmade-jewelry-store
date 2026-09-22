@@ -434,7 +434,15 @@
     "craftingLine": "Crafting: up to {days} business days",
     "shippingLineStandard": "Shipping: 5–7 business days standard",
     "shippingLineExpress": "Shipping: 2–3 business days express",
-    "installmentPreview": "Or pay in {count} interest-free installments of ${amount} with Klarna or Afterpay at checkout."
+    "installmentPreview": "Or pay in {count} interest-free installments of ${amount} with Klarna or Afterpay at checkout.",
+    "acknowledgementTitle": "Before you place your order",
+    "acknowledgementTotal": "You will be charged {amount} in total, including shipping.",
+    "acknowledgementDelivery": "Estimated delivery is shown in the order summary on the right.",
+    "acknowledgementWithdrawal": "You have a 14-day right to withdraw from this purchase after delivery. See our <policy>Refund Policy</policy>.",
+    "termsAcceptance": "I accept the <terms>Terms of Service</terms>, the <privacy>Privacy Policy</privacy>, and the <refund>Refund Policy</refund>. I understand this order is binding and paid on submission.",
+    "termsRequiredError": "Please accept the Terms, Privacy and Refund Policy to place your order.",
+    "termsRecordFailedError": "Could not record your acceptance. Please try again.",
+    "placeOrderCta": "Place order (pays {amount})"
   },
   "confirmationPage": {
     "metaTitle": "Order Confirmed",

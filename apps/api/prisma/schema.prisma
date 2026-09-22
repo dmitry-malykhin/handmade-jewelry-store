@@ -293,8 +293,25 @@ model Order {
   items         OrderItem[]
   payment       Payment?
   statusHistory OrderStatusHistory[]
+  terms         OrderTerms?
   createdAt     DateTime             @default(now())
   updatedAt     DateTime             @updatedAt
+}
+
+// EU Consumer Rights Directive Art. 8(2) + GDPR Art. 7(1) audit trail (#553).
+// One row per Order, written at the buyer's explicit checkbox click BEFORE
+// stripe.confirmPayment. Version stamps let us prove which text the buyer
+// agreed to on a DPA/consumer-complaint audit.
+model OrderTerms {
+  id                  String   @id @default(cuid())
+  orderId             String   @unique
+  order               Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  termsVersion        String
+  privacyVersion      String
+  refundPolicyVersion String
+  ipAddress           String?
+  userAgent           String?
+  acceptedAt          DateTime @default(now())
 }
 
 model OrderStatusHistory {

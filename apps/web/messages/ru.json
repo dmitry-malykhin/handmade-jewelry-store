@@ -434,7 +434,15 @@
     "craftingLine": "Изготовление: до {days} рабочих дней",
     "shippingLineStandard": "Доставка: 5–7 рабочих дней стандартная",
     "shippingLineExpress": "Доставка: 2–3 рабочих дня экспресс",
-    "installmentPreview": "Или оплати в {count} беспроцентных платежей по ${amount} через Klarna или Afterpay."
+    "installmentPreview": "Или оплати в {count} беспроцентных платежей по ${amount} через Klarna или Afterpay.",
+    "acknowledgementTitle": "Перед оформлением заказа",
+    "acknowledgementTotal": "К оплате: {amount}, включая доставку.",
+    "acknowledgementDelivery": "Ориентировочные сроки доставки указаны в сводке заказа справа.",
+    "acknowledgementWithdrawal": "У Вас есть 14 дней на отказ от покупки с момента получения. См. <policy>Политику возвратов</policy>.",
+    "termsAcceptance": "Я принимаю <terms>Условия обслуживания</terms>, <privacy>Политику конфиденциальности</privacy> и <refund>Политику возвратов</refund>. Я понимаю, что этот заказ обязательный и оплачивается при отправке.",
+    "termsRequiredError": "Примите Условия, Политику конфиденциальности и Политику возвратов, чтобы оформить заказ.",
+    "termsRecordFailedError": "Не удалось зафиксировать согласие. Попробуйте ещё раз.",
+    "placeOrderCta": "Оформить заказ (оплата {amount})"
   },
   "confirmationPage": {
     "metaTitle": "Заказ подтверждён",

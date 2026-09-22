@@ -66,6 +66,10 @@ const mockPrismaService = {
     findUnique: jest.fn(),
     update: jest.fn(),
   },
+  orderTerms: {
+    create: jest.fn(),
+    findUniqueOrThrow: jest.fn(),
+  },
   $transaction: jest.fn(
     (callback: TransactionCallback): Promise<unknown> => callback(mockPrismaService),
   ),
@@ -750,6 +754,130 @@ describe('OrdersService', () => {
 
       // user-42 should appear in the email column (third field).
       expect(csv.split('\r\n')[1]?.split(',')[2]).toBe('user-42')
+    })
+  })
+
+  describe('acceptTerms()', () => {
+    const currentDto = {
+      termsVersion: 'v1-2026-09',
+      privacyVersion: 'v1-2026-09',
+      refundPolicyVersion: 'v1-2026-09',
+    }
+    const context = { ipAddress: '203.0.113.9', userAgent: 'jest/1' }
+
+    it('records terms acceptance for the order owner', async () => {
+      mockPrismaService.order.findUnique.mockResolvedValueOnce({
+        id: 'order-1',
+        userId: 'user-1',
+        terms: null,
+      })
+      mockPrismaService.orderTerms.create.mockResolvedValueOnce({ id: 'terms-1' })
+      const authedUser = { id: 'user-1', role: Role.USER } as User
+
+      await ordersService.acceptTerms('order-1', currentDto, authedUser, null, context)
+
+      expect(mockPrismaService.orderTerms.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          orderId: 'order-1',
+          termsVersion: currentDto.termsVersion,
+          ipAddress: '203.0.113.9',
+          userAgent: 'jest/1',
+        }),
+      })
+    })
+
+    it('accepts a guest with a valid order-access token', async () => {
+      mockPrismaService.order.findUnique.mockResolvedValueOnce({
+        id: 'order-1',
+        userId: null,
+        terms: null,
+      })
+      mockPrismaService.orderTerms.create.mockResolvedValueOnce({ id: 'terms-1' })
+      mockJwtService.verify.mockReturnValueOnce({ purpose: 'order-access', orderId: 'order-1' })
+
+      await ordersService.acceptTerms('order-1', currentDto, null, 'signed', context)
+
+      expect(mockPrismaService.orderTerms.create).toHaveBeenCalled()
+    })
+
+    it('returns the existing row when terms were already accepted (idempotent)', async () => {
+      mockPrismaService.order.findUnique.mockResolvedValueOnce({
+        id: 'order-1',
+        userId: 'user-1',
+        terms: { id: 'terms-existing' },
+      })
+      mockPrismaService.orderTerms.findUniqueOrThrow.mockResolvedValueOnce({ id: 'terms-existing' })
+      const authedUser = { id: 'user-1', role: Role.USER } as User
+
+      const result = await ordersService.acceptTerms(
+        'order-1',
+        currentDto,
+        authedUser,
+        null,
+        context,
+      )
+
+      expect(result).toEqual({ id: 'terms-existing' })
+      expect(mockPrismaService.orderTerms.create).not.toHaveBeenCalled()
+    })
+
+    it('rejects stale legal versions with BadRequestException', async () => {
+      const staleDto = { ...currentDto, termsVersion: 'v0-2020-01' }
+      const authedUser = { id: 'user-1', role: Role.USER } as User
+
+      await expect(
+        ordersService.acceptTerms('order-1', staleDto, authedUser, null, context),
+      ).rejects.toThrow(BadRequestException)
+    })
+
+    it('throws NotFoundException when the order does not exist', async () => {
+      mockPrismaService.order.findUnique.mockResolvedValueOnce(null)
+      const authedUser = { id: 'user-1', role: Role.USER } as User
+
+      await expect(
+        ordersService.acceptTerms('missing', currentDto, authedUser, null, context),
+      ).rejects.toThrow(NotFoundException)
+    })
+
+    it('throws ForbiddenException when a non-owner, non-admin caller has no matching token', async () => {
+      mockPrismaService.order.findUnique.mockResolvedValueOnce({
+        id: 'order-1',
+        userId: 'user-owner',
+        terms: null,
+      })
+      const otherUser = { id: 'user-other', role: Role.USER } as User
+
+      await expect(
+        ordersService.acceptTerms('order-1', currentDto, otherUser, null, context),
+      ).rejects.toThrow(ForbiddenException)
+    })
+
+    it('throws UnauthorizedException when no auth is presented for a guest order', async () => {
+      mockPrismaService.order.findUnique.mockResolvedValueOnce({
+        id: 'order-1',
+        userId: null,
+        terms: null,
+      })
+
+      await expect(
+        ordersService.acceptTerms('order-1', currentDto, null, null, context),
+      ).rejects.toThrow(UnauthorizedException)
+    })
+
+    it('throws UnauthorizedException on a valid-format token whose orderId does not match', async () => {
+      mockPrismaService.order.findUnique.mockResolvedValueOnce({
+        id: 'order-1',
+        userId: null,
+        terms: null,
+      })
+      mockJwtService.verify.mockReturnValueOnce({
+        purpose: 'order-access',
+        orderId: 'different-order',
+      })
+
+      await expect(
+        ordersService.acceptTerms('order-1', currentDto, null, 'signed', context),
+      ).rejects.toThrow(UnauthorizedException)
     })
   })
 })

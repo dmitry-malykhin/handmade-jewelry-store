@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common'
 import type { User } from '@prisma/client'
+import { AcceptOrderTermsDto } from './dto/accept-order-terms.dto'
 import { CreateOrderDto } from './dto/create-order.dto'
 import { OrderExportQueryDto } from './dto/order-export-query.dto'
 import { OrderQueryDto } from './dto/order-query.dto'
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto'
 import { UpdateOrderTrackingDto } from './dto/update-order-tracking.dto'
-import { OrdersCreateService } from './orders-create.service'
+import { OrdersCreateService, type AcceptTermsCallerContext } from './orders-create.service'
 import { OrdersExportService } from './orders-export.service'
 import { OrdersQueryService } from './orders-query.service'
 import { OrdersStatusService } from './orders-status.service'
@@ -24,6 +25,16 @@ export class OrdersService {
 
   create(createOrderDto: CreateOrderDto, callerUserId: string | null) {
     return this.ordersCreateService.create(createOrderDto, callerUserId)
+  }
+
+  acceptTerms(
+    orderId: string,
+    dto: AcceptOrderTermsDto,
+    caller: User | null,
+    orderAccessToken: string | null,
+    context: AcceptTermsCallerContext,
+  ) {
+    return this.ordersCreateService.acceptTerms(orderId, dto, caller, orderAccessToken, context)
   }
 
   findAll(orderQueryDto: OrderQueryDto) {
