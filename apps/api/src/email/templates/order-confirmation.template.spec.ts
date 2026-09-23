@@ -35,7 +35,7 @@ describe('buildOrderConfirmationEmail', () => {
   // TC-EMAIL-001 — happy path: subject and core fields render
   it('renders subject with last 8 chars of orderId uppercased', () => {
     const { subject } = buildOrderConfirmationEmail(baseData)
-    expect(subject).toBe('Order confirmed — #34567890')
+    expect(subject).toBe('Order confirmed: #34567890')
   })
 
   it('renders item title, quantity, and line total in the HTML', () => {

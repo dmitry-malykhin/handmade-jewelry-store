@@ -24,12 +24,14 @@ beforeEach(async () => {
 describe('Newsletter HTTP integration (double opt-in)', () => {
   let app: INestApplication
   const subscribeEmail = jest.fn()
+  const unsubscribeEmail = jest.fn()
   const sendNewsletterConfirmation = jest.fn()
   const newsletterConsent = {
     create: jest.fn(),
     findMany: jest.fn(),
     findFirst: jest.fn(),
     update: jest.fn(),
+    updateMany: jest.fn(),
   }
 
   beforeAll(async () => {
@@ -38,7 +40,7 @@ describe('Newsletter HTTP integration (double opt-in)', () => {
       providers: [
         NewsletterService,
         { provide: PrismaService, useValue: { newsletterConsent } },
-        { provide: KlaviyoNewsletterClient, useValue: { subscribeEmail } },
+        { provide: KlaviyoNewsletterClient, useValue: { subscribeEmail, unsubscribeEmail } },
         { provide: EmailService, useValue: { sendNewsletterConfirmation } },
       ],
     }).compile()
@@ -156,6 +158,33 @@ describe('Newsletter HTTP integration (double opt-in)', () => {
         .expect(400)
 
       expect(subscribeEmail).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('POST /api/newsletter/unsubscribe', () => {
+    const { issueUnsubscribeToken } = jest.requireActual('../unsubscribe-token')
+
+    it('returns 200 unsubscribed and calls Klaviyo when a valid token flips a CONFIRMED row', async () => {
+      newsletterConsent.findMany.mockResolvedValueOnce([{ id: 'nc1', status: 'CONFIRMED' }])
+      unsubscribeEmail.mockResolvedValueOnce({ status: 'queued' })
+      const token = issueUnsubscribeToken('user@example.com')
+
+      const response = await request(app.getHttpServer())
+        .post('/api/newsletter/unsubscribe')
+        .send({ email: 'user@example.com', token })
+        .expect(200)
+
+      expect(response.body).toEqual({ status: 'unsubscribed' })
+      expect(unsubscribeEmail).toHaveBeenCalledWith('user@example.com')
+    })
+
+    it('returns 400 for a forged token', async () => {
+      await request(app.getHttpServer())
+        .post('/api/newsletter/unsubscribe')
+        .send({ email: 'user@example.com', token: 'forged' })
+        .expect(400)
+
+      expect(unsubscribeEmail).not.toHaveBeenCalled()
     })
   })
 })

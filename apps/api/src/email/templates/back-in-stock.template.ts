@@ -1,10 +1,13 @@
 import { getFrontendUrl } from '../../common/config/urls'
+import { renderEmailFooter } from './email-footer.partial'
+import { escapeHtml } from './escape-html'
 
 export interface BackInStockEmailData {
   recipientEmail: string
   productTitle: string
   productSlug: string
   productImageUrl?: string
+  unsubscribeUrl: string
 }
 
 export function buildBackInStockEmail(data: BackInStockEmailData): {
@@ -40,7 +43,7 @@ export function buildBackInStockEmail(data: BackInStockEmailData): {
           <h1 style="margin: 0 0 16px; font-size: 24px; font-weight: 700;">It's back in stock 🎉</h1>
           <p style="margin: 0 0 8px; color: #1a1a1a; font-size: 18px; font-weight: 600;">${escapeHtml(data.productTitle)}</p>
           <p style="margin: 0 0 24px; color: #555; font-size: 15px; line-height: 1.7;">
-            The piece you saved to your wishlist is available again. Stock is limited — get it before it's gone.
+            The piece you saved to your wishlist is available again. Stock is limited, get it before it's gone.
           </p>
           <a href="${productUrl}"
              style="display: inline-block; background: #1a1a1a; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-weight: 600; font-size: 15px;">
@@ -48,11 +51,13 @@ export function buildBackInStockEmail(data: BackInStockEmailData): {
           </a>
         </td></tr>
 
-        <tr><td style="padding: 24px 40px; border-top: 1px solid #f0f0f0;">
+        <tr><td style="padding: 16px 40px 0;">
           <p style="margin: 0; font-size: 12px; color: #aaa; text-align: center;">
             You're receiving this because you added this item to your wishlist at Senichka.
           </p>
         </td></tr>
+
+        ${renderEmailFooter({ variant: 'marketing', unsubscribeUrl: data.unsubscribeUrl })}
 
       </table>
     </td></tr>
@@ -60,13 +65,4 @@ export function buildBackInStockEmail(data: BackInStockEmailData): {
 </body>
 </html>`,
   }
-}
-
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;')
 }

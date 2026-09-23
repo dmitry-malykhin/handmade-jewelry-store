@@ -23,12 +23,14 @@ describe('NewsletterService', () => {
   let service: NewsletterService
 
   const subscribeEmail = jest.fn()
+  const unsubscribeEmail = jest.fn()
   const sendNewsletterConfirmation = jest.fn()
   const newsletterConsent = {
     create: jest.fn(),
     findMany: jest.fn(),
     findFirst: jest.fn(),
     update: jest.fn(),
+    updateMany: jest.fn(),
   }
   const prismaService = { newsletterConsent }
 
@@ -39,7 +41,7 @@ describe('NewsletterService', () => {
       providers: [
         NewsletterService,
         { provide: PrismaService, useValue: prismaService },
-        { provide: KlaviyoNewsletterClient, useValue: { subscribeEmail } },
+        { provide: KlaviyoNewsletterClient, useValue: { subscribeEmail, unsubscribeEmail } },
         { provide: EmailService, useValue: { sendNewsletterConfirmation } },
       ],
     }).compile()
@@ -172,6 +174,60 @@ describe('NewsletterService', () => {
         BadRequestException,
       )
       expect(subscribeEmail).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('unsubscribe', () => {
+    // The HMAC helper is deterministic given the same secret; JWT_SECRET falls
+    // back to a stable dev value in the test env, so we compute the real token
+    // via the exported issuer.
+    const { issueUnsubscribeToken } = jest.requireActual('../unsubscribe-token')
+    const validToken = issueUnsubscribeToken('user@example.com')
+
+    it('marks all active rows UNSUBSCRIBED and calls Klaviyo when there was a CONFIRMED row', async () => {
+      newsletterConsent.findMany.mockResolvedValueOnce([
+        { id: 'nc1', status: NewsletterConsentStatus.CONFIRMED },
+        { id: 'nc2', status: NewsletterConsentStatus.PENDING },
+      ])
+      unsubscribeEmail.mockResolvedValueOnce({ status: 'queued' })
+
+      const result = await service.unsubscribe('user@example.com', validToken)
+
+      expect(newsletterConsent.updateMany).toHaveBeenCalledWith({
+        where: { id: { in: ['nc1', 'nc2'] } },
+        data: expect.objectContaining({
+          status: NewsletterConsentStatus.UNSUBSCRIBED,
+          confirmationTokenHash: null,
+        }),
+      })
+      expect(unsubscribeEmail).toHaveBeenCalledWith('user@example.com')
+      expect(result).toEqual({ status: 'unsubscribed' })
+    })
+
+    it('does not call Klaviyo when only PENDING rows existed (never was on the list)', async () => {
+      newsletterConsent.findMany.mockResolvedValueOnce([
+        { id: 'nc1', status: NewsletterConsentStatus.PENDING },
+      ])
+
+      await service.unsubscribe('user@example.com', validToken)
+
+      expect(unsubscribeEmail).not.toHaveBeenCalled()
+    })
+
+    it('returns already-unsubscribed when there are no active rows', async () => {
+      newsletterConsent.findMany.mockResolvedValueOnce([])
+
+      const result = await service.unsubscribe('user@example.com', validToken)
+
+      expect(result).toEqual({ status: 'already-unsubscribed' })
+      expect(newsletterConsent.updateMany).not.toHaveBeenCalled()
+    })
+
+    it('rejects a forged token without touching the database', async () => {
+      await expect(service.unsubscribe('user@example.com', 'forged')).rejects.toThrow(
+        BadRequestException,
+      )
+      expect(newsletterConsent.findMany).not.toHaveBeenCalled()
     })
   })
 })

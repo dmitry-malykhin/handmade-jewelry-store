@@ -1,13 +1,15 @@
 import { getFrontendUrl } from '../../common/config/urls'
+import { renderEmailFooter } from './email-footer.partial'
 
 export interface WelcomeEmailData {
   recipientEmail: string
+  unsubscribeUrl: string
 }
 
-export function buildWelcomeEmail(_data: WelcomeEmailData): { subject: string; html: string } {
+export function buildWelcomeEmail(data: WelcomeEmailData): { subject: string; html: string } {
   const frontendUrl = getFrontendUrl()
   return {
-    subject: 'Welcome to ✦ Jewelry — handmade with love',
+    subject: 'Welcome to ✦ Jewelry, handmade with love',
     html: `
 <!DOCTYPE html>
 <html lang="en">
@@ -32,11 +34,13 @@ export function buildWelcomeEmail(_data: WelcomeEmailData): { subject: string; h
           </a>
         </td></tr>
 
-        <tr><td style="padding: 24px 40px; border-top: 1px solid #f0f0f0;">
+        <tr><td style="padding: 16px 40px 0;">
           <p style="margin: 0; font-size: 12px; color: #aaa; text-align: center;">
             You're receiving this because you created an account at ✦ Jewelry.
           </p>
         </td></tr>
+
+        ${renderEmailFooter({ variant: 'marketing', unsubscribeUrl: data.unsubscribeUrl })}
 
       </table>
     </td></tr>

@@ -77,18 +77,24 @@ describe('BackInStockService', () => {
     await service.notifyForProduct('p1')
 
     expect(mockEmailService.sendBackInStock).toHaveBeenCalledTimes(2)
-    expect(mockEmailService.sendBackInStock).toHaveBeenCalledWith({
-      recipientEmail: 'jane@example.com',
-      productTitle: 'Silver Ring',
-      productSlug: 'silver-ring',
-      productImageUrl: 'https://cdn.example/ring.jpg',
-    })
-    expect(mockEmailService.sendBackInStock).toHaveBeenCalledWith({
-      recipientEmail: 'john@example.com',
-      productTitle: 'Silver Ring',
-      productSlug: 'silver-ring',
-      productImageUrl: 'https://cdn.example/ring.jpg',
-    })
+    expect(mockEmailService.sendBackInStock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        recipientEmail: 'jane@example.com',
+        productTitle: 'Silver Ring',
+        productSlug: 'silver-ring',
+        productImageUrl: 'https://cdn.example/ring.jpg',
+        unsubscribeUrl: expect.stringContaining('/newsletter/unsubscribe'),
+      }),
+    )
+    expect(mockEmailService.sendBackInStock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        recipientEmail: 'john@example.com',
+        productTitle: 'Silver Ring',
+        productSlug: 'silver-ring',
+        productImageUrl: 'https://cdn.example/ring.jpg',
+        unsubscribeUrl: expect.stringContaining('/newsletter/unsubscribe'),
+      }),
+    )
   })
 
   it('omits productImageUrl when product has no images', async () => {
@@ -102,11 +108,14 @@ describe('BackInStockService', () => {
 
     await service.notifyForProduct('p1')
 
-    expect(mockEmailService.sendBackInStock).toHaveBeenCalledWith({
-      recipientEmail: 'jane@example.com',
-      productTitle: 'Ring',
-      productSlug: 'ring',
-    })
+    expect(mockEmailService.sendBackInStock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        recipientEmail: 'jane@example.com',
+        productTitle: 'Ring',
+        productSlug: 'ring',
+        unsubscribeUrl: expect.stringContaining('/newsletter/unsubscribe'),
+      }),
+    )
   })
 
   it('continues sending to remaining recipients when one email fails', async () => {

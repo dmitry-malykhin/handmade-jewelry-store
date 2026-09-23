@@ -1,3 +1,5 @@
+import { renderEmailFooter } from './email-footer.partial'
+
 export interface EmailVerificationData {
   recipientEmail: string
   verificationToken: string
@@ -11,7 +13,7 @@ export function buildEmailVerificationEmail(data: EmailVerificationData): {
   const verifyUrl = `${data.frontendUrl}/en/verify-email?token=${data.verificationToken}`
 
   return {
-    subject: '✦ Jewelry — Verify your email',
+    subject: '✦ Jewelry: Verify your email',
     html: `
 <!DOCTYPE html>
 <html lang="en">
@@ -36,15 +38,11 @@ export function buildEmailVerificationEmail(data: EmailVerificationData): {
             Verify email →
           </a>
           <p style="margin: 24px 0 0; color: #888; font-size: 13px; line-height: 1.6;">
-            If you didn't create an account, you can safely ignore this email — no account was created without confirming this address.
+            If you didn't create an account, you can safely ignore this email. No account was created without confirming this address.
           </p>
         </td></tr>
 
-        <tr><td style="padding: 24px 40px; border-top: 1px solid #f0f0f0;">
-          <p style="margin: 0; font-size: 12px; color: #aaa; text-align: center;">
-            ✦ Jewelry — handmade with love
-          </p>
-        </td></tr>
+        ${renderEmailFooter({ variant: 'transactional' })}
 
       </table>
     </td></tr>

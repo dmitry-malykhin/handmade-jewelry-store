@@ -5,6 +5,7 @@ import { getFrontendUrl } from '../common/config/urls'
 import { EmailService } from '../email/email.service'
 import type { ReviewRequestItem } from '../email/templates/review-request.template'
 import { LoyaltyService } from '../loyalty/loyalty.service'
+import { buildUnsubscribeUrl } from '../newsletter/newsletter.service'
 import { PrismaService } from '../prisma/prisma.service'
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto'
 import { UpdateOrderTrackingDto } from './dto/update-order-tracking.dto'
@@ -117,6 +118,7 @@ export class OrdersStatusService {
               orderId: updatedOrder.id,
               items,
               frontendUrl: getFrontendUrl(),
+              unsubscribeUrl: buildUnsubscribeUrl(recipientEmail),
             })
           } catch (error) {
             this.logger.error(

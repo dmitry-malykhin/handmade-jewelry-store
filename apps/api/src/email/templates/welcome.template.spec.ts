@@ -24,21 +24,30 @@ describe('buildWelcomeEmail', () => {
   })
 
   it('renders the brand-aligned welcome subject', () => {
-    const { subject } = buildWelcomeEmail({ recipientEmail: 'jane@example.com' })
-    expect(subject).toBe('Welcome to ✦ Jewelry — handmade with love')
+    const { subject } = buildWelcomeEmail({
+      recipientEmail: 'jane@example.com',
+      unsubscribeUrl: 'http://localhost/unsub',
+    })
+    expect(subject).toBe('Welcome to ✦ Jewelry, handmade with love')
   })
 
   // CTA button URL respects FRONTEND_URL — confirms the welcome email points to
   // the right environment (prod vs preview vs local).
   it('uses FRONTEND_URL for the Explore CTA when set', () => {
     process.env.FRONTEND_URL = 'https://senichka.com'
-    const { html } = buildWelcomeEmail({ recipientEmail: 'jane@example.com' })
+    const { html } = buildWelcomeEmail({
+      recipientEmail: 'jane@example.com',
+      unsubscribeUrl: 'http://localhost/unsub',
+    })
     expect(html).toContain('href="https://senichka.com/"')
   })
 
   it('falls back to the local dev URL when FRONTEND_URL is absent', () => {
     delete process.env.FRONTEND_URL
-    const { html } = buildWelcomeEmail({ recipientEmail: 'jane@example.com' })
+    const { html } = buildWelcomeEmail({
+      recipientEmail: 'jane@example.com',
+      unsubscribeUrl: 'http://localhost/unsub',
+    })
     expect(html).toContain('href="http://localhost:3000/"')
   })
 })

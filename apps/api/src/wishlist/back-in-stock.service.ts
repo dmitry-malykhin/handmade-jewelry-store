@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { EmailService } from '../email/email.service'
+import { buildUnsubscribeUrl } from '../newsletter/newsletter.service'
 import { PrismaService } from '../prisma/prisma.service'
 
 @Injectable()
@@ -48,6 +49,7 @@ export class BackInStockService {
             productTitle: product.title,
             productSlug: product.slug,
             ...(productImageUrl && { productImageUrl }),
+            unsubscribeUrl: buildUnsubscribeUrl(wishlist.user.email),
           })
         } catch (error) {
           this.logger.error(

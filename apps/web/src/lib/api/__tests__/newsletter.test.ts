@@ -1,7 +1,11 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { http, HttpResponse } from 'msw'
 import { server } from '@/test-utils/msw/server'
-import { confirmNewsletterSubscription, subscribeToNewsletter } from '../newsletter'
+import {
+  confirmNewsletterSubscription,
+  subscribeToNewsletter,
+  unsubscribeFromNewsletter,
+} from '../newsletter'
 import {
   suite as $allureSuite,
   subSuite as $allureSubSuite,
@@ -66,5 +70,20 @@ describe('newsletter API', () => {
     const result = await confirmNewsletterSubscription('a@b.com', 'tok-xyz')
 
     expect(result.status).toBe('already-confirmed')
+  })
+
+  it('unsubscribeFromNewsletter POSTs email + token and returns unsubscribed', async () => {
+    let receivedBody: unknown = null
+    server.use(
+      http.post(`${API_BASE}/api/newsletter/unsubscribe`, async ({ request }) => {
+        receivedBody = await request.json()
+        return HttpResponse.json({ status: 'unsubscribed' })
+      }),
+    )
+
+    const result = await unsubscribeFromNewsletter('a@b.com', 'tok-xyz')
+
+    expect(receivedBody).toEqual({ email: 'a@b.com', token: 'tok-xyz' })
+    expect(result.status).toBe('unsubscribed')
   })
 })

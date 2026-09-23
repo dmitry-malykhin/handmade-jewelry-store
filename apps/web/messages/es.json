@@ -1310,6 +1310,18 @@
       "errorTitle": "No se pudo confirmar",
       "errorBody": "Este enlace no es válido o ha expirado. Prueba a suscribirte de nuevo desde cualquier página.",
       "errorCta": "Volver a la tienda"
+    },
+    "unsubscribePage": {
+      "metaTitle": "Cancelando suscripción a la newsletter",
+      "pending": "Cancelando tu suscripción a los emails de marketing…",
+      "successTitle": "Suscripción cancelada",
+      "successBody": "Ya no recibirás emails de marketing. Las confirmaciones de pedido y otros emails transaccionales siguen llegando.",
+      "successCta": "Volver a la tienda",
+      "alreadyTitle": "Ya estás dado de baja",
+      "alreadyBody": "Este email no está en nuestra lista de marketing. No hace falta hacer nada más.",
+      "errorTitle": "No se pudo cancelar",
+      "errorBody": "Este enlace no es válido. Revisa el correo que te enviamos o contacta con soporte.",
+      "errorCta": "Volver a la tienda"
     }
   },
   "wishlist": {

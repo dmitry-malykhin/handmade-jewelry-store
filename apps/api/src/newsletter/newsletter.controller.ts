@@ -38,4 +38,16 @@ export class NewsletterController {
     const result = await this.newsletterService.confirm(dto.email, dto.token)
     return { status: result.status }
   }
+
+  // RFC 8058 one-click unsubscribe POSTs here. Both flows send the token +
+  // email in the JSON body: a human clicks the footer link, hits the frontend
+  // page, which POSTs; a Gmail/Yahoo automated unsubscribe POSTs the same
+  // shape (we serve the `List-Unsubscribe` header from EmailService.send).
+  @Post('unsubscribe')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 30, ttl: 60_000 } })
+  async unsubscribe(@Body() dto: ConfirmNewsletterDto): Promise<{ status: string }> {
+    const result = await this.newsletterService.unsubscribe(dto.email, dto.token)
+    return { status: result.status }
+  }
 }

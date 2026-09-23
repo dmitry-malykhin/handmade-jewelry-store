@@ -51,6 +51,6 @@ describe('buildRefundProcessedEmail', () => {
       orderId: 'order_abcdef1234567890',
       refundAmount: 49.98,
     })
-    expect(subject).toBe('Refund processed — #34567890')
+    expect(subject).toBe('Refund processed: #34567890')
   })
 })
