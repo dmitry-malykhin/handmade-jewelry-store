@@ -36,7 +36,7 @@ describe('buildShippingNotificationEmail', () => {
 
   it('renders subject with last 8 chars of orderId uppercased', () => {
     const { subject } = buildShippingNotificationEmail(baseData)
-    expect(subject).toBe('Your order is on its way! 📦 — #34567890')
+    expect(subject).toBe('Your order is on its way! 📦 #34567890')
   })
 
   it('renders order number in the body with last 8 chars uppercased', () => {

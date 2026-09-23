@@ -1,3 +1,5 @@
+import { renderEmailFooter } from './email-footer.partial'
+
 export interface ShippingNotificationData {
   recipientEmail: string
   orderId: string
@@ -11,7 +13,7 @@ export function buildShippingNotificationEmail(data: ShippingNotificationData): 
   const { orderId, trackingNumber } = data
 
   return {
-    subject: `Your order is on its way! 📦 — #${orderId.slice(-8).toUpperCase()}`,
+    subject: `Your order is on its way! 📦 #${orderId.slice(-8).toUpperCase()}`,
     html: `
 <!DOCTYPE html>
 <html lang="en">
@@ -56,11 +58,13 @@ export function buildShippingNotificationEmail(data: ShippingNotificationData): 
           </p>
         </td></tr>
 
-        <tr><td style="padding: 24px 40px; border-top: 1px solid #f0f0f0;">
+        <tr><td style="padding: 16px 40px 0;">
           <p style="margin: 0; font-size: 12px; color: #aaa; text-align: center;">
-            Questions? Reply to this email — we're happy to help.
+            Questions? Reply to this email, we're happy to help.
           </p>
         </td></tr>
+
+        ${renderEmailFooter({ variant: 'transactional' })}
 
       </table>
     </td></tr>

@@ -1,3 +1,5 @@
+import { renderEmailFooter } from './email-footer.partial'
+
 export interface NewsletterConfirmationData {
   recipientEmail: string
   confirmationToken: string
@@ -43,11 +45,7 @@ export function buildNewsletterConfirmationEmail(data: NewsletterConfirmationDat
           </p>
         </td></tr>
 
-        <tr><td style="padding: 24px 40px; border-top: 1px solid #f0f0f0;">
-          <p style="margin: 0; font-size: 12px; color: #aaa; text-align: center;">
-            ✦ Jewelry · handmade with love
-          </p>
-        </td></tr>
+        ${renderEmailFooter({ variant: 'transactional' })}
 
       </table>
     </td></tr>

@@ -68,7 +68,12 @@ export class EmailService {
 
   async sendWelcome(data: WelcomeEmailData): Promise<void> {
     const { subject, html } = buildWelcomeEmail(data)
-    await this.send({ to: data.recipientEmail, subject, html })
+    await this.send({
+      to: data.recipientEmail,
+      subject,
+      html,
+      unsubscribeUrl: data.unsubscribeUrl,
+    })
   }
 
   async sendShippingNotification(data: ShippingNotificationData): Promise<void> {
@@ -98,12 +103,22 @@ export class EmailService {
 
   async sendReviewRequest(data: ReviewRequestData): Promise<void> {
     const { subject, html } = buildReviewRequestEmail(data)
-    await this.send({ to: data.recipientEmail, subject, html })
+    await this.send({
+      to: data.recipientEmail,
+      subject,
+      html,
+      unsubscribeUrl: data.unsubscribeUrl,
+    })
   }
 
   async sendBackInStock(data: BackInStockEmailData): Promise<void> {
     const { subject, html } = buildBackInStockEmail(data)
-    await this.send({ to: data.recipientEmail, subject, html })
+    await this.send({
+      to: data.recipientEmail,
+      subject,
+      html,
+      unsubscribeUrl: data.unsubscribeUrl,
+    })
   }
 
   async sendContactMessage(data: ContactMessageEmailData): Promise<void> {
@@ -128,14 +143,27 @@ export class EmailService {
     subject: string
     html: string
     replyTo?: string
+    unsubscribeUrl?: string
   }): Promise<void> {
     try {
+      // RFC 8058 one-click unsubscribe: mail clients (Gmail, Yahoo) surface a
+      // native "Unsubscribe" link when both headers are present, and hit the
+      // POST endpoint themselves. Required by Gmail's 2024 bulk-sender rules
+      // for anyone sending more than 5,000 marketing emails per day.
+      const listUnsubscribeHeaders = params.unsubscribeUrl
+        ? {
+            'List-Unsubscribe': `<${params.unsubscribeUrl}>`,
+            'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+          }
+        : undefined
+
       const { error } = await this.resend.emails.send({
         from: this.fromAddress,
         to: params.to,
         subject: params.subject,
         html: params.html,
         ...(params.replyTo ? { reply_to: params.replyTo } : {}),
+        ...(listUnsubscribeHeaders ? { headers: listUnsubscribeHeaders } : {}),
       })
 
       if (error) {
@@ -143,7 +171,7 @@ export class EmailService {
         return
       }
 
-      this.logger.log(`Email sent to ${params.to} — "${params.subject}"`)
+      this.logger.log(`Email sent to ${params.to}: "${params.subject}"`)
     } catch (error) {
       // Email failures must never crash the main business flow
       this.logger.error(`Unexpected error sending email to ${params.to}`, error)

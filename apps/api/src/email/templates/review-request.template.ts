@@ -1,3 +1,6 @@
+import { renderEmailFooter } from './email-footer.partial'
+import { escapeHtml } from './escape-html'
+
 export interface ReviewRequestItem {
   productSlug: string
   title: string
@@ -8,6 +11,7 @@ export interface ReviewRequestData {
   orderId: string
   items: ReviewRequestItem[]
   frontendUrl: string
+  unsubscribeUrl: string
 }
 
 export function buildReviewRequestEmail(data: ReviewRequestData): {
@@ -33,7 +37,7 @@ export function buildReviewRequestEmail(data: ReviewRequestData): {
     .join('')
 
   return {
-    subject: `How's your piece? ✨ — Share a quick review`,
+    subject: `How's your piece? ✨ Share a quick review`,
     html: `
 <!DOCTYPE html>
 <html lang="en">
@@ -50,7 +54,7 @@ export function buildReviewRequestEmail(data: ReviewRequestData): {
         <tr><td style="padding: 40px;">
           <h1 style="margin: 0 0 8px; font-size: 24px; font-weight: 700;">How's your piece? ✨</h1>
           <p style="margin: 0 0 32px; color: #555; font-size: 15px; line-height: 1.7;">
-            Your order was delivered. A one-line review helps other shoppers pick with confidence — and helps me improve.
+            Your order was delivered. A one-line review helps other shoppers pick with confidence, and helps me improve.
           </p>
 
           <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 32px;">
@@ -63,11 +67,13 @@ export function buildReviewRequestEmail(data: ReviewRequestData): {
           <p style="margin: 0; font-family: monospace; font-size: 15px;">#${orderShortId}</p>
         </td></tr>
 
-        <tr><td style="padding: 24px 40px; border-top: 1px solid #f0f0f0;">
+        <tr><td style="padding: 16px 40px 0;">
           <p style="margin: 0; font-size: 12px; color: #aaa; text-align: center;">
-            Not into reviews? Just reply — I read every message.
+            Not into reviews? Just reply, I read every message.
           </p>
         </td></tr>
+
+        ${renderEmailFooter({ variant: 'marketing', unsubscribeUrl: data.unsubscribeUrl })}
 
       </table>
     </td></tr>
@@ -75,12 +81,4 @@ export function buildReviewRequestEmail(data: ReviewRequestData): {
 </body>
 </html>`,
   }
-}
-
-function escapeHtml(input: string): string {
-  return input
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
 }

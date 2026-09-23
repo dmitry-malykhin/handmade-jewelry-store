@@ -1,3 +1,5 @@
+import { renderEmailFooter } from './email-footer.partial'
+
 export interface PasswordResetEmailData {
   recipientEmail: string
   resetToken: string
@@ -11,7 +13,7 @@ export function buildPasswordResetEmail(data: PasswordResetEmailData): {
   const resetUrl = `${data.frontendUrl}/en/reset-password?token=${data.resetToken}`
 
   return {
-    subject: '✦ Jewelry — Reset your password',
+    subject: '✦ Jewelry: Reset your password',
     html: `
 <!DOCTYPE html>
 <html lang="en">
@@ -36,15 +38,11 @@ export function buildPasswordResetEmail(data: PasswordResetEmailData): {
             Reset password →
           </a>
           <p style="margin: 24px 0 0; color: #888; font-size: 13px; line-height: 1.6;">
-            If you didn't request this, you can safely ignore this email — your password will not change.
+            If you didn't request this, you can safely ignore this email. Your password will not change.
           </p>
         </td></tr>
 
-        <tr><td style="padding: 24px 40px; border-top: 1px solid #f0f0f0;">
-          <p style="margin: 0; font-size: 12px; color: #aaa; text-align: center;">
-            ✦ Jewelry — handmade with love
-          </p>
-        </td></tr>
+        ${renderEmailFooter({ variant: 'transactional' })}
 
       </table>
     </td></tr>

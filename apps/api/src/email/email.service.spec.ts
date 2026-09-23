@@ -91,7 +91,10 @@ describe('EmailService', () => {
     it('calls Resend with correct recipient and welcome subject', async () => {
       mockResendEmailsSend.mockResolvedValueOnce({ error: null })
 
-      await emailService.sendWelcome({ recipientEmail: 'new@example.com' })
+      await emailService.sendWelcome({
+        recipientEmail: 'new@example.com',
+        unsubscribeUrl: 'http://localhost/unsub',
+      })
 
       expect(mockResendEmailsSend).toHaveBeenCalledWith(
         expect.objectContaining({

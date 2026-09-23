@@ -6,6 +6,7 @@ import { getFrontendUrl } from '../common/config/urls'
 import { EmailService } from '../email/email.service'
 import { PrismaService } from '../prisma/prisma.service'
 import { KlaviyoNewsletterClient } from './klaviyo-newsletter.client'
+import { issueUnsubscribeToken, verifyUnsubscribeToken } from './unsubscribe-token'
 
 const CONFIRMATION_TOKEN_HASH_ROUNDS = 10
 const CONFIRMATION_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000
@@ -28,6 +29,20 @@ export interface SubscribeResult {
 
 export interface ConfirmResult {
   status: 'confirmed' | 'already-confirmed'
+}
+
+export interface UnsubscribeResult {
+  status: 'unsubscribed' | 'already-unsubscribed'
+}
+
+// Builds the token-signed unsubscribe link embedded in every marketing email
+// footer. Locale is hardcoded to 'en' at the URL level so the link works even
+// before next-intl middleware sees the request; middleware redirects to the
+// user's preferred locale on load.
+export function buildUnsubscribeUrl(email: string): string {
+  const token = issueUnsubscribeToken(email)
+  const encodedEmail = encodeURIComponent(email)
+  return `${getFrontendUrl()}/en/newsletter/unsubscribe?token=${token}&email=${encodedEmail}`
 }
 
 @Injectable()
@@ -111,6 +126,42 @@ export class NewsletterService {
       throw new NotFoundException('No pending subscription found for this email.')
     }
     throw new BadRequestException('Invalid or expired confirmation token.')
+  }
+
+  async unsubscribe(email: string, token: string): Promise<UnsubscribeResult> {
+    if (!verifyUnsubscribeToken(email, token)) {
+      throw new BadRequestException('Invalid unsubscribe token.')
+    }
+
+    const activeRows = await this.prismaService.newsletterConsent.findMany({
+      where: {
+        email,
+        status: { in: [NewsletterConsentStatus.CONFIRMED, NewsletterConsentStatus.PENDING] },
+      },
+      select: { id: true, status: true },
+    })
+
+    if (activeRows.length === 0) {
+      return { status: 'already-unsubscribed' }
+    }
+
+    await this.prismaService.newsletterConsent.updateMany({
+      where: { id: { in: activeRows.map((row) => row.id) } },
+      data: {
+        status: NewsletterConsentStatus.UNSUBSCRIBED,
+        unsubscribedAt: new Date(),
+        confirmationTokenHash: null,
+        confirmationTokenAt: null,
+      },
+    })
+
+    const hadConfirmed = activeRows.some((row) => row.status === NewsletterConsentStatus.CONFIRMED)
+    if (hadConfirmed) {
+      await this.klaviyoClient.unsubscribeEmail(email)
+    }
+
+    this.logger.log(`Newsletter unsubscribed for ${maskEmail(email)}`)
+    return { status: 'unsubscribed' }
   }
 }
 

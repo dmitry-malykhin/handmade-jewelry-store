@@ -79,4 +79,48 @@ export class KlaviyoNewsletterClient {
     )
     throw new ServiceUnavailableException('Newsletter provider unavailable')
   }
+
+  async unsubscribeEmail(email: string): Promise<SubscribeResult> {
+    const apiKey = this.configService.get<string>('KLAVIYO_PRIVATE_API_KEY')
+    const listId = this.configService.get<string>('KLAVIYO_NEWSLETTER_LIST_ID')
+
+    if (!apiKey || !listId) {
+      this.logger.warn(
+        'Klaviyo credentials missing: newsletter unsubscribe not forwarded (dev/test no-op)',
+      )
+      return { status: 'skipped' }
+    }
+
+    const response = await fetch(`${KLAVIYO_API_BASE}/profile-subscription-bulk-delete-jobs/`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Klaviyo-API-Key ${apiKey}`,
+        'Content-Type': 'application/json',
+        accept: 'application/json',
+        revision: KLAVIYO_API_REVISION,
+        'User-Agent': 'Senichka-Newsletter/1.0',
+      },
+      body: JSON.stringify({
+        data: {
+          type: 'profile-subscription-bulk-delete-job',
+          attributes: {
+            profiles: {
+              data: [{ type: 'profile', attributes: { email } }],
+            },
+          },
+          relationships: {
+            list: { data: { type: 'list', id: listId } },
+          },
+        },
+      }),
+    })
+
+    if (response.status === 202) return { status: 'queued' }
+
+    const errorBody = await response.text().catch(() => '')
+    this.logger.error(
+      `Klaviyo unsubscribe failed: status=${response.status} body=${errorBody.slice(0, 500)}`,
+    )
+    throw new ServiceUnavailableException('Newsletter provider unavailable')
+  }
 }

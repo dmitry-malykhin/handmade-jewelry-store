@@ -32,3 +32,17 @@ export async function confirmNewsletterSubscription(
     body: JSON.stringify({ email, token }),
   })
 }
+
+export interface NewsletterUnsubscribeResponse {
+  status: 'unsubscribed' | 'already-unsubscribed'
+}
+
+export async function unsubscribeFromNewsletter(
+  email: string,
+  token: string,
+): Promise<NewsletterUnsubscribeResponse> {
+  return apiClient<NewsletterUnsubscribeResponse>('/api/newsletter/unsubscribe', {
+    method: 'POST',
+    body: JSON.stringify({ email, token }),
+  })
+}

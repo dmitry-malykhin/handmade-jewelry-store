@@ -1,3 +1,5 @@
+import { renderEmailFooter } from './email-footer.partial'
+
 export interface OrderConfirmationData {
   orderId: string
   recipientEmail: string
@@ -55,7 +57,7 @@ export function buildOrderConfirmationEmail(data: OrderConfirmationData): {
     .join('<br>')
 
   return {
-    subject: `Order confirmed — #${orderId.slice(-8).toUpperCase()}`,
+    subject: `Order confirmed: #${orderId.slice(-8).toUpperCase()}`,
     html: `
 <!DOCTYPE html>
 <html lang="en">
@@ -117,16 +119,17 @@ export function buildOrderConfirmationEmail(data: OrderConfirmationData): {
 
           <p style="margin: 0; font-size: 14px; color: #555; line-height: 1.6;">
             We'll send you a shipping notification with tracking details once your order is on its way.
-            Each piece is handmade with care — thank you for your patience. 🙏
+            Each piece is handmade with care, thank you for your patience. 🙏
           </p>
         </td></tr>
 
-        <!-- Footer -->
-        <tr><td style="padding: 24px 40px; border-top: 1px solid #f0f0f0;">
+        <tr><td style="padding: 16px 40px 0;">
           <p style="margin: 0; font-size: 12px; color: #aaa; text-align: center;">
             Questions? Reply to this email or contact us anytime.
           </p>
         </td></tr>
+
+        ${renderEmailFooter({ variant: 'transactional' })}
 
       </table>
     </td></tr>

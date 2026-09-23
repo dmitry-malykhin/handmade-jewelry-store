@@ -1310,6 +1310,18 @@
       "errorTitle": "Confirmation failed",
       "errorBody": "This link is invalid or has expired. Please try subscribing again from any page.",
       "errorCta": "Back to shop"
+    },
+    "unsubscribePage": {
+      "metaTitle": "Unsubscribing from newsletter",
+      "pending": "Unsubscribing you from marketing emails…",
+      "successTitle": "You're unsubscribed",
+      "successBody": "You will no longer receive marketing emails from us. Order confirmations and other transactional emails still go through.",
+      "successCta": "Back to shop",
+      "alreadyTitle": "Already unsubscribed",
+      "alreadyBody": "This email is not on our marketing list. No action needed.",
+      "errorTitle": "Unsubscribe failed",
+      "errorBody": "This link is invalid. Please check the email you were sent, or contact support.",
+      "errorCta": "Back to shop"
     }
   },
   "wishlist": {
