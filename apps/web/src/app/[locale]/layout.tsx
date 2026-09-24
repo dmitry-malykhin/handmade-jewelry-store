@@ -13,6 +13,7 @@ import { QueryProvider } from '@/components/shared/query-provider'
 import { generateOrganizationJsonLd } from '@/lib/seo/json-ld'
 import { buildLocaleAlternates } from '@/lib/seo/alternates'
 import { CookieBanner } from '@/components/shared/cookie-banner'
+import { GpcHonorer } from '@/components/shared/gpc-honorer'
 
 interface LocaleLayoutProps {
   children: ReactNode
@@ -59,6 +60,7 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
         </main>
         <Footer />
         <CookieBanner />
+        <GpcHonorer />
       </QueryProvider>
     </NextIntlClientProvider>
   )

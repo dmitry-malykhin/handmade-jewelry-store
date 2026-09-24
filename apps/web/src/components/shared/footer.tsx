@@ -2,6 +2,7 @@ import Image from 'next/image'
 import { useTranslations } from 'next-intl'
 import { Link } from '@/i18n/navigation'
 import { CookiePreferencesButton } from '@/components/shared/cookie-preferences-button'
+import { DoNotSellLink } from '@/components/shared/do-not-sell-link'
 import { NewsletterForm } from '@/components/features/newsletter/newsletter-form'
 
 export function Footer() {
@@ -107,6 +108,7 @@ export function Footer() {
               {t('impressum')}
             </Link>
             <CookiePreferencesButton />
+            <DoNotSellLink />
           </div>
         </div>
       </div>

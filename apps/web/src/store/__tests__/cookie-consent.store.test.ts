@@ -14,6 +14,7 @@ function resetStore() {
   useCookieConsentStore.setState({
     hasDecided: false,
     preferences: { analytics: false, marketing: false },
+    doNotSellOptedOut: false,
   })
 }
 
@@ -24,7 +25,7 @@ beforeEach(async () => {
   await $allureSeverity('normal')
 })
 
-describe('useCookieConsentStore — initial state', () => {
+describe('useCookieConsentStore: initial state', () => {
   beforeEach(resetStore)
 
   it('starts with hasDecided = false', () => {
@@ -36,7 +37,7 @@ describe('useCookieConsentStore — initial state', () => {
   })
 })
 
-describe('useCookieConsentStore — acceptAll', () => {
+describe('useCookieConsentStore: acceptAll', () => {
   beforeEach(resetStore)
 
   it('sets hasDecided to true', () => {
@@ -51,7 +52,7 @@ describe('useCookieConsentStore — acceptAll', () => {
   })
 })
 
-describe('useCookieConsentStore — rejectAll', () => {
+describe('useCookieConsentStore: rejectAll', () => {
   beforeEach(() => {
     // Start from an accepted state to verify rejectAll truly resets
     useCookieConsentStore.setState({
@@ -72,7 +73,7 @@ describe('useCookieConsentStore — rejectAll', () => {
   })
 })
 
-describe('useCookieConsentStore — savePreferences', () => {
+describe('useCookieConsentStore: savePreferences', () => {
   beforeEach(resetStore)
 
   it('sets hasDecided to true after saving', () => {
@@ -96,7 +97,7 @@ describe('useCookieConsentStore — savePreferences', () => {
   })
 })
 
-describe('useCookieConsentStore — manual state reset (re-open banner)', () => {
+describe('useCookieConsentStore: manual state reset (re-open banner)', () => {
   beforeEach(() => {
     useCookieConsentStore.setState({
       hasDecided: true,
@@ -112,5 +113,31 @@ describe('useCookieConsentStore — manual state reset (re-open banner)', () => 
   it('preferences are preserved after resetting hasDecided', () => {
     useCookieConsentStore.setState({ hasDecided: false })
     expect(getStore().preferences).toEqual({ analytics: true, marketing: true })
+  })
+})
+
+describe('useCookieConsentStore: CCPA/CPRA Do Not Sell', () => {
+  beforeEach(resetStore)
+
+  it('doNotSellOptOut sets hasDecided=true, both preferences=false, doNotSellOptedOut=true', () => {
+    getStore().doNotSellOptOut()
+    expect(getStore()).toMatchObject({
+      hasDecided: true,
+      preferences: { analytics: false, marketing: false },
+      doNotSellOptedOut: true,
+    })
+  })
+
+  it('acceptAll is a no-op on preferences once opted out (CPRA opt-out is sticky)', () => {
+    getStore().doNotSellOptOut()
+    getStore().acceptAll()
+    expect(getStore().preferences).toEqual({ analytics: false, marketing: false })
+    expect(getStore().doNotSellOptedOut).toBe(true)
+  })
+
+  it('savePreferences({marketing: true}) is a no-op once opted out', () => {
+    getStore().doNotSellOptOut()
+    getStore().savePreferences({ analytics: true, marketing: true })
+    expect(getStore().preferences).toEqual({ analytics: false, marketing: false })
   })
 })
