@@ -286,7 +286,11 @@
     "newsletterDescription": "New collections, restocks, and subscriber-only discounts — straight to your inbox.",
     "faq": "FAQ",
     "shipping": "Shipping & Returns",
-    "careGuide": "Care Guide"
+    "careGuide": "Care Guide",
+    "doNotSell": "Do Not Sell or Share My Personal Information",
+    "doNotSellOptedOut": "You are opted out of the sale or sharing of personal information",
+    "doNotSellAriaLabel": "Opt out of the sale or sharing of your personal information (California CPRA)",
+    "doNotSellConfirm": "You have opted out. Analytics and marketing cookies are now disabled on this device."
   },
   "catalog": {
     "metaTitle": "All Jewelry",

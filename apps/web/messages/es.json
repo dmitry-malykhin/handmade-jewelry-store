@@ -286,7 +286,11 @@
     "newsletterDescription": "Nuevas colecciones, reposiciones y descuentos exclusivos para suscriptores — directo a tu correo.",
     "faq": "Preguntas frecuentes",
     "shipping": "Envío y devoluciones",
-    "careGuide": "Cuidado"
+    "careGuide": "Cuidado",
+    "doNotSell": "No vender ni compartir mi información personal",
+    "doNotSellOptedOut": "Has rechazado la venta o compartición de tu información personal",
+    "doNotSellAriaLabel": "Rechazar la venta o compartición de tu información personal (California CPRA)",
+    "doNotSellConfirm": "Has rechazado. Las cookies de análisis y marketing están desactivadas en este dispositivo."
   },
   "catalog": {
     "metaTitle": "Toda la joyería",
