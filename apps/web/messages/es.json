@@ -132,7 +132,9 @@
     "necessaryLabel": "Estrictamente necesarias",
     "necessaryDescription": "Necesarias para el funcionamiento del sitio: carrito, sesión, seguridad. No se pueden desactivar.",
     "learnMore": "Política de Privacidad",
-    "changePreferences": "Preferencias de cookies"
+    "changePreferences": "Preferencias de cookies",
+    "showCookieList": "Ver lista de cookies",
+    "fullCookiePolicyLink": "Consulta nuestra Política de Cookies completa con detalles de cada cookie y tercero."
   },
   "impressumPage": {
     "metaTitle": "Aviso legal — Senichka",
@@ -1445,5 +1447,36 @@
     "storage_antiTarnish": "Coloca una tira anti-óxido en el joyero — dura unos 6 meses y ralentiza notablemente el oscurecimiento de la plata.",
     "storage_drySpot": "Elige un sitio seco y oscuro lejos de ventanas y radiadores. El sol y el calor decoloran algunas piedras.",
     "footnote": "Trata tus piezas con suavidad y durarán toda la vida. Si pasa algo, escríbenos — ofrecemos reparaciones a precio de coste."
+  },
+  "cookiePolicy": {
+    "metaTitle": "Política de Cookies",
+    "metaDescription": "Lista completa de cookies y almacenamiento del navegador utilizados en este sitio, según las EDPB Guidelines 03/2022.",
+    "pageTitle": "Política de Cookies",
+    "pageIntro": "Esta página enumera todas las cookies, entradas de localStorage y píxeles de terceros que el sitio puede colocar en tu dispositivo. Puedes controlar las categorías no esenciales desde el banner de consentimiento.",
+    "necessaryHeading": "Estrictamente necesarias",
+    "necessaryDescription": "Necesarias para el funcionamiento del sitio: mantienen la sesión, recuerdan el carrito y permiten a Stripe verificar transacciones. No se pueden desactivar.",
+    "analyticsHeading": "Analítica",
+    "analyticsDescription": "Nos ayudan a entender cómo los visitantes usan la tienda. Solo se activan tras tu consentimiento.",
+    "marketingHeading": "Marketing y retargeting",
+    "marketingDescription": "Permiten anuncios personalizados en Facebook y Pinterest, y retargeting por email vía Klaviyo. Solo se activan tras tu consentimiento.",
+    "revokeHeading": "Cambiar o retirar el consentimiento",
+    "revokeDescription": "Puedes reabrir el banner de cookies desde el enlace «Preferencias de cookies» en el pie de página, o borrar la entrada «cookie-consent» de localStorage desde la configuración del navegador.",
+    "columnName": "Nombre",
+    "columnProvider": "Proveedor",
+    "columnPurpose": "Propósito",
+    "columnDuration": "Duración",
+    "columnTransfer": "Transferencia de datos",
+    "purposes": {
+      "refreshToken": "Mantiene tu sesión activa entre visitas actualizando el token.",
+      "consentStorage": "Recuerda tus preferencias de cookies para no volver a preguntar.",
+      "cartStorage": "Guarda los productos en el carrito entre visitas.",
+      "stripeFraud": "Detecta transacciones fraudulentas en el pago (requisito de Stripe).",
+      "ga4": "Mide qué páginas se visitan y cuánto tiempo permanecen los visitantes.",
+      "posthog": "Registra eventos anónimos de uso para mejorar la tienda.",
+      "clarity": "Graba sesiones anónimas y mapas de calor para detectar problemas de UX.",
+      "fbPixel": "Permite retargeting en Facebook e Instagram según las páginas vistas.",
+      "pinterestTag": "Permite retargeting en Pinterest y mide el rendimiento de anuncios.",
+      "klaviyo": "Relaciona la apertura de emails y las visitas al sitio con tu perfil de marketing."
+    }
   }
 }

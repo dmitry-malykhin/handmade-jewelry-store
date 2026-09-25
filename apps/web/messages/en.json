@@ -132,7 +132,9 @@
     "necessaryLabel": "Strictly necessary",
     "necessaryDescription": "Required for the site to work: shopping cart, login session, security. Cannot be disabled.",
     "learnMore": "Privacy Policy",
-    "changePreferences": "Cookie preferences"
+    "changePreferences": "Cookie preferences",
+    "showCookieList": "Show cookie list",
+    "fullCookiePolicyLink": "See our full Cookie Policy for details on every cookie and third party."
   },
   "impressumPage": {
     "metaTitle": "Legal Notice — Senichka",
@@ -1445,5 +1447,36 @@
     "storage_antiTarnish": "Drop an anti-tarnish strip into your jewelry box — they last about 6 months and noticeably slow silver from darkening.",
     "storage_drySpot": "Pick a dry, dark spot away from windows and radiators. Sun and heat fade some stones over time.",
     "footnote": "Treat handmade pieces gently and they last a lifetime. If anything happens, message us — we offer repairs at cost."
+  },
+  "cookiePolicy": {
+    "metaTitle": "Cookie Policy",
+    "metaDescription": "Full list of cookies and browser storage used on this site, per EDPB Guidelines 03/2022.",
+    "pageTitle": "Cookie Policy",
+    "pageIntro": "This page lists every cookie, localStorage entry and third-party pixel that this site can set on your device. You control non-essential categories from the cookie preferences banner.",
+    "necessaryHeading": "Strictly necessary",
+    "necessaryDescription": "Required for the site to work: keeps you signed in, remembers your cart, and lets Stripe run fraud checks at checkout. Cannot be disabled.",
+    "analyticsHeading": "Analytics",
+    "analyticsDescription": "Helps us understand how visitors use the shop. Only set after you opt in.",
+    "marketingHeading": "Marketing and retargeting",
+    "marketingDescription": "Enables personalised ads on Facebook, Pinterest, and email retargeting via Klaviyo. Only set after you opt in.",
+    "revokeHeading": "Changing or withdrawing consent",
+    "revokeDescription": "You can reopen the cookie banner at any time via the \"Cookie preferences\" link in the footer, or clear your consent by deleting the \"cookie-consent\" localStorage entry in your browser settings.",
+    "columnName": "Name",
+    "columnProvider": "Provider",
+    "columnPurpose": "Purpose",
+    "columnDuration": "Duration",
+    "columnTransfer": "Data transfer",
+    "purposes": {
+      "refreshToken": "Keeps you signed in between visits by refreshing your session token.",
+      "consentStorage": "Remembers your cookie preferences so we do not ask you again.",
+      "cartStorage": "Keeps items in your shopping cart between visits.",
+      "stripeFraud": "Detects fraudulent transactions at checkout (Stripe requires this).",
+      "ga4": "Measures which pages are visited and how long visitors stay.",
+      "posthog": "Records anonymous product-usage events to help us improve the shop.",
+      "clarity": "Records anonymous session replays and heatmaps to spot usability issues.",
+      "fbPixel": "Enables retargeting on Facebook and Instagram based on pages you viewed.",
+      "pinterestTag": "Enables retargeting on Pinterest and measures ad performance.",
+      "klaviyo": "Ties email opens and site visits to your marketing profile for personalisation."
+    }
   }
 }
