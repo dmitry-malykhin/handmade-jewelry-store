@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
+import { CookieDisclosureTable } from '@/components/shared/cookie-disclosure-table'
 import {
   useCookieConsentStore,
   useHasCookieDecision,
@@ -106,6 +107,14 @@ export function CookieBanner() {
                 <span className="text-xs font-medium text-muted-foreground">Always on</span>
               </div>
               <p className="mt-1 text-sm text-muted-foreground">{t('necessaryDescription')}</p>
+              <details className="mt-3 text-sm">
+                <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
+                  {t('showCookieList')}
+                </summary>
+                <div className="mt-2">
+                  <CookieDisclosureTable category="necessary" />
+                </div>
+              </details>
             </fieldset>
 
             <fieldset className="rounded-lg border border-border p-4">
@@ -126,6 +135,14 @@ export function CookieBanner() {
               >
                 {t('analyticsDescription')}
               </Label>
+              <details className="mt-3 text-sm">
+                <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
+                  {t('showCookieList')}
+                </summary>
+                <div className="mt-2">
+                  <CookieDisclosureTable category="analytics" />
+                </div>
+              </details>
             </fieldset>
 
             <fieldset className="rounded-lg border border-border p-4">
@@ -146,7 +163,21 @@ export function CookieBanner() {
               >
                 {t('marketingDescription')}
               </Label>
+              <details className="mt-3 text-sm">
+                <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
+                  {t('showCookieList')}
+                </summary>
+                <div className="mt-2">
+                  <CookieDisclosureTable category="marketing" />
+                </div>
+              </details>
             </fieldset>
+
+            <p className="text-xs text-muted-foreground">
+              <Link href="/cookies" className="underline hover:text-foreground">
+                {t('fullCookiePolicyLink')}
+              </Link>
+            </p>
 
             <div className="flex justify-end gap-2">
               <Button variant="ghost" size="sm" onClick={() => setIsCustomising(false)}>
