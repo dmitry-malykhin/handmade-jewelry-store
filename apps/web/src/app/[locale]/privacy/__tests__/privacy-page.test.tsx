@@ -96,7 +96,7 @@ describe('PrivacyPage — structure', () => {
     expect(screen.getByText('Last updated: April 12, 2026')).toBeInTheDocument()
   })
 
-  it('renders all 11 section headings', async () => {
+  it('renders the historical section headings 1..11', async () => {
     await renderPrivacyPage()
     expect(
       screen.getByRole('heading', { name: '1. Information We Collect', level: 2 }),
@@ -111,7 +111,6 @@ describe('PrivacyPage — structure', () => {
       screen.getByRole('heading', { name: '4. Analytics and Tracking', level: 2 }),
     ).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: '5. Cookies', level: 2 })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: '6. Data Retention', level: 2 })).toBeInTheDocument()
     expect(
       screen.getByRole('heading', { name: '7. Your Rights (GDPR / CCPA)', level: 2 }),
     ).toBeInTheDocument()
@@ -125,6 +124,41 @@ describe('PrivacyPage — structure', () => {
     expect(screen.getByRole('heading', { name: '11. Contact Us', level: 2 })).toBeInTheDocument()
   })
 
+  it('renders GDPR Art. 13 sections added for full disclosure (#555)', async () => {
+    await renderPrivacyPage()
+    expect(
+      screen.getByRole('heading', { level: 2, name: /Legal bases for processing/i }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { level: 2, name: /International data transfers/i }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { level: 2, name: /How long we keep your data/i }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { level: 2, name: /Data Protection Officer/i }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { level: 2, name: /Right to lodge a complaint/i }),
+    ).toBeInTheDocument()
+  })
+
+  it('discloses every active processor including Sentry, Pinterest, Cloudflare', async () => {
+    await renderPrivacyPage()
+    expect(screen.getAllByText(/Sentry/).length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/Pinterest/).length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/Cloudflare R2/).length).toBeGreaterThan(0)
+  })
+
+  it('links to the EDPB list of supervisory authorities', async () => {
+    await renderPrivacyPage()
+    const edpbLink = screen.getByRole('link', {
+      name: /EDPB list of national supervisory authorities/i,
+    })
+    expect(edpbLink).toHaveAttribute('href', expect.stringContaining('edpb.europa.eu'))
+    expect(edpbLink).toHaveAttribute('rel', 'noopener noreferrer')
+  })
+
   it('renders the Stripe privacy policy link', async () => {
     await renderPrivacyPage()
     const stripeLink = screen.getByRole('link', { name: "Stripe's Privacy Policy" })
@@ -134,10 +168,10 @@ describe('PrivacyPage — structure', () => {
 
   it('renders third-party analytics services', async () => {
     await renderPrivacyPage()
-    expect(screen.getByText(/Google Analytics 4/)).toBeInTheDocument()
-    expect(screen.getByText(/PostHog/)).toBeInTheDocument()
-    expect(screen.getByText(/Microsoft Clarity/)).toBeInTheDocument()
-    expect(screen.getByText(/Facebook Pixel/)).toBeInTheDocument()
+    expect(screen.getAllByText(/Google Analytics 4/).length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/PostHog/).length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/Microsoft Clarity/).length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/Facebook Pixel/).length).toBeGreaterThan(0)
   })
 
   it('renders the GDPR/CCPA rights list', async () => {
