@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { buildLocaleAlternates } from '@/lib/seo/alternates'
 import { getCompanyAddress, getPrivacyEmail } from '@/lib/config/contact'
+import { getDpoConfig } from '@/lib/config/dpo'
 
 interface PrivacyPageProps {
   params: Promise<{ locale: string }>
@@ -35,6 +36,7 @@ export default async function PrivacyPage({ params }: PrivacyPageProps) {
   const t = await getTranslations('privacyPage')
   const privacyEmail = getPrivacyEmail()
   const companyAddress = getCompanyAddress()
+  const dpo = getDpoConfig()
 
   const emailLink = (chunks: React.ReactNode) => (
     <a href={`mailto:${privacyEmail}`} className="underline hover:text-foreground">
@@ -100,6 +102,9 @@ export default async function PrivacyPage({ params }: PrivacyPageProps) {
               <li>{t.rich('s3Resend', { b: bold })}</li>
               <li>{t.rich('s3Klaviyo', { b: bold })}</li>
               <li>{t.rich('s3Carriers', { b: bold })}</li>
+              <li>{t.rich('s3Sentry', { b: bold })}</li>
+              <li>{t.rich('s3Pinterest', { b: bold })}</li>
+              <li>{t.rich('s3Cloudflare', { b: bold })}</li>
             </ul>
           </section>
 
@@ -113,7 +118,34 @@ export default async function PrivacyPage({ params }: PrivacyPageProps) {
               <li>{t.rich('s4PostHog', { b: bold })}</li>
               <li>{t.rich('s4Clarity', { b: bold })}</li>
               <li>{t.rich('s4FBPixel', { b: bold })}</li>
+              <li>{t.rich('s4Pinterest', { b: bold })}</li>
             </ul>
+          </section>
+
+          <section aria-labelledby="privacy-legal-bases">
+            <h2 id="privacy-legal-bases" className="mb-4 text-xl font-semibold text-foreground">
+              {t('legalBasesHeading')}
+            </h2>
+            <p className="mb-4 text-muted-foreground">{t('legalBasesIntro')}</p>
+            <ul className="list-disc space-y-2 pl-6 text-muted-foreground" role="list">
+              <li>{t.rich('legalBasesContract', { b: bold })}</li>
+              <li>{t.rich('legalBasesLegitimate', { b: bold })}</li>
+              <li>{t.rich('legalBasesConsent', { b: bold })}</li>
+              <li>{t.rich('legalBasesLegal', { b: bold })}</li>
+            </ul>
+          </section>
+
+          <section aria-labelledby="privacy-transfers">
+            <h2 id="privacy-transfers" className="mb-4 text-xl font-semibold text-foreground">
+              {t('transfersHeading')}
+            </h2>
+            <p className="mb-4 text-muted-foreground">{t('transfersIntro')}</p>
+            <ul className="list-disc space-y-2 pl-6 text-muted-foreground" role="list">
+              <li>{t.rich('transfersSCCs', { b: bold })}</li>
+              <li>{t.rich('transfersDPF', { b: bold })}</li>
+              <li>{t.rich('transfersAdequacy', { b: bold })}</li>
+            </ul>
+            <p className="mt-4 text-muted-foreground">{t('transfersRequest')}</p>
           </section>
 
           <section aria-labelledby="privacy-cookies">
@@ -131,9 +163,18 @@ export default async function PrivacyPage({ params }: PrivacyPageProps) {
 
           <section aria-labelledby="privacy-retention">
             <h2 id="privacy-retention" className="mb-4 text-xl font-semibold text-foreground">
-              {t('s6Heading')}
+              {t('retentionHeading')}
             </h2>
-            <p className="text-muted-foreground">{t('s6Body')}</p>
+            <p className="mb-4 text-muted-foreground">{t('retentionIntro')}</p>
+            <ul className="list-disc space-y-2 pl-6 text-muted-foreground" role="list">
+              <li>{t.rich('retentionOrders', { b: bold })}</li>
+              <li>{t.rich('retentionAccount', { b: bold })}</li>
+              <li>{t.rich('retentionAddresses', { b: bold })}</li>
+              <li>{t.rich('retentionMarketingConsent', { b: bold })}</li>
+              <li>{t.rich('retentionAnalytics', { b: bold })}</li>
+              <li>{t.rich('retentionSupport', { b: bold })}</li>
+              <li>{t.rich('retentionSecurity', { b: bold })}</li>
+            </ul>
           </section>
 
           <section aria-labelledby="privacy-rights">
@@ -173,6 +214,57 @@ export default async function PrivacyPage({ params }: PrivacyPageProps) {
               {t('s10Heading')}
             </h2>
             <p className="text-muted-foreground">{t('s10Body')}</p>
+          </section>
+
+          <section aria-labelledby="privacy-dpo">
+            <h2 id="privacy-dpo" className="mb-4 text-xl font-semibold text-foreground">
+              {t('dpoHeading')}
+            </h2>
+            <p className="mb-4 text-muted-foreground">{t('dpoIntro')}</p>
+            <address className="not-italic text-muted-foreground">
+              <p>
+                {t('dpoContactLabel')}{' '}
+                <a href={`mailto:${dpo.dpoEmail}`} className="underline hover:text-foreground">
+                  {dpo.dpoEmail}
+                </a>
+              </p>
+              <p className="mt-2">{t('dpoEuRepLabel')}</p>
+              {dpo.euRepresentativeName ? (
+                <>
+                  <p>{dpo.euRepresentativeName}</p>
+                  {dpo.euRepresentativeAddress && <p>{dpo.euRepresentativeAddress}</p>}
+                  {dpo.euRepresentativeEmail && (
+                    <p>
+                      <a
+                        href={`mailto:${dpo.euRepresentativeEmail}`}
+                        className="underline hover:text-foreground"
+                      >
+                        {dpo.euRepresentativeEmail}
+                      </a>
+                    </p>
+                  )}
+                </>
+              ) : (
+                <p>{t('dpoEuRepNone')}</p>
+              )}
+            </address>
+          </section>
+
+          <section aria-labelledby="privacy-complaint">
+            <h2 id="privacy-complaint" className="mb-4 text-xl font-semibold text-foreground">
+              {t('complaintHeading')}
+            </h2>
+            <p className="mb-2 text-muted-foreground">{t('complaintBody')}</p>
+            <p className="text-muted-foreground">
+              <a
+                href="https://www.edpb.europa.eu/about-edpb/who-we-are/european-data-protection-board_en"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline hover:text-foreground"
+              >
+                {t('complaintEdpbLink')}
+              </a>
+            </p>
           </section>
 
           <section aria-labelledby="privacy-contact">
