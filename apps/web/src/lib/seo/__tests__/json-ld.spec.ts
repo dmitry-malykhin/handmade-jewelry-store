@@ -22,6 +22,7 @@ const baseProduct = {
   sku: 'SKU-RING-001',
   avgRating: 4.5,
   reviewCount: 12,
+  locale: 'en',
 }
 
 beforeEach(async () => {
@@ -93,9 +94,12 @@ describe('generateProductJsonLd', () => {
     expect(result.aggregateRating).toBeUndefined()
   })
 
-  it('builds the product URL using /products/<slug> (post #280)', () => {
-    const result = generateProductJsonLd(baseProduct)
-    expect(result.offers.url).toContain('/products/sterling-silver-moonstone-ring')
+  it('builds the product URL as /<locale>/products/<slug> so Google can validate it (#455)', () => {
+    const enResult = generateProductJsonLd(baseProduct)
+    expect(enResult.offers.url).toMatch(/\/en\/products\/sterling-silver-moonstone-ring$/)
+
+    const ruResult = generateProductJsonLd({ ...baseProduct, locale: 'ru' })
+    expect(ruResult.offers.url).toMatch(/\/ru\/products\/sterling-silver-moonstone-ring$/)
   })
 })
 
