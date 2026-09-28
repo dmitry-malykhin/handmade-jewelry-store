@@ -27,7 +27,7 @@ describe('robots', () => {
     expect(wildcardRule?.allow).toContain('/')
   })
 
-  it('disallows admin, checkout, cart, and account paths', () => {
+  it('disallows admin and API prefixes at root', () => {
     const result = robots()
     const rules = Array.isArray(result.rules) ? result.rules : [result.rules]
     const wildcardRule = rules.find((rule) => rule.userAgent === '*')
@@ -35,9 +35,35 @@ describe('robots', () => {
     const disallowedList = Array.isArray(disallowed) ? disallowed : [disallowed]
 
     expect(disallowedList).toContain('/admin/')
-    expect(disallowedList).toContain('/checkout/')
-    expect(disallowedList).toContain('/cart/')
-    expect(disallowedList).toContain('/account/')
+    expect(disallowedList).toContain('/api/')
+  })
+
+  it('disallows locale-prefixed cart/checkout/account for every supported locale (#458)', () => {
+    const result = robots()
+    const rules = Array.isArray(result.rules) ? result.rules : [result.rules]
+    const wildcardRule = rules.find((rule) => rule.userAgent === '*')
+    const disallowed = wildcardRule?.disallow ?? []
+    const disallowedList = Array.isArray(disallowed) ? disallowed : [disallowed]
+
+    for (const locale of ['en', 'ru', 'es']) {
+      expect(disallowedList).toContain(`/${locale}/cart/`)
+      expect(disallowedList).toContain(`/${locale}/checkout/`)
+      expect(disallowedList).toContain(`/${locale}/account/`)
+    }
+    expect(disallowedList).not.toContain('/cart/')
+    expect(disallowedList).not.toContain('/checkout/')
+    expect(disallowedList).not.toContain('/account/')
+  })
+
+  it('excludes crawl-budget-wasting sort and page query variants', () => {
+    const result = robots()
+    const rules = Array.isArray(result.rules) ? result.rules : [result.rules]
+    const wildcardRule = rules.find((rule) => rule.userAgent === '*')
+    const disallowed = wildcardRule?.disallow ?? []
+    const disallowedList = Array.isArray(disallowed) ? disallowed : [disallowed]
+
+    expect(disallowedList).toContain('/*?*sort=')
+    expect(disallowedList).toContain('/*?*page=')
   })
 
   it('includes sitemap URL pointing to /sitemap.xml', () => {
