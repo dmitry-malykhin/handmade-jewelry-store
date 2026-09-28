@@ -1,7 +1,14 @@
 import type { MetadataRoute } from 'next'
 import { getSiteUrl } from '@/lib/config/site-url'
+import { routing } from '@/i18n/routing'
 
 const SITE_URL = getSiteUrl()
+
+const PRIVATE_PATHS = ['cart', 'checkout', 'account'] as const
+
+const localisedDisallows = routing.locales.flatMap((locale) =>
+  PRIVATE_PATHS.map((path) => `/${locale}/${path}/`),
+)
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -9,7 +16,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/admin/', '/checkout/', '/cart/', '/account/'],
+        disallow: ['/admin/', '/api/', ...localisedDisallows, '/*?*sort=', '/*?*page='],
       },
     ],
     sitemap: `${SITE_URL}/sitemap.xml`,
