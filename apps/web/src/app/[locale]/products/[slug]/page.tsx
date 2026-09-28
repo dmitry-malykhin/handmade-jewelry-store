@@ -77,6 +77,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
     sku: product.sku,
     avgRating: product.avgRating,
     reviewCount: product.reviewCount,
+    locale,
   })
 
   const breadcrumbJsonLd = generateBreadcrumbJsonLd([

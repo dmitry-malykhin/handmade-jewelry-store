@@ -43,6 +43,7 @@ export interface ProductJsonLdProps {
   sku: string | null
   avgRating: number
   reviewCount: number
+  locale: string
 }
 
 export interface HowToStep {
@@ -105,7 +106,7 @@ export function generateProductJsonLd(product: ProductJsonLdProps) {
       priceCurrency: 'USD',
       availability:
         product.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
-      url: `${SITE_URL}/products/${product.slug}`,
+      url: `${SITE_URL}/${product.locale}/products/${product.slug}`,
     },
   }
 }
