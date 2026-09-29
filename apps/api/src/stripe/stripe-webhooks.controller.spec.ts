@@ -128,6 +128,24 @@ describe('StripeWebhooksController', () => {
     )
   })
 
+  it('awaits charge.dispute.created so Stripe retries on failure instead of dropping the event (#534)', async () => {
+    const fakeEvent = {
+      type: 'charge.dispute.created',
+      data: { object: { id: 'dp_test' } },
+    } as unknown as Stripe.Event
+    mockStripeService.constructWebhookEvent.mockReturnValueOnce(fakeEvent)
+    mockStripeWebhooksService.handleChargeDisputeCreated.mockRejectedValueOnce(
+      new Error('slack down'),
+    )
+
+    await expect(
+      stripeWebhooksController.handleStripeWebhook(
+        buildFakeRequest(Buffer.from('{}')),
+        FAKE_STRIPE_SIGNATURE,
+      ),
+    ).rejects.toThrow('slack down')
+  })
+
   it('returns { received: true } for unhandled event types', async () => {
     const fakeEvent = {
       type: 'customer.created',
