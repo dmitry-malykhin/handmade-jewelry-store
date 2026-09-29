@@ -63,7 +63,7 @@ export class StripeWebhooksController {
         break
 
       case 'charge.dispute.created':
-        this.stripeWebhooksService.handleChargeDisputeCreated(
+        await this.stripeWebhooksService.handleChargeDisputeCreated(
           stripeEvent.data.object as Stripe.Dispute,
         )
         break
