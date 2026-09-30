@@ -74,14 +74,17 @@ export class OrdersRefundsService {
       throw new BadRequestException('Refund amount must be greater than zero')
     }
 
-    // Stripe is called outside the DB transaction; if Stripe succeeds but the
-    // DB write fails, the webhook reconciles on retry.
+    const cumulativeRefunded = alreadyRefunded.plus(requestedAmount)
+    const cumulativeCents = cumulativeRefunded.times(100).toDecimalPlaces(0).toString()
+
+    // Stripe runs outside the DB $transaction; the idempotency key makes an
+    // admin retry after a DB failure return the existing refund, not a new one.
     const stripeRefund = await this.stripeService.createRefund(
       order.payment.stripeId,
       requestedAmount.toNumber(),
+      `refund-${orderId}-${cumulativeCents}`,
     )
 
-    const cumulativeRefunded = alreadyRefunded.plus(requestedAmount)
     const isFullRefund = cumulativeRefunded.greaterThanOrEqualTo(order.total)
     const newOrderStatus = isFullRefund ? OrderStatus.REFUNDED : OrderStatus.PARTIALLY_REFUNDED
     const newPaymentStatus = isFullRefund

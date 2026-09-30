@@ -143,7 +143,11 @@ describe('OrdersRefundsService', () => {
         note: 'Buyer reported broken clasp',
       })
 
-      expect(mockStripeService.createRefund).toHaveBeenCalledWith('pi_test_123', 100)
+      expect(mockStripeService.createRefund).toHaveBeenCalledWith(
+        'pi_test_123',
+        100,
+        'refund-order-1-10000',
+      )
       expect(mockPrismaService.payment.update).toHaveBeenCalledWith({
         where: { id: 'payment-1' },
         data: { status: 'REFUNDED' },
@@ -190,7 +194,11 @@ describe('OrdersRefundsService', () => {
         amount: 40,
       })
 
-      expect(mockStripeService.createRefund).toHaveBeenCalledWith('pi_test_123', 40)
+      expect(mockStripeService.createRefund).toHaveBeenCalledWith(
+        'pi_test_123',
+        40,
+        'refund-order-1-4000',
+      )
       expect(mockPrismaService.payment.update).toHaveBeenCalledWith({
         where: { id: 'payment-1' },
         data: { status: 'PARTIALLY_REFUNDED' },
@@ -220,12 +228,38 @@ describe('OrdersRefundsService', () => {
         amount: 60,
       })
 
-      expect(mockStripeService.createRefund).toHaveBeenCalledWith('pi_test_123', 60)
+      expect(mockStripeService.createRefund).toHaveBeenCalledWith(
+        'pi_test_123',
+        60,
+        'refund-order-1-10000',
+      )
       expect(result.status).toBe(OrderStatus.REFUNDED)
       expect(mockPrismaService.payment.update).toHaveBeenCalledWith({
         where: { id: 'payment-1' },
         data: { status: 'REFUNDED' },
       })
+    })
+
+    it('replays the same idempotency key on admin retry after DB failure (prevents double refund)', async () => {
+      const order = buildOrder()
+      mockPrismaService.order.findUnique.mockResolvedValue(order)
+      mockStripeService.createRefund.mockResolvedValue({ id: 're_test_retry' })
+      mockPrismaService.order.update
+        .mockRejectedValueOnce(new Error('DB timeout'))
+        .mockImplementationOnce(({ data }: { data: Record<string, unknown> }) =>
+          Promise.resolve({ ...order, ...data, items: [], statusHistory: [] }),
+        )
+
+      await expect(
+        service.refundOrder('order-1', { reason: 'OTHER' as const, amount: 100 }),
+      ).rejects.toThrow('DB timeout')
+
+      await service.refundOrder('order-1', { reason: 'OTHER' as const, amount: 100 })
+
+      const idempotencyKeys = mockStripeService.createRefund.mock.calls.map(
+        (call: unknown[]) => call[2],
+      )
+      expect(idempotencyKeys).toEqual(['refund-order-1-10000', 'refund-order-1-10000'])
     })
 
     it('sends refund email but swallows email failure (refund must not be rolled back)', async () => {
