@@ -20,23 +20,21 @@ export class StripeService {
     return this.client.webhooks.constructEvent(rawBody, signature, webhookSecret)
   }
 
-  /**
-   * Issues a refund against a PaymentIntent. `amountInDollars` is converted to
-   * cents — Stripe always operates in the smallest currency unit. Omitting the
-   * amount produces a full refund (Stripe defaults to the remaining capturable
-   * amount).
-   *
-   * Returns the Stripe Refund object so the caller can record metadata and the
-   * resolved amount. Throws StripeError on validation failure (amount exceeds
-   * remaining refundable, charge already fully refunded) — controller layer
-   * translates to HTTP.
-   */
-  async createRefund(paymentIntentId: string, amountInDollars?: number): Promise<Stripe.Refund> {
-    return this.client.refunds.create({
-      payment_intent: paymentIntentId,
-      ...(amountInDollars !== undefined && {
-        amount: Math.round(amountInDollars * 100),
-      }),
-    })
+  // idempotencyKey is required (not optional) so admin retry after a local
+  // DB failure replays the same key and Stripe returns the existing refund.
+  async createRefund(
+    paymentIntentId: string,
+    amountInDollars: number | undefined,
+    idempotencyKey: string,
+  ): Promise<Stripe.Refund> {
+    return this.client.refunds.create(
+      {
+        payment_intent: paymentIntentId,
+        ...(amountInDollars !== undefined && {
+          amount: Math.round(amountInDollars * 100),
+        }),
+      },
+      { idempotencyKey },
+    )
   }
 }
