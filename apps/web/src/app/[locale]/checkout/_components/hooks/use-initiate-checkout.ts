@@ -46,7 +46,10 @@ export function useInitiateCheckout(
 
         if (isCancelled) return
 
-        const paymentIntent = await createPaymentIntent({ orderId: createdOrder.id })
+        const paymentIntent = await createPaymentIntent(
+          { orderId: createdOrder.id },
+          { accessToken, orderAccessToken: createdOrder.accessToken },
+        )
 
         if (isCancelled) return
 
