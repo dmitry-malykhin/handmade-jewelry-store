@@ -28,7 +28,7 @@ describe('createPaymentIntent', () => {
     vi.clearAllMocks()
   })
 
-  it('calls apiClient with POST /api/payments/intent and orderId', async () => {
+  it('calls apiClient with POST /api/payments/intent and no auth headers by default', async () => {
     const mockClientSecret = 'pi_test_secret_xyz'
     vi.mocked(client.apiClient).mockResolvedValueOnce({ clientSecret: mockClientSecret })
 
@@ -37,8 +37,27 @@ describe('createPaymentIntent', () => {
     expect(client.apiClient).toHaveBeenCalledWith('/api/payments/intent', {
       method: 'POST',
       body: JSON.stringify({ orderId: 'order_123' }),
+      headers: {},
     })
     expect(result).toEqual({ clientSecret: mockClientSecret })
+  })
+
+  it('forwards Bearer and x-order-access-token headers when provided (#537 IDOR fix)', async () => {
+    vi.mocked(client.apiClient).mockResolvedValueOnce({ clientSecret: 's' })
+
+    await createPaymentIntent(
+      { orderId: 'order_123' },
+      { accessToken: 'user-jwt', orderAccessToken: 'order-tok' },
+    )
+
+    expect(client.apiClient).toHaveBeenCalledWith('/api/payments/intent', {
+      method: 'POST',
+      body: JSON.stringify({ orderId: 'order_123' }),
+      headers: {
+        Authorization: 'Bearer user-jwt',
+        'x-order-access-token': 'order-tok',
+      },
+    })
   })
 
   it('propagates ApiError when the request fails', async () => {

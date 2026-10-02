@@ -1,9 +1,6 @@
-import {
-  BadRequestException,
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common'
+import { BadRequestException, ConflictException, Injectable } from '@nestjs/common'
+import type { User } from '@prisma/client'
+import { OrdersQueryService } from '../orders/orders-query.service'
 import { PrismaService } from '../prisma/prisma.service'
 import { StripeService } from '../stripe/stripe.service'
 
@@ -12,17 +9,21 @@ export class PaymentsService {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly stripeService: StripeService,
+    private readonly ordersQueryService: OrdersQueryService,
   ) {}
 
-  async createPaymentIntent(orderId: string): Promise<{ clientSecret: string }> {
-    const order = await this.prismaService.order.findUnique({
-      where: { id: orderId },
-      include: { payment: true },
-    })
+  async createPaymentIntent(
+    orderId: string,
+    caller: User | null,
+    orderAccessToken: string | null,
+  ): Promise<{ clientSecret: string }> {
+    const order = await this.ordersQueryService.findOneByIdForCaller(
+      orderId,
+      caller,
+      orderAccessToken,
+    )
 
-    if (!order) {
-      throw new NotFoundException(`Order ${orderId} not found`)
-    }
+    const payment = await this.prismaService.payment.findUnique({ where: { orderId } })
 
     if (order.status !== 'PENDING') {
       throw new BadRequestException(
@@ -30,10 +31,9 @@ export class PaymentsService {
       )
     }
 
-    if (order.payment) {
-      // Reuse the existing clientSecret — handles mid-checkout browser reload.
+    if (payment) {
       const existingIntent = await this.stripeService.client.paymentIntents.retrieve(
-        order.payment.stripeId,
+        payment.stripeId,
       )
 
       if (!existingIntent.client_secret) {

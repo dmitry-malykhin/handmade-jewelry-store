@@ -36,5 +36,6 @@ import { OrdersService } from './orders.service'
     OrdersRefundsService,
     OrdersProductionService,
   ],
+  exports: [OrdersQueryService],
 })
 export class OrdersModule {}
