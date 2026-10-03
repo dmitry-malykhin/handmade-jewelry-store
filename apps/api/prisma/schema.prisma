@@ -296,6 +296,11 @@ model Order {
   terms         OrderTerms?
   createdAt     DateTime             @default(now())
   updatedAt     DateTime             @updatedAt
+
+  @@index([status, createdAt(sort: Desc)])
+  @@index([userId])
+  @@index([refundedAt])
+  @@index([guestEmail])
 }
 
 // EU Consumer Rights Directive Art. 8(2) + GDPR Art. 7(1) audit trail (#553).
@@ -323,6 +328,8 @@ model OrderStatusHistory {
   note       String? // admin comment
   createdBy  String? // userId or "system" for automatic transitions
   createdAt  DateTime     @default(now())
+
+  @@index([orderId])
 }
 
 model OrderItem {
@@ -334,6 +341,9 @@ model OrderItem {
   productSnapshot Json // { title, slug, sku, image } — snapshot at purchase time
   quantity        Int
   price           Decimal  @db.Decimal(10, 2) // snapshot of price at purchase time
+
+  @@index([orderId])
+  @@index([productId])
 }
 
 model Payment {
