@@ -12,4 +12,8 @@ export class UpdateOrderStatusDto {
   @IsString()
   @IsOptional()
   trackingNumber?: string
+
+  @IsString()
+  @IsOptional()
+  shippingCarrier?: string
 }
