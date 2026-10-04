@@ -85,6 +85,8 @@ export class OrdersStatusService {
           recipientEmail,
           orderId: updatedOrder.id,
           trackingNumber: updateOrderStatusDto.trackingNumber,
+          shippingCarrier:
+            updateOrderStatusDto.shippingCarrier ?? updatedOrder.shippingCarrier ?? undefined,
         })
       }
     }

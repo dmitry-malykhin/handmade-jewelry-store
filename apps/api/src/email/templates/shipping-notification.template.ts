@@ -4,13 +4,34 @@ export interface ShippingNotificationData {
   recipientEmail: string
   orderId: string
   trackingNumber?: string
+  shippingCarrier?: string
+}
+
+const CARRIER_TRACKING_URL: Record<string, (trackingNumber: string) => string> = {
+  usps: (n) => `https://tools.usps.com/go/TrackConfirmAction?tLabels=${encodeURIComponent(n)}`,
+  fedex: (n) => `https://www.fedex.com/fedextrack/?trknbr=${encodeURIComponent(n)}`,
+  ups: (n) => `https://www.ups.com/track?tracknum=${encodeURIComponent(n)}`,
+  dhl: (n) =>
+    `https://www.dhl.com/global-en/home/tracking.html?tracking-id=${encodeURIComponent(n)}`,
+  usps_tracking: (n) =>
+    `https://tools.usps.com/go/TrackConfirmAction?tLabels=${encodeURIComponent(n)}`,
+}
+
+export function buildTrackingUrl(
+  trackingNumber: string | undefined,
+  shippingCarrier: string | undefined,
+): string | null {
+  if (!trackingNumber || !shippingCarrier) return null
+  const lookup = CARRIER_TRACKING_URL[shippingCarrier.toLowerCase()]
+  return lookup ? lookup(trackingNumber) : null
 }
 
 export function buildShippingNotificationEmail(data: ShippingNotificationData): {
   subject: string
   html: string
 } {
-  const { orderId, trackingNumber } = data
+  const { orderId, trackingNumber, shippingCarrier } = data
+  const trackingUrl = buildTrackingUrl(trackingNumber, shippingCarrier)
 
   return {
     subject: `Your order is on its way! 📦 #${orderId.slice(-8).toUpperCase()}`,
@@ -35,7 +56,15 @@ export function buildShippingNotificationEmail(data: ShippingNotificationData): 
 
           ${
             trackingNumber
-              ? `<div style="background: #f9f9f9; border-radius: 6px; padding: 20px; margin-bottom: 32px;">
+              ? `<div style="background: #f9f9f9; border-radius: 6px; padding: 20px; margin-bottom: ${trackingUrl ? '20px' : '32px'};">
+                ${
+                  shippingCarrier
+                    ? `<p style="margin: 0 0 4px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #888;">
+                  Carrier
+                </p>
+                <p style="margin: 0 0 12px; font-size: 15px; color: #1a1a1a;">${shippingCarrier.toUpperCase()}</p>`
+                    : ''
+                }
                 <p style="margin: 0 0 4px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #888;">
                   Tracking number
                 </p>
@@ -43,6 +72,14 @@ export function buildShippingNotificationEmail(data: ShippingNotificationData): 
                   ${trackingNumber}
                 </p>
               </div>`
+              : ''
+          }
+          ${
+            trackingUrl
+              ? `<a href="${trackingUrl}"
+             style="display: inline-block; background: #1a1a1a; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-weight: 600; font-size: 15px; margin-bottom: 32px;">
+            Track your package →
+          </a>`
               : ''
           }
 
