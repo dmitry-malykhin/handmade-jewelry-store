@@ -40,8 +40,24 @@ describe('CheckoutShippingMethodForm', () => {
   it('renders both shipping options', () => {
     render(<CheckoutShippingMethodForm onNext={vi.fn()} onBack={vi.fn()} />)
 
-    expect(screen.getByLabelText('shippingOption_standard')).toBeInTheDocument()
-    expect(screen.getByLabelText('shippingOption_express')).toBeInTheDocument()
+    expect(screen.getByRole('radio', { name: /shippingOption_standard/ })).toBeInTheDocument()
+    expect(screen.getByRole('radio', { name: /shippingOption_express/ })).toBeInTheDocument()
+  })
+
+  it('includes the visible price and delivery estimate in the radio accessible name (#514)', () => {
+    render(<CheckoutShippingMethodForm onNext={vi.fn()} onBack={vi.fn()} />)
+
+    const standardRadio = screen.getByRole('radio', { name: /shippingOption_standard/ })
+    expect(standardRadio).not.toHaveAttribute('aria-label')
+
+    const accessibleName = standardRadio.getAttribute('aria-labelledby') ?? ''
+    const referencedIds = accessibleName.split(/\s+/).filter(Boolean)
+    const referencedText = referencedIds
+      .map((id) => document.getElementById(id)?.textContent ?? '')
+      .join(' ')
+
+    expect(referencedText).toMatch(/\$|shippingFree/)
+    expect(referencedText).toMatch(/Estimated delivery/)
   })
 
   it('shows step 2 in progress indicator', () => {
@@ -53,7 +69,7 @@ describe('CheckoutShippingMethodForm', () => {
   it('selects standard shipping by default', () => {
     render(<CheckoutShippingMethodForm onNext={vi.fn()} onBack={vi.fn()} />)
 
-    const standardRadio = screen.getByLabelText('shippingOption_standard')
+    const standardRadio = screen.getByRole('radio', { name: /shippingOption_standard/ })
     expect(standardRadio).toBeChecked()
   })
 
@@ -73,7 +89,7 @@ describe('CheckoutShippingMethodForm', () => {
     const handleNext = vi.fn()
     render(<CheckoutShippingMethodForm onNext={handleNext} onBack={vi.fn()} />)
 
-    await userEvent.click(screen.getByLabelText('shippingOption_express'))
+    await userEvent.click(screen.getByRole('radio', { name: /shippingOption_express/ }))
     await userEvent.click(screen.getByText('continueToPayment'))
 
     const [selectedOption] = handleNext.mock.calls[0]!

@@ -75,9 +75,15 @@ export function CheckoutShippingMethodForm({ onNext, onBack }: CheckoutShippingM
             {shippingOptionViewModels.map(({ option, shippingCost, isFree, deliveryRange }) => {
               const isSelected = selectedOptionId === option.id
 
+              const inputId = `shippingMethod-${option.id}`
+              const nameId = `${inputId}-name`
+              const priceId = `${inputId}-price`
+              const etaId = `${inputId}-eta`
+
               return (
                 <li key={option.id}>
                   <label
+                    htmlFor={inputId}
                     className={cn(
                       'flex cursor-pointer items-start gap-4 rounded-lg border p-4 transition-colors',
                       isSelected
@@ -86,20 +92,25 @@ export function CheckoutShippingMethodForm({ onNext, onBack }: CheckoutShippingM
                     )}
                   >
                     <input
+                      id={inputId}
                       type="radio"
                       name="shippingMethod"
                       value={option.id}
                       checked={isSelected}
                       onChange={() => setSelectedOptionId(option.id)}
+                      aria-labelledby={`${nameId} ${priceId} ${etaId}`}
                       className="mt-1 accent-primary"
-                      aria-label={t(`shippingOption_${option.id}`)}
                     />
                     <div className="flex flex-1 flex-col gap-0.5">
                       <div className="flex items-center justify-between">
-                        <span className="font-medium text-foreground">
+                        <span id={nameId} className="font-medium text-foreground">
                           {t(`shippingOption_${option.id}`)}
                         </span>
-                        <data value={shippingCost} className="font-semibold text-foreground">
+                        <data
+                          id={priceId}
+                          value={shippingCost}
+                          className="font-semibold text-foreground"
+                        >
                           {isFree ? (
                             <span className="text-green-600 dark:text-green-400">
                               {t('shippingFree')}
@@ -109,7 +120,7 @@ export function CheckoutShippingMethodForm({ onNext, onBack }: CheckoutShippingM
                           )}
                         </data>
                       </div>
-                      <p className="text-sm text-muted-foreground">
+                      <p id={etaId} className="text-sm text-muted-foreground">
                         {t('estimatedDelivery', { date: deliveryRange })}
                       </p>
                     </div>
