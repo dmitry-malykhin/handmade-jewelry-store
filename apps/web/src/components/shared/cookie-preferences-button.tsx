@@ -15,7 +15,7 @@ export function CookiePreferencesButton() {
     <button
       type="button"
       onClick={handleResetConsent}
-      className="text-sm text-muted-foreground hover:text-foreground"
+      className="rounded-sm text-sm text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
     >
       {t('changePreferences')}
     </button>

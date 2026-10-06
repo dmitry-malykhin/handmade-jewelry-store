@@ -82,7 +82,7 @@ export function Footer() {
                   <li key={key}>
                     <Link
                       href={href}
-                      className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                      className="rounded-sm text-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                     >
                       {t(key)}
                     </Link>
@@ -98,13 +98,22 @@ export function Footer() {
             © {new Date().getFullYear()} {t('copyright')}
           </p>
           <div className="flex gap-4">
-            <Link href="/privacy" className="text-sm text-muted-foreground hover:text-foreground">
+            <Link
+              href="/privacy"
+              className="rounded-sm text-sm text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            >
               {t('privacy')}
             </Link>
-            <Link href="/terms" className="text-sm text-muted-foreground hover:text-foreground">
+            <Link
+              href="/terms"
+              className="rounded-sm text-sm text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            >
               {t('terms')}
             </Link>
-            <Link href="/impressum" className="text-sm text-muted-foreground hover:text-foreground">
+            <Link
+              href="/impressum"
+              className="rounded-sm text-sm text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            >
               {t('impressum')}
             </Link>
             <CookiePreferencesButton />
