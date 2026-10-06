@@ -37,4 +37,13 @@ describe('NavLinks', () => {
 
     expect(screen.getByRole('navigation', { name: /main navigation/i })).toBeInTheDocument()
   })
+
+  it('applies focus-visible ring utilities on every nav link (WCAG 2.4.7, #513)', () => {
+    render(<NavLinks />)
+    const links = screen.getAllByRole('link')
+    for (const link of links) {
+      expect(link.className).toMatch(/focus-visible:ring-2/)
+      expect(link.className).toMatch(/focus-visible:ring-ring/)
+    }
+  })
 })

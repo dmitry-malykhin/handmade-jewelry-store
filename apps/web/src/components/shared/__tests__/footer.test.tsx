@@ -19,6 +19,10 @@ vi.mock('@/components/shared/cookie-preferences-button', () => ({
   CookiePreferencesButton: () => <button type="button">Cookie preferences</button>,
 }))
 
+vi.mock('@/components/shared/do-not-sell-link', () => ({
+  DoNotSellLink: () => <button type="button">Do Not Sell</button>,
+}))
+
 vi.mock('@/components/features/newsletter/newsletter-form', () => ({
   NewsletterForm: () => <form aria-label="Newsletter signup" />,
 }))
@@ -62,5 +66,14 @@ describe('Footer', () => {
     render(<Footer />)
 
     expect(screen.getByRole('button', { name: /cookie preferences/i })).toBeInTheDocument()
+  })
+
+  it('applies focus-visible ring utilities on every footer link (WCAG 2.4.7, #513)', () => {
+    render(<Footer />)
+    const links = screen.getAllByRole('link')
+    for (const link of links) {
+      expect(link.className).toMatch(/focus-visible:ring-2/)
+      expect(link.className).toMatch(/focus-visible:ring-ring/)
+    }
   })
 })
