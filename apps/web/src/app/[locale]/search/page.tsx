@@ -25,8 +25,8 @@ export default async function SearchPage({ params, searchParams }: SearchPagePro
   const { q } = await searchParams
 
   return (
-    <main className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8">
       <SearchResults initialQuery={q ?? ''} />
-    </main>
+    </div>
   )
 }

@@ -166,7 +166,7 @@ export default async function HomePage({ params, searchParams }: HomePageProps) 
           </Suspense>
         </div>
 
-        <main className="min-w-0 flex-1">
+        <div className="min-w-0 flex-1">
           <Suspense fallback={<ProductGridSkeleton cardCount={PRODUCTS_PER_PAGE} />}>
             <ProductGrid products={products} />
           </Suspense>
@@ -175,7 +175,7 @@ export default async function HomePage({ params, searchParams }: HomePageProps) 
             totalPages={meta.totalPages}
             searchParams={activeSearchParams}
           />
-        </main>
+        </div>
       </div>
     </div>
   )

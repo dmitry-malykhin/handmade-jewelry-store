@@ -32,7 +32,7 @@ export default async function ContactPage({ params }: ContactPageProps) {
   const t = await getTranslations('contactPage')
 
   return (
-    <main>
+    <div>
       <section className="bg-accent/30 px-4 py-16 text-center sm:px-6">
         <div className="mx-auto max-w-2xl">
           <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
@@ -46,6 +46,6 @@ export default async function ContactPage({ params }: ContactPageProps) {
         <ContactInfoBlock locale={locale} />
         <ContactForm />
       </div>
-    </main>
+    </div>
   )
 }

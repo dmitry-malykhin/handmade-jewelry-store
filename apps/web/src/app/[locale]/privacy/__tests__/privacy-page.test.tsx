@@ -196,8 +196,8 @@ describe('PrivacyPage — structure', () => {
     expect(screen.queryByText(/@example\.com/i)).not.toBeInTheDocument()
   })
 
-  it('uses a <main> landmark as root element', async () => {
+  it('does not open its own <main> landmark (layout owns the single page landmark, #511)', async () => {
     await renderPrivacyPage()
-    expect(screen.getByRole('main')).toBeInTheDocument()
+    expect(screen.queryByRole('main')).not.toBeInTheDocument()
   })
 })

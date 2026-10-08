@@ -22,8 +22,8 @@ export default async function CartPage({ params }: CartPageProps) {
   setRequestLocale(locale)
 
   return (
-    <main className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8">
       <CartPageContent />
-    </main>
+    </div>
   )
 }

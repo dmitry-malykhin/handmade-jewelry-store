@@ -8,8 +8,8 @@ export const metadata: Metadata = {
 
 export default function AdminSettingsPage() {
   return (
-    <main>
+    <div>
       <SettingsForm />
-    </main>
+    </div>
   )
 }

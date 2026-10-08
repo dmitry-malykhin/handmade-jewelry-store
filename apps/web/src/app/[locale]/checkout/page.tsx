@@ -22,8 +22,8 @@ export default async function CheckoutPage({ params }: CheckoutPageProps) {
   setRequestLocale(locale)
 
   return (
-    <main className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8">
       <CheckoutEntry />
-    </main>
+    </div>
   )
 }

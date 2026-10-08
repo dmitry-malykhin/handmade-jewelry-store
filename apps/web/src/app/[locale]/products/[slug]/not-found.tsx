@@ -16,7 +16,7 @@ export default async function ProductNotFound() {
   const t = await getTranslations('productNotFound')
 
   return (
-    <main className="container mx-auto flex flex-col items-center justify-center gap-6 px-4 py-24 text-center">
+    <div className="container mx-auto flex flex-col items-center justify-center gap-6 px-4 py-24 text-center">
       <p className="text-sm font-medium uppercase tracking-widest text-muted-foreground">404</p>
       <h1 className="text-3xl font-bold text-foreground sm:text-4xl">{t('title')}</h1>
       <p className="max-w-prose text-base text-muted-foreground">{t('description')}</p>
@@ -28,6 +28,6 @@ export default async function ProductNotFound() {
           <Link href="/search">{t('searchProducts')}</Link>
         </Button>
       </div>
-    </main>
+    </div>
   )
 }

@@ -66,9 +66,9 @@ export default async function ConfirmationPage({ params, searchParams }: Confirm
 
   if (isPaymentFailed || isPaymentCancelled) {
     return (
-      <main className="mx-auto max-w-2xl px-4 py-12 sm:px-6">
+      <div className="mx-auto max-w-2xl px-4 py-12 sm:px-6">
         <PaymentFailedContent orderId={orderId} wasCancelled={isPaymentCancelled} />
-      </main>
+      </div>
     )
   }
 
@@ -80,7 +80,7 @@ export default async function ConfirmationPage({ params, searchParams }: Confirm
   const t = await getTranslations('confirmationPage')
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-12 sm:px-6">
+    <div className="mx-auto max-w-2xl px-4 py-12 sm:px-6">
       <ScrubTokenFromUrl />
       <ExpressCheckoutCleanup />
       <OrderPlacedTracker
@@ -117,6 +117,6 @@ export default async function ConfirmationPage({ params, searchParams }: Confirm
           </Button>
         </div>
       </div>
-    </main>
+    </div>
   )
 }

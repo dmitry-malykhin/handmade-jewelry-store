@@ -8,8 +8,8 @@ export const metadata: Metadata = {
 
 export default function AdminDiscountsPage() {
   return (
-    <main>
+    <div>
       <DiscountsTable />
-    </main>
+    </div>
   )
 }

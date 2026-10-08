@@ -16,8 +16,8 @@ export async function generateMetadata({ params }: AdminOrderDetailPageProps): P
 export default async function AdminOrderDetailPage({ params }: AdminOrderDetailPageProps) {
   const { id } = await params
   return (
-    <main>
+    <div>
       <AdminOrderDetail orderId={id} />
-    </main>
+    </div>
   )
 }

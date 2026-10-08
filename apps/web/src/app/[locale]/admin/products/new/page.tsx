@@ -11,8 +11,8 @@ export default async function AdminNewProductPage() {
   const categories = await fetchCategories()
 
   return (
-    <main className="mx-auto max-w-3xl">
+    <div className="mx-auto max-w-3xl">
       <ProductForm mode="create" categories={categories} />
-    </main>
+    </div>
   )
 }
