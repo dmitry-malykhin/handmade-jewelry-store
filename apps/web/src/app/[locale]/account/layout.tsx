@@ -12,7 +12,7 @@ export default async function AccountLayout({ children }: AccountLayoutProps) {
 
   return (
     <AccountAuthGuard>
-      <main className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8">
         <h1 className="mb-8 text-3xl font-light">{t('title')}</h1>
 
         <div className="grid gap-8 md:grid-cols-[220px_1fr]">
@@ -21,7 +21,7 @@ export default async function AccountLayout({ children }: AccountLayoutProps) {
           </aside>
           <div>{children}</div>
         </div>
-      </main>
+      </div>
     </AccountAuthGuard>
   )
 }

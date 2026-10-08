@@ -33,7 +33,7 @@ export default async function ShippingPage({ params }: ShippingPageProps) {
   const t = await getTranslations('shippingPage')
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-12 sm:px-6 sm:py-16">
+    <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 sm:py-16">
       <header className="mb-10 text-center">
         <h1 className="text-3xl font-bold text-foreground sm:text-4xl">{t('title')}</h1>
         <p className="mx-auto mt-4 max-w-xl text-base text-muted-foreground">{t('subtitle')}</p>
@@ -118,6 +118,6 @@ export default async function ShippingPage({ params }: ShippingPageProps) {
         </h2>
         <p className="text-sm text-muted-foreground">{t('internationalBody')}</p>
       </section>
-    </main>
+    </div>
   )
 }

@@ -14,9 +14,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       <SkipToContentLink targetId="admin-main-content" />
       <div className="flex min-h-[calc(100vh-4rem)]">
         <AdminSidebar />
-        <main id="admin-main-content" className="flex-1 overflow-auto p-6">
+        <div id="admin-main-content" className="flex-1 overflow-auto p-6">
           {children}
-        </main>
+        </div>
       </div>
       <AdminHeaderHelp />
     </AdminAuthGuard>

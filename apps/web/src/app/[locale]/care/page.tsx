@@ -34,7 +34,7 @@ export default async function CarePage({ params }: CarePageProps) {
   const t = await getTranslations('carePage')
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-12 sm:px-6 sm:py-16">
+    <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 sm:py-16">
       <header className="mb-10 text-center">
         <h1 className="text-3xl font-bold text-foreground sm:text-4xl">{t('title')}</h1>
         <p className="mx-auto mt-4 max-w-xl text-base text-muted-foreground">{t('subtitle')}</p>
@@ -88,6 +88,6 @@ export default async function CarePage({ params }: CarePageProps) {
       </section>
 
       <p className="text-center text-xs text-muted-foreground">{t('footnote')}</p>
-    </main>
+    </div>
   )
 }

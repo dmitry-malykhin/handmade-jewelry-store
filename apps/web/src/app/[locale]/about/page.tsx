@@ -32,7 +32,7 @@ export default async function AboutPage({ params }: AboutPageProps) {
   const t = await getTranslations('aboutPage')
 
   return (
-    <main>
+    <div>
       {/* Hero */}
       <section className="bg-accent/30 px-4 py-20 text-center sm:px-6">
         <div className="mx-auto max-w-2xl">
@@ -131,6 +131,6 @@ export default async function AboutPage({ params }: AboutPageProps) {
           </Button>
         </section>
       </div>
-    </main>
+    </div>
   )
 }

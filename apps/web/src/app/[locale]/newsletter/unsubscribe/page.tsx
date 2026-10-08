@@ -23,8 +23,8 @@ export default async function NewsletterUnsubscribePage({
   const { locale } = await params
   setRequestLocale(locale)
   return (
-    <main className="mx-auto max-w-md px-4 py-16 sm:px-6 sm:py-20">
+    <div className="mx-auto max-w-md px-4 py-16 sm:px-6 sm:py-20">
       <NewsletterUnsubscribeClient />
-    </main>
+    </div>
   )
 }

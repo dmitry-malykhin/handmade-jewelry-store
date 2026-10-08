@@ -31,7 +31,7 @@ export default async function ForgotPasswordPage({ params }: ForgotPasswordPageP
   const t = await getTranslations({ locale, namespace: 'auth' })
 
   return (
-    <main className="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4 py-12">
+    <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4 py-12">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">
@@ -42,6 +42,6 @@ export default async function ForgotPasswordPage({ params }: ForgotPasswordPageP
 
         <ForgotPasswordForm />
       </div>
-    </main>
+    </div>
   )
 }

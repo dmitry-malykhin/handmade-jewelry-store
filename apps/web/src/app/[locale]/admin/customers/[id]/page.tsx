@@ -13,8 +13,8 @@ interface AdminCustomerDetailPageProps {
 export default async function AdminCustomerDetailPage({ params }: AdminCustomerDetailPageProps) {
   const { id } = await params
   return (
-    <main>
+    <div>
       <CustomerDetail userId={id} />
-    </main>
+    </div>
   )
 }

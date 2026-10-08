@@ -31,8 +31,8 @@ export default async function AdminEditProductPage({ params }: AdminEditProductP
   if (!categories || !product) notFound()
 
   return (
-    <main className="mx-auto max-w-3xl">
+    <div className="mx-auto max-w-3xl">
       <ProductForm mode="edit" categories={categories} product={product} />
-    </main>
+    </div>
   )
 }

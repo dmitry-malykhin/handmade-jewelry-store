@@ -11,7 +11,7 @@
 //   }
 export default function ConfirmationLoading() {
   return (
-    <main className="mx-auto max-w-2xl px-4 py-12 sm:px-6">
+    <div className="mx-auto max-w-2xl px-4 py-12 sm:px-6">
       <div className="space-y-8">
         {/* ConfirmationSuccessHeader: centered icon + h1 + order ID */}
         <div className="flex flex-col items-center gap-3 text-center">
@@ -68,6 +68,6 @@ export default function ConfirmationLoading() {
           <div className="h-11 w-40 animate-pulse rounded bg-skeleton-base" />
         </div>
       </div>
-    </main>
+    </div>
   )
 }

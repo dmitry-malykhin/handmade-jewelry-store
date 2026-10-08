@@ -131,9 +131,9 @@ describe('TermsPage — section structure', () => {
     }
   })
 
-  it('uses a <main> landmark as root element', async () => {
+  it('does not open its own <main> landmark (layout owns the single page landmark, #511)', async () => {
     await renderTermsPage()
-    expect(screen.getByRole('main')).toBeInTheDocument()
+    expect(screen.queryByRole('main')).not.toBeInTheDocument()
   })
 })
 

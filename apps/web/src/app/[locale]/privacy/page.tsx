@@ -55,7 +55,7 @@ export default async function PrivacyPage({ params }: PrivacyPageProps) {
   )
 
   return (
-    <main>
+    <div>
       <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
         <h1 className="mb-2 text-4xl font-bold tracking-tight text-foreground">{t('title')}</h1>
         <p className="mb-12 text-sm text-muted-foreground">{t('lastUpdated')}</p>
@@ -285,6 +285,6 @@ export default async function PrivacyPage({ params }: PrivacyPageProps) {
           </section>
         </div>
       </div>
-    </main>
+    </div>
   )
 }

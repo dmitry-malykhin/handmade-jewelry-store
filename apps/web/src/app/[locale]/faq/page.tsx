@@ -57,7 +57,7 @@ export default async function FaqPage({ params }: FaqPageProps) {
   const nonce = await readCspNonce()
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-12 sm:px-6 sm:py-16">
+    <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 sm:py-16">
       <script
         type="application/ld+json"
         nonce={nonce}
@@ -95,6 +95,6 @@ export default async function FaqPage({ params }: FaqPageProps) {
           </details>
         ))}
       </article>
-    </main>
+    </div>
   )
 }

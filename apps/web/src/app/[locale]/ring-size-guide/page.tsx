@@ -49,7 +49,7 @@ export default async function RingSizeGuidePage({ params }: RingSizeGuidePagePro
   const nonce = await readCspNonce()
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-12 sm:px-6 sm:py-16">
+    <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 sm:py-16">
       {/* JSON-LD HowTo for SEO rich results */}
       <script
         type="application/ld+json"
@@ -101,6 +101,6 @@ export default async function RingSizeGuidePage({ params }: RingSizeGuidePagePro
 
       {/* Print hint */}
       <p className="text-center text-xs text-muted-foreground">{t('printHint')}</p>
-    </main>
+    </div>
   )
 }
