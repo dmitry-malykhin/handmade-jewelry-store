@@ -330,7 +330,7 @@ describe('OrdersService', () => {
 
       expect(mockJwtService.sign).toHaveBeenCalledWith(
         { orderId: mockCreatedOrder.id, purpose: 'order-access' },
-        { expiresIn: '24h' },
+        { expiresIn: '30d' },
       )
       expect(result.accessToken).toBe('signed-order-token')
     })
@@ -529,11 +529,14 @@ describe('OrdersService', () => {
         trackingNumber: 'TRK123456',
       })
 
-      expect(mockEmailService.sendShippingNotification).toHaveBeenCalledWith({
-        recipientEmail: 'guest@example.com',
-        orderId: 'order-1',
-        trackingNumber: 'TRK123456',
-      })
+      expect(mockEmailService.sendShippingNotification).toHaveBeenCalledWith(
+        expect.objectContaining({
+          recipientEmail: 'guest@example.com',
+          orderId: 'order-1',
+          trackingNumber: 'TRK123456',
+          orderAccessToken: 'signed-order-token',
+        }),
+      )
     })
 
     it('does not send shipping notification when guestEmail is absent', async () => {

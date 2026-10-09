@@ -8,6 +8,7 @@ import {
 const baseData = {
   recipientEmail: 'jane@example.com',
   orderId: 'order_abcdef1234567890',
+  orderAccessToken: 'test-token',
 }
 
 beforeEach(async () => {
@@ -42,6 +43,15 @@ describe('buildShippingNotificationEmail', () => {
   it('renders order number in the body with last 8 chars uppercased', () => {
     const { html } = buildShippingNotificationEmail(baseData)
     expect(html).toContain('#34567890')
+  })
+
+  it('renders a View your order link with URL-encoded token for guest reaccess (#522)', () => {
+    const { html } = buildShippingNotificationEmail({
+      ...baseData,
+      orderAccessToken: 'tok=abc',
+    })
+    expect(html).toContain('View your order')
+    expect(html).toContain(`/checkout/confirmation/${baseData.orderId}?token=tok%3Dabc`)
   })
 
   it('renders a clickable Track your package CTA when carrier + tracking are present', () => {

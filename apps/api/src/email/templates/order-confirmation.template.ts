@@ -1,3 +1,4 @@
+import { getFrontendUrl } from '../../common/config/urls'
 import { renderEmailFooter } from './email-footer.partial'
 
 export interface OrderConfirmationData {
@@ -20,6 +21,7 @@ export interface OrderConfirmationData {
     postalCode: string
     country: string
   }
+  orderAccessToken: string
 }
 
 function formatUsd(amount: number): string {
@@ -30,7 +32,8 @@ export function buildOrderConfirmationEmail(data: OrderConfirmationData): {
   subject: string
   html: string
 } {
-  const { orderId, items, subtotal, shippingCost, total, shippingAddress } = data
+  const { orderId, items, subtotal, shippingCost, total, shippingAddress, orderAccessToken } = data
+  const viewOrderUrl = `${getFrontendUrl()}/en/checkout/confirmation/${orderId}?token=${encodeURIComponent(orderAccessToken)}`
 
   const itemRows = items
     .map(
@@ -106,6 +109,11 @@ export function buildOrderConfirmationEmail(data: OrderConfirmationData): {
               </td>
             </tr>
           </table>
+
+          <a href="${viewOrderUrl}"
+             style="display: inline-block; background: #1a1a1a; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-weight: 600; font-size: 15px; margin-bottom: 32px;">
+            View your order →
+          </a>
 
           <!-- Shipping address -->
           <div style="background: #f9f9f9; border-radius: 6px; padding: 20px; margin-bottom: 32px;">

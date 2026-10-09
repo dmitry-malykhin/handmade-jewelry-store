@@ -19,6 +19,7 @@ import {
   CURRENT_REFUND_POLICY_VERSION,
   CURRENT_TERMS_VERSION,
 } from './legal-versions'
+import { issueOrderAccessToken } from './order-access-token'
 
 export interface AcceptTermsCallerContext {
   ipAddress: string | null
@@ -36,11 +37,8 @@ export class OrdersCreateService {
     private readonly jwtService: JwtService,
   ) {}
 
-  // Signed short-lived credential returned by POST /orders. The confirmation
-  // page uses it via ?token= so guests can fetch their own order without a
-  // user JWT (#392).
   private issueOrderAccessToken(orderId: string): string {
-    return this.jwtService.sign({ orderId, purpose: 'order-access' as const }, { expiresIn: '24h' })
+    return issueOrderAccessToken(this.jwtService, orderId)
   }
 
   async create(createOrderDto: CreateOrderDto, callerUserId: string | null) {

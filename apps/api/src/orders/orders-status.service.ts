@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, Logger } from '@nestjs/common'
 import { OrderStatus } from '@prisma/client'
 import * as Sentry from '@sentry/nestjs'
 import { getFrontendUrl } from '../common/config/urls'
+import { JwtService } from '@nestjs/jwt'
 import { EmailService } from '../email/email.service'
 import type { ReviewRequestItem } from '../email/templates/review-request.template'
 import { LoyaltyService } from '../loyalty/loyalty.service'
@@ -9,6 +10,7 @@ import { buildUnsubscribeUrl } from '../newsletter/newsletter.service'
 import { PrismaService } from '../prisma/prisma.service'
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto'
 import { UpdateOrderTrackingDto } from './dto/update-order-tracking.dto'
+import { issueOrderAccessToken } from './order-access-token'
 import { OrdersQueryService } from './orders-query.service'
 import { isValidOrderStatusTransition } from './order-status.transitions'
 
@@ -21,6 +23,7 @@ export class OrdersStatusService {
     private readonly emailService: EmailService,
     private readonly loyaltyService: LoyaltyService,
     private readonly ordersQueryService: OrdersQueryService,
+    private readonly jwtService: JwtService,
   ) {}
 
   async updateStatus(orderId: string, updateOrderStatusDto: UpdateOrderStatusDto) {
@@ -87,6 +90,7 @@ export class OrdersStatusService {
           trackingNumber: updateOrderStatusDto.trackingNumber,
           shippingCarrier:
             updateOrderStatusDto.shippingCarrier ?? updatedOrder.shippingCarrier ?? undefined,
+          orderAccessToken: issueOrderAccessToken(this.jwtService, updatedOrder.id),
         })
       }
     }

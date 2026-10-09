@@ -1,4 +1,5 @@
 import { ConfigService } from '@nestjs/config'
+import { JwtService } from '@nestjs/jwt'
 import { Test, TestingModule } from '@nestjs/testing'
 import { OrderStatus, PaymentStatus } from '@prisma/client'
 import { Decimal } from '@prisma/client/runtime/library'
@@ -128,6 +129,7 @@ describe('StripeWebhooksService', () => {
         { provide: SlackNotifierService, useValue: mockSlackNotifierService },
         { provide: StripeService, useValue: mockStripeService },
         { provide: ConfigService, useValue: mockConfigService },
+        { provide: JwtService, useValue: { sign: jest.fn().mockReturnValue('signed-token') } },
       ],
     }).compile()
 
