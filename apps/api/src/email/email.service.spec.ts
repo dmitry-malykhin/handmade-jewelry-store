@@ -23,6 +23,7 @@ const buildMockConfigService = () => ({
 const mockOrderConfirmationData = {
   recipientEmail: 'guest@example.com',
   orderId: 'order-abc-123',
+  orderAccessToken: 'test-token',
   items: [{ title: 'Silver Ring', quantity: 1, price: 49.99 }],
   subtotal: 49.99,
   shippingCost: 0,
@@ -112,6 +113,7 @@ describe('EmailService', () => {
       await emailService.sendShippingNotification({
         recipientEmail: 'guest@example.com',
         orderId: 'order-abc-123',
+        orderAccessToken: 'test-token',
         trackingNumber: 'TRK999',
       })
 

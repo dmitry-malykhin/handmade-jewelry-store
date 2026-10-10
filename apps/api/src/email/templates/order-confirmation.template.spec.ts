@@ -16,6 +16,7 @@ const baseAddress: OrderConfirmationData['shippingAddress'] = {
 
 const baseData: OrderConfirmationData = {
   orderId: 'order_abcdef1234567890',
+  orderAccessToken: 'test-token',
   recipientEmail: 'jane@example.com',
   items: [{ title: 'Sterling Silver Ring', quantity: 1, price: 49.99 }],
   subtotal: 49.99,
@@ -95,5 +96,16 @@ describe('buildOrderConfirmationEmail', () => {
     })
     expect(html).toContain('$33.33')
     expect(html).not.toMatch(/\$33\.330\d/)
+  })
+
+  it('renders a View your order CTA with URL-encoded token for guest reaccess (#522)', () => {
+    const { html } = buildOrderConfirmationEmail({
+      ...baseData,
+      orderAccessToken: 'eyJhbGciOi.payload.sig=',
+    })
+    expect(html).toContain('View your order')
+    expect(html).toContain(
+      `/checkout/confirmation/${baseData.orderId}?token=eyJhbGciOi.payload.sig%3D`,
+    )
   })
 })

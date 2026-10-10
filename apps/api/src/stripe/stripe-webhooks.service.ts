@@ -1,10 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
+import { JwtService } from '@nestjs/jwt'
 import { OrderStatus, PaymentStatus } from '@prisma/client'
 import type Stripe from 'stripe'
 import { AnalyticsService } from '../analytics/analytics.service'
 import { EmailService } from '../email/email.service'
 import { PrismaService } from '../prisma/prisma.service'
+import { issueOrderAccessToken } from '../orders/order-access-token'
 import { isValidOrderStatusTransition } from '../orders/order-status.transitions'
 import { SlackNotifierService } from './slack-notifier.service'
 import { StripeService } from './stripe.service'
@@ -20,6 +22,7 @@ export class StripeWebhooksService {
     private readonly slackNotifierService: SlackNotifierService,
     private readonly stripeService: StripeService,
     private readonly configService: ConfigService,
+    private readonly jwtService: JwtService,
   ) {}
 
   async handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent): Promise<void> {
@@ -319,6 +322,7 @@ export class StripeWebhooksService {
       shippingCost: order.shippingCost.toNumber(),
       total: order.total.toNumber(),
       shippingAddress,
+      orderAccessToken: issueOrderAccessToken(this.jwtService, order.id),
     })
   }
 }

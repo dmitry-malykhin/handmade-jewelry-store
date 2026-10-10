@@ -1,3 +1,4 @@
+import { getFrontendUrl } from '../../common/config/urls'
 import { renderEmailFooter } from './email-footer.partial'
 
 export interface ShippingNotificationData {
@@ -5,6 +6,7 @@ export interface ShippingNotificationData {
   orderId: string
   trackingNumber?: string
   shippingCarrier?: string
+  orderAccessToken: string
 }
 
 const CARRIER_TRACKING_URL: Record<string, (trackingNumber: string) => string> = {
@@ -30,8 +32,9 @@ export function buildShippingNotificationEmail(data: ShippingNotificationData): 
   subject: string
   html: string
 } {
-  const { orderId, trackingNumber, shippingCarrier } = data
+  const { orderId, trackingNumber, shippingCarrier, orderAccessToken } = data
   const trackingUrl = buildTrackingUrl(trackingNumber, shippingCarrier)
+  const viewOrderUrl = `${getFrontendUrl()}/en/checkout/confirmation/${orderId}?token=${encodeURIComponent(orderAccessToken)}`
 
   return {
     subject: `Your order is on its way! 📦 #${orderId.slice(-8).toUpperCase()}`,
@@ -86,9 +89,14 @@ export function buildShippingNotificationEmail(data: ShippingNotificationData): 
           <p style="margin: 0 0 4px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #888;">
             Order number
           </p>
-          <p style="margin: 0 0 32px; font-family: monospace; font-size: 15px;">
+          <p style="margin: 0 0 24px; font-family: monospace; font-size: 15px;">
             #${orderId.slice(-8).toUpperCase()}
           </p>
+
+          <a href="${viewOrderUrl}"
+             style="display: inline-block; background: #ffffff; color: #1a1a1a; text-decoration: none; padding: 12px 28px; border: 1px solid #1a1a1a; border-radius: 6px; font-weight: 600; font-size: 14px; margin-bottom: 32px;">
+            View your order
+          </a>
 
           <p style="margin: 0; font-size: 14px; color: #555; line-height: 1.6;">
             Thank you for choosing handmade. We hope you love your new piece! 💫
