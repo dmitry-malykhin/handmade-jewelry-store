@@ -1120,7 +1120,10 @@
     "refundReasonITEM_NOT_AS_DESCRIBED": "Not as described",
     "refundReasonCUSTOMER_CHANGED_MIND": "Customer changed mind",
     "refundReasonDUPLICATE_ORDER": "Duplicate order",
-    "refundReasonOTHER": "Other"
+    "refundReasonOTHER": "Other",
+    "productsDeleteBlockedByOrders": "\"{title}\" has orders. Archive it instead to keep order history intact.",
+    "productsArchiveInstead": "Archive instead",
+    "productsBulkDeleteBlockedByOrders": "Some selected products have orders. Archive them instead to keep order history intact."
   },
   "errors": {
     "somethingWentWrong": "Something went wrong",

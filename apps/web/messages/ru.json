@@ -1120,7 +1120,10 @@
     "refundReasonITEM_NOT_AS_DESCRIBED": "Не соответствует описанию",
     "refundReasonCUSTOMER_CHANGED_MIND": "Клиент передумал",
     "refundReasonDUPLICATE_ORDER": "Дублирующий заказ",
-    "refundReasonOTHER": "Другое"
+    "refundReasonOTHER": "Другое",
+    "productsDeleteBlockedByOrders": "На «{title}» есть заказы. Заархивируйте, чтобы сохранить историю.",
+    "productsArchiveInstead": "Заархивировать",
+    "productsBulkDeleteBlockedByOrders": "На некоторые выбранные товары есть заказы. Заархивируйте их, чтобы сохранить историю."
   },
   "errors": {
     "somethingWentWrong": "Что-то пошло не так",

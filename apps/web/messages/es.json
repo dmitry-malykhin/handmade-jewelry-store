@@ -1120,7 +1120,10 @@
     "refundReasonITEM_NOT_AS_DESCRIBED": "No coincide con la descripción",
     "refundReasonCUSTOMER_CHANGED_MIND": "El cliente cambió de opinión",
     "refundReasonDUPLICATE_ORDER": "Pedido duplicado",
-    "refundReasonOTHER": "Otro"
+    "refundReasonOTHER": "Otro",
+    "productsDeleteBlockedByOrders": "«{title}» tiene pedidos. Archívalo en vez de eliminarlo para conservar el historial.",
+    "productsArchiveInstead": "Archivar",
+    "productsBulkDeleteBlockedByOrders": "Algunos productos seleccionados tienen pedidos. Archívalos para conservar el historial."
   },
   "errors": {
     "somethingWentWrong": "Algo salió mal",
