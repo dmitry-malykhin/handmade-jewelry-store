@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common'
 import { ProductStatus, StockType } from '@prisma/client'
 import { buildCsvDocument } from '../common/csv/csv-formatter'
 import { paginate } from '../common/pagination/paginate'
@@ -134,7 +134,19 @@ export class ProductsService {
   }
 
   async remove(productSlug: string) {
-    await this.findOneBySlug(productSlug)
+    const product = await this.findOneBySlug(productSlug)
+
+    const orderItemCount = await this.prismaService.orderItem.count({
+      where: { productId: product.id },
+    })
+    if (orderItemCount > 0) {
+      throw new ConflictException({
+        code: 'PRODUCT_HAS_ORDERS',
+        message: `Product has ${orderItemCount} order item(s). Archive it instead of deleting to keep order history intact.`,
+        orderItemCount,
+      })
+    }
+
     await this.prismaService.product.delete({ where: { slug: productSlug } })
   }
 
@@ -201,6 +213,20 @@ export class ProductsService {
     const { ids, action } = payload
 
     if (action === BulkProductAction.DELETE) {
+      const idsWithOrders = await this.prismaService.orderItem.findMany({
+        where: { productId: { in: ids } },
+        select: { productId: true },
+        distinct: ['productId'],
+      })
+      if (idsWithOrders.length > 0) {
+        throw new ConflictException({
+          code: 'PRODUCT_HAS_ORDERS',
+          message: `${idsWithOrders.length} of the selected product(s) have orders. Archive them instead of deleting to keep order history intact.`,
+          productIdsWithOrders: idsWithOrders
+            .map((row) => row.productId)
+            .filter((productId): productId is string => productId !== null),
+        })
+      }
       const result = await this.prismaService.product.deleteMany({ where: { id: { in: ids } } })
       return { affectedCount: result.count }
     }

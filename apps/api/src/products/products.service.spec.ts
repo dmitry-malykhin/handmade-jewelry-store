@@ -54,6 +54,10 @@ const mockPrismaService = {
     deleteMany: jest.fn(),
     count: jest.fn(),
   },
+  orderItem: {
+    count: jest.fn().mockResolvedValue(0),
+    findMany: jest.fn().mockResolvedValue([]),
+  },
 }
 
 const mockBackInStockService = { notifyForProduct: jest.fn() }
@@ -301,8 +305,9 @@ describe('ProductsService', () => {
   })
 
   describe('remove', () => {
-    it('deletes the product when slug exists', async () => {
+    it('deletes the product when slug exists and has no order items', async () => {
       mockPrismaService.product.findUnique.mockResolvedValue(mockProduct)
+      mockPrismaService.orderItem.count.mockResolvedValueOnce(0)
       mockPrismaService.product.delete.mockResolvedValue(mockProduct)
 
       await productsService.remove('silver-ring')
@@ -316,6 +321,20 @@ describe('ProductsService', () => {
       mockPrismaService.product.findUnique.mockResolvedValue(null)
 
       await expect(productsService.remove('unknown-slug')).rejects.toThrow(NotFoundException)
+    })
+
+    it('throws ConflictException with hint when the product has order items (#482)', async () => {
+      mockPrismaService.product.findUnique.mockResolvedValue(mockProduct)
+      mockPrismaService.orderItem.count.mockResolvedValueOnce(3)
+
+      await expect(productsService.remove('silver-ring')).rejects.toMatchObject({
+        response: {
+          code: 'PRODUCT_HAS_ORDERS',
+          orderItemCount: 3,
+          message: expect.stringContaining('Archive it instead'),
+        },
+      })
+      expect(mockPrismaService.product.delete).not.toHaveBeenCalled()
     })
   })
 
@@ -665,7 +684,8 @@ describe('ProductsService', () => {
       expect(result).toEqual({ affectedCount: 2 })
     })
 
-    it('delete action: deleteMany removes products by id', async () => {
+    it('delete action: deleteMany removes products by id when none have orders', async () => {
+      mockPrismaService.orderItem.findMany.mockResolvedValueOnce([])
       mockPrismaService.product.deleteMany.mockResolvedValueOnce({ count: 2 })
 
       const result = await productsService.bulkAction({
@@ -678,6 +698,23 @@ describe('ProductsService', () => {
       })
       expect(mockPrismaService.product.updateMany).not.toHaveBeenCalled()
       expect(result).toEqual({ affectedCount: 2 })
+    })
+
+    it('delete action: throws ConflictException and skips deletion when any selected product has orders (#482)', async () => {
+      mockPrismaService.orderItem.findMany.mockResolvedValueOnce([{ productId: 'p2' }])
+
+      await expect(
+        productsService.bulkAction({
+          ids: ['p1', 'p2'],
+          action: BulkProductAction.DELETE,
+        }),
+      ).rejects.toMatchObject({
+        response: {
+          code: 'PRODUCT_HAS_ORDERS',
+          productIdsWithOrders: ['p2'],
+        },
+      })
+      expect(mockPrismaService.product.deleteMany).not.toHaveBeenCalled()
     })
 
     it('returns affectedCount=0 when no ids match — caller can warn about stale selection', async () => {

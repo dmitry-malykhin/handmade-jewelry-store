@@ -18,6 +18,12 @@ type ProductsQuerySnapshot = Array<[ReadonlyArray<unknown>, ProductsResponse | u
 
 export type ProductTableRow = Pick<Product, 'id' | 'slug' | 'title' | 'status'>
 
+function isProductHasOrdersError(error: unknown): boolean {
+  if (!(error instanceof ApiError) || error.status !== 409) return false
+  const details = error.details as { code?: unknown } | undefined
+  return details?.code === 'PRODUCT_HAS_ORDERS'
+}
+
 interface UseAdminProductsMutationsArgs {
   selectedIds: Set<string>
   onDeleteSuccess: () => void
@@ -127,6 +133,16 @@ export function useAdminProductsMutations({
         productId: variables.id,
         productSlug: variables.slug,
       })
+      if (isProductHasOrdersError(error)) {
+        toast.error(t('productsDeleteBlockedByOrders', { title: variables.title }), {
+          action: {
+            label: t('productsArchiveInstead'),
+            onClick: () =>
+              statusMutation.mutate({ productId: variables.id, newStatus: 'ARCHIVED' }),
+          },
+        })
+        return
+      }
       const message = error instanceof ApiError ? error.message : t('productsDeleteError')
       toast.error(message)
     },
@@ -159,6 +175,10 @@ export function useAdminProductsMutations({
         bulkAction: variables.action,
         count: selectedIds.size,
       })
+      if (isProductHasOrdersError(error)) {
+        toast.error(t('productsBulkDeleteBlockedByOrders'))
+        return
+      }
       const message = error instanceof ApiError ? error.message : t('productsBulkActionError')
       toast.error(message)
     },
