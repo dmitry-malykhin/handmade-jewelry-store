@@ -23,10 +23,11 @@ export default async function SearchPage({ params, searchParams }: SearchPagePro
   const { locale } = await params
   setRequestLocale(locale)
   const { q } = await searchParams
+  const t = await getTranslations({ locale, namespace: 'searchPage' })
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <section aria-label={t('metaTitle')} className="container mx-auto px-4 py-8">
       <SearchResults initialQuery={q ?? ''} />
-    </div>
+    </section>
   )
 }

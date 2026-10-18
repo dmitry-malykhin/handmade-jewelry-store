@@ -23,9 +23,11 @@ export default async function AddressesPage({ params }: AddressesPageProps) {
   const t = await getTranslations({ locale, namespace: 'account.addresses' })
 
   return (
-    <section className="space-y-6">
+    <section aria-labelledby="account-addresses-heading" className="space-y-6">
       <div>
-        <h2 className="text-2xl font-light">{t('title')}</h2>
+        <h2 id="account-addresses-heading" className="text-2xl font-light">
+          {t('title')}
+        </h2>
         <p className="mt-2 text-sm text-muted-foreground">{t('description')}</p>
       </div>
 

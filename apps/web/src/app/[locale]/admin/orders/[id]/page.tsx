@@ -8,7 +8,7 @@ interface AdminOrderDetailPageProps {
 export async function generateMetadata({ params }: AdminOrderDetailPageProps): Promise<Metadata> {
   const { id } = await params
   return {
-    title: `Order #${id.slice(-8)} — Admin Panel`,
+    title: `Order #${id.slice(-8)} · Admin Panel`,
     robots: { index: false, follow: false },
   }
 }
@@ -16,8 +16,8 @@ export async function generateMetadata({ params }: AdminOrderDetailPageProps): P
 export default async function AdminOrderDetailPage({ params }: AdminOrderDetailPageProps) {
   const { id } = await params
   return (
-    <div>
+    <section aria-label={`Order #${id.slice(-8)}`}>
       <AdminOrderDetail orderId={id} />
-    </div>
+    </section>
   )
 }

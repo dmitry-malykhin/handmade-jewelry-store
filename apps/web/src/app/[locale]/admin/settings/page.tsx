@@ -2,14 +2,14 @@ import type { Metadata } from 'next'
 import { SettingsForm } from './_components/settings-form'
 
 export const metadata: Metadata = {
-  title: 'Settings — Admin Panel',
+  title: 'Settings · Admin Panel',
   robots: { index: false, follow: false },
 }
 
 export default function AdminSettingsPage() {
   return (
-    <div>
+    <section aria-labelledby="settings-heading">
       <SettingsForm />
-    </div>
+    </section>
   )
 }

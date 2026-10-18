@@ -32,20 +32,23 @@ export default async function ContactPage({ params }: ContactPageProps) {
   const t = await getTranslations('contactPage')
 
   return (
-    <div>
-      <section className="bg-accent/30 px-4 py-16 text-center sm:px-6">
+    <section aria-labelledby="contact-heading">
+      <header className="bg-accent/30 px-4 py-16 text-center sm:px-6">
         <div className="mx-auto max-w-2xl">
-          <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
+          <h1
+            id="contact-heading"
+            className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl"
+          >
             {t('heroTitle')}
           </h1>
           <p className="mt-4 text-lg text-muted-foreground">{t('heroSubtitle')}</p>
         </div>
-      </section>
+      </header>
 
       <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6">
         <ContactInfoBlock locale={locale} />
         <ContactForm />
       </div>
-    </div>
+    </section>
   )
 }

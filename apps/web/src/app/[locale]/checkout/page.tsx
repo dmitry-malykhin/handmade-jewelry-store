@@ -20,10 +20,11 @@ export async function generateMetadata({ params }: CheckoutPageProps): Promise<M
 export default async function CheckoutPage({ params }: CheckoutPageProps) {
   const { locale } = await params
   setRequestLocale(locale)
+  const t = await getTranslations({ locale, namespace: 'checkoutPage' })
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <section aria-label={t('metaTitle')} className="container mx-auto px-4 py-8">
       <CheckoutEntry />
-    </div>
+    </section>
   )
 }

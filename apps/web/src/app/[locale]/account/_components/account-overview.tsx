@@ -29,9 +29,9 @@ export function AccountOverview() {
   }, [accessToken])
 
   return (
-    <section className="space-y-8">
+    <div className="space-y-8">
       <div>
-        <h2 className="text-2xl font-light">
+        <h2 id="account-overview-heading" className="text-2xl font-light">
           {user ? t('welcome', { email: user.email }) : t('welcomeFallback')}
         </h2>
         <p className="mt-2 text-sm text-muted-foreground">{t('description')}</p>
@@ -54,6 +54,6 @@ export function AccountOverview() {
           </li>
         ))}
       </ul>
-    </section>
+    </div>
   )
 }

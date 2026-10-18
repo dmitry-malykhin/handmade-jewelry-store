@@ -3,7 +3,7 @@ import { fetchCategories } from '@/lib/api/products'
 import { ProductForm } from '../_components/product-form'
 
 export const metadata: Metadata = {
-  title: 'New Product — Admin Panel',
+  title: 'New Product · Admin Panel',
   robots: { index: false, follow: false },
 }
 
@@ -11,8 +11,8 @@ export default async function AdminNewProductPage() {
   const categories = await fetchCategories()
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <section aria-label="New product" className="mx-auto max-w-3xl">
       <ProductForm mode="create" categories={categories} />
-    </div>
+    </section>
   )
 }

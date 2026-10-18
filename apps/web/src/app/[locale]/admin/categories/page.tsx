@@ -21,5 +21,9 @@ export default async function AdminCategoriesPage({ params }: AdminCategoriesPag
   const { locale } = await params
   setRequestLocale(locale)
 
-  return <CategoriesTable />
+  return (
+    <section aria-labelledby="categories-heading">
+      <CategoriesTable />
+    </section>
+  )
 }

@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { CustomerDetail } from './_components/customer-detail'
 
 export const metadata: Metadata = {
-  title: 'Customer — Admin Panel',
+  title: 'Customer · Admin Panel',
   robots: { index: false, follow: false },
 }
 
@@ -13,8 +13,8 @@ interface AdminCustomerDetailPageProps {
 export default async function AdminCustomerDetailPage({ params }: AdminCustomerDetailPageProps) {
   const { id } = await params
   return (
-    <div>
+    <section aria-label="Customer detail">
       <CustomerDetail userId={id} />
-    </div>
+    </section>
   )
 }

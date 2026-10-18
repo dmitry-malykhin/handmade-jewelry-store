@@ -1,3 +1,5 @@
+import { getTranslations } from 'next-intl/server'
+
 // Mirrors CartPage layout to prevent CLS:
 //   container > grid.grid-cols-1.gap-8.lg:grid-cols-3 {
 //     div.lg:col-span-2: h1.text-2xl + ul divide-y {
@@ -9,9 +11,15 @@
 //       h2.text-lg | free-shipping-bar | price rows | 2×Button.size-lg.w-full
 //     }
 //   }
-export default function CartLoading() {
+export default async function CartLoading() {
+  const t = await getTranslations('cartPage')
   return (
-    <div className="container mx-auto px-4 py-8">
+    <section
+      role="status"
+      aria-live="polite"
+      aria-label={t('loadingLabel')}
+      className="container mx-auto px-4 py-8"
+    >
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
         {/* Cart items — lg:col-span-2 */}
         <div className="lg:col-span-2">
@@ -84,6 +92,6 @@ export default function CartLoading() {
           <div className="mx-auto mt-4 h-3 w-32 animate-pulse rounded bg-skeleton-base" />
         </aside>
       </div>
-    </div>
+    </section>
   )
 }

@@ -15,7 +15,12 @@ export function ConfirmationSuccessHeader({ orderId }: ConfirmationSuccessHeader
       </div>
 
       <div className="space-y-1">
-        <h1 className="text-2xl font-semibold text-foreground sm:text-3xl">{t('title')}</h1>
+        <h1
+          id="confirmation-heading"
+          className="text-2xl font-semibold text-foreground sm:text-3xl"
+        >
+          {t('title')}
+        </h1>
         <p className="text-muted-foreground">{t('subtitle')}</p>
       </div>
 

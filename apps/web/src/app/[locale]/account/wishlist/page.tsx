@@ -23,9 +23,11 @@ export default async function WishlistPage({ params }: WishlistPageProps) {
   const t = await getTranslations({ locale, namespace: 'account.wishlist' })
 
   return (
-    <section className="space-y-6">
+    <section aria-labelledby="account-wishlist-heading" className="space-y-6">
       <div>
-        <h2 className="text-2xl font-light">{t('title')}</h2>
+        <h2 id="account-wishlist-heading" className="text-2xl font-light">
+          {t('title')}
+        </h2>
         <p className="mt-2 text-sm text-muted-foreground">{t('description')}</p>
       </div>
 

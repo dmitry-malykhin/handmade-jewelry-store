@@ -57,7 +57,7 @@ export default async function FaqPage({ params }: FaqPageProps) {
   const nonce = await readCspNonce()
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 sm:py-16">
+    <article className="mx-auto max-w-3xl px-4 py-12 sm:px-6 sm:py-16">
       <script
         type="application/ld+json"
         nonce={nonce}
@@ -69,7 +69,7 @@ export default async function FaqPage({ params }: FaqPageProps) {
         <p className="mx-auto mt-4 max-w-xl text-base text-muted-foreground">{t('subtitle')}</p>
       </header>
 
-      <article aria-labelledby="faq-heading" className="space-y-3">
+      <section aria-labelledby="faq-heading" className="space-y-3">
         <h2 id="faq-heading" className="sr-only">
           {t('listHeading')}
         </h2>
@@ -94,7 +94,7 @@ export default async function FaqPage({ params }: FaqPageProps) {
             </p>
           </details>
         ))}
-      </article>
-    </div>
+      </section>
+    </article>
   )
 }

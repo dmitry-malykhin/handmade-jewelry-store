@@ -10,9 +10,17 @@
 //         section               (description h2.text-sm.uppercase + p multiline)
 //       }
 //     }
-export default function ProductLoading() {
+import { getTranslations } from 'next-intl/server'
+
+export default async function ProductLoading() {
+  const t = await getTranslations('productDetail')
   return (
-    <div className="container mx-auto px-4 py-8">
+    <section
+      role="status"
+      aria-live="polite"
+      aria-label={t('loadingLabel')}
+      className="container mx-auto px-4 py-8"
+    >
       {/* Breadcrumb: nav.mb-6 ol.flex-wrap.items-center.gap-1.text-sm */}
       <nav aria-hidden="true" className="mb-6">
         <div className="flex flex-wrap items-center gap-1">
@@ -62,6 +70,6 @@ export default function ProductLoading() {
           </div>
         </div>
       </div>
-    </div>
+    </section>
   )
 }

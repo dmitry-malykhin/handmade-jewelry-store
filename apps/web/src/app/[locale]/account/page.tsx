@@ -21,5 +21,9 @@ export default async function AccountPage({ params }: AccountPageProps) {
   const { locale } = await params
   setRequestLocale(locale)
 
-  return <AccountOverview />
+  return (
+    <section aria-labelledby="account-overview-heading">
+      <AccountOverview />
+    </section>
+  )
 }

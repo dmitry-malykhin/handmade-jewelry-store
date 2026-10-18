@@ -30,10 +30,16 @@ export default async function RegisterPage({ params }: RegisterPageProps) {
   const t = await getTranslations({ locale, namespace: 'auth' })
 
   return (
-    <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4 py-12">
+    <section
+      aria-labelledby="register-heading"
+      className="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4 py-12"
+    >
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+          <h1
+            id="register-heading"
+            className="text-2xl font-semibold tracking-tight text-foreground"
+          >
             {t('registerTitle')}
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">{t('registerSubtitle')}</p>
@@ -51,6 +57,6 @@ export default async function RegisterPage({ params }: RegisterPageProps) {
           </Link>
         </p>
       </div>
-    </div>
+    </section>
   )
 }

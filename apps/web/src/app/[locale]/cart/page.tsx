@@ -20,10 +20,11 @@ export async function generateMetadata({ params }: CartPageProps): Promise<Metad
 export default async function CartPage({ params }: CartPageProps) {
   const { locale } = await params
   setRequestLocale(locale)
+  const t = await getTranslations({ locale, namespace: 'cartPage' })
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <section aria-label={t('title')} className="container mx-auto px-4 py-8">
       <CartPageContent />
-    </div>
+    </section>
   )
 }

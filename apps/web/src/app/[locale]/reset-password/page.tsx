@@ -32,10 +32,16 @@ export default async function ResetPasswordPage({ params }: ResetPasswordPagePro
   const t = await getTranslations({ locale, namespace: 'auth' })
 
   return (
-    <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4 py-12">
+    <section
+      aria-labelledby="reset-password-heading"
+      className="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4 py-12"
+    >
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+          <h1
+            id="reset-password-heading"
+            className="text-2xl font-semibold tracking-tight text-foreground"
+          >
             {t('resetPasswordTitle')}
           </h1>
         </div>
@@ -45,6 +51,6 @@ export default async function ResetPasswordPage({ params }: ResetPasswordPagePro
           <ResetPasswordForm />
         </Suspense>
       </div>
-    </div>
+    </section>
   )
 }

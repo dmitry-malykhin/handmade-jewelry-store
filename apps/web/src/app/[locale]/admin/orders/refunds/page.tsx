@@ -2,14 +2,14 @@ import type { Metadata } from 'next'
 import { AdminRefundsTable } from './_components/admin-refunds-table'
 
 export const metadata: Metadata = {
-  title: 'Refunds — Admin Panel',
+  title: 'Refunds · Admin Panel',
   robots: { index: false, follow: false },
 }
 
 export default function AdminRefundsPage() {
   return (
-    <div>
+    <section aria-labelledby="refunds-heading">
       <AdminRefundsTable />
-    </div>
+    </section>
   )
 }

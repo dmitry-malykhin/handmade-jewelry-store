@@ -22,9 +22,11 @@ export default async function LoyaltyPage({ params }: LoyaltyPageProps) {
   const t = await getTranslations({ locale, namespace: 'account.loyalty' })
 
   return (
-    <section className="space-y-6">
+    <section aria-labelledby="account-loyalty-heading" className="space-y-6">
       <div>
-        <h2 className="text-2xl font-light">{t('title')}</h2>
+        <h2 id="account-loyalty-heading" className="text-2xl font-light">
+          {t('title')}
+        </h2>
         <p className="mt-2 text-sm text-muted-foreground">{t('description')}</p>
       </div>
 

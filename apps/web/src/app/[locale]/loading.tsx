@@ -1,3 +1,4 @@
+import { getTranslations } from 'next-intl/server'
 import { ProductGridSkeleton } from '@/components/features/catalog/product-grid-skeleton'
 
 // Mirrors HomePage (catalog) layout to prevent CLS:
@@ -5,9 +6,15 @@ import { ProductGridSkeleton } from '@/components/features/catalog/product-grid-
 //   + flex.gap-8 { aside.w-64 filters | main products }
 // Filters: 3 fieldsets (CategoryFilter mb-6, PriceFilter mb-6, SortFilter mb-6)
 //   each with legend.mb-3.text-sm and content (radio list / inputs / select)
-export default function HomeLoading() {
+export default async function HomeLoading() {
+  const t = await getTranslations('catalog')
   return (
-    <div className="container mx-auto px-4 py-8">
+    <section
+      role="status"
+      aria-live="polite"
+      aria-label={t('loadingLabel')}
+      className="container mx-auto px-4 py-8"
+    >
       {/* CatalogHeader: header.mb-8 (no breadcrumb on home) */}
       <header className="mb-8">
         {/* h1.text-3xl.font-bold */}
@@ -60,6 +67,6 @@ export default function HomeLoading() {
           <ProductGridSkeleton cardCount={20} />
         </div>
       </div>
-    </div>
+    </section>
   )
 }
