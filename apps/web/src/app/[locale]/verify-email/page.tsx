@@ -18,9 +18,13 @@ export async function generateMetadata({ params }: VerifyEmailPageProps): Promis
 export default async function VerifyEmailPage({ params }: VerifyEmailPageProps) {
   const { locale } = await params
   setRequestLocale(locale)
+  const t = await getTranslations({ locale, namespace: 'auth' })
   return (
-    <div className="mx-auto max-w-md px-4 py-16 sm:px-6 sm:py-20">
+    <section
+      aria-label={t('verifyPageTitle')}
+      className="mx-auto max-w-md px-4 py-16 sm:px-6 sm:py-20"
+    >
       <VerifyEmailClient />
-    </div>
+    </section>
   )
 }

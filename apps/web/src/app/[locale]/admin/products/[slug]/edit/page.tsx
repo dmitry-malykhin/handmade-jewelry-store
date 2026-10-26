@@ -22,6 +22,7 @@ export async function generateMetadata({ params }: AdminEditProductPageProps): P
 export default async function AdminEditProductPage({ params }: AdminEditProductPageProps) {
   const { locale, slug } = await params
   setRequestLocale(locale)
+  const t = await getTranslations({ locale, namespace: 'admin' })
 
   // .catch(() => null) + sync notFound() — same rationale as products/[slug]/page.tsx
   const [categories, product] = await Promise.all([
@@ -31,8 +32,8 @@ export default async function AdminEditProductPage({ params }: AdminEditProductP
   if (!categories || !product) notFound()
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <section aria-label={t('productsEditTitle')} className="mx-auto max-w-3xl">
       <ProductForm mode="edit" categories={categories} product={product} />
-    </div>
+    </section>
   )
 }

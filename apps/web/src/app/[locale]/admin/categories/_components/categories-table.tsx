@@ -108,7 +108,7 @@ export function CategoriesTable() {
   const isFormPending = createMutation.isPending || updateMutation.isPending
 
   return (
-    <section aria-labelledby="categories-heading">
+    <>
       <div className="mb-6 flex items-center justify-between">
         <h1 id="categories-heading" className="text-2xl font-semibold text-foreground">
           {t('categoriesTitle')}
@@ -196,6 +196,6 @@ export function CategoriesTable() {
         onConfirm={() => deleteMutation.mutate()}
         isPending={deleteMutation.isPending}
       />
-    </section>
+    </>
   )
 }

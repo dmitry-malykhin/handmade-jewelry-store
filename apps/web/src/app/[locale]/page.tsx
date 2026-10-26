@@ -133,7 +133,7 @@ export default async function HomePage({ params, searchParams }: HomePageProps) 
     : undefined
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <section aria-labelledby="catalog-heading" className="container mx-auto px-4 py-8">
       <CatalogHeader
         title={t('title')}
         productsCount={t('productsCount', { count: meta.totalCount })}
@@ -177,6 +177,6 @@ export default async function HomePage({ params, searchParams }: HomePageProps) 
           />
         </div>
       </div>
-    </div>
+    </section>
   )
 }

@@ -2,14 +2,14 @@ import type { Metadata } from 'next'
 import { DiscountsTable } from './_components/discounts-table'
 
 export const metadata: Metadata = {
-  title: 'Discount codes — Admin Panel',
+  title: 'Discount codes · Admin Panel',
   robots: { index: false, follow: false },
 }
 
 export default function AdminDiscountsPage() {
   return (
-    <div>
+    <section aria-labelledby="discounts-heading">
       <DiscountsTable />
-    </div>
+    </section>
   )
 }

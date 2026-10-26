@@ -361,7 +361,8 @@
     "paginationInfo": "Page {current} of {total}",
     "mobileFiltersButton": "Filters",
     "mobileFiltersTitle": "Filter products",
-    "mobileFiltersClose": "Close filters"
+    "mobileFiltersClose": "Close filters",
+    "loadingLabel": "Loading catalog"
   },
   "cartPage": {
     "metaTitle": "Your Cart",
@@ -389,7 +390,8 @@
     "freeShippingProgressLabel": "Free shipping progress",
     "quantityValue": "Qty {quantity}",
     "readyToShipToday": "Ready to ship today",
-    "masterCraftsLine": "Master crafts in {days} business days"
+    "masterCraftsLine": "Master crafts in {days} business days",
+    "loadingLabel": "Loading cart"
   },
   "home": {
     "badge": "Coming Soon",
@@ -514,7 +516,8 @@
     "paymentFailedTryAgain": "Try Again",
     "paymentFailedBackToCart": "Back to Cart",
     "paymentCancelledTitle": "Payment cancelled",
-    "paymentCancelledSubtitle": "You cancelled the payment. Your cart is still saved."
+    "paymentCancelledSubtitle": "You cancelled the payment. Your cart is still saved.",
+    "loadingLabel": "Loading your order confirmation"
   },
   "auth": {
     "registerMetaTitle": "Create Account",
@@ -624,7 +627,8 @@
     "trustHandcrafted": "Handcrafted in {city}",
     "makerLine": "Crafted in our {studio} studio",
     "ringSizeGuideLink": "View ring size guide",
-    "installmentPreview": "Or {count} payments of ${amount} with Klarna or Afterpay."
+    "installmentPreview": "Or {count} payments of ${amount} with Klarna or Afterpay.",
+    "loadingLabel": "Loading product details"
   },
   "productNotFound": {
     "title": "This piece is gone",

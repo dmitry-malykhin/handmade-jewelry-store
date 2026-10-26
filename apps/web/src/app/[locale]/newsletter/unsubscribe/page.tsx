@@ -22,9 +22,10 @@ export default async function NewsletterUnsubscribePage({
 }: NewsletterUnsubscribePageProps) {
   const { locale } = await params
   setRequestLocale(locale)
+  const t = await getTranslations({ locale, namespace: 'newsletter.unsubscribePage' })
   return (
-    <div className="mx-auto max-w-md px-4 py-16 sm:px-6 sm:py-20">
+    <section aria-label={t('metaTitle')} className="mx-auto max-w-md px-4 py-16 sm:px-6 sm:py-20">
       <NewsletterUnsubscribeClient />
-    </div>
+    </section>
   )
 }

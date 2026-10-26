@@ -361,7 +361,8 @@
     "paginationInfo": "Страница {current} из {total}",
     "mobileFiltersButton": "Фильтры",
     "mobileFiltersTitle": "Фильтровать товары",
-    "mobileFiltersClose": "Закрыть фильтры"
+    "mobileFiltersClose": "Закрыть фильтры",
+    "loadingLabel": "Загрузка каталога"
   },
   "cartPage": {
     "metaTitle": "Ваша корзина",
@@ -389,7 +390,8 @@
     "freeShippingProgressLabel": "Прогресс до бесплатной доставки",
     "quantityValue": "Кол-во {quantity}",
     "readyToShipToday": "Готово к отправке сегодня",
-    "masterCraftsLine": "Мастер изготовит за {days} рабочих дней"
+    "masterCraftsLine": "Мастер изготовит за {days} рабочих дней",
+    "loadingLabel": "Загрузка корзины"
   },
   "home": {
     "badge": "Скоро",
@@ -514,7 +516,8 @@
     "paymentFailedTryAgain": "Попробовать снова",
     "paymentFailedBackToCart": "Вернуться в корзину",
     "paymentCancelledTitle": "Оплата отменена",
-    "paymentCancelledSubtitle": "Вы отменили оплату. Корзина сохранена."
+    "paymentCancelledSubtitle": "Вы отменили оплату. Корзина сохранена.",
+    "loadingLabel": "Загрузка подтверждения заказа"
   },
   "auth": {
     "registerMetaTitle": "Создать аккаунт",
@@ -624,7 +627,8 @@
     "trustHandcrafted": "Ручная работа из {city}",
     "makerLine": "Изготовлено в нашей мастерской {studio}",
     "ringSizeGuideLink": "Открыть гид по размерам колец",
-    "installmentPreview": "Или {count} платежа по ${amount} с Klarna или Afterpay."
+    "installmentPreview": "Или {count} платежа по ${amount} с Klarna или Afterpay.",
+    "loadingLabel": "Загрузка товара"
   },
   "productNotFound": {
     "title": "Это украшение больше недоступно",

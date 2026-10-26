@@ -3,7 +3,12 @@
 // mount. The blocks correspond 1:1 to the real components.
 export default function AdminLoading() {
   return (
-    <div className="flex flex-col">
+    <section
+      role="status"
+      aria-live="polite"
+      aria-label="Loading admin dashboard"
+      className="flex flex-col"
+    >
       <div className="mb-6 h-8 w-48 animate-pulse rounded bg-skeleton-base" />
 
       <ul role="list" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -46,6 +51,6 @@ export default function AdminLoading() {
           <div className="h-48 animate-pulse rounded-md bg-skeleton-base" />
         </div>
       </div>
-    </div>
+    </section>
   )
 }

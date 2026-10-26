@@ -361,7 +361,8 @@
     "paginationInfo": "Página {current} de {total}",
     "mobileFiltersButton": "Filtros",
     "mobileFiltersTitle": "Filtrar productos",
-    "mobileFiltersClose": "Cerrar filtros"
+    "mobileFiltersClose": "Cerrar filtros",
+    "loadingLabel": "Cargando el catálogo"
   },
   "cartPage": {
     "metaTitle": "Tu carrito",
@@ -389,7 +390,8 @@
     "freeShippingProgressLabel": "Progreso hacia el envío gratuito",
     "quantityValue": "Cant. {quantity}",
     "readyToShipToday": "Listo para enviar hoy",
-    "masterCraftsLine": "El maestro lo elabora en {days} días hábiles"
+    "masterCraftsLine": "El maestro lo elabora en {days} días hábiles",
+    "loadingLabel": "Cargando el carrito"
   },
   "home": {
     "badge": "Próximamente",
@@ -514,7 +516,8 @@
     "paymentFailedTryAgain": "Intentar de nuevo",
     "paymentFailedBackToCart": "Volver al carrito",
     "paymentCancelledTitle": "Pago cancelado",
-    "paymentCancelledSubtitle": "Has cancelado el pago. Tu carrito sigue guardado."
+    "paymentCancelledSubtitle": "Has cancelado el pago. Tu carrito sigue guardado.",
+    "loadingLabel": "Cargando la confirmación del pedido"
   },
   "auth": {
     "registerMetaTitle": "Crear cuenta",
@@ -624,7 +627,8 @@
     "trustHandcrafted": "Hecho a mano en {city}",
     "makerLine": "Elaborado en nuestro estudio {studio}",
     "ringSizeGuideLink": "Ver guía de tallas de anillos",
-    "installmentPreview": "O {count} pagos de ${amount} con Klarna o Afterpay."
+    "installmentPreview": "O {count} pagos de ${amount} con Klarna o Afterpay.",
+    "loadingLabel": "Cargando el producto"
   },
   "productNotFound": {
     "title": "Esta pieza ya no está",

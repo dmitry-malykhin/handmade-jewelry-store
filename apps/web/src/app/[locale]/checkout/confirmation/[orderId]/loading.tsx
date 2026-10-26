@@ -9,9 +9,17 @@
 //     ConfirmationOrderSummary (totals)
 //     Button.size-lg (continue shopping)
 //   }
-export default function ConfirmationLoading() {
+import { getTranslations } from 'next-intl/server'
+
+export default async function ConfirmationLoading() {
+  const t = await getTranslations('confirmationPage')
   return (
-    <div className="mx-auto max-w-2xl px-4 py-12 sm:px-6">
+    <section
+      role="status"
+      aria-live="polite"
+      aria-label={t('loadingLabel')}
+      className="mx-auto max-w-2xl px-4 py-12 sm:px-6"
+    >
       <div className="space-y-8">
         {/* ConfirmationSuccessHeader: centered icon + h1 + order ID */}
         <div className="flex flex-col items-center gap-3 text-center">
@@ -68,6 +76,6 @@ export default function ConfirmationLoading() {
           <div className="h-11 w-40 animate-pulse rounded bg-skeleton-base" />
         </div>
       </div>
-    </div>
+    </section>
   )
 }

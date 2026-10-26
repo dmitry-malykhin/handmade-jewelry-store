@@ -107,7 +107,7 @@ export function AdminOrderDetail({ orderId }: AdminOrderDetailProps) {
           {t('orderDetailBack')}
         </Link>
         {order && (
-          <h1 className="text-xl font-semibold text-foreground">
+          <h1 id="order-detail-heading" className="text-xl font-semibold text-foreground">
             {t('orderDetailTitle', { id: order.id.slice(-8) })}
           </h1>
         )}
