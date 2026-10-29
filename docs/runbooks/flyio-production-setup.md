@@ -165,6 +165,39 @@ curl https://handmade-jewelry-api.fly.dev/api/products
 # Expected: list of seeded products (если seed запускался) или пустой array
 ```
 
+### Шаг 5.1. Reconcile pre-existing tables (if a migration file lived outside `prisma/migrations/`)
+
+Если миграция попала в репо, но Prisma её не видел (например, лежала в phantom path `apps/api/apps/api/prisma/migrations/` до фикса #536), а table уже была создана руками / через `db push` / через предыдущий запуск, то `prisma migrate deploy` на следующем релизе упадёт с `P3009: migration <name> was already applied`.
+
+Один раз на окружение (prod и staging отдельно):
+
+```bash
+# 1. Проверить, существует ли table в DB
+DATABASE_URL="<pooled-prod-url>" \
+  pnpm --filter api exec prisma db execute --stdin <<'SQL'
+SELECT to_regclass('"NewsletterConsent"') IS NOT NULL AS exists;
+SQL
+
+# 2a. Если exists = t → помечаем migration applied без запуска SQL:
+DATABASE_URL="<pooled-prod-url>" \
+  pnpm --filter api exec prisma migrate resolve --applied 20260919000000_add_newsletter_consent
+
+# 2b. Если exists = f → ничего не делаем, следующий deploy применит её нормально
+
+# 3. Verify, что `_prisma_migrations` в консистентном состоянии
+DATABASE_URL="<pooled-prod-url>" \
+  pnpm --filter api exec prisma migrate status
+# Expected: "Database schema is up to date!" (ни pending, ни failed)
+```
+
+**Prod smoke-test после reconcile**: subscribe должен вернуть 202 (не 500 из-за missing table):
+```bash
+curl -X POST https://api.senichka.com/api/newsletter/subscribe \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"ops+newsletter@senichka.com","consentShownAt":"2026-10-18T00:00:00Z"}' -i
+# Expected: HTTP/1.1 202 Accepted
+```
+
 ### Шаг 6 — Add GitHub Secret для CI auto-deploy
 
 ```bash
@@ -370,6 +403,7 @@ Migration steps (artifacts уже в репо для всех):
 | `OOM killed` в logs | 256 MB не хватает | Bump `memory_mb` to 512 в `fly.production.toml`, redeploy |
 | Cold start ~5 sec на первом запросе | min_machines_running = 0 | Verify в `fly.production.toml` стоит 1 |
 | Migrations не применились автоматически | `continue-on-error: true` в workflow + first deploy | Apply manually: `pnpm --filter api exec prisma migrate deploy` с prod DATABASE_URL |
+| `P3009: migration <name> failed` или `relation ... already exists` | Table создана до того, как Prisma увидел migration file (напр. #552 → phantom path, фикс #536) | См. Шаг 5.1: reconcile через `prisma migrate resolve --applied <migration-name>` один раз на окружение |
 | `403 Forbidden` от Stripe webhook | Webhook URL в Stripe dashboard указывает на staging | Update endpoint URL в Stripe → Production webhook → `https://api.senichka.com/api/payments/stripe/webhook` |
 | 503 Service Unavailable | Fly.io edge не нашёл healthy machine | `flyctl status` → check machines. `flyctl deploy` снова если none healthy |
 | GitHub Actions: `Error: missing FLY_API_TOKEN` | Secret не установлен в repo | См. Шаг 6 |
