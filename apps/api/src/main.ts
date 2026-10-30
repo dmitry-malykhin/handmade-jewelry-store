@@ -6,6 +6,7 @@ import { ValidationPipe } from '@nestjs/common'
 import { HttpAdapterHost, NestFactory } from '@nestjs/core'
 import type { NestExpressApplication } from '@nestjs/platform-express'
 import * as cookieParser from 'cookie-parser'
+import { json as expressJson } from 'express'
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston'
 import { ProxyAgent, setGlobalDispatcher } from 'undici'
 import { getFrontendUrl } from './common/config/urls'
@@ -39,6 +40,11 @@ async function bootstrap() {
   // Parses Cookie header into req.cookies — used by JwtRefreshStrategy to read
   // the HttpOnly refresh cookie (XSS-inaccessible, unlike localStorage).
   app.use(cookieParser())
+
+  // Browsers POST CSP violations with either `application/csp-report` (legacy
+  // report-uri) or `application/reports+json` (Reporting API). Register both
+  // MIME types with the JSON parser so @Body() in CspReportController sees them.
+  app.use(expressJson({ type: ['application/csp-report', 'application/reports+json'] }))
 
   app.enableCors({
     origin: getFrontendUrl(),

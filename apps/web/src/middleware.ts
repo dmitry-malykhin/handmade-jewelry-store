@@ -1,7 +1,11 @@
 import { type NextRequest, type NextResponse } from 'next/server'
 import createIntlMiddleware from 'next-intl/middleware'
 import { routing } from './i18n/routing'
-import { buildContentSecurityPolicy } from './lib/security-headers'
+import {
+  buildContentSecurityPolicy,
+  buildContentSecurityPolicyReportOnly,
+  buildReportToHeader,
+} from './lib/security-headers'
 
 const intlMiddleware = createIntlMiddleware(routing)
 
@@ -22,6 +26,14 @@ export default function middleware(request: NextRequest): NextResponse {
   // Nonce CSP only in production — dev HMR uses eval + inline scripts.
   if (process.env.NODE_ENV === 'production') {
     response.headers.set('Content-Security-Policy', buildContentSecurityPolicy(nonce))
+    // Report-Only mirror ships violations for a tighter style-src (nonce,
+    // no 'unsafe-inline') without blocking. Flip it into the enforce policy
+    // once reports are clean for ~1 week in Sentry.
+    response.headers.set(
+      'Content-Security-Policy-Report-Only',
+      buildContentSecurityPolicyReportOnly(nonce),
+    )
+    response.headers.set('Report-To', buildReportToHeader())
   }
   response.headers.set('x-nonce', nonce)
   return response
