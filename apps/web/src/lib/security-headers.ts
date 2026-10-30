@@ -69,12 +69,33 @@ function extractOrigin(url: string | undefined): string | null {
   }
 }
 
+// Browsers POST violation reports here fire-and-forget. The endpoint is on the
+// NestJS origin; if NEXT_PUBLIC_API_URL is unset we fall back to a same-origin
+// path so Next.js at least logs the attempt to the request stream rather than
+// losing it entirely.
+function getCspReportEndpoint(): string {
+  const apiOrigin = extractOrigin(process.env.NEXT_PUBLIC_API_URL)
+  return apiOrigin ? `${apiOrigin}/api/csp-report` : '/api/csp-report'
+}
+
+// Report-To header value — one group named "csp-endpoint" referenced by the
+// `report-to` CSP directive. 90-day TTL mirrors our Sentry retention window;
+// shorter wastes browser cache, longer outlives violation relevance.
+export function buildReportToHeader(): string {
+  return JSON.stringify({
+    group: 'csp-endpoint',
+    max_age: 7_776_000,
+    endpoints: [{ url: getCspReportEndpoint() }],
+  })
+}
+
 // Build CSP with a per-request nonce. Without nonce (static build-time CSP)
 // falls back to unsafe-inline — but that path is only used when middleware is
 // bypassed. Runtime path is always nonce-based via middleware.
 export function buildContentSecurityPolicy(nonce?: string): string {
   const apiOrigin = extractOrigin(process.env.NEXT_PUBLIC_API_URL)
   const connectSrcHosts = apiOrigin ? [apiOrigin, ...CONNECT_SRC_HOSTS] : CONNECT_SRC_HOSTS
+  const reportEndpoint = getCspReportEndpoint()
   // strict-dynamic: a nonce'd script may load additional scripts (Next.js
   // hydration chunks). Explicit host allowlist stays for browsers ignoring it.
   const scriptSrc = nonce
@@ -95,6 +116,33 @@ export function buildContentSecurityPolicy(nonce?: string): string {
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",
+    `report-uri ${reportEndpoint}`,
+    `report-to csp-endpoint`,
+  ].join('; ')
+}
+
+// Report-Only mirror policy: tightens style-src to a nonce (dropping
+// 'unsafe-inline') and ships violation reports to the same endpoint without
+// blocking any request. Flip style-src to the Report-Only variant in the
+// enforce policy once reports come back clean for a week.
+export function buildContentSecurityPolicyReportOnly(nonce: string): string {
+  const apiOrigin = extractOrigin(process.env.NEXT_PUBLIC_API_URL)
+  const connectSrcHosts = apiOrigin ? [apiOrigin, ...CONNECT_SRC_HOSTS] : CONNECT_SRC_HOSTS
+  const reportEndpoint = getCspReportEndpoint()
+  return [
+    "default-src 'self'",
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' ${SCRIPT_SRC_HOSTS.join(' ')}`,
+    `connect-src 'self' ${connectSrcHosts.join(' ')}`,
+    "img-src 'self' data: https:",
+    `style-src 'self' 'nonce-${nonce}'`,
+    "font-src 'self' data:",
+    `frame-src ${FRAME_SRC_HOSTS.join(' ')}`,
+    "worker-src 'self' blob:",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    `report-uri ${reportEndpoint}`,
+    `report-to csp-endpoint`,
   ].join('; ')
 }
 

@@ -4,7 +4,12 @@ import {
   subSuite as $allureSubSuite,
   severity as $allureSeverity,
 } from 'allure-js-commons'
-import { buildContentSecurityPolicy, getSecurityHeaders } from '../security-headers'
+import {
+  buildContentSecurityPolicy,
+  buildContentSecurityPolicyReportOnly,
+  buildReportToHeader,
+  getSecurityHeaders,
+} from '../security-headers'
 
 beforeEach(async () => {
   if (!process.env.CI) return
@@ -155,5 +160,62 @@ describe('buildContentSecurityPolicy — without nonce (build-time fallback)', (
     const csp = buildContentSecurityPolicy()
     expect(csp).toContain("script-src 'self' 'unsafe-inline'")
     expect(csp).not.toContain("'nonce-")
+  })
+})
+
+describe('buildContentSecurityPolicy — reporting directives (#592)', () => {
+  const NONCE = 'nonce-value'
+
+  it('both report-uri and report-to are present (one for legacy UAs, one for new UAs)', () => {
+    const csp = buildContentSecurityPolicy(NONCE)
+    expect(csp).toMatch(/report-uri\s+\S*\/api\/csp-report/)
+    expect(csp).toContain('report-to csp-endpoint')
+  })
+
+  it('build-time fallback (no nonce) still ships reporting directives — static deploys must capture violations too', () => {
+    const csp = buildContentSecurityPolicy()
+    expect(csp).toMatch(/report-uri\s+\S*\/api\/csp-report/)
+    expect(csp).toContain('report-to csp-endpoint')
+  })
+})
+
+describe('buildContentSecurityPolicyReportOnly — tightened style-src probe (#592)', () => {
+  const NONCE = 'nonce-report-only'
+  const getReportOnly = () => buildContentSecurityPolicyReportOnly(NONCE)
+
+  it("drops 'unsafe-inline' from style-src and pins the per-request nonce", () => {
+    const csp = getReportOnly()
+    expect(csp).toContain(`style-src 'self' 'nonce-${NONCE}'`)
+    expect(csp).not.toContain("style-src 'self' 'unsafe-inline'")
+  })
+
+  it('mirrors every other directive from the enforce policy so results are comparable', () => {
+    const csp = getReportOnly()
+    expect(csp).toContain("default-src 'self'")
+    expect(csp).toContain(`'nonce-${NONCE}'`)
+    expect(csp).toContain("'strict-dynamic'")
+    expect(csp).toContain("object-src 'none'")
+    expect(csp).toContain("base-uri 'self'")
+    expect(csp).toContain("form-action 'self'")
+  })
+
+  it('ships violations to the same endpoint as the enforce policy', () => {
+    const csp = getReportOnly()
+    expect(csp).toMatch(/report-uri\s+\S*\/api\/csp-report/)
+    expect(csp).toContain('report-to csp-endpoint')
+  })
+})
+
+describe('buildReportToHeader — Reporting API group (#592)', () => {
+  it('is valid JSON with the group name referenced by the report-to CSP directive', () => {
+    const parsed = JSON.parse(buildReportToHeader()) as {
+      group: string
+      max_age: number
+      endpoints: Array<{ url: string }>
+    }
+    expect(parsed.group).toBe('csp-endpoint')
+    expect(parsed.max_age).toBeGreaterThan(0)
+    expect(parsed.endpoints).toHaveLength(1)
+    expect(parsed.endpoints[0]?.url).toMatch(/\/api\/csp-report$/)
   })
 })
