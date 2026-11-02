@@ -8,6 +8,7 @@ import {
   subSuite as $allureSubSuite,
   severity as $allureSeverity,
 } from 'allure-js-commons'
+import { ContactMessageDedupStore } from './contact-message-dedup.store'
 import { ContactController } from './contact.controller'
 import { ContactService } from './contact.service'
 import { EmailService } from '../email/email.service'
@@ -21,6 +22,10 @@ const VALID_BODY = {
 
 const mockSendContactMessage = jest.fn().mockResolvedValue(undefined)
 const mockEmailService = { sendContactMessage: mockSendContactMessage }
+
+// Stubbed dedup store — isolates the throttler/validator tests below from the
+// server-side dedup covered by contact.service.spec.ts (#576).
+const nullDedupStore = { seenRecently: () => false, remember: () => undefined }
 
 beforeEach(async () => {
   if (!process.env.CI) return
@@ -49,6 +54,7 @@ describe('ContactController', () => {
       providers: [
         ContactService,
         { provide: EmailService, useValue: mockEmailService },
+        { provide: ContactMessageDedupStore, useValue: nullDedupStore },
         { provide: APP_GUARD, useClass: ThrottlerGuard },
       ],
     }).compile()
