@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common'
 import { AdminCustomersController } from './admin-customers.controller'
+import { UsersExportService } from './users-export.service'
 import { UsersController } from './users.controller'
 import { UsersService } from './users.service'
 
@@ -9,7 +10,7 @@ import { UsersService } from './users.service'
 // app root) makes the JWT strategy globally available through PassportModule.
 @Module({
   controllers: [AdminCustomersController, UsersController],
-  providers: [UsersService],
+  providers: [UsersService, UsersExportService],
   exports: [UsersService],
 })
 export class UsersModule {}

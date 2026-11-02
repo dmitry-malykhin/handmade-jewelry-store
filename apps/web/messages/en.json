@@ -1266,6 +1266,15 @@
         "errorMismatch": "New passwords do not match.",
         "errorUnauthorized": "You must be signed in to change your password.",
         "errorGeneric": "Could not update password. Please try again."
+      },
+      "dataExport": {
+        "title": "Download your data",
+        "description": "Export every record we hold about your account (profile, orders, reviews, addresses, loyalty, wishlist and newsletter history) as a JSON file. Covers GDPR Art. 15 and Art. 20.",
+        "downloadButton": "Download JSON",
+        "downloadingButton": "Preparing download...",
+        "success": "Your data export has downloaded.",
+        "errorUnauthorized": "Please sign in again before downloading your data.",
+        "errorGeneric": "Could not prepare the export. Please try again in a minute."
       }
     },
     "wishlist": {

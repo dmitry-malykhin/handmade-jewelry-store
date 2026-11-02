@@ -1266,6 +1266,15 @@
         "errorMismatch": "Las nuevas contraseñas no coinciden.",
         "errorUnauthorized": "Debes iniciar sesión para cambiar tu contraseña.",
         "errorGeneric": "No se pudo actualizar la contraseña. Inténtalo de nuevo."
+      },
+      "dataExport": {
+        "title": "Descargar tus datos",
+        "description": "Exporta todos los registros que guardamos sobre tu cuenta: perfil, pedidos, reseñas, direcciones, puntos de fidelidad, lista de deseos e historial de newsletter, en formato JSON (RGPD art. 15 y art. 20).",
+        "downloadButton": "Descargar JSON",
+        "downloadingButton": "Preparando descarga...",
+        "success": "Tus datos se han descargado.",
+        "errorUnauthorized": "Inicia sesión de nuevo antes de descargar tus datos.",
+        "errorGeneric": "No se pudo preparar la exportación. Inténtalo de nuevo en un minuto."
       }
     },
     "wishlist": {

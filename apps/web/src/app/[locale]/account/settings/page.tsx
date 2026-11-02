@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { ChangePasswordForm } from './_components/change-password-form'
+import { DataExportCard } from './_components/data-export-card'
 import { ProfileForm } from './_components/profile-form'
 
 interface SettingsPageProps {
@@ -34,6 +35,7 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
 
       <ProfileForm />
       <ChangePasswordForm />
+      <DataExportCard />
     </section>
   )
 }
