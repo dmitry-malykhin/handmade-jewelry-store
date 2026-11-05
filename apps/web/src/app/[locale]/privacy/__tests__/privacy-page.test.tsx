@@ -96,7 +96,7 @@ describe('PrivacyPage — structure', () => {
     expect(screen.getByText('Last updated: April 12, 2026')).toBeInTheDocument()
   })
 
-  it('renders the historical section headings 1..11', async () => {
+  it('renders the historical section headings 1..12 (CA section inserted at #8, #615)', async () => {
     await renderPrivacyPage()
     expect(
       screen.getByRole('heading', { name: '1. Information We Collect', level: 2 }),
@@ -114,14 +114,48 @@ describe('PrivacyPage — structure', () => {
     expect(
       screen.getByRole('heading', { name: '7. Your Rights (GDPR / CCPA)', level: 2 }),
     ).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: '8. Security', level: 2 })).toBeInTheDocument()
     expect(
-      screen.getByRole('heading', { name: "9. Children's Privacy", level: 2 }),
+      screen.getByRole('heading', {
+        name: '8. Your California Privacy Rights (CPRA / CCPA)',
+        level: 2,
+      }),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: '9. Security', level: 2 })).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { name: "10. Children's Privacy", level: 2 }),
     ).toBeInTheDocument()
     expect(
-      screen.getByRole('heading', { name: '10. Changes to This Policy', level: 2 }),
+      screen.getByRole('heading', { name: '11. Changes to This Policy', level: 2 }),
     ).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: '11. Contact Us', level: 2 })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: '12. Contact Us', level: 2 })).toBeInTheDocument()
+  })
+
+  it('CA section (#615) exposes required CPRA subsections', async () => {
+    await renderPrivacyPage()
+    expect(
+      screen.getByRole('heading', {
+        name: /Categories of personal information we collect/i,
+        level: 3,
+      }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { name: /Sources of personal information/i, level: 3 }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { name: /Business purposes/i, level: 3 }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { name: /Sharing and "sale"/i, level: 3 }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { name: /Retention per category/i, level: 3 }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { name: /^Your California rights$/i, level: 3 }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { name: /How to exercise your California rights/i, level: 3 }),
+    ).toBeInTheDocument()
   })
 
   it('renders GDPR Art. 13 sections added for full disclosure (#555)', async () => {

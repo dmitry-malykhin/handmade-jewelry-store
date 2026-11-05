@@ -195,6 +195,89 @@ export default async function PrivacyPage({ params }: PrivacyPageProps) {
             </p>
           </section>
 
+          <section aria-labelledby="privacy-california" className="space-y-6">
+            <div>
+              <h2 id="privacy-california" className="mb-3 text-xl font-semibold text-foreground">
+                {t('sCaliforniaHeading')}
+              </h2>
+              <p className="text-muted-foreground">{t('sCaliforniaIntro')}</p>
+            </div>
+
+            <div>
+              <h3 className="mb-2 text-lg font-semibold text-foreground">
+                {t('sCaliforniaCategoriesHeading')}
+              </h3>
+              <p className="mb-3 text-muted-foreground">{t('sCaliforniaCategoriesIntro')}</p>
+              <ul className="mb-3 list-disc space-y-2 pl-6 text-muted-foreground" role="list">
+                <li>{t.rich('sCaliforniaCat1Identifiers', { b: bold })}</li>
+                <li>{t.rich('sCaliforniaCat2Commercial', { b: bold })}</li>
+                <li>{t.rich('sCaliforniaCat3Internet', { b: bold })}</li>
+                <li>{t.rich('sCaliforniaCat4Geolocation', { b: bold })}</li>
+                <li>{t.rich('sCaliforniaCat5Inferences', { b: bold })}</li>
+              </ul>
+              <p className="text-sm text-muted-foreground">{t('sCaliforniaCategoriesNoneNote')}</p>
+            </div>
+
+            <div>
+              <h3 className="mb-2 text-lg font-semibold text-foreground">
+                {t('sCaliforniaSourcesHeading')}
+              </h3>
+              <p className="text-muted-foreground">{t('sCaliforniaSourcesBody')}</p>
+            </div>
+
+            <div>
+              <h3 className="mb-2 text-lg font-semibold text-foreground">
+                {t('sCaliforniaPurposesHeading')}
+              </h3>
+              <p className="text-muted-foreground">{t('sCaliforniaPurposesBody')}</p>
+            </div>
+
+            <div>
+              <h3 className="mb-2 text-lg font-semibold text-foreground">
+                {t('sCaliforniaSharingHeading')}
+              </h3>
+              <p className="mb-3 text-muted-foreground">{t('sCaliforniaSharingBody')}</p>
+              <p className="text-muted-foreground">{t('sCaliforniaSharingOptOut')}</p>
+            </div>
+
+            <div>
+              <h3 className="mb-2 text-lg font-semibold text-foreground">
+                {t('sCaliforniaRetentionHeading')}
+              </h3>
+              <ul className="list-disc space-y-2 pl-6 text-muted-foreground" role="list">
+                <li>{t('sCaliforniaRetentionIdentifiers')}</li>
+                <li>{t('sCaliforniaRetentionCommercial')}</li>
+                <li>{t('sCaliforniaRetentionInternet')}</li>
+                <li>{t('sCaliforniaRetentionSupport')}</li>
+                <li>{t('sCaliforniaRetentionSecurity')}</li>
+              </ul>
+            </div>
+
+            <div>
+              <h3 className="mb-2 text-lg font-semibold text-foreground">
+                {t('sCaliforniaRightsHeading')}
+              </h3>
+              <p className="mb-3 text-muted-foreground">{t('sCaliforniaRightsIntro')}</p>
+              <ul className="list-disc space-y-2 pl-6 text-muted-foreground" role="list">
+                <li>{t.rich('sCaliforniaRight1Know', { b: bold })}</li>
+                <li>{t.rich('sCaliforniaRight2Delete', { b: bold })}</li>
+                <li>{t.rich('sCaliforniaRight3Correct', { b: bold })}</li>
+                <li>{t.rich('sCaliforniaRight4OptOut', { b: bold })}</li>
+                <li>{t.rich('sCaliforniaRight5LimitSensitive', { b: bold })}</li>
+                <li>{t.rich('sCaliforniaRight6NonDiscrimination', { b: bold })}</li>
+              </ul>
+            </div>
+
+            <div>
+              <h3 className="mb-2 text-lg font-semibold text-foreground">
+                {t('sCaliforniaExerciseHeading')}
+              </h3>
+              <p className="text-muted-foreground">
+                {t.rich('sCaliforniaExerciseBody', { a: emailLink, email: privacyEmail })}
+              </p>
+            </div>
+          </section>
+
           <section aria-labelledby="privacy-security">
             <h2 id="privacy-security" className="mb-4 text-xl font-semibold text-foreground">
               {t('s8Heading')}
