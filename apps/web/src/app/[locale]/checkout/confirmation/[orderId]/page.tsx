@@ -1,16 +1,6 @@
 import type { Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
-import Link from 'next/link'
-import { notFound } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
-import { fetchOrderById } from '@/lib/api/orders'
-import { ConfirmationNextSteps } from './_components/confirmation-next-steps'
-import { ConfirmationOrderItems } from './_components/confirmation-order-items'
-import { ConfirmationOrderSummary } from './_components/confirmation-order-summary'
-import { ConfirmationSuccessHeader } from './_components/confirmation-success-header'
-import { ExpressCheckoutCleanup } from './_components/express-checkout-cleanup'
-import { OrderPlacedTracker } from './_components/order-placed-tracker'
+import { ConfirmationBodyClient } from './_components/confirmation-body-client'
 import { PaymentFailedContent } from './_components/payment-failed-content'
 import { ScrubTokenFromUrl } from './_components/scrub-token-from-url'
 
@@ -75,54 +65,18 @@ export default async function ConfirmationPage({ params, searchParams }: Confirm
     )
   }
 
-  // .catch(() => null) + sync notFound() — see comment on products/[slug]/page.tsx
-  // for the streaming/404-status rationale.
-  const order = await fetchOrderById(orderId, { orderAccessToken: token ?? null }).catch(() => null)
-  if (!order) notFound()
-
-  const t = await getTranslations('confirmationPage')
-
+  // Order load moved to a client component so the guest access token can be
+  // read from sessionStorage instead of the URL (#588). `token` here is the
+  // legacy `?token=` fallback for email-link flows (e.g. the "View your order"
+  // CTA in a shipping email); ScrubTokenFromUrl strips it after the body
+  // mounts so it never persists in history / Referer.
   return (
     <section
       aria-labelledby="confirmation-heading"
       className="mx-auto max-w-2xl px-4 py-12 sm:px-6"
     >
       <ScrubTokenFromUrl />
-      <ExpressCheckoutCleanup />
-      <OrderPlacedTracker
-        orderId={order.id}
-        totalUsd={order.total}
-        shippingCostUsd={order.shippingCost}
-        items={order.items.map((orderItem) => ({
-          productId: orderItem.productId,
-          title: orderItem.productSnapshot.title,
-          price: orderItem.price,
-          quantity: orderItem.quantity,
-        }))}
-      />
-      <div className="space-y-8">
-        <ConfirmationSuccessHeader orderId={order.id} />
-
-        <Separator />
-
-        <ConfirmationNextSteps />
-
-        <Separator />
-
-        <section aria-label={t('orderSummaryTitle')}>
-          <ConfirmationOrderItems items={order.items} />
-        </section>
-
-        <Separator />
-
-        <ConfirmationOrderSummary order={order} />
-
-        <div className="flex justify-center pt-2">
-          <Button asChild size="lg">
-            <Link href="/">{t('continueShopping')}</Link>
-          </Button>
-        </div>
-      </div>
+      <ConfirmationBodyClient orderId={orderId} urlToken={token ?? null} />
     </section>
   )
 }

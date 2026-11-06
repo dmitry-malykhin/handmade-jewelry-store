@@ -3,6 +3,7 @@
 import { useMutation } from '@tanstack/react-query'
 import { useRouter } from '@/i18n/navigation'
 import { createOrder } from '@/lib/api/orders'
+import { rememberGuestOrderAccessToken } from '@/lib/checkout/order-access-token'
 import { useCheckoutItems } from '@/store/cart.store'
 import { useAuthStore } from '@/store/auth.store'
 import { buildOrderPayload } from '../../_lib/build-order-payload'
@@ -24,10 +25,10 @@ export function useSubmitCheckoutOrder() {
       return createOrder(orderPayload, accessToken)
     },
     onSuccess: (createdOrder) => {
-      const query = createdOrder.accessToken
-        ? `?token=${encodeURIComponent(createdOrder.accessToken)}`
-        : ''
-      router.push(`/checkout/confirmation/${createdOrder.id}${query}`)
+      if (createdOrder.accessToken) {
+        rememberGuestOrderAccessToken(createdOrder.id, createdOrder.accessToken)
+      }
+      router.push(`/checkout/confirmation/${createdOrder.id}`)
     },
   })
 

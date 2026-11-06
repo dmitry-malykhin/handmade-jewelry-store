@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useStripe } from '@stripe/react-stripe-js'
 import type { PaymentRequest } from '@stripe/stripe-js'
 import { useRouter } from '@/i18n/navigation'
+import { rememberGuestOrderAccessToken } from '@/lib/checkout/order-access-token'
 
 interface UsePaymentRequestParams {
   totalAmountInCents: number
@@ -84,8 +85,10 @@ export function usePaymentRequest({
         }
       }
 
-      const query = orderAccessToken ? `?token=${encodeURIComponent(orderAccessToken)}` : ''
-      router.push(`/${locale}/checkout/confirmation/${orderId}${query}`)
+      if (orderAccessToken) {
+        rememberGuestOrderAccessToken(orderId, orderAccessToken)
+      }
+      router.push(`/${locale}/checkout/confirmation/${orderId}`)
     })
   }, [stripe, clientSecret, totalAmountInCents, orderId, orderAccessToken, locale, router])
 

@@ -133,4 +133,27 @@ describe('useSubmitCheckoutOrder()', () => {
     await waitFor(() => expect(result.current.submitError).toBeInstanceOf(Error))
     expect(mockRouterPush).not.toHaveBeenCalled()
   })
+
+  it('persists the guest order-access token in sessionStorage and keeps it out of the URL (#588)', async () => {
+    window.sessionStorage.clear()
+    mockCreateOrder.mockResolvedValue({
+      id: 'order-99',
+      status: 'PENDING',
+      total: 10,
+      accessToken: 'signed-order-token',
+    })
+
+    const { result } = renderHook(() => useSubmitCheckoutOrder(), {
+      wrapper: createQueryClientWrapper(),
+    })
+
+    act(() => {
+      result.current.submitOrder({ addressValues: mockAddressValues, shippingCost: 0 })
+    })
+
+    await waitFor(() =>
+      expect(mockRouterPush).toHaveBeenCalledWith('/checkout/confirmation/order-99'),
+    )
+    expect(window.sessionStorage.getItem('orderAccessToken:order-99')).toBe('signed-order-token')
+  })
 })
