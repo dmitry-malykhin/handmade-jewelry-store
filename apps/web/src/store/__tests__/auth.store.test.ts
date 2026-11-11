@@ -107,35 +107,34 @@ describe('useAuthStore', () => {
     })
   })
 
-  describe('rehydration from localStorage', () => {
-    it('derives isAuthenticated and ADMIN role from persisted accessToken', () => {
-      // Simulate what onRehydrateStorage does after localStorage restore:
-      // inject a persisted state that only has tokens (no isAuthenticated/role)
-      useAuthStore.setState({
-        accessToken: adminJwt,
-        isAuthenticated: false, // not yet derived
-        role: null,
+  describe('memory-only accessToken (#590)', () => {
+    it('does NOT write the accessToken to localStorage', () => {
+      window.localStorage.removeItem('auth-store')
+
+      const { result } = renderHook(() => useAuthStore())
+      act(() => {
+        result.current.setTokens(adminJwt, 'refresh-token')
       })
 
-      // Manually trigger rehydration (same logic as onRehydrateStorage callback)
-      useAuthStore.persist.rehydrate()
-
-      // After rehydration the store should derive isAuthenticated and role
-      const state = useAuthStore.getState()
-      expect(state.isAuthenticated).toBe(true)
-      expect(state.role).toBe('ADMIN')
+      expect(window.localStorage.getItem('auth-store')).toBeNull()
     })
 
-    it('leaves isAuthenticated false when accessToken is null in persisted state', () => {
-      useAuthStore.setState({
-        accessToken: null,
-        isAuthenticated: false,
-        role: null,
-      })
+    it('does not expose `persist` middleware controls (store is not persisted)', () => {
+      // `useAuthStore.persist` is a zustand/middleware artefact that only
+      // exists when the store is wrapped in persist(). Removing it is how we
+      // confirm at the type/runtime level that the token has no disk path.
+      const persist = (useAuthStore as unknown as { persist?: unknown }).persist
+      expect(persist).toBeUndefined()
+    })
 
-      useAuthStore.persist.rehydrate()
+    it('starts empty after a fresh module load (no localStorage read, no rehydration)', () => {
+      window.localStorage.setItem(
+        'auth-store',
+        JSON.stringify({ state: { accessToken: adminJwt }, version: 0 }),
+      )
 
       const state = useAuthStore.getState()
+      expect(state.accessToken).toBeNull()
       expect(state.isAuthenticated).toBe(false)
       expect(state.role).toBeNull()
     })
