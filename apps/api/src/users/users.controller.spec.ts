@@ -22,6 +22,7 @@ describe('UsersController', () => {
   let mockUsersService: {
     getProfile: jest.Mock
     updateProfile: jest.Mock
+    deleteSelfAccount: jest.Mock
   }
   let mockUsersExportService: { exportForUser: jest.Mock }
 
@@ -31,6 +32,7 @@ describe('UsersController', () => {
     mockUsersService = {
       getProfile: jest.fn(),
       updateProfile: jest.fn(),
+      deleteSelfAccount: jest.fn(),
     }
     mockUsersExportService = { exportForUser: jest.fn() }
 
@@ -103,6 +105,23 @@ describe('UsersController', () => {
       expect(setHeader).toHaveBeenCalledWith(
         'Content-Disposition',
         expect.stringMatching(/^attachment; filename="senichka-data-export-u1-2026-11-02\.json"$/),
+      )
+    })
+  })
+
+  describe('DELETE /users/me (#642 GDPR Art. 17)', () => {
+    it('forwards password + confirmationPhrase to the service for the authenticated caller', async () => {
+      mockUsersService.deleteSelfAccount.mockResolvedValueOnce(undefined)
+
+      await usersController.deleteMe(authenticatedUser, {
+        password: 'correct-horse',
+        confirmationPhrase: 'DELETE MY ACCOUNT',
+      })
+
+      expect(mockUsersService.deleteSelfAccount).toHaveBeenCalledWith(
+        'u1',
+        'correct-horse',
+        'DELETE MY ACCOUNT',
       )
     })
   })

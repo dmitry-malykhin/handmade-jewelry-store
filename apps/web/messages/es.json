@@ -251,7 +251,7 @@
     "s7Intro": "Según el lugar donde vivas, puedes tener los siguientes derechos sobre tus datos personales:",
     "s7Access": "<b>Acceso</b> — solicitar una copia de los datos que tenemos sobre ti.",
     "s7Correction": "<b>Rectificación</b> — pedirnos que corrijamos datos inexactos.",
-    "s7Deletion": "<b>Supresión</b> — solicitar que eliminemos tus datos personales (\"derecho al olvido\").",
+    "s7Deletion": "<b>Supresión</b>: solicitar que eliminemos tus datos personales («derecho al olvido»). Usa <b>Cuenta > Configuración > Eliminar tu cuenta</b> para un borrado inmediato en autoservicio, o escríbenos para pedirlo. Los pedidos que hayas realizado quedan en nuestros registros con los campos personales en blanco; estamos obligados a conservar el historial de pedidos durante 7 años por obligaciones fiscales (IRS 26 CFR §1.6001-1 y equivalentes del IVA en la UE).",
     "s7Portability": "<b>Portabilidad</b> — recibir tus datos en un formato legible por máquina.",
     "s7OptOut": "<b>Oponerte a la venta o transferencia</b>: los residentes en California pueden detener la transferencia de información personal para publicidad de comportamiento entre contextos mediante el enlace \"Do Not Sell or Share My Personal Information\" del pie de página. La sección 8 explica en detalle los derechos CPRA / CCPA.",
     "s7Withdraw": "<b>Retirar consentimiento</b> — retirar el consentimiento de marketing o analítica en cualquier momento.",
@@ -1308,6 +1308,24 @@
         "success": "Tus datos se han descargado.",
         "errorUnauthorized": "Inicia sesión de nuevo antes de descargar tus datos.",
         "errorGeneric": "No se pudo preparar la exportación. Inténtalo de nuevo en un minuto."
+      },
+      "deleteAccount": {
+        "title": "Eliminar tu cuenta",
+        "description": "Elimina tu cuenta y tus datos personales de forma permanente. Los pedidos que hayas realizado se conservan con los campos personales en blanco (estamos obligados a mantener el historial de pedidos durante 7 años por motivos fiscales y contables). Esta acción no se puede deshacer.",
+        "openButton": "Eliminar mi cuenta...",
+        "modalTitle": "Confirmar eliminación de cuenta",
+        "modalDescription": "Introduce tu contraseña actual y escribe la frase {phrase} para confirmar. La acción es irreversible.",
+        "passwordLabel": "Contraseña actual",
+        "phraseLabel": "Escribe {phrase} para confirmar",
+        "cancelButton": "Cancelar",
+        "confirmButton": "Eliminar cuenta",
+        "submittingButton": "Eliminando...",
+        "success": "Tu cuenta ha sido eliminada.",
+        "errorUnauthorized": "Vuelve a iniciar sesión antes de eliminar la cuenta.",
+        "errorFieldsRequired": "La contraseña y la frase de confirmación son obligatorias.",
+        "errorPhraseMismatch": "La frase de confirmación debe coincidir exactamente: {phrase}.",
+        "errorInvalidCredentials": "La contraseña o la frase de confirmación es incorrecta.",
+        "errorGeneric": "No se pudo eliminar tu cuenta. Inténtalo de nuevo en un minuto."
       }
     },
     "wishlist": {

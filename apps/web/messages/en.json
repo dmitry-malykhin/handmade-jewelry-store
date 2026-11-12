@@ -251,7 +251,7 @@
     "s7Intro": "Depending on where you live, you may have the following rights regarding your personal data:",
     "s7Access": "<b>Access</b> — request a copy of the data we hold about you.",
     "s7Correction": "<b>Correction</b> — ask us to correct inaccurate data.",
-    "s7Deletion": "<b>Deletion</b> — request that we delete your personal data (\"right to be forgotten\").",
+    "s7Deletion": "<b>Deletion</b>: request that we delete your personal data (\"right to be forgotten\"). Use <b>Account > Settings > Delete your account</b> for an immediate self-service erasure, or email us to request it. Orders you placed stay in our records with all personal fields blanked; we are required to keep order history for 7 years by tax law (IRS 26 CFR §1.6001-1 and EU VAT equivalents).",
     "s7Portability": "<b>Portability</b> — receive your data in a machine-readable format.",
     "s7OptOut": "<b>Opt-out of sale or sharing</b>: California residents can stop the sharing of personal information for cross-context behavioural advertising via the \"Do Not Sell or Share My Personal Information\" link in the footer. Section 8 explains the full CPRA / CCPA rights in detail.",
     "s7Withdraw": "<b>Withdraw consent</b> — withdraw marketing or analytics consent at any time.",
@@ -1308,6 +1308,24 @@
         "success": "Your data export has downloaded.",
         "errorUnauthorized": "Please sign in again before downloading your data.",
         "errorGeneric": "Could not prepare the export. Please try again in a minute."
+      },
+      "deleteAccount": {
+        "title": "Delete your account",
+        "description": "Permanently remove your account and personal data. Orders you placed stay in our records with all personal fields blanked (we are required to keep order history for 7 years for tax and accounting). This action cannot be undone.",
+        "openButton": "Delete my account...",
+        "modalTitle": "Confirm account deletion",
+        "modalDescription": "Enter your current password and type the phrase {phrase} to confirm. The action is irreversible.",
+        "passwordLabel": "Current password",
+        "phraseLabel": "Type {phrase} to confirm",
+        "cancelButton": "Cancel",
+        "confirmButton": "Delete account",
+        "submittingButton": "Deleting...",
+        "success": "Your account has been deleted.",
+        "errorUnauthorized": "Please sign in again before deleting your account.",
+        "errorFieldsRequired": "Both password and the confirmation phrase are required.",
+        "errorPhraseMismatch": "The confirmation phrase must match exactly: {phrase}.",
+        "errorInvalidCredentials": "The password or confirmation phrase is incorrect.",
+        "errorGeneric": "Could not delete your account. Please try again in a minute."
       }
     },
     "wishlist": {

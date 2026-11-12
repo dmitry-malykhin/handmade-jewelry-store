@@ -110,6 +110,38 @@ fly ssh console --app handmade-jewelry-api-staging
 npx prisma migrate deploy
 ```
 
+### Шаг 7.1. Reconcile если migration уже была применена руками
+
+Если на staging table (напр. `NewsletterConsent` из #552) была создана до того, как Prisma «увидел» migration file (случай #536: phantom path в `apps/api/apps/api/prisma/migrations/`), то `prisma migrate deploy` упадёт с `P3009 ... relation already exists`.
+
+Один раз:
+```bash
+fly ssh console --app handmade-jewelry-api-staging
+cd /app/apps/api
+
+# Проверить, что table уже существует:
+node node_modules/.bin/prisma db execute --stdin <<'SQL'
+SELECT to_regclass('"NewsletterConsent"') IS NOT NULL AS exists;
+SQL
+
+# Если exists = t:
+node node_modules/.bin/prisma migrate resolve --applied 20260919000000_add_newsletter_consent
+
+# Verify:
+node node_modules/.bin/prisma migrate status
+# Expected: "Database schema is up to date!"
+
+exit
+```
+
+Smoke-test staging после reconcile:
+```bash
+curl -X POST https://handmade-jewelry-api-staging.fly.dev/api/newsletter/subscribe \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"ops+newsletter@senichka.com","consentShownAt":"2026-10-18T00:00:00Z"}' -i
+# Expected: HTTP/1.1 202 Accepted
+```
+
 ---
 
 ## Полезные команды
