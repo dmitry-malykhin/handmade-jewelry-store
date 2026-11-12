@@ -50,6 +50,7 @@ beforeEach(async () => {
 describe('usePaymentRequest', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    window.sessionStorage.clear()
   })
 
   it('sets canMakePayment to true when browser supports native pay', async () => {
@@ -127,9 +128,9 @@ describe('usePaymentRequest', () => {
     })
 
     expect(mockEvent.complete).toHaveBeenCalledWith('success')
-    expect(mockRouterPush).toHaveBeenCalledWith(
-      '/en/checkout/confirmation/order_abc?token=signed-order-token',
-    )
+    // #588: token is persisted in sessionStorage, not appended to the URL.
+    expect(window.sessionStorage.getItem('orderAccessToken:order_abc')).toBe('signed-order-token')
+    expect(mockRouterPush).toHaveBeenCalledWith('/en/checkout/confirmation/order_abc')
   })
 
   it('calls event.complete("fail") and sets error when confirmCardPayment fails', async () => {

@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Elements } from '@stripe/react-stripe-js'
 import { useLocale, useTranslations } from 'next-intl'
 import { useCheckoutTotalPrice } from '@/store/cart.store'
+import { rememberGuestOrderAccessToken } from '@/lib/checkout/order-access-token'
 import { stripePromise } from '@/lib/stripe'
 import { CheckoutOrderSummary } from './checkout-order-summary'
 import { CheckoutSteps } from './checkout-steps'
@@ -48,10 +49,16 @@ export function CheckoutPaymentForm({
 
   const [isSubmitting, setIsSubmitting] = useState(false)
 
+  // Persist the guest token in sessionStorage BEFORE building return_url, so
+  // Stripe redirects back to a token-free URL and no replay/extension can
+  // scrape it from window.location (#588).
+  if (typeof window !== 'undefined' && orderId && orderAccessToken) {
+    rememberGuestOrderAccessToken(orderId, orderAccessToken)
+  }
+
   const returnUrl =
     typeof window !== 'undefined' && orderId
-      ? `${window.location.origin}/${locale}/checkout/confirmation/${orderId}` +
-        (orderAccessToken ? `?token=${encodeURIComponent(orderAccessToken)}` : '')
+      ? `${window.location.origin}/${locale}/checkout/confirmation/${orderId}`
       : ''
 
   return (
