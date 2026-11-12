@@ -1,5 +1,4 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
 
 export type UserRole = 'USER' | 'ADMIN'
 
@@ -27,8 +26,9 @@ interface AuthStore {
   role: UserRole | null
 
   /**
-   * Store the access token after login/register/refresh. The refresh token now
-   * lives in an HttpOnly cookie set by the API — never touches JS/localStorage.
+   * Store the access token after login/register/refresh. The refresh token
+   * lives in an HttpOnly cookie set by the API; the access token is kept in
+   * memory only so XSS cannot exfiltrate it from localStorage (#590).
    * 2nd arg ignored — kept for call-site backward compat during rollout.
    */
   setTokens: (accessToken: string, _legacyRefreshTokenIgnored?: string) => void
@@ -37,35 +37,22 @@ interface AuthStore {
   clearTokens: () => void
 }
 
-export const useAuthStore = create<AuthStore>()(
-  persist(
-    (set) => ({
-      accessToken: null,
-      isAuthenticated: false,
-      role: null,
+// No persist middleware: the access token is memory-only (#590). A page
+// refresh zeroes the store; AuthBootstrap calls POST /auth/refresh with the
+// HttpOnly cookie to rehydrate. `role`/`isAuthenticated` are deterministic
+// from the token, so persisting them is both unnecessary and unsafe (would
+// flicker a "signed in" header even when the refresh cookie is already gone).
+export const useAuthStore = create<AuthStore>()((set) => ({
+  accessToken: null,
+  isAuthenticated: false,
+  role: null,
 
-      setTokens: (accessToken) => {
-        const payload = decodeJwtPayload(accessToken)
-        set({ accessToken, isAuthenticated: true, role: payload?.role ?? null })
-      },
+  setTokens: (accessToken) => {
+    const payload = decodeJwtPayload(accessToken)
+    set({ accessToken, isAuthenticated: true, role: payload?.role ?? null })
+  },
 
-      clearTokens: () => {
-        set({ accessToken: null, isAuthenticated: false, role: null })
-      },
-    }),
-    {
-      name: 'auth-store',
-      partialize: (state) => ({ accessToken: state.accessToken }),
-      onRehydrateStorage: () => (rehydratedState: AuthStore | undefined) => {
-        if (rehydratedState?.accessToken) {
-          const payload = decodeJwtPayload(rehydratedState.accessToken)
-          rehydratedState.isAuthenticated = true
-          rehydratedState.role = payload?.role ?? null
-        }
-      },
-      // skipHydration prevents SSR/client mismatch — store rehydrates on client only.
-      // Call useAuthStore.persist.rehydrate() in a root client component if needed.
-      skipHydration: true,
-    },
-  ),
-)
+  clearTokens: () => {
+    set({ accessToken: null, isAuthenticated: false, role: null })
+  },
+}))

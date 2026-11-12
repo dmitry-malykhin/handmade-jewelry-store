@@ -8,6 +8,7 @@ import { routing, type Locale } from '@/i18n/routing'
 import { Header } from '@/components/shared/header'
 import { Footer } from '@/components/shared/footer'
 import { SkipToContentLink } from '@/components/shared/skip-to-content-link'
+import { AuthBootstrap } from '@/components/shared/auth-bootstrap'
 import { StoreHydration } from '@/components/shared/store-hydration'
 import { QueryProvider } from '@/components/shared/query-provider'
 import { generateOrganizationJsonLd } from '@/lib/seo/json-ld'
@@ -53,6 +54,7 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
         />
         <StoreHydration />
+        <AuthBootstrap />
         <SkipToContentLink targetId="main-content" />
         <Header />
         <main id="main-content" className="flex-1">

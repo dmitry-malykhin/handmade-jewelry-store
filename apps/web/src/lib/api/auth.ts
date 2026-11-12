@@ -60,6 +60,14 @@ export async function logoutUser(accessToken: string): Promise<void> {
   })
 }
 
+// POST /auth/refresh: exchange the HttpOnly refresh cookie for a fresh access
+// token. apiClient sends cookies by default (credentials: 'include'), so no
+// Authorization header is needed. Used by AuthBootstrap on page load (#590) to
+// restore in-memory accessToken after a refresh wipes the store.
+export async function refreshAccessToken(): Promise<AuthTokens> {
+  return apiClient<AuthTokens>('/api/auth/refresh', { method: 'POST' })
+}
+
 export async function changePassword(
   accessToken: string,
   currentPassword: string,
