@@ -3,4 +3,4 @@
 // the same PR so we can prove which text a buyer agreed to during an audit.
 export const CURRENT_TERMS_VERSION = 'v1-2026-09'
 export const CURRENT_PRIVACY_VERSION = 'v1-2026-09'
-export const CURRENT_REFUND_POLICY_VERSION = 'v1-2026-09'
+export const CURRENT_REFUND_POLICY_VERSION = 'v2-2026-11'

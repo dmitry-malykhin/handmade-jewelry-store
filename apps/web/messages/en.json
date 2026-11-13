@@ -358,7 +358,8 @@
     "doNotSell": "Do Not Sell or Share My Personal Information",
     "doNotSellOptedOut": "You are opted out of the sale or sharing of personal information",
     "doNotSellAriaLabel": "Opt out of the sale or sharing of your personal information (California CPRA)",
-    "doNotSellConfirm": "You have opted out. Analytics and marketing cookies are now disabled on this device."
+    "doNotSellConfirm": "You have opted out. Analytics and marketing cookies are now disabled on this device.",
+    "refundPolicy": "Refund Policy"
   },
   "catalog": {
     "metaTitle": "All Jewelry",
@@ -1560,5 +1561,38 @@
       "pinterestTag": "Enables retargeting on Pinterest and measures ad performance.",
       "klaviyo": "Ties email opens and site visits to your marketing profile for personalisation."
     }
+  },
+  "refundPolicyPage": {
+    "metaTitle": "Refund Policy",
+    "metaDescription": "Return and refund terms for Senichka handmade jewelry: 14-day cooling-off, exceptions for custom pieces, how to initiate a return, and the EU standard withdrawal form.",
+    "title": "Refund Policy",
+    "lastUpdated": "Last updated: November 12, 2026",
+    "intro": "This page explains when you can return an item, how refunds are processed, and includes the standard withdrawal form required by EU Consumer Rights Directive 2011/83/EU, Annex I. It supplements our Terms of Service and does not limit any statutory rights you have as a consumer under the laws of your country of residence.",
+    "coolingOffHeading": "1. 14-day cooling-off period",
+    "coolingOffBody": "You may return an item within 14 days of delivery for any reason, including no reason at all, as granted by the EU Consumer Rights Directive. Items should be returned unworn and undamaged; the original packaging is appreciated but not required.",
+    "exceptionsHeading": "2. Exceptions",
+    "exceptionsIntro": "The right of withdrawal does not apply to the following categories under CRD Art. 16, provided the goods were made or personalised to your specifications:",
+    "exceptionCustom": "Custom pieces engraved or built to your specification.",
+    "exceptionResized": "Rings resized to a non-standard size on request.",
+    "exceptionsOutro": "If a custom item arrives defective or damaged, standard consumer protection rights still apply and we will replace it or refund you.",
+    "howToHeading": "3. How to initiate a return",
+    "howToBody": "Email <a>{email}</a> within the 14-day window with your order number and the reason for return. We will reply with a return address and tracking instructions. You can also use the standard EU withdrawal form below.",
+    "costsHeading": "4. Return shipping costs",
+    "costsBody": "Return shipping is at the buyer's expense, unless the item arrived defective, damaged, or incorrect; in those cases we reimburse the return label.",
+    "timingHeading": "5. Refund timing",
+    "timingBody": "Once we receive and inspect the returned item, the refund is issued to the original payment method within 5 to 10 business days. Original outbound shipping costs are refunded for defective, damaged, or incorrect items.",
+    "statutoryHeading": "6. Statutory rights",
+    "statutoryBody": "Nothing on this page limits any non-waivable rights you may have as a consumer under the laws of your country of residence, including the EU Consumer Rights Directive 2011/83/EU and any national implementation.",
+    "withdrawalHeading": "7. Standard EU withdrawal form (CRD Annex I)",
+    "withdrawalIntro": "You may use the form below (or any other unequivocal statement) to exercise your right of withdrawal within 14 days of delivery. Fill it in, print it, and post or email a copy to the trader address listed below.",
+    "withdrawalFormTo": "To: Senichka (trader) · <a>{email}</a>",
+    "withdrawalFormIntro": "I/We (*) hereby give notice that I/We (*) withdraw from my/our (*) contract of sale of the following goods (*)/for the provision of the following service (*):",
+    "withdrawalFormOrderedOn": "Ordered on (*)/received on (*):",
+    "withdrawalFormConsumerName": "Name of consumer(s):",
+    "withdrawalFormConsumerAddress": "Address of consumer(s):",
+    "withdrawalFormSignature": "Signature of consumer(s) (only if this form is notified on paper):",
+    "withdrawalFormDate": "Date:",
+    "withdrawalFormFootnote": "(*) Delete as appropriate.",
+    "printButton": "Print this form"
   }
 }

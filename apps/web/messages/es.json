@@ -358,7 +358,8 @@
     "doNotSell": "No vender ni compartir mi información personal",
     "doNotSellOptedOut": "Has rechazado la venta o compartición de tu información personal",
     "doNotSellAriaLabel": "Rechazar la venta o compartición de tu información personal (California CPRA)",
-    "doNotSellConfirm": "Has rechazado. Las cookies de análisis y marketing están desactivadas en este dispositivo."
+    "doNotSellConfirm": "Has rechazado. Las cookies de análisis y marketing están desactivadas en este dispositivo.",
+    "refundPolicy": "Política de reembolsos"
   },
   "catalog": {
     "metaTitle": "Toda la joyería",
@@ -1560,5 +1561,38 @@
       "pinterestTag": "Permite retargeting en Pinterest y mide el rendimiento de anuncios.",
       "klaviyo": "Relaciona la apertura de emails y las visitas al sitio con tu perfil de marketing."
     }
+  },
+  "refundPolicyPage": {
+    "metaTitle": "Política de reembolsos",
+    "metaDescription": "Condiciones de devolución y reembolso para Senichka: periodo de desistimiento de 14 días, excepciones para piezas personalizadas, cómo iniciar una devolución y formulario estándar de desistimiento de la UE.",
+    "title": "Política de reembolsos",
+    "lastUpdated": "Última actualización: 12 de noviembre de 2026",
+    "intro": "Esta página explica cuándo puedes devolver un artículo, cómo se procesan los reembolsos, e incluye el formulario de desistimiento que exige la Directiva 2011/83/UE sobre derechos de los consumidores, Anexo I. Complementa nuestras Condiciones del servicio y no limita los derechos imperativos que te amparan como consumidor según las leyes de tu país de residencia.",
+    "coolingOffHeading": "1. Periodo de desistimiento de 14 días",
+    "coolingOffBody": "Puedes devolver un artículo en los 14 días siguientes a la entrega por cualquier motivo o sin motivo alguno (Directiva de la UE sobre derechos de los consumidores). El artículo debe devolverse sin usar ni dañar; el embalaje original se agradece, pero no es obligatorio.",
+    "exceptionsHeading": "2. Excepciones",
+    "exceptionsIntro": "El derecho de desistimiento no se aplica a las siguientes categorías (CRD art. 16), siempre que los bienes se hayan fabricado o personalizado según tus especificaciones:",
+    "exceptionCustom": "Piezas personalizadas con grabado o fabricadas según tus especificaciones.",
+    "exceptionResized": "Anillos ajustados a un tamaño no estándar a petición.",
+    "exceptionsOutro": "Si una pieza personalizada llega defectuosa o dañada, se aplican los derechos estándar del consumidor y la sustituimos o te reembolsamos.",
+    "howToHeading": "3. Cómo iniciar una devolución",
+    "howToBody": "Escribe a <a>{email}</a> dentro del plazo de 14 días indicando el número de pedido y el motivo de la devolución. Te enviaremos la dirección de devolución y las instrucciones de seguimiento. También puedes utilizar el formulario estándar de desistimiento más abajo.",
+    "costsHeading": "4. Gastos de envío de devolución",
+    "costsBody": "Los gastos de envío de la devolución corren a cargo del comprador, salvo cuando el artículo haya llegado defectuoso, dañado o incorrecto; en esos casos reembolsamos el envío.",
+    "timingHeading": "5. Plazos de reembolso",
+    "timingBody": "Una vez recibido e inspeccionado el artículo devuelto, emitimos el reembolso en el método de pago original en un plazo de 5 a 10 días hábiles. Los gastos de envío originales se reembolsan en caso de artículos defectuosos, dañados o incorrectos.",
+    "statutoryHeading": "6. Derechos legales",
+    "statutoryBody": "Nada en esta página limita los derechos imperativos que te amparan como consumidor según las leyes de tu país de residencia, incluida la Directiva 2011/83/UE sobre derechos de los consumidores y su desarrollo nacional.",
+    "withdrawalHeading": "7. Formulario estándar de desistimiento de la UE (CRD, Anexo I)",
+    "withdrawalIntro": "Puedes utilizar el formulario que figura a continuación (o cualquier otra declaración inequívoca) para ejercer tu derecho de desistimiento en los 14 días siguientes a la entrega. Rellénalo, imprímelo y envíalo por correo postal o email a la dirección del comerciante indicada abajo.",
+    "withdrawalFormTo": "A: Senichka (comerciante) · <a>{email}</a>",
+    "withdrawalFormIntro": "Por la presente le comunico/comunicamos (*) que desisto de mi/desistimos de nuestro (*) contrato de venta del siguiente bien (*)/prestación del siguiente servicio (*):",
+    "withdrawalFormOrderedOn": "Pedido el (*)/recibido el (*):",
+    "withdrawalFormConsumerName": "Nombre del consumidor o los consumidores:",
+    "withdrawalFormConsumerAddress": "Domicilio del consumidor o los consumidores:",
+    "withdrawalFormSignature": "Firma del consumidor o los consumidores (solo si este formulario se presenta en papel):",
+    "withdrawalFormDate": "Fecha:",
+    "withdrawalFormFootnote": "(*) Táchese lo que no proceda.",
+    "printButton": "Imprimir este formulario"
   }
 }

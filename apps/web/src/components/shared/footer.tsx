@@ -111,6 +111,12 @@ export function Footer() {
               {t('terms')}
             </Link>
             <Link
+              href="/refund-policy"
+              className="rounded-sm text-sm text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            >
+              {t('refundPolicy')}
+            </Link>
+            <Link
               href="/impressum"
               className="rounded-sm text-sm text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             >

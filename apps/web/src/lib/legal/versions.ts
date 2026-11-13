@@ -4,4 +4,4 @@
 // These MUST stay in sync with apps/api/src/orders/legal-versions.ts.
 export const CURRENT_TERMS_VERSION = 'v1-2026-09'
 export const CURRENT_PRIVACY_VERSION = 'v1-2026-09'
-export const CURRENT_REFUND_POLICY_VERSION = 'v1-2026-09'
+export const CURRENT_REFUND_POLICY_VERSION = 'v2-2026-11'
