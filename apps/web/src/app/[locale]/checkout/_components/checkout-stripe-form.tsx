@@ -148,7 +148,7 @@ export function CheckoutStripeForm({
               {t.rich('acknowledgementWithdrawal', {
                 policy: (chunks) => (
                   <a
-                    href={`/${locale}/terms#returns-and-refunds`}
+                    href={`/${locale}/refund-policy`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="underline underline-offset-2 hover:text-foreground"
@@ -204,7 +204,7 @@ export function CheckoutStripeForm({
                 ),
                 refund: (chunks) => (
                   <a
-                    href={`/${locale}/terms#returns-and-refunds`}
+                    href={`/${locale}/refund-policy`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="underline underline-offset-2 hover:text-foreground"

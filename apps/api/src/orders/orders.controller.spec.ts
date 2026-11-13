@@ -165,7 +165,7 @@ describe('OrdersController', () => {
       const dto = {
         termsVersion: 'v1-2026-09',
         privacyVersion: 'v1-2026-09',
-        refundPolicyVersion: 'v1-2026-09',
+        refundPolicyVersion: 'v2-2026-11',
       }
       const authedUser = { id: 'user-real', email: 'a@b.c', role: Role.USER } as User
 
@@ -194,7 +194,7 @@ describe('OrdersController', () => {
       const dto = {
         termsVersion: 'v1-2026-09',
         privacyVersion: 'v1-2026-09',
-        refundPolicyVersion: 'v1-2026-09',
+        refundPolicyVersion: 'v2-2026-11',
       }
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
