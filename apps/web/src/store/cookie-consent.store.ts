@@ -35,6 +35,13 @@ interface CookieConsentStore {
 
   /** CCPA/CPRA "Do Not Sell or Share" opt-out. Forces both categories OFF. */
   doNotSellOptOut: () => void
+
+  /**
+   * CPRA requires that users who opted out of "sale or sharing" be able to
+   * change their mind later (#614). Clears the opt-out flag and resets
+   * `hasDecided` so the banner surfaces again for a fresh choice.
+   */
+  restoreMarketingPreferences: () => void
 }
 
 export const useCookieConsentStore = create<CookieConsentStore>()(
@@ -84,6 +91,16 @@ export const useCookieConsentStore = create<CookieConsentStore>()(
           hasDecided: true,
           preferences: { analytics: false, marketing: false },
           doNotSellOptedOut: true,
+        }),
+
+      restoreMarketingPreferences: () =>
+        // Reset hasDecided so the banner re-opens and the user has to make a
+        // fresh choice (Accept / Reject / Customise). Preferences stay OFF
+        // until the banner records a new decision.
+        set({
+          hasDecided: false,
+          doNotSellOptedOut: false,
+          preferences: { analytics: false, marketing: false },
         }),
     }),
     {

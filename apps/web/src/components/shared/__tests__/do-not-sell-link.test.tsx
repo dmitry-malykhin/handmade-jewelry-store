@@ -11,6 +11,11 @@ import {
 
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
 
+const mockAddBreadcrumb = vi.fn()
+vi.mock('@sentry/nextjs', () => ({
+  addBreadcrumb: (...args: unknown[]) => mockAddBreadcrumb(...args),
+}))
+
 beforeEach(async () => {
   if (!process.env.CI) return
   await $allureSuite('web/components/shared')
@@ -55,9 +60,48 @@ describe('DoNotSellLink', () => {
     expect(state.preferences).toEqual({ analytics: false, marketing: false })
   })
 
-  it('renders a persistent "You are opted out" label once opted out', () => {
+  it('renders a Restore control once opted out (#614)', () => {
     useCookieConsentStore.setState({ doNotSellOptedOut: true, hasDecided: true })
     render(<DoNotSellLink />)
-    expect(screen.getByRole('button')).toHaveTextContent(/you are opted out/i)
+    expect(screen.getByRole('button')).toHaveTextContent(/Restore marketing preferences/i)
+  })
+
+  describe('restore flow (#614 CPRA opt-back-in)', () => {
+    beforeEach(() => {
+      mockAddBreadcrumb.mockClear()
+    })
+
+    it('clears the opt-out flag and resets hasDecided so the banner re-opens', async () => {
+      const user = userEvent.setup()
+      useCookieConsentStore.setState({
+        hasDecided: true,
+        preferences: { analytics: false, marketing: false },
+        doNotSellOptedOut: true,
+      })
+
+      render(<DoNotSellLink />)
+      await user.click(screen.getByRole('button'))
+
+      const state = useCookieConsentStore.getState()
+      expect(state.doNotSellOptedOut).toBe(false)
+      expect(state.hasDecided).toBe(false)
+      // Preferences stay OFF until the user records a fresh choice via the banner
+      expect(state.preferences).toEqual({ analytics: false, marketing: false })
+    })
+
+    it('emits a Sentry breadcrumb for the audit trail', async () => {
+      const user = userEvent.setup()
+      useCookieConsentStore.setState({ doNotSellOptedOut: true, hasDecided: true })
+
+      render(<DoNotSellLink />)
+      await user.click(screen.getByRole('button'))
+
+      expect(mockAddBreadcrumb).toHaveBeenCalledWith(
+        expect.objectContaining({
+          category: 'consent',
+          message: 'cpra.opt-back-in',
+        }),
+      )
+    })
   })
 })
