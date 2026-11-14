@@ -1,10 +1,16 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
-import { OrderStatus, Role } from '@prisma/client'
+import { ForbiddenException, Injectable, Logger, NotFoundException } from '@nestjs/common'
+import { NewsletterConsentStatus, OrderStatus, Prisma, Role } from '@prisma/client'
 import * as bcrypt from 'bcrypt'
 import { paginate } from '../common/pagination/paginate'
+import { KlaviyoNewsletterClient } from '../newsletter/klaviyo-newsletter.client'
 import { PrismaService } from '../prisma/prisma.service'
 import { AdminCustomerQueryDto } from './dto/admin-customer-query.dto'
 import { UpdateProfileDto } from './dto/update-profile.dto'
+
+// Exact-match phrase the caller must type to confirm destruction. Translated
+// strings live in the frontend copy; the API compares against this canonical
+// English token so backend tests and audit logs read the same thing.
+export const DELETE_ACCOUNT_CONFIRMATION_PHRASE = 'DELETE MY ACCOUNT'
 
 const BCRYPT_SALT_ROUNDS = 12
 
@@ -20,7 +26,12 @@ const REVENUE_ORDER_STATUSES: readonly OrderStatus[] = [
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly prismaService: PrismaService) {}
+  private readonly logger = new Logger(UsersService.name)
+
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly klaviyoClient: KlaviyoNewsletterClient,
+  ) {}
 
   async findByEmail(email: string) {
     return this.prismaService.user.findUnique({ where: { email } })
@@ -156,5 +167,120 @@ export class UsersService {
       select: { id: true, email: true, name: true, phone: true },
     })
     return updated
+  }
+
+  // GDPR Art. 17 (right to erasure) #642. Two-step reauth: current password
+  // (bcrypt) + exact confirmation phrase, to prevent an XSS-stolen session
+  // from one-shotting the destroy button.
+  //
+  // Data policy:
+  //   - Order rows are RETAINED (tax law: 7 years under IRS 26 CFR §1.6001-1
+  //     and EU VAT equivalents) but PII is stripped from them and userId is
+  //     nulled so the Order no longer links to any person.
+  //   - NewsletterConsent rows are flipped to UNSUBSCRIBED (audit trail of
+  //     consent survives even after User disappears; that is the point of
+  //     storing email there, not a FK to User).
+  //   - Reviews + Wishlist are hard-deleted explicitly (no onDelete:Cascade
+  //     on their relations).
+  //   - User row + addresses / loyaltyTransactions / refreshTokens cascade
+  //     out via onDelete:Cascade on their FKs.
+  //   - Klaviyo profile revoked post-commit (fire-and-forget; external failure
+  //     must not block the local erasure).
+  async deleteSelfAccount(
+    userId: string,
+    password: string,
+    confirmationPhrase: string,
+  ): Promise<void> {
+    if (confirmationPhrase !== DELETE_ACCOUNT_CONFIRMATION_PHRASE) {
+      throw new ForbiddenException('Invalid confirmation phrase')
+    }
+
+    const user = await this.prismaService.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true, password: true },
+    })
+    if (!user) {
+      throw new NotFoundException(`User ${userId} not found`)
+    }
+
+    const passwordMatches = await bcrypt.compare(password, user.password)
+    if (!passwordMatches) {
+      throw new ForbiddenException('Invalid password')
+    }
+
+    await this.prismaService.$transaction(async (tx) => {
+      // 1. Anonymise orders: retain for tax, strip PII, drop user link.
+      const ordersToAnonymise = await tx.order.findMany({
+        where: { userId },
+        select: { id: true, shippingAddress: true },
+      })
+      for (const order of ordersToAnonymise) {
+        const anonymisedShipping = anonymiseShippingAddress(order.shippingAddress)
+        await tx.order.update({
+          where: { id: order.id },
+          data: {
+            userId: null,
+            guestEmail: null,
+            shippingAddress: anonymisedShipping as Prisma.InputJsonValue,
+          },
+        })
+      }
+
+      // 2. Unsubscribe newsletter consents (audit row stays; status moves).
+      await tx.newsletterConsent.updateMany({
+        where: {
+          email: user.email,
+          status: { in: [NewsletterConsentStatus.CONFIRMED, NewsletterConsentStatus.PENDING] },
+        },
+        data: {
+          status: NewsletterConsentStatus.UNSUBSCRIBED,
+          unsubscribedAt: new Date(),
+        },
+      })
+
+      // 3. Explicit deletes for relations without onDelete:Cascade.
+      await tx.review.deleteMany({ where: { userId } })
+      await tx.wishlist.deleteMany({ where: { userId } })
+
+      // 4. Delete User: cascades addresses, loyaltyTransactions, refreshTokens.
+      await tx.user.delete({ where: { id: userId } })
+    })
+
+    // External call outside the DB transaction so a Klaviyo outage does not
+    // roll back the local erasure. If it fails, the rows are gone regardless;
+    // the Klaviyo profile will decay on its own TTL.
+    void this.klaviyoClient.unsubscribeEmail(user.email).catch((error: unknown) => {
+      this.logger.warn(
+        `Klaviyo revoke failed for ${maskEmail(user.email)}: ${(error as Error).message}`,
+      )
+    })
+
+    this.logger.log(`Account deleted for user ${userId} (${maskEmail(user.email)})`)
+  }
+}
+
+function maskEmail(email: string): string {
+  const [local, domain] = email.split('@')
+  if (!local || !domain) return '***'
+  return `${local.slice(0, 2)}***@${domain}`
+}
+
+// Preserve only the delivery jurisdiction (state + country) required by VAT /
+// IRS audits; blank out the person-identifying fields of the JSON snapshot.
+function anonymiseShippingAddress(raw: unknown): Record<string, unknown> {
+  const source = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>
+  const pickString = (key: string): string | null => {
+    const value = source[key]
+    return typeof value === 'string' ? value : null
+  }
+  return {
+    fullName: '[deleted]',
+    addressLine1: '[deleted]',
+    addressLine2: null,
+    city: '[deleted]',
+    state: pickString('state'),
+    postalCode: '[deleted]',
+    country: pickString('country') ?? 'XX',
+    phone: null,
   }
 }

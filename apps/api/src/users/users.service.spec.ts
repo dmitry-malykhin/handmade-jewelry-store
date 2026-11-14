@@ -1,9 +1,11 @@
-import { NotFoundException } from '@nestjs/common'
+import { ForbiddenException, NotFoundException } from '@nestjs/common'
 import { Test, TestingModule } from '@nestjs/testing'
-import { OrderStatus, Role } from '@prisma/client'
+import { NewsletterConsentStatus, OrderStatus, Role } from '@prisma/client'
 import { Decimal } from '@prisma/client/runtime/library'
+import * as bcrypt from 'bcrypt'
+import { KlaviyoNewsletterClient } from '../newsletter/klaviyo-newsletter.client'
 import { PrismaService } from '../prisma/prisma.service'
-import { UsersService } from './users.service'
+import { DELETE_ACCOUNT_CONFIRMATION_PHRASE, UsersService } from './users.service'
 import {
   suite as $allureSuite,
   subSuite as $allureSubSuite,
@@ -17,7 +19,29 @@ const mockPrismaService = {
     count: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
+    delete: jest.fn(),
   },
+  order: {
+    findMany: jest.fn(),
+    update: jest.fn(),
+  },
+  newsletterConsent: {
+    updateMany: jest.fn(),
+  },
+  review: {
+    deleteMany: jest.fn(),
+  },
+  wishlist: {
+    deleteMany: jest.fn(),
+  },
+  $transaction: jest.fn(
+    async (callback: (tx: unknown) => Promise<unknown>): Promise<unknown> =>
+      callback(mockPrismaService),
+  ),
+}
+
+const mockKlaviyoClient = {
+  unsubscribeEmail: jest.fn().mockResolvedValue({ status: 'queued' }),
 }
 
 beforeEach(async () => {
@@ -34,7 +58,11 @@ describe('UsersService', () => {
     jest.clearAllMocks()
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [UsersService, { provide: PrismaService, useValue: mockPrismaService }],
+      providers: [
+        UsersService,
+        { provide: PrismaService, useValue: mockPrismaService },
+        { provide: KlaviyoNewsletterClient, useValue: mockKlaviyoClient },
+      ],
     }).compile()
 
     usersService = module.get<UsersService>(UsersService)
@@ -332,6 +360,124 @@ describe('UsersService', () => {
         data: { name: null, phone: null },
         select: { id: true, email: true, name: true, phone: true },
       })
+    })
+  })
+
+  describe('deleteSelfAccount (#642 GDPR Art. 17)', () => {
+    const realPassword = 'correct-horse'
+
+    beforeEach(async () => {
+      mockKlaviyoClient.unsubscribeEmail.mockClear()
+      // Replace the fixture hash with one bcrypt will actually accept so
+      // positive-path tests do not depend on an opaque prebaked bcrypt string.
+      const hashed = await bcrypt.hash(realPassword, 4)
+      mockPrismaService.user.findUnique.mockResolvedValue({
+        id: 'u1',
+        email: 'alice@example.com',
+        password: hashed,
+      })
+      mockPrismaService.order.findMany.mockResolvedValue([
+        {
+          id: 'order-1',
+          shippingAddress: {
+            fullName: 'Alice Doe',
+            addressLine1: '123 Main',
+            city: 'Austin',
+            state: 'TX',
+            postalCode: '73301',
+            country: 'US',
+            phone: '+1',
+          },
+        },
+      ])
+      mockPrismaService.order.update.mockResolvedValue({})
+      mockPrismaService.newsletterConsent.updateMany.mockResolvedValue({ count: 0 })
+      mockPrismaService.review.deleteMany.mockResolvedValue({ count: 0 })
+      mockPrismaService.wishlist.deleteMany.mockResolvedValue({ count: 0 })
+      mockPrismaService.user.delete.mockResolvedValue({})
+    })
+
+    it('rejects when the confirmation phrase does not match', async () => {
+      await expect(
+        usersService.deleteSelfAccount('u1', realPassword, 'Delete my account'),
+      ).rejects.toBeInstanceOf(ForbiddenException)
+      expect(mockPrismaService.user.delete).not.toHaveBeenCalled()
+    })
+
+    it('rejects when the password is wrong', async () => {
+      await expect(
+        usersService.deleteSelfAccount('u1', 'wrong-password', DELETE_ACCOUNT_CONFIRMATION_PHRASE),
+      ).rejects.toBeInstanceOf(ForbiddenException)
+      expect(mockPrismaService.user.delete).not.toHaveBeenCalled()
+    })
+
+    it('throws NotFoundException when the id does not resolve to a user', async () => {
+      mockPrismaService.user.findUnique.mockResolvedValueOnce(null)
+      await expect(
+        usersService.deleteSelfAccount('ghost', realPassword, DELETE_ACCOUNT_CONFIRMATION_PHRASE),
+      ).rejects.toBeInstanceOf(NotFoundException)
+    })
+
+    it('anonymises each order (keeps state+country, blanks name/line/city/postal/phone, nulls userId)', async () => {
+      await usersService.deleteSelfAccount('u1', realPassword, DELETE_ACCOUNT_CONFIRMATION_PHRASE)
+
+      expect(mockPrismaService.order.update).toHaveBeenCalledTimes(1)
+      const [[call]] = mockPrismaService.order.update.mock.calls
+      expect(call).toMatchObject({
+        where: { id: 'order-1' },
+        data: {
+          userId: null,
+          guestEmail: null,
+          shippingAddress: {
+            fullName: '[deleted]',
+            addressLine1: '[deleted]',
+            addressLine2: null,
+            city: '[deleted]',
+            state: 'TX',
+            postalCode: '[deleted]',
+            country: 'US',
+            phone: null,
+          },
+        },
+      })
+    })
+
+    it('flips NewsletterConsent rows (CONFIRMED | PENDING) to UNSUBSCRIBED by email', async () => {
+      await usersService.deleteSelfAccount('u1', realPassword, DELETE_ACCOUNT_CONFIRMATION_PHRASE)
+
+      expect(mockPrismaService.newsletterConsent.updateMany).toHaveBeenCalledWith({
+        where: {
+          email: 'alice@example.com',
+          status: {
+            in: [NewsletterConsentStatus.CONFIRMED, NewsletterConsentStatus.PENDING],
+          },
+        },
+        data: expect.objectContaining({
+          status: NewsletterConsentStatus.UNSUBSCRIBED,
+          unsubscribedAt: expect.any(Date),
+        }),
+      })
+    })
+
+    it('explicitly deletes reviews and wishlist rows (no onDelete:Cascade on those FKs)', async () => {
+      await usersService.deleteSelfAccount('u1', realPassword, DELETE_ACCOUNT_CONFIRMATION_PHRASE)
+
+      expect(mockPrismaService.review.deleteMany).toHaveBeenCalledWith({ where: { userId: 'u1' } })
+      expect(mockPrismaService.wishlist.deleteMany).toHaveBeenCalledWith({
+        where: { userId: 'u1' },
+      })
+    })
+
+    it('deletes the User row last (cascade drops addresses/loyalty/refreshTokens via FK)', async () => {
+      await usersService.deleteSelfAccount('u1', realPassword, DELETE_ACCOUNT_CONFIRMATION_PHRASE)
+
+      expect(mockPrismaService.user.delete).toHaveBeenCalledWith({ where: { id: 'u1' } })
+    })
+
+    it('revokes the Klaviyo profile outside the DB transaction (fire-and-forget)', async () => {
+      await usersService.deleteSelfAccount('u1', realPassword, DELETE_ACCOUNT_CONFIRMATION_PHRASE)
+
+      expect(mockKlaviyoClient.unsubscribeEmail).toHaveBeenCalledWith('alice@example.com')
     })
   })
 })

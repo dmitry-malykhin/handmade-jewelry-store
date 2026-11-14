@@ -60,3 +60,17 @@ export async function downloadDataExport(accessToken: string): Promise<DataExpor
   )
   return { blob, filename }
 }
+
+// DELETE /users/me: GDPR Art. 17 erasure (#642). Server returns 204 on
+// success, 403 on invalid password / confirmation phrase, 404 on ghost user.
+export async function deleteOwnAccount(
+  accessToken: string,
+  password: string,
+  confirmationPhrase: string,
+): Promise<void> {
+  await apiClient<void>('/api/users/me', {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${accessToken}` },
+    body: JSON.stringify({ password, confirmationPhrase }),
+  })
+}

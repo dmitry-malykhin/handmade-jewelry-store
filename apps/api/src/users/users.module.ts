@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common'
+import { NewsletterModule } from '../newsletter/newsletter.module'
 import { AdminCustomersController } from './admin-customers.controller'
 import { UsersExportService } from './users-export.service'
 import { UsersController } from './users.controller'
@@ -8,7 +9,11 @@ import { UsersService } from './users.service'
 // UsersModule, so the dependency direction must remain one-way. JwtAuthGuard
 // and RolesGuard work via @UseGuards() because AuthModule (registered at the
 // app root) makes the JWT strategy globally available through PassportModule.
+//
+// NewsletterModule is imported for KlaviyoNewsletterClient, used by
+// UsersService.deleteSelfAccount to revoke Klaviyo on account deletion (#642).
 @Module({
+  imports: [NewsletterModule],
   controllers: [AdminCustomersController, UsersController],
   providers: [UsersService, UsersExportService],
   exports: [UsersService],
