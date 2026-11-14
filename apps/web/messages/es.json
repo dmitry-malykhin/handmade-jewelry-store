@@ -358,7 +358,10 @@
     "doNotSell": "No vender ni compartir mi información personal",
     "doNotSellOptedOut": "Has rechazado la venta o compartición de tu información personal",
     "doNotSellAriaLabel": "Rechazar la venta o compartición de tu información personal (California CPRA)",
-    "doNotSellConfirm": "Has rechazado. Las cookies de análisis y marketing están desactivadas en este dispositivo."
+    "doNotSellConfirm": "Has rechazado. Las cookies de análisis y marketing están desactivadas en este dispositivo.",
+    "doNotSellRestore": "Restaurar preferencias de marketing",
+    "doNotSellRestoreAriaLabel": "Restaurar la opción de volver a aceptar cookies analíticas y de marketing (CPRA de California)",
+    "doNotSellRestoreConfirm": "Ya puedes volver a elegir tus preferencias de cookies. El aviso se mostrará de nuevo en la próxima carga."
   },
   "catalog": {
     "metaTitle": "Toda la joyería",

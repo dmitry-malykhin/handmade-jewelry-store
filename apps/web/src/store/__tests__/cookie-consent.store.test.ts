@@ -140,4 +140,29 @@ describe('useCookieConsentStore: CCPA/CPRA Do Not Sell', () => {
     getStore().savePreferences({ analytics: true, marketing: true })
     expect(getStore().preferences).toEqual({ analytics: false, marketing: false })
   })
+
+  describe('restoreMarketingPreferences (#614 opt-back-in)', () => {
+    it('clears doNotSellOptedOut and resets hasDecided so the banner surfaces again', () => {
+      getStore().doNotSellOptOut()
+      getStore().restoreMarketingPreferences()
+
+      expect(getStore()).toMatchObject({
+        doNotSellOptedOut: false,
+        hasDecided: false,
+      })
+    })
+
+    it('leaves preferences OFF until the user records a fresh banner choice', () => {
+      getStore().doNotSellOptOut()
+      getStore().restoreMarketingPreferences()
+      expect(getStore().preferences).toEqual({ analytics: false, marketing: false })
+    })
+
+    it('after restore, acceptAll can again set both categories to true', () => {
+      getStore().doNotSellOptOut()
+      getStore().restoreMarketingPreferences()
+      getStore().acceptAll()
+      expect(getStore().preferences).toEqual({ analytics: true, marketing: true })
+    })
+  })
 })

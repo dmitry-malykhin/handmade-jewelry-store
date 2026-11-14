@@ -358,7 +358,10 @@
     "doNotSell": "Do Not Sell or Share My Personal Information",
     "doNotSellOptedOut": "You are opted out of the sale or sharing of personal information",
     "doNotSellAriaLabel": "Opt out of the sale or sharing of your personal information (California CPRA)",
-    "doNotSellConfirm": "You have opted out. Analytics and marketing cookies are now disabled on this device."
+    "doNotSellConfirm": "You have opted out. Analytics and marketing cookies are now disabled on this device.",
+    "doNotSellRestore": "Restore marketing preferences",
+    "doNotSellRestoreAriaLabel": "Restore the option to opt in to analytics and marketing cookies again (California CPRA)",
+    "doNotSellRestoreConfirm": "You can now choose your cookie preferences again. The banner will re-open on your next page load."
   },
   "catalog": {
     "metaTitle": "All Jewelry",
