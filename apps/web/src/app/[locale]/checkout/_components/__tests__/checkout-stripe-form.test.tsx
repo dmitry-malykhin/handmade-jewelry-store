@@ -88,7 +88,7 @@ describe('CheckoutStripeForm', () => {
         {
           termsVersion: 'v1-2026-09',
           privacyVersion: 'v1-2026-09',
-          refundPolicyVersion: 'v1-2026-09',
+          refundPolicyVersion: 'v2-2026-11',
         },
         { accessToken: 'user-jwt', orderAccessToken: 'order-tok' },
       ),
