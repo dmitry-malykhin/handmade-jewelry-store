@@ -1,6 +1,7 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { APP_GUARD } from '@nestjs/core'
+import { ScheduleModule } from '@nestjs/schedule'
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler'
 import { SentryModule } from '@sentry/nestjs/setup'
 import { AddressesModule } from './addresses/addresses.module'
@@ -20,6 +21,7 @@ import { OrdersModule } from './orders/orders.module'
 import { PaymentsModule } from './payments/payments.module'
 import { PrismaModule } from './prisma/prisma.module'
 import { ProductsModule } from './products/products.module'
+import { RetentionModule } from './retention/retention.module'
 import { ReviewsModule } from './reviews/reviews.module'
 import { SecurityModule } from './security/security.module'
 import { ShippingModule } from './shipping/shipping.module'
@@ -48,6 +50,10 @@ import { WishlistModule } from './wishlist/wishlist.module'
     // SentryModule.forRoot() wires Sentry into NestJS request lifecycle:
     // adds transaction spans per controller method and propagates trace context.
     SentryModule.forRoot(),
+    // @nestjs/schedule: enables @Cron decorators (#571 data-retention cron).
+    // forRoot() with no args is enough; no clustering support is needed because
+    // we run a single Fly.io machine.
+    ScheduleModule.forRoot(),
     // @Global — provides AnalyticsService for server-side PostHog event capture
     AnalyticsModule,
     PrismaModule,
@@ -72,6 +78,7 @@ import { WishlistModule } from './wishlist/wishlist.module'
     WishlistModule,
     HealthModule,
     SecurityModule,
+    RetentionModule,
   ],
   providers: [
     // Global throttler — every route rate-limited by IP unless @SkipThrottle.

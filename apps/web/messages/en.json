@@ -331,7 +331,8 @@
     "sCaliforniaRight5LimitSensitive": "<b>Right to limit use of sensitive personal information</b>: we do not collect sensitive personal information as defined by the CPRA, so no action is needed for this right to be respected.",
     "sCaliforniaRight6NonDiscrimination": "<b>Right to non-discrimination</b>: we will not deny service, charge different prices, or deliver a different quality of service because you exercised your CPRA rights.",
     "sCaliforniaExerciseHeading": "How to exercise your California rights",
-    "sCaliforniaExerciseBody": "Submit any CPRA request by emailing <a>{email}</a>. We respond within 45 days and may ask for one piece of information, such as your order number, to verify your identity before acting. You may authorise an agent to submit requests on your behalf by providing a signed letter of authorisation that we will verify directly with you."
+    "sCaliforniaExerciseBody": "Submit any CPRA request by emailing <a>{email}</a>. We respond within 45 days and may ask for one piece of information, such as your order number, to verify your identity before acting. You may authorise an agent to submit requests on your behalf by providing a signed letter of authorisation that we will verify directly with you.",
+    "s6Sched": "A nightly job at 03:00 UTC enforces these windows automatically: expired session refresh tokens are hard-deleted, and stale password-reset and email-verification tokens are cleared from user records. Each run is logged with per-category counts for accountability under GDPR Art. 5(2)."
   },
   "footer": {
     "tagline": "Unique handmade jewelry crafted with love using ethically sourced materials.",

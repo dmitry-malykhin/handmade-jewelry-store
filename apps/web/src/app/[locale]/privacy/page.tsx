@@ -175,6 +175,7 @@ export default async function PrivacyPage({ params }: PrivacyPageProps) {
               <li>{t.rich('retentionSupport', { b: bold })}</li>
               <li>{t.rich('retentionSecurity', { b: bold })}</li>
             </ul>
+            <p className="mt-4 text-sm text-muted-foreground">{t('s6Sched')}</p>
           </section>
 
           <section aria-labelledby="privacy-rights">

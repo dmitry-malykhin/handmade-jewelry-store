@@ -331,7 +331,8 @@
     "sCaliforniaRight5LimitSensitive": "<b>Derecho a limitar el uso de datos sensibles</b>: no recopilamos datos personales sensibles según la CPRA, por lo que este derecho se respeta sin ninguna acción por tu parte.",
     "sCaliforniaRight6NonDiscrimination": "<b>Derecho a no sufrir discriminación</b>: no te negaremos servicios, no aplicaremos precios distintos ni daremos un servicio de distinta calidad por haber ejercido tus derechos CPRA.",
     "sCaliforniaExerciseHeading": "Cómo ejercer tus derechos CPRA",
-    "sCaliforniaExerciseBody": "Envía cualquier solicitud CPRA a <a>{email}</a>. Respondemos en un plazo máximo de 45 días y podemos pedirte una comprobación, como el número de pedido, antes de actuar. Puedes autorizar a un representante a enviar solicitudes en tu nombre mediante una carta de autorización firmada que verificaremos contigo directamente."
+    "sCaliforniaExerciseBody": "Envía cualquier solicitud CPRA a <a>{email}</a>. Respondemos en un plazo máximo de 45 días y podemos pedirte una comprobación, como el número de pedido, antes de actuar. Puedes autorizar a un representante a enviar solicitudes en tu nombre mediante una carta de autorización firmada que verificaremos contigo directamente.",
+    "s6Sched": "Un job nocturno a las 03:00 UTC aplica estos plazos de forma automática: los tokens de refresco de sesión caducados se eliminan de forma definitiva, y los tokens de restablecimiento de contraseña y verificación de email caducados se limpian de los registros de usuario. Cada ejecución se registra con el recuento por categoría para la responsabilidad proactiva del art. 5(2) del RGPD."
   },
   "footer": {
     "tagline": "Joyería artesanal única creada con amor usando materiales de origen ético.",
