@@ -108,4 +108,83 @@ describe('buildOrderConfirmationEmail', () => {
       `/checkout/confirmation/${baseData.orderId}?token=eyJhbGciOi.payload.sig%3D`,
     )
   })
+
+  // EU Consumer Rights Directive (#560)
+
+  describe('EU CRD required disclosures (#560)', () => {
+    const ORIGINAL_ENV = {
+      STORE_LEGAL_NAME: process.env.STORE_LEGAL_NAME,
+      STORE_ADDRESS_LINE1: process.env.STORE_ADDRESS_LINE1,
+      STORE_CITY: process.env.STORE_CITY,
+      STORE_POSTAL_CODE: process.env.STORE_POSTAL_CODE,
+      STORE_COUNTRY: process.env.STORE_COUNTRY,
+      STORE_CONTACT_EMAIL: process.env.STORE_CONTACT_EMAIL,
+    }
+
+    beforeAll(() => {
+      process.env.STORE_LEGAL_NAME = 'Senichka Jewelry OÜ'
+      process.env.STORE_ADDRESS_LINE1 = '42 Handmade Street'
+      process.env.STORE_CITY = 'Tallinn'
+      process.env.STORE_POSTAL_CODE = '10111'
+      process.env.STORE_COUNTRY = 'Estonia'
+      process.env.STORE_CONTACT_EMAIL = 'hello@senichka.test'
+    })
+
+    afterAll(() => {
+      for (const [key, value] of Object.entries(ORIGINAL_ENV)) {
+        if (value === undefined) delete process.env[key]
+        else process.env[key] = value
+      }
+    })
+
+    it('renders the trader identity block (CRD Art. 6(1)(b)-(c) + Art. 8(7))', () => {
+      const { html } = buildOrderConfirmationEmail(baseData)
+      expect(html).toContain('Senichka Jewelry OÜ')
+      expect(html).toContain('42 Handmade Street')
+      expect(html).toContain('10111 Tallinn')
+      expect(html).toContain('Estonia')
+      expect(html).toContain('hello@senichka.test')
+    })
+
+    it('always renders a VAT / Tax line, even when no VAT is collected (CRD Art. 6(1)(e))', () => {
+      const { html } = buildOrderConfirmationEmail(baseData)
+      expect(html).toContain('VAT / Tax')
+      expect(html).toContain('Included where applicable')
+    })
+
+    it('shows the explicit VAT amount when vatAmount > 0', () => {
+      const { html } = buildOrderConfirmationEmail({ ...baseData, vatAmount: 9.5 })
+      expect(html).toContain('VAT / Tax')
+      expect(html).toContain('$9.50')
+      expect(html).not.toContain('Included where applicable')
+    })
+
+    it('renders an Expected delivery line when estimatedDeliveryText is provided (CRD Art. 6(1)(g))', () => {
+      const { html } = buildOrderConfirmationEmail({
+        ...baseData,
+        estimatedDeliveryText: 'November 25, 2026',
+      })
+      expect(html).toContain('Expected delivery')
+      expect(html).toContain('November 25, 2026')
+    })
+
+    it('omits the Expected delivery block when estimatedDeliveryText is undefined', () => {
+      const { html } = buildOrderConfirmationEmail(baseData)
+      expect(html).not.toContain('Expected delivery')
+    })
+
+    it('renders the right-of-withdrawal section linking to /refund-policy (CRD Art. 6(1)(h) + Annex I)', () => {
+      const { html } = buildOrderConfirmationEmail(baseData)
+      expect(html).toContain('Your right of withdrawal')
+      expect(html).toContain('14 days')
+      expect(html).toContain('/refund-policy')
+    })
+
+    it('renders complaint-handling contact (CRD Art. 6(1)(c)) + EU ODR link', () => {
+      const { html } = buildOrderConfirmationEmail(baseData)
+      expect(html).toContain('complaints')
+      expect(html).toContain('ec.europa.eu/consumers/odr/')
+      expect(html).toContain('/impressum')
+    })
+  })
 })

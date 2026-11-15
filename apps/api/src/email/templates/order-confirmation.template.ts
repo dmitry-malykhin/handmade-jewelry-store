@@ -1,4 +1,5 @@
 import { getFrontendUrl } from '../../common/config/urls'
+import { getStoreIdentity } from '../../common/config/store-identity'
 import { renderEmailFooter } from './email-footer.partial'
 
 export interface OrderConfirmationData {
@@ -22,6 +23,15 @@ export interface OrderConfirmationData {
     country: string
   }
   orderAccessToken: string
+  // CRD Art. 6(1)(g): the trader must give the consumer an expected delivery
+  // date. Caller computes a window from max(productionDays over items) + carrier
+  // transit; passes it as an already-formatted ISO date range so the template
+  // stays presentation-only.
+  estimatedDeliveryText?: string
+  // VAT amount already collected on this order. 0 for US-only sellers until
+  // VAT handling lands (#561). Shown as a dedicated line regardless, because
+  // CRD Art. 6(1)(e) requires the price breakdown to call out tax explicitly.
+  vatAmount?: number
 }
 
 function formatUsd(amount: number): string {
@@ -32,8 +42,30 @@ export function buildOrderConfirmationEmail(data: OrderConfirmationData): {
   subject: string
   html: string
 } {
-  const { orderId, items, subtotal, shippingCost, total, shippingAddress, orderAccessToken } = data
-  const viewOrderUrl = `${getFrontendUrl()}/en/checkout/confirmation/${orderId}?token=${encodeURIComponent(orderAccessToken)}`
+  const {
+    orderId,
+    items,
+    subtotal,
+    shippingCost,
+    total,
+    shippingAddress,
+    orderAccessToken,
+    estimatedDeliveryText,
+    vatAmount = 0,
+  } = data
+  const frontendUrl = getFrontendUrl()
+  const viewOrderUrl = `${frontendUrl}/en/checkout/confirmation/${orderId}?token=${encodeURIComponent(orderAccessToken)}`
+  const refundPolicyUrl = `${frontendUrl}/en/refund-policy`
+  const impressumUrl = `${frontendUrl}/en/impressum`
+  const trader = getStoreIdentity()
+  const traderAddressLines = [
+    trader.addressLine1,
+    trader.addressLine2,
+    `${trader.postalCode} ${trader.city}`,
+    trader.country,
+  ]
+    .filter(Boolean)
+    .join('<br>')
 
   const itemRows = items
     .map(
@@ -75,8 +107,19 @@ export function buildOrderConfirmationEmail(data: OrderConfirmationData): {
           <p style="margin: 0; color: #ffffff; font-size: 20px; font-weight: 600; letter-spacing: 0.05em;">✦ Jewelry</p>
         </td></tr>
 
+        <!-- Trader identity (CRD Art. 6(1)(b)-(c) + Art. 8(7) durable-medium confirmation) -->
+        <tr><td style="padding: 20px 40px 0; background: #ffffff;">
+          <p style="margin: 0 0 4px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #888;">
+            Sold by
+          </p>
+          <p style="margin: 0; font-size: 13px; line-height: 1.6; color: #555;">
+            <strong style="color: #1a1a1a;">${trader.legalName}</strong><br>${traderAddressLines}<br>
+            <a href="mailto:${trader.contactEmail}" style="color: #555; text-decoration: underline;">${trader.contactEmail}</a>
+          </p>
+        </td></tr>
+
         <!-- Body -->
-        <tr><td style="padding: 40px;">
+        <tr><td style="padding: 32px 40px 40px;">
           <h1 style="margin: 0 0 8px; font-size: 24px; font-weight: 700;">Your order is confirmed ✓</h1>
           <p style="margin: 0 0 32px; color: #555; font-size: 15px;">
             Thank you for your purchase. Your handmade piece is being carefully prepared.
@@ -89,12 +132,18 @@ export function buildOrderConfirmationEmail(data: OrderConfirmationData): {
             #${orderId.slice(-8).toUpperCase()}
           </p>
 
-          <!-- Items -->
+          <!-- Items + totals with explicit VAT line (CRD Art. 6(1)(e)) -->
           <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 24px;">
             ${itemRows}
             <tr>
               <td style="padding: 8px 0; color: #888; font-size: 14px;">Subtotal</td>
               <td style="padding: 8px 0; text-align: right; font-size: 14px;">${formatUsd(subtotal)}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; color: #888; font-size: 14px;">VAT / Tax</td>
+              <td style="padding: 8px 0; text-align: right; font-size: 14px;">${
+                vatAmount > 0 ? formatUsd(vatAmount) : 'Included where applicable'
+              }</td>
             </tr>
             <tr>
               <td style="padding: 8px 0; color: #888; font-size: 14px;">Shipping</td>
@@ -115,25 +164,54 @@ export function buildOrderConfirmationEmail(data: OrderConfirmationData): {
             View your order →
           </a>
 
-          <!-- Shipping address -->
+          <!-- Shipping address + estimated delivery (CRD Art. 6(1)(g)) -->
           <div style="background: #f9f9f9; border-radius: 6px; padding: 20px; margin-bottom: 32px;">
             <p style="margin: 0 0 8px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #888;">
               Shipping to
             </p>
-            <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #1a1a1a;">
+            <p style="margin: 0 0 ${estimatedDeliveryText ? '16px' : '0'}; font-size: 14px; line-height: 1.6; color: #1a1a1a;">
               <strong>${shippingAddress.fullName}</strong><br>${addressLine}
             </p>
+            ${
+              estimatedDeliveryText
+                ? `
+            <p style="margin: 0 0 4px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #888;">
+              Expected delivery
+            </p>
+            <p style="margin: 0; font-size: 14px; color: #1a1a1a;">${estimatedDeliveryText}</p>`
+                : ''
+            }
           </div>
+
+          <!-- Right of withdrawal (EU CRD Art. 6(1)(h) + Art. 8(7) + Annex I) -->
+          <div style="border: 1px solid #e5e5e5; border-radius: 6px; padding: 20px; margin-bottom: 24px;">
+            <h2 style="margin: 0 0 8px; font-size: 15px; font-weight: 600; color: #1a1a1a;">
+              Your right of withdrawal (EU)
+            </h2>
+            <p style="margin: 0 0 8px; font-size: 13px; line-height: 1.6; color: #555;">
+              If you live in the EU, you have 14 days from the day you receive your order to
+              withdraw from this contract without giving any reason. Custom or personalised
+              pieces are exempt from this right under CRD Art. 16(c).
+            </p>
+            <p style="margin: 0; font-size: 13px; line-height: 1.6; color: #555;">
+              Full details and the standard EU withdrawal form are available at
+              <a href="${refundPolicyUrl}" style="color: #1a1a1a; text-decoration: underline;">${refundPolicyUrl}</a>.
+            </p>
+          </div>
+
+          <!-- Complaint handling (CRD Art. 6(1)(c)) -->
+          <p style="margin: 0 0 24px; font-size: 13px; color: #555; line-height: 1.6;">
+            Questions, problems or complaints: reply to this email or write to
+            <a href="mailto:${trader.contactEmail}" style="color: #1a1a1a; text-decoration: underline;">${trader.contactEmail}</a>.
+            Full trader details at
+            <a href="${impressumUrl}" style="color: #1a1a1a; text-decoration: underline;">${impressumUrl}</a>.
+            EU buyers may also use the European Commission ODR platform at
+            <a href="https://ec.europa.eu/consumers/odr/" style="color: #1a1a1a; text-decoration: underline;">ec.europa.eu/consumers/odr/</a>.
+          </p>
 
           <p style="margin: 0; font-size: 14px; color: #555; line-height: 1.6;">
             We'll send you a shipping notification with tracking details once your order is on its way.
             Each piece is handmade with care, thank you for your patience. 🙏
-          </p>
-        </td></tr>
-
-        <tr><td style="padding: 16px 40px 0;">
-          <p style="margin: 0; font-size: 12px; color: #aaa; text-align: center;">
-            Questions? Reply to this email or contact us anytime.
           </p>
         </td></tr>
 
