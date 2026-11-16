@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { createOrder } from '@/lib/api/orders'
 import { createPaymentIntent } from '@/lib/api/payments'
 import { useCheckoutItems } from '@/store/cart.store'
@@ -33,6 +33,12 @@ export function useInitiateCheckout(
   const [clientSecret, setClientSecret] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
+  // One idempotency key per hook instance — survives StrictMode double-invoke
+  // and in-effect network retries; a fresh mount gets a fresh key.
+  const idempotencyKeyRef = useRef<string | null>(null)
+  if (idempotencyKeyRef.current === null) {
+    idempotencyKeyRef.current = crypto.randomUUID()
+  }
 
   useEffect(() => {
     let isCancelled = false
@@ -42,7 +48,11 @@ export function useInitiateCheckout(
         const orderPayload = buildOrderPayload(checkoutItems, addressValues, shippingCost, {
           loyaltyPointsToRedeem,
         })
-        const createdOrder = await createOrder(orderPayload, accessToken)
+        const createdOrder = await createOrder(
+          orderPayload,
+          accessToken,
+          idempotencyKeyRef.current ?? undefined,
+        )
 
         if (isCancelled) return
 

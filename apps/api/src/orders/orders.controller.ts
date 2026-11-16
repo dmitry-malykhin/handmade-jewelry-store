@@ -34,8 +34,13 @@ export class OrdersController {
   @HttpCode(HttpStatus.CREATED)
   @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @UseGuards(OptionalJwtAuthGuard)
-  create(@Body() createOrderDto: CreateOrderDto, @CurrentUser() user: User | null) {
-    return this.ordersService.create(createOrderDto, user?.id ?? null)
+  create(
+    @Body() createOrderDto: CreateOrderDto,
+    @CurrentUser() user: User | null,
+    @Headers('idempotency-key') idempotencyKey?: string,
+  ) {
+    const normalizedKey = idempotencyKey?.trim() ? idempotencyKey.trim() : null
+    return this.ordersService.create(createOrderDto, user?.id ?? null, normalizedKey)
   }
 
   @Get()

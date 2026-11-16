@@ -22,7 +22,10 @@ export function useSubmitCheckoutOrder() {
   const mutation = useMutation({
     mutationFn: ({ addressValues, shippingCost }: SubmitCheckoutOrderArgs) => {
       const orderPayload = buildOrderPayload(checkoutItems, addressValues, shippingCost)
-      return createOrder(orderPayload, accessToken)
+      // Fresh key per user-triggered submit so a retry after a network error
+      // collapses to the same row instead of creating a second order.
+      const idempotencyKey = crypto.randomUUID()
+      return createOrder(orderPayload, accessToken, idempotencyKey)
     },
     onSuccess: (createdOrder) => {
       if (createdOrder.accessToken) {

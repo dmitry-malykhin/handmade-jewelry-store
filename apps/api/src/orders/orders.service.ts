@@ -23,8 +23,12 @@ export class OrdersService {
     private readonly ordersExportService: OrdersExportService,
   ) {}
 
-  create(createOrderDto: CreateOrderDto, callerUserId: string | null) {
-    return this.ordersCreateService.create(createOrderDto, callerUserId)
+  create(
+    createOrderDto: CreateOrderDto,
+    callerUserId: string | null,
+    idempotencyKey?: string | null,
+  ) {
+    return this.ordersCreateService.create(createOrderDto, callerUserId, idempotencyKey ?? null)
   }
 
   acceptTerms(

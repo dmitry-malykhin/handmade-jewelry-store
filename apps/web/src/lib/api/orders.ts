@@ -189,12 +189,18 @@ export async function fetchMyOrders(accessToken: string): Promise<OrderDetails[]
 export async function createOrder(
   payload: CreateOrderPayload,
   accessToken: string | null,
+  // #543: client-generated UUID per submit attempt. The server collapses
+  // retries carrying the same key to the already-created order.
+  idempotencyKey?: string,
 ): Promise<CreatedOrder> {
+  const headers: Record<string, string> = {}
+  if (accessToken) headers.Authorization = `Bearer ${accessToken}`
+  if (idempotencyKey) headers['Idempotency-Key'] = idempotencyKey
   return apiClient<CreatedOrder>('/api/orders', {
     method: 'POST',
     body: JSON.stringify(payload),
-    // Server derives userId from this JWT — no client-side userId in body.
-    headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+    // Server derives userId from the JWT — no client-side userId in body.
+    headers: Object.keys(headers).length > 0 ? headers : undefined,
   })
 }
 

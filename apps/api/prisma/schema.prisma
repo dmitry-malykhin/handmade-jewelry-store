@@ -231,14 +231,18 @@ model Product {
 }
 
 model Order {
-  id           String      @id @default(cuid())
-  userId       String? // nullable: guest checkout supported
-  user         User?       @relation(fields: [userId], references: [id])
-  guestEmail   String? // email for guest orders — used for confirmation emails
-  status       OrderStatus @default(PENDING)
-  total        Decimal     @db.Decimal(10, 2)
-  subtotal     Decimal     @db.Decimal(10, 2) // before discounts/shipping
-  shippingCost Decimal     @default(0) @db.Decimal(10, 2)
+  id             String      @id @default(cuid())
+  userId         String? // nullable: guest checkout supported
+  user           User?       @relation(fields: [userId], references: [id])
+  guestEmail     String? // email for guest orders — used for confirmation emails
+  // Client-generated UUID sent as `Idempotency-Key` header on POST /orders
+  // (#543). The unique index collapses network retries to the first row;
+  // the controller returns the existing order instead of creating a duplicate.
+  idempotencyKey String?     @unique
+  status         OrderStatus @default(PENDING)
+  total          Decimal     @db.Decimal(10, 2)
+  subtotal       Decimal     @db.Decimal(10, 2) // before discounts/shipping
+  shippingCost   Decimal     @default(0) @db.Decimal(10, 2)
 
   // Shipping address — JSON snapshot at checkout time (not FK; address may change later)
   shippingAddress Json
