@@ -307,6 +307,13 @@ export class StripeWebhooksService {
       country: string
     }
 
+    // ETA line is only rendered if we actually have a date; US-only sellers
+    // without VAT collection land in the "Included where applicable" branch
+    // inside the template.
+    const estimatedDeliveryText = order.estimatedDeliveryAt
+      ? new Intl.DateTimeFormat('en-US', { dateStyle: 'long' }).format(order.estimatedDeliveryAt)
+      : undefined
+
     await this.emailService.sendOrderConfirmation({
       recipientEmail,
       orderId: order.id,
@@ -323,6 +330,7 @@ export class StripeWebhooksService {
       total: order.total.toNumber(),
       shippingAddress,
       orderAccessToken: issueOrderAccessToken(this.jwtService, order.id),
+      estimatedDeliveryText,
     })
   }
 }
