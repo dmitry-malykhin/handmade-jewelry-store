@@ -41,7 +41,11 @@ export class OrdersCreateService {
     return issueOrderAccessToken(this.jwtService, orderId)
   }
 
-  async create(createOrderDto: CreateOrderDto, callerUserId: string | null) {
+  async create(
+    createOrderDto: CreateOrderDto,
+    callerUserId: string | null,
+    idempotencyKey: string | null = null,
+  ) {
     const {
       items,
       shippingAddress,
@@ -57,6 +61,23 @@ export class OrdersCreateService {
     // accepted here (see #391) — anyone could attach a guest order to any
     // other user's account.
     const userId = callerUserId
+
+    // #543: fast path for client retries. The frontend generates one UUID
+    // per submit attempt; a network retry carries the same header, so we
+    // return the already-created order instead of charging twice.
+    if (idempotencyKey) {
+      const existing = await this.prismaService.order.findUnique({
+        where: { idempotencyKey },
+        include: { items: true, statusHistory: true },
+      })
+      if (existing) {
+        // Ownership check: a stolen key must not leak someone else's order.
+        if ((existing.userId ?? null) !== (userId ?? null)) {
+          throw new ForbiddenException('Idempotency key belongs to a different order')
+        }
+        return { ...existing, accessToken: this.issueOrderAccessToken(existing.id) }
+      }
+    }
 
     // Re-verify the client's loyaltyPointsToRedeem against the real balance
     // and the per-order cap (50% of subtotal); recalculate `total` server-side.
@@ -91,6 +112,7 @@ export class OrdersCreateService {
           data: {
             userId: userId ?? null,
             guestEmail: guestEmail ?? null,
+            idempotencyKey: idempotencyKey ?? null,
             subtotal,
             shippingCost,
             total: adjustedTotal,
@@ -137,6 +159,17 @@ export class OrdersCreateService {
       return { ...order, accessToken: this.issueOrderAccessToken(order.id) }
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        // Concurrent submit with the same Idempotency-Key — the first request
+        // won the unique insert; return that row instead of surfacing an error.
+        if (error.code === 'P2002' && idempotencyKey) {
+          const existing = await this.prismaService.order.findUnique({
+            where: { idempotencyKey },
+            include: { items: true, statusHistory: true },
+          })
+          if (existing) {
+            return { ...existing, accessToken: this.issueOrderAccessToken(existing.id) }
+          }
+        }
         if (error.code === 'P2003') {
           const field = error.meta?.field_name ?? 'unknown field'
           this.logger.warn(`Order creation failed — foreign key constraint on ${field}`)

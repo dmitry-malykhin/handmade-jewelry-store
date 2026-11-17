@@ -74,7 +74,7 @@ describe('OrdersController', () => {
 
       const result = await ordersController.create(mockCreateOrderDto, null)
 
-      expect(mockOrdersService.create).toHaveBeenCalledWith(mockCreateOrderDto, null)
+      expect(mockOrdersService.create).toHaveBeenCalledWith(mockCreateOrderDto, null, null)
       expect(result).toEqual(mockOrder)
     })
 
@@ -85,7 +85,24 @@ describe('OrdersController', () => {
       await ordersController.create(mockCreateOrderDto, authedUser)
 
       // Controller passes user.id, not any client-supplied field — the fix for #391.
-      expect(mockOrdersService.create).toHaveBeenCalledWith(mockCreateOrderDto, 'user-real')
+      expect(mockOrdersService.create).toHaveBeenCalledWith(mockCreateOrderDto, 'user-real', null)
+    })
+
+    // #543
+    it('forwards the Idempotency-Key header to the service', async () => {
+      mockOrdersService.create.mockResolvedValue(mockOrder)
+
+      await ordersController.create(mockCreateOrderDto, null, 'key-abc-123')
+
+      expect(mockOrdersService.create).toHaveBeenCalledWith(mockCreateOrderDto, null, 'key-abc-123')
+    })
+
+    it('normalises whitespace-only Idempotency-Key to null', async () => {
+      mockOrdersService.create.mockResolvedValue(mockOrder)
+
+      await ordersController.create(mockCreateOrderDto, null, '   ')
+
+      expect(mockOrdersService.create).toHaveBeenCalledWith(mockCreateOrderDto, null, null)
     })
   })
 

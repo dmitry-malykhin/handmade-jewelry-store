@@ -334,6 +334,76 @@ describe('OrdersService', () => {
       )
       expect(result.accessToken).toBe('signed-order-token')
     })
+
+    // ── Idempotency-Key (#543) ───────────────────────────────────────────────
+
+    it('returns the existing order instead of creating when the key matches a prior row', async () => {
+      const priorOrder = { ...mockCreatedOrder, id: 'order-prior' }
+      mockPrismaService.order.findUnique.mockResolvedValueOnce(priorOrder)
+
+      const result = (await ordersService.create(
+        {
+          items: [mockOrderItem],
+          shippingAddress: mockShippingAddress,
+          subtotal: 100,
+          shippingCost: 5,
+          total: 105,
+        },
+        null,
+        'client-uuid-1',
+      )) as { id: string; accessToken: string }
+
+      expect(mockPrismaService.order.findUnique).toHaveBeenCalledWith({
+        where: { idempotencyKey: 'client-uuid-1' },
+        include: { items: true, statusHistory: true },
+      })
+      expect(mockPrismaService.order.create).not.toHaveBeenCalled()
+      expect(result.id).toBe('order-prior')
+      expect(result.accessToken).toBe('signed-order-token')
+    })
+
+    it('rejects when the key is reused by a different user', async () => {
+      const otherUsersOrder = { ...mockCreatedOrder, userId: 'original-owner' }
+      mockPrismaService.order.findUnique.mockResolvedValueOnce(otherUsersOrder)
+
+      await expect(
+        ordersService.create(
+          {
+            items: [mockOrderItem],
+            shippingAddress: mockShippingAddress,
+            subtotal: 100,
+            shippingCost: 5,
+            total: 105,
+          },
+          'attacker-id',
+          'stolen-key',
+        ),
+      ).rejects.toThrow(ForbiddenException)
+
+      expect(mockPrismaService.order.create).not.toHaveBeenCalled()
+    })
+
+    it('persists the Idempotency-Key on the new order row', async () => {
+      mockPrismaService.order.findUnique.mockResolvedValueOnce(null)
+      mockPrismaService.order.create.mockResolvedValue(mockCreatedOrder)
+
+      await ordersService.create(
+        {
+          items: [mockOrderItem],
+          shippingAddress: mockShippingAddress,
+          subtotal: 100,
+          shippingCost: 5,
+          total: 105,
+        },
+        null,
+        'client-uuid-2',
+      )
+
+      const callData = mockPrismaService.order.create.mock.calls[0]?.[0] as {
+        data: { idempotencyKey: string | null }
+      }
+      expect(callData.data.idempotencyKey).toBe('client-uuid-2')
+    })
   })
 
   // ── findOneByIdForCaller (#392) ───────────────────────────────────────────

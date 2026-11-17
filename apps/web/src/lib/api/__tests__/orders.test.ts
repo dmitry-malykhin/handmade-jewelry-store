@@ -144,6 +144,35 @@ describe('orders API — public', () => {
 
     expect(receivedAuth).toBe('Bearer access-xyz')
   })
+
+  // #543
+  it('createOrder forwards the Idempotency-Key header when provided', async () => {
+    let receivedIdempotencyKey: string | null = null
+    server.use(
+      http.post(`${API_BASE}/api/orders`, async ({ request }) => {
+        receivedIdempotencyKey = request.headers.get('idempotency-key')
+        return HttpResponse.json({ id: 'new-order', status: 'PENDING', total: 25 })
+      }),
+    )
+
+    await createOrder(guestOrderPayload, null, 'client-uuid-xyz')
+
+    expect(receivedIdempotencyKey).toBe('client-uuid-xyz')
+  })
+
+  it('createOrder omits the Idempotency-Key header when not provided', async () => {
+    let receivedIdempotencyKey: string | null = null
+    server.use(
+      http.post(`${API_BASE}/api/orders`, async ({ request }) => {
+        receivedIdempotencyKey = request.headers.get('idempotency-key')
+        return HttpResponse.json({ id: 'new-order', status: 'PENDING', total: 25 })
+      }),
+    )
+
+    await createOrder(guestOrderPayload, null)
+
+    expect(receivedIdempotencyKey).toBeNull()
+  })
 })
 
 describe('orders API — admin list & detail', () => {
