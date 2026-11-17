@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import { Test, TestingModule } from '@nestjs/testing'
-import { DiscountType, OrderStatus, Role, type User } from '@prisma/client'
+import { DiscountType, OrderStatus, ProductStatus, Role, type User } from '@prisma/client'
 import { Decimal } from '@prisma/client/runtime/library'
 import {
   suite as $allureSuite,
@@ -35,17 +35,25 @@ const mockShippingAddress = {
 const mockOrderItem = {
   productId: 'prod-1',
   quantity: 2,
-  price: 49.99,
+  price: 50,
   productSnapshot: { title: 'Silver Ring', slug: 'silver-ring' },
+}
+
+// #533: the service re-reads this through product.findMany and refuses to
+// create the order if the client's prices disagree with these values.
+const mockActiveProduct = {
+  id: 'prod-1',
+  price: new Decimal('50'),
+  status: ProductStatus.ACTIVE,
 }
 
 const mockCreatedOrder = {
   id: 'order-1',
   userId: null,
   status: OrderStatus.PENDING,
-  subtotal: 99.98,
+  subtotal: 100,
   shippingCost: 5.0,
-  total: 104.98,
+  total: 105,
   shippingAddress: mockShippingAddress,
   source: 'web',
   items: [{ id: 'item-1', ...mockOrderItem, orderId: 'order-1' }],
@@ -65,6 +73,9 @@ const mockPrismaService = {
     count: jest.fn(),
     findUnique: jest.fn(),
     update: jest.fn(),
+  },
+  product: {
+    findMany: jest.fn(),
   },
   orderTerms: {
     create: jest.fn(),
@@ -125,6 +136,9 @@ describe('OrdersService', () => {
     ordersService = module.get<OrdersService>(OrdersService)
 
     jest.clearAllMocks()
+    // Default product mock matches mockOrderItem so legacy tests stay green;
+    // price-mismatch cases override this with mockResolvedValueOnce.
+    mockPrismaService.product.findMany.mockResolvedValue([mockActiveProduct])
   })
 
   // ── create ────────────────────────────────────────────────────────────────
@@ -136,9 +150,9 @@ describe('OrdersService', () => {
       const createOrderDto: CreateOrderDto = {
         items: [mockOrderItem],
         shippingAddress: mockShippingAddress,
-        subtotal: 99.98,
+        subtotal: 100,
         shippingCost: 5.0,
-        total: 104.98,
+        total: 105,
       }
 
       const order = (await ordersService.create(
@@ -333,6 +347,108 @@ describe('OrdersService', () => {
         { expiresIn: '30d' },
       )
       expect(result.accessToken).toBe('signed-order-token')
+    })
+
+    // ── Server-side price verification (#533) ────────────────────────────────
+
+    it('rejects when a client-supplied item price undercuts the DB price', async () => {
+      mockPrismaService.product.findMany.mockResolvedValueOnce([mockActiveProduct])
+
+      await expect(
+        ordersService.create(
+          {
+            items: [{ ...mockOrderItem, price: 1 }],
+            shippingAddress: mockShippingAddress,
+            subtotal: 2,
+            shippingCost: 5,
+            total: 7,
+          },
+          null,
+        ),
+      ).rejects.toThrow(BadRequestException)
+
+      expect(mockPrismaService.order.create).not.toHaveBeenCalled()
+    })
+
+    it('rejects when a referenced product no longer exists', async () => {
+      mockPrismaService.product.findMany.mockResolvedValueOnce([])
+
+      await expect(
+        ordersService.create(
+          {
+            items: [mockOrderItem],
+            shippingAddress: mockShippingAddress,
+            subtotal: 100,
+            shippingCost: 5,
+            total: 105,
+          },
+          null,
+        ),
+      ).rejects.toThrow(BadRequestException)
+
+      expect(mockPrismaService.order.create).not.toHaveBeenCalled()
+    })
+
+    it('rejects when a referenced product is DRAFT/ARCHIVED', async () => {
+      mockPrismaService.product.findMany.mockResolvedValueOnce([
+        { ...mockActiveProduct, status: ProductStatus.ARCHIVED },
+      ])
+
+      await expect(
+        ordersService.create(
+          {
+            items: [mockOrderItem],
+            shippingAddress: mockShippingAddress,
+            subtotal: 100,
+            shippingCost: 5,
+            total: 105,
+          },
+          null,
+        ),
+      ).rejects.toThrow(BadRequestException)
+    })
+
+    it('rejects when the client subtotal does not match sum(dbPrice * qty)', async () => {
+      mockPrismaService.product.findMany.mockResolvedValueOnce([mockActiveProduct])
+
+      await expect(
+        ordersService.create(
+          {
+            items: [mockOrderItem],
+            shippingAddress: mockShippingAddress,
+            subtotal: 1, // lie — real subtotal is 100
+            shippingCost: 5,
+            total: 6,
+          },
+          null,
+        ),
+      ).rejects.toThrow(BadRequestException)
+    })
+
+    it('persists the DB price on the OrderItem snapshot even if the client sent a different one', async () => {
+      // Client sent 49.99 but DB holds 50 — within the 1-cent rounding
+      // tolerance, so the request is accepted; the item.price we persist
+      // must come from the DB, not the client.
+      mockPrismaService.product.findMany.mockResolvedValueOnce([mockActiveProduct])
+      mockPrismaService.order.create.mockResolvedValue(mockCreatedOrder)
+
+      await ordersService.create(
+        {
+          items: [{ ...mockOrderItem, price: 49.99 }],
+          shippingAddress: mockShippingAddress,
+          subtotal: 100,
+          shippingCost: 5,
+          total: 105,
+        },
+        null,
+      )
+
+      const callData = mockPrismaService.order.create.mock.calls[0]?.[0] as {
+        data: { subtotal: number; items: { create: Array<{ price: unknown }> } }
+      }
+      expect(callData.data.subtotal).toBe(100)
+      expect(callData.data.items.create[0]?.price).toBeInstanceOf(Decimal)
+      expect((callData.data.items.create[0]?.price as Decimal).toNumber()).toBe(50)
     })
 
     // ── Idempotency-Key (#543) ───────────────────────────────────────────────

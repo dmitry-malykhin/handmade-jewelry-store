@@ -7,7 +7,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
-import { OrderStatus, Prisma, Role, type User } from '@prisma/client'
+import { OrderStatus, Prisma, ProductStatus, Role, type User } from '@prisma/client'
 import { InputJsonValue } from '@prisma/client/runtime/library'
 import { DiscountsService, type AppliedDiscount } from '../discounts/discounts.service'
 import { LoyaltyService } from '../loyalty/loyalty.service'
@@ -79,17 +79,62 @@ export class OrdersCreateService {
       }
     }
 
+    // #533: never trust client-supplied money. Re-read every product price
+    // from the DB and recompute subtotal/total — refuse the request if the
+    // client's numbers disagree by more than a cent (rounding tolerance).
+    const productsFromDb = await this.prismaService.product.findMany({
+      where: { id: { in: items.map((orderItem) => orderItem.productId) } },
+      select: { id: true, price: true, status: true },
+    })
+    const productsById = new Map(productsFromDb.map((product) => [product.id, product]))
+
+    let authoritativeSubtotalCents = 0
+    const itemPriceOverrides = new Map<string, Prisma.Decimal>()
+    for (const orderItem of items) {
+      const productFromDb = productsById.get(orderItem.productId)
+      if (!productFromDb) {
+        throw new BadRequestException(`Product ${orderItem.productId} is unavailable`)
+      }
+      if (productFromDb.status !== ProductStatus.ACTIVE) {
+        throw new BadRequestException(
+          `Product ${orderItem.productId} is no longer available for purchase`,
+        )
+      }
+      const dbPriceCents = Math.round(productFromDb.price.toNumber() * 100)
+      const clientPriceCents = Math.round(orderItem.price * 100)
+      if (Math.abs(dbPriceCents - clientPriceCents) > 1) {
+        throw new BadRequestException(
+          `Price mismatch for product ${orderItem.productId} — refresh the cart`,
+        )
+      }
+      itemPriceOverrides.set(orderItem.productId, productFromDb.price)
+      authoritativeSubtotalCents += dbPriceCents * orderItem.quantity
+    }
+
+    const authoritativeSubtotal = Number((authoritativeSubtotalCents / 100).toFixed(2))
+    const clientSubtotalCents = Math.round(subtotal * 100)
+    if (Math.abs(authoritativeSubtotalCents - clientSubtotalCents) > 1) {
+      throw new BadRequestException('Subtotal mismatch — refresh the cart')
+    }
+    const shippingCostCents = Math.round(shippingCost * 100)
+    const authoritativeTotalCents = authoritativeSubtotalCents + shippingCostCents
+    const clientTotalCents = Math.round(total * 100)
+    if (Math.abs(authoritativeTotalCents - clientTotalCents) > 1) {
+      throw new BadRequestException('Total mismatch — refresh the cart')
+    }
+    const authoritativeTotal = Number((authoritativeTotalCents / 100).toFixed(2))
+
     // Re-verify the client's loyaltyPointsToRedeem against the real balance
     // and the per-order cap (50% of subtotal); recalculate `total` server-side.
     let pointsToRedeem = 0
-    let adjustedTotal = total
+    let adjustedTotal = authoritativeTotal
     if (userId && loyaltyPointsToRedeem && loyaltyPointsToRedeem > 0) {
       const { balance } = await this.loyaltyService.getBalance(userId)
-      const maxRedeemable = Math.floor(subtotal * 100 * 0.5)
+      const maxRedeemable = Math.floor(authoritativeSubtotal * 100 * 0.5)
       pointsToRedeem = Math.min(loyaltyPointsToRedeem, balance, maxRedeemable)
       if (pointsToRedeem > 0) {
         const redemptionUsd = pointsToRedeem / 100
-        adjustedTotal = Math.max(0, Number((total - redemptionUsd).toFixed(2)))
+        adjustedTotal = Math.max(0, Number((authoritativeTotal - redemptionUsd).toFixed(2)))
       }
     }
 
@@ -102,7 +147,7 @@ export class OrdersCreateService {
         if (discountCode) {
           appliedDiscount = await this.discountsService.applyOnOrderCreate(tx, {
             code: discountCode,
-            subtotalCents: Math.round(subtotal * 100),
+            subtotalCents: authoritativeSubtotalCents,
           })
           const discountUsd = appliedDiscount.discountAmountCents / 100
           adjustedTotal = Math.max(0, Number((adjustedTotal - discountUsd).toFixed(2)))
@@ -113,7 +158,7 @@ export class OrdersCreateService {
             userId: userId ?? null,
             guestEmail: guestEmail ?? null,
             idempotencyKey: idempotencyKey ?? null,
-            subtotal,
+            subtotal: authoritativeSubtotal,
             shippingCost,
             total: adjustedTotal,
             loyaltyPointsUsed: pointsToRedeem,
@@ -127,7 +172,8 @@ export class OrdersCreateService {
               create: items.map((orderItem) => ({
                 productId: orderItem.productId,
                 quantity: orderItem.quantity,
-                price: orderItem.price,
+                // DB price wins — the item snapshot must match what we charged.
+                price: itemPriceOverrides.get(orderItem.productId) ?? orderItem.price,
                 productSnapshot: orderItem.productSnapshot,
               })),
             },

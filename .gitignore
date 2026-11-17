@@ -170,3 +170,6 @@ package-lock.json
 yarn.lock
 .claude/settings.json
 docs/reports/lighthouse-runs/
+
+# Claude Code VS Code extension — temp drop for pasted images
+.artifact-tmp/
