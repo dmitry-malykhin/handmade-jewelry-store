@@ -145,4 +145,52 @@ describe('MobileNav', () => {
       'false',
     )
   })
+
+  // ── Accessibility — focus trap, Escape, restore focus (#512) ──────────────
+
+  it('closes the menu when Escape is pressed (WCAG 2.1.2)', async () => {
+    render(<MobileNav />)
+    await userEvent.click(screen.getByRole('button', { name: /open menu/i }))
+
+    await userEvent.keyboard('{Escape}')
+
+    expect(screen.getByRole('button', { name: /open menu/i })).toHaveAttribute(
+      'aria-expanded',
+      'false',
+    )
+  })
+
+  it('returns focus to the burger button after Escape closes the menu (WCAG 2.4.3)', async () => {
+    render(<MobileNav />)
+    const trigger = screen.getByRole('button', { name: /open menu/i })
+    await userEvent.click(trigger)
+    await userEvent.keyboard('{Escape}')
+
+    expect(screen.getByRole('button', { name: /open menu/i })).toHaveFocus()
+  })
+
+  it('moves initial focus into the dialog when it opens', async () => {
+    render(<MobileNav />)
+    await userEvent.click(screen.getByRole('button', { name: /open menu/i }))
+
+    // requestAnimationFrame is scheduled; waitFor retries until it fires.
+    const { waitFor } = await import('@testing-library/react')
+    await waitFor(() => {
+      expect(screen.getByRole('link', { name: /shop/i })).toHaveFocus()
+    })
+  })
+
+  it('traps Tab inside the dialog — Shift+Tab from the first focusable wraps to the last', async () => {
+    render(<MobileNav />)
+    await userEvent.click(screen.getByRole('button', { name: /open menu/i }))
+
+    const firstLink = screen.getByRole('link', { name: /shop/i })
+    firstLink.focus()
+    expect(firstLink).toHaveFocus()
+
+    await userEvent.tab({ shift: true })
+
+    // Any focused element after the wrap must still live inside the dialog.
+    expect(screen.getByRole('dialog').contains(document.activeElement)).toBe(true)
+  })
 })

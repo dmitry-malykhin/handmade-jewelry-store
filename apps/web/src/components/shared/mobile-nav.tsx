@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useTransition } from 'react'
+import { useState, useEffect, useRef, useTransition } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
 import { useTheme } from 'next-themes'
 import { Menu, X, ChevronDown, Check, Sun, Moon } from 'lucide-react'
@@ -28,6 +28,12 @@ export function MobileNav() {
 
   const current = LOCALES[locale] ?? (LOCALES['en'] as NonNullable<(typeof LOCALES)[string]>)
 
+  // #512: focus management for the drawer dialog. Mobile keyboard / screen
+  // reader users were previously locked out — Tab leaked onto the page behind
+  // the panel, Escape didn't close it, and closing dropped focus to <body>.
+  const triggerRef = useRef<HTMLButtonElement>(null)
+  const dialogRef = useRef<HTMLDivElement>(null)
+
   useEffect(() => {
     setIsOpen(false)
   }, [pathname])
@@ -36,6 +42,63 @@ export function MobileNav() {
     document.body.style.overflow = isOpen ? 'hidden' : ''
     return () => {
       document.body.style.overflow = ''
+    }
+  }, [isOpen])
+
+  useEffect(() => {
+    if (!isOpen) return
+
+    const dialog = dialogRef.current
+    if (!dialog) return
+
+    function getFocusables(container: HTMLElement): HTMLElement[] {
+      return Array.from(
+        container.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      )
+    }
+
+    // Shift initial focus to the first interactive element so screen readers
+    // announce the dialog's content, not the burger button behind it.
+    const initialFocusFrame = requestAnimationFrame(() => {
+      getFocusables(dialog)[0]?.focus()
+    })
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        setIsOpen(false)
+        setLangOpen(false)
+        return
+      }
+      if (event.key !== 'Tab') return
+
+      const activeDialog = dialogRef.current
+      if (!activeDialog) return
+      const focusables = getFocusables(activeDialog)
+      const first = focusables[0]
+      const last = focusables[focusables.length - 1]
+      if (!first || !last) return
+      const active = document.activeElement as HTMLElement | null
+
+      if (event.shiftKey && (active === first || !activeDialog.contains(active))) {
+        event.preventDefault()
+        last.focus()
+      } else if (!event.shiftKey && (active === last || !activeDialog.contains(active))) {
+        event.preventDefault()
+        first.focus()
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      cancelAnimationFrame(initialFocusFrame)
+      document.removeEventListener('keydown', handleKeyDown)
+      // Return focus to the burger — otherwise keyboard users land on <body>
+      // and must Tab from the top of the page to reach the header again.
+      triggerRef.current?.focus()
     }
   }, [isOpen])
 
@@ -54,6 +117,7 @@ export function MobileNav() {
   return (
     <div className="md:hidden">
       <Button
+        ref={triggerRef}
         variant="ghost"
         size="icon"
         aria-label={isOpen ? t('header.closeMenu') : t('header.openMenu')}
@@ -88,6 +152,7 @@ export function MobileNav() {
       />
 
       <div
+        ref={dialogRef}
         id="mobile-menu"
         role="dialog"
         aria-modal="true"
