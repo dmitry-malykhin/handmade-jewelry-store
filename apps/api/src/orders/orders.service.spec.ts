@@ -89,6 +89,7 @@ const mockPrismaService = {
 const mockEmailService = {
   sendShippingNotification: jest.fn(),
   sendReviewRequest: jest.fn(),
+  sendProductionStarted: jest.fn(),
 }
 
 const mockLoyaltyService = {
@@ -723,6 +724,128 @@ describe('OrdersService', () => {
           orderAccessToken: 'signed-order-token',
         }),
       )
+    })
+
+    // ── production-started email (#524) ──────────────────────────────────────
+
+    it('sends production-started email on PAID → PROCESSING when the order has MADE_TO_ORDER items', async () => {
+      const paidOrder = {
+        ...mockCreatedOrder,
+        status: OrderStatus.PAID,
+        guestEmail: 'guest@example.com',
+      }
+      const processingOrder = {
+        ...paidOrder,
+        status: OrderStatus.PROCESSING,
+        createdAt: new Date('2026-11-01T00:00:00Z'),
+        items: [
+          {
+            id: 'item-1',
+            productSnapshot: { title: 'Moonstone Ring', slug: 'moonstone-ring' },
+            quantity: 1,
+            product: { stockType: 'MADE_TO_ORDER', productionDays: 7 },
+          },
+        ],
+      }
+      mockPrismaService.order.findUnique.mockResolvedValue(paidOrder)
+      mockPrismaService.order.update.mockResolvedValue(processingOrder)
+
+      await ordersService.updateStatus('order-1', { status: OrderStatus.PROCESSING })
+
+      expect(mockEmailService.sendProductionStarted).toHaveBeenCalledWith(
+        expect.objectContaining({
+          recipientEmail: 'guest@example.com',
+          orderId: 'order-1',
+          items: [{ title: 'Moonstone Ring' }],
+          // createdAt 2026-11-01 + 7 days -> Nov 8 2026 (en-US long format)
+          expectedShipByText: 'November 8, 2026',
+          orderAccessToken: 'signed-order-token',
+        }),
+      )
+    })
+
+    it('does NOT send production-started email when the order has only IN_STOCK items', async () => {
+      const paidOrder = {
+        ...mockCreatedOrder,
+        status: OrderStatus.PAID,
+        guestEmail: 'guest@example.com',
+      }
+      const processingOrder = {
+        ...paidOrder,
+        status: OrderStatus.PROCESSING,
+        createdAt: new Date('2026-11-01T00:00:00Z'),
+        items: [
+          {
+            id: 'item-1',
+            productSnapshot: { title: 'Silver Ring', slug: 'silver-ring' },
+            quantity: 1,
+            product: { stockType: 'IN_STOCK', productionDays: 0 },
+          },
+        ],
+      }
+      mockPrismaService.order.findUnique.mockResolvedValue(paidOrder)
+      mockPrismaService.order.update.mockResolvedValue(processingOrder)
+
+      await ordersService.updateStatus('order-1', { status: OrderStatus.PROCESSING })
+
+      expect(mockEmailService.sendProductionStarted).not.toHaveBeenCalled()
+    })
+
+    it('does NOT send production-started email when guestEmail is absent', async () => {
+      const paidOrder = {
+        ...mockCreatedOrder,
+        status: OrderStatus.PAID,
+        guestEmail: null,
+      }
+      const processingOrder = {
+        ...paidOrder,
+        status: OrderStatus.PROCESSING,
+        createdAt: new Date('2026-11-01T00:00:00Z'),
+        items: [
+          {
+            id: 'item-1',
+            productSnapshot: { title: 'Moonstone Ring', slug: 'moonstone-ring' },
+            quantity: 1,
+            product: { stockType: 'MADE_TO_ORDER', productionDays: 7 },
+          },
+        ],
+      }
+      mockPrismaService.order.findUnique.mockResolvedValue(paidOrder)
+      mockPrismaService.order.update.mockResolvedValue(processingOrder)
+
+      await ordersService.updateStatus('order-1', { status: OrderStatus.PROCESSING })
+
+      expect(mockEmailService.sendProductionStarted).not.toHaveBeenCalled()
+    })
+
+    it('does not roll back PROCESSING transition when production-started email throws', async () => {
+      const paidOrder = {
+        ...mockCreatedOrder,
+        status: OrderStatus.PAID,
+        guestEmail: 'guest@example.com',
+      }
+      const processingOrder = {
+        ...paidOrder,
+        status: OrderStatus.PROCESSING,
+        createdAt: new Date('2026-11-01T00:00:00Z'),
+        items: [
+          {
+            id: 'item-1',
+            productSnapshot: { title: 'Moonstone Ring', slug: 'moonstone-ring' },
+            quantity: 1,
+            product: { stockType: 'MADE_TO_ORDER', productionDays: 5 },
+          },
+        ],
+      }
+      mockPrismaService.order.findUnique.mockResolvedValue(paidOrder)
+      mockPrismaService.order.update.mockResolvedValue(processingOrder)
+      mockEmailService.sendProductionStarted.mockRejectedValueOnce(new Error('Resend down'))
+
+      const result = await ordersService.updateStatus('order-1', {
+        status: OrderStatus.PROCESSING,
+      })
+
+      expect(result.status).toBe(OrderStatus.PROCESSING)
     })
 
     it('does not send shipping notification when guestEmail is absent', async () => {

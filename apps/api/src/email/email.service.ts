@@ -14,6 +14,10 @@ import {
   type ShippingNotificationData,
 } from './templates/shipping-notification.template'
 import {
+  buildProductionStartedEmail,
+  type ProductionStartedData,
+} from './templates/production-started.template'
+import {
   buildPasswordResetEmail,
   type PasswordResetEmailData,
 } from './templates/password-reset.template'
@@ -78,6 +82,11 @@ export class EmailService {
 
   async sendShippingNotification(data: ShippingNotificationData): Promise<void> {
     const { subject, html } = buildShippingNotificationEmail(data)
+    await this.send({ to: data.recipientEmail, subject, html })
+  }
+
+  async sendProductionStarted(data: ProductionStartedData): Promise<void> {
+    const { subject, html } = buildProductionStartedEmail(data)
     await this.send({ to: data.recipientEmail, subject, html })
   }
 

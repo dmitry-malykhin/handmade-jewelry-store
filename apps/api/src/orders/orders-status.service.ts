@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common'
-import { OrderStatus } from '@prisma/client'
+import { OrderStatus, StockType } from '@prisma/client'
 import * as Sentry from '@sentry/nestjs'
 import { getFrontendUrl } from '../common/config/urls'
 import { JwtService } from '@nestjs/jwt'
@@ -64,7 +64,10 @@ export class OrdersStatusService {
           },
         },
         include: {
-          items: true,
+          // #524: product.stockType + productionDays are read at PROCESSING
+          // to decide whether to fire the "now crafting" email and what
+          // ship-by date to show.
+          items: { include: { product: true } },
           statusHistory: { orderBy: { createdAt: 'asc' } },
         },
       })
@@ -80,6 +83,54 @@ export class OrdersStatusService {
 
       return next
     })
+
+    // #524: PAID → PROCESSING on a made-to-order piece — tell the buyer work
+    // has begun and when to expect shipment. The product-page UX promises a
+    // 3-7 day production window, so silence here is a cancellation / 'is my
+    // order lost?' driver.
+    if (updateOrderStatusDto.status === OrderStatus.PROCESSING) {
+      const recipientEmail = updatedOrder.guestEmail
+      const madeToOrderItems = updatedOrder.items.filter(
+        (orderItem) => orderItem.product?.stockType === StockType.MADE_TO_ORDER,
+      )
+      if (recipientEmail && madeToOrderItems.length > 0) {
+        const items = madeToOrderItems
+          .map((orderItem) => {
+            const snapshot = orderItem.productSnapshot as { title?: unknown } | null
+            const title = typeof snapshot?.title === 'string' ? snapshot.title : null
+            return title ? { title } : null
+          })
+          .filter((item): item is { title: string } => item !== null)
+
+        const maxProductionDays = madeToOrderItems.reduce(
+          (longest, orderItem) => Math.max(longest, orderItem.product?.productionDays ?? 0),
+          0,
+        )
+        const expectedShipByText =
+          maxProductionDays > 0
+            ? new Intl.DateTimeFormat('en-US', { dateStyle: 'long' }).format(
+                new Date(updatedOrder.createdAt.getTime() + maxProductionDays * 86_400_000),
+              )
+            : null
+
+        // Best-effort — email failure never rolls back the PROCESSING
+        // transition itself.
+        try {
+          await this.emailService.sendProductionStarted({
+            recipientEmail,
+            orderId: updatedOrder.id,
+            items,
+            expectedShipByText,
+            orderAccessToken: issueOrderAccessToken(this.jwtService, updatedOrder.id),
+          })
+        } catch (error) {
+          this.logger.error(
+            `Production-started email failed for order ${updatedOrder.id} — PROCESSING itself succeeded`,
+            error instanceof Error ? error.stack : String(error),
+          )
+        }
+      }
+    }
 
     if (updateOrderStatusDto.status === OrderStatus.SHIPPED) {
       const recipientEmail = updatedOrder.guestEmail
