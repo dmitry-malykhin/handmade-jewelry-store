@@ -221,6 +221,10 @@ describe('AuthService', () => {
         emailVerifiedAt: null,
       }
       mockPrismaService.user.findMany.mockResolvedValueOnce([unverifiedCandidate])
+      mockPrismaService.user.update.mockResolvedValueOnce({
+        ...unverifiedCandidate,
+        emailVerifiedAt: new Date(),
+      })
       mockBcryptCompare.mockResolvedValueOnce(true)
 
       await authService.verifyEmail('plain-verification-token')
@@ -240,6 +244,53 @@ describe('AuthService', () => {
       mockPrismaService.user.findMany.mockResolvedValueOnce([])
 
       await expect(authService.verifyEmail('bad-token')).rejects.toThrow(BadRequestException)
+    })
+
+    // #525: verified-email is the first moment we ask for a purchase — hand
+    // over the first-order discount code the same way every DTC playbook does.
+    it('sends the welcome email with the shared first-order discount code', async () => {
+      const unverifiedCandidate = {
+        ...mockUser,
+        emailVerificationToken: '$2b$10$hashedToken',
+        emailVerificationTokenAt: new Date(),
+        emailVerifiedAt: null,
+      }
+      mockPrismaService.user.findMany.mockResolvedValueOnce([unverifiedCandidate])
+      mockPrismaService.user.update.mockResolvedValueOnce({
+        ...unverifiedCandidate,
+        emailVerifiedAt: new Date(),
+      })
+      mockBcryptCompare.mockResolvedValueOnce(true)
+
+      await authService.verifyEmail('plain-verification-token')
+
+      expect(mockEmailService.sendWelcome).toHaveBeenCalledWith(
+        expect.objectContaining({
+          recipientEmail: mockUser.email,
+          welcomeCode: 'WELCOME15',
+          discountPercent: 15,
+        }),
+      )
+    })
+
+    it('does not roll back verification when the welcome email fails', async () => {
+      const unverifiedCandidate = {
+        ...mockUser,
+        emailVerificationToken: '$2b$10$hashedToken',
+        emailVerificationTokenAt: new Date(),
+        emailVerifiedAt: null,
+      }
+      mockPrismaService.user.findMany.mockResolvedValueOnce([unverifiedCandidate])
+      mockPrismaService.user.update.mockResolvedValueOnce({
+        ...unverifiedCandidate,
+        emailVerifiedAt: new Date(),
+      })
+      mockBcryptCompare.mockResolvedValueOnce(true)
+      mockEmailService.sendWelcome.mockRejectedValueOnce(new Error('Resend down'))
+
+      await expect(authService.verifyEmail('plain-verification-token')).resolves.toBeUndefined()
+
+      expect(mockPrismaService.user.update).toHaveBeenCalled()
     })
   })
 

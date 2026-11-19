@@ -1,5 +1,10 @@
-import { PrismaClient } from '@prisma/client'
+import { DiscountType, PrismaClient } from '@prisma/client'
 import * as bcrypt from 'bcrypt'
+import {
+  WELCOME_DISCOUNT_CODE,
+  WELCOME_DISCOUNT_MIN_ORDER_CENTS,
+  WELCOME_DISCOUNT_PERCENT,
+} from '../src/discounts/welcome-code'
 
 const SEED_BCRYPT_ROUNDS = 10
 
@@ -339,6 +344,24 @@ export async function seedWishlist(
   })
 }
 
+export async function seedWelcomeDiscount(prisma: PrismaClient) {
+  // #525: the welcome email prints this code; a missing row would make the
+  // code look valid but 404 at validate() time. Upsert keeps admin edits
+  // (deactivation, expiry change) sticky across repeated seed runs.
+  await prisma.discount.upsert({
+    where: { code: WELCOME_DISCOUNT_CODE },
+    update: {},
+    create: {
+      code: WELCOME_DISCOUNT_CODE,
+      type: DiscountType.PERCENTAGE,
+      value: WELCOME_DISCOUNT_PERCENT,
+      minOrderCents: WELCOME_DISCOUNT_MIN_ORDER_CENTS,
+      maxUsages: null,
+      isActive: true,
+    },
+  })
+}
+
 async function main() {
   const prisma = new PrismaClient()
 
@@ -364,6 +387,9 @@ async function main() {
 
     await seedWishlist(prisma, testUser.id, productMap)
     console.log('  ✓ 1 wishlist (2 products)')
+
+    await seedWelcomeDiscount(prisma)
+    console.log(`  ✓ welcome discount ${WELCOME_DISCOUNT_CODE} (${WELCOME_DISCOUNT_PERCENT}% off)`)
 
     console.log('Seeding complete.')
   } finally {

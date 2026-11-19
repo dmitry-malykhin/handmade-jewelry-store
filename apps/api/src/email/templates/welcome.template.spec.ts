@@ -50,4 +50,38 @@ describe('buildWelcomeEmail', () => {
     })
     expect(html).toContain('href="http://localhost:3000/"')
   })
+
+  // ── Welcome discount code (#525) ─────────────────────────────────────────
+
+  it('renders the discount code block when welcomeCode + discountPercent are provided', () => {
+    const { html, subject } = buildWelcomeEmail({
+      recipientEmail: 'jane@example.com',
+      unsubscribeUrl: 'http://localhost/unsub',
+      welcomeCode: 'WELCOME15',
+      discountPercent: 15,
+    })
+    expect(html).toContain('WELCOME15')
+    expect(html).toContain('15% off your first order')
+    expect(subject).toBe('Welcome to ✦ Jewelry — 15% off your first order inside')
+  })
+
+  it('omits the discount block entirely when welcomeCode is missing', () => {
+    const { html, subject } = buildWelcomeEmail({
+      recipientEmail: 'jane@example.com',
+      unsubscribeUrl: 'http://localhost/unsub',
+    })
+    expect(html).not.toContain('WELCOME15')
+    expect(html).not.toContain('off your first order')
+    expect(subject).toBe('Welcome to ✦ Jewelry, handmade with love')
+  })
+
+  it('omits the discount block when discountPercent is 0 or absent', () => {
+    const { html } = buildWelcomeEmail({
+      recipientEmail: 'jane@example.com',
+      unsubscribeUrl: 'http://localhost/unsub',
+      welcomeCode: 'WELCOME15',
+      discountPercent: 0,
+    })
+    expect(html).not.toContain('WELCOME15')
+  })
 })

@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  Logger,
   UnauthorizedException,
 } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
@@ -9,7 +10,9 @@ import { JwtService } from '@nestjs/jwt'
 import type { User } from '@prisma/client'
 import * as bcrypt from 'bcrypt'
 import * as crypto from 'crypto'
+import { WELCOME_DISCOUNT_CODE, WELCOME_DISCOUNT_PERCENT } from '../discounts/welcome-code'
 import { EmailService } from '../email/email.service'
+import { buildUnsubscribeUrl } from '../newsletter/newsletter.service'
 import { PrismaService } from '../prisma/prisma.service'
 import { getFrontendUrl } from '../common/config/urls'
 import { UsersService } from '../users/users.service'
@@ -40,6 +43,8 @@ export interface AuthTokens {
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name)
+
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
@@ -109,7 +114,7 @@ export class AuthService {
       throw new BadRequestException('Invalid or expired email verification token')
     }
 
-    await this.prismaService.user.update({
+    const verifiedUser = await this.prismaService.user.update({
       where: { id: matchedUserId },
       data: {
         emailVerifiedAt: new Date(),
@@ -117,6 +122,24 @@ export class AuthService {
         emailVerificationTokenAt: null,
       },
     })
+
+    // #525: welcome email was wired to EmailService but never triggered from
+    // any flow — a verified account is the moment to greet the buyer with
+    // the first-order discount code. Best-effort — a failed email must not
+    // roll back the verification itself.
+    try {
+      await this.emailService.sendWelcome({
+        recipientEmail: verifiedUser.email,
+        unsubscribeUrl: buildUnsubscribeUrl(verifiedUser.email),
+        welcomeCode: WELCOME_DISCOUNT_CODE,
+        discountPercent: WELCOME_DISCOUNT_PERCENT,
+      })
+    } catch (error) {
+      this.logger.error(
+        `Welcome email failed for user ${verifiedUser.id} — verification itself succeeded`,
+        error instanceof Error ? error.stack : String(error),
+      )
+    }
   }
 
   async resendVerificationEmail(email: string): Promise<void> {
