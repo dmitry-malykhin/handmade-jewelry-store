@@ -2,37 +2,24 @@ import type { OrderStatus } from '@/lib/api/orders'
 
 // Transitions with customer-visible side effects (email / loyalty credit) or
 // no undo through the UI. Reversible silent transitions skip confirmation.
-const CONFIRM_STATUSES = new Set<OrderStatus>(['SHIPPED', 'DELIVERED', 'CANCELLED'])
+// #477: SHIPPED is handled by its own tracking-form dialog, not this plain
+// confirm dialog — the owner must enter trackingNumber + carrier at the
+// same step so the customer's shipping email always carries them.
+const CONFIRM_STATUSES = new Set<OrderStatus>(['DELIVERED', 'CANCELLED'])
 
 export function requiresStatusConfirmation(nextStatus: OrderStatus): boolean {
   return CONFIRM_STATUSES.has(nextStatus)
 }
 
 export interface StatusConfirmCopy {
-  titleKey:
-    | 'ordersConfirmShippedTitle'
-    | 'ordersConfirmDeliveredTitle'
-    | 'ordersConfirmCancelledTitle'
-  descriptionKey:
-    | 'ordersConfirmShippedDescription'
-    | 'ordersConfirmDeliveredDescription'
-    | 'ordersConfirmCancelledDescription'
-  actionKey:
-    | 'ordersConfirmShippedAction'
-    | 'ordersConfirmDeliveredAction'
-    | 'ordersConfirmCancelledAction'
+  titleKey: 'ordersConfirmDeliveredTitle' | 'ordersConfirmCancelledTitle'
+  descriptionKey: 'ordersConfirmDeliveredDescription' | 'ordersConfirmCancelledDescription'
+  actionKey: 'ordersConfirmDeliveredAction' | 'ordersConfirmCancelledAction'
   variant: 'destructive' | 'default'
 }
 
 export function getStatusConfirmCopy(nextStatus: OrderStatus): StatusConfirmCopy | null {
   switch (nextStatus) {
-    case 'SHIPPED':
-      return {
-        titleKey: 'ordersConfirmShippedTitle',
-        descriptionKey: 'ordersConfirmShippedDescription',
-        actionKey: 'ordersConfirmShippedAction',
-        variant: 'default',
-      }
     case 'DELIVERED':
       return {
         titleKey: 'ordersConfirmDeliveredTitle',

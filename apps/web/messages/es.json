@@ -973,9 +973,6 @@
     "reviewsRatingAriaLabel": "{rating} de 5 estrellas",
     "confirmDialogConfirm": "Confirmar",
     "confirmDialogCancel": "Cancelar",
-    "ordersConfirmShippedTitle": "¿Marcar el pedido #{id} como Enviado?",
-    "ordersConfirmShippedDescription": "El cliente recibirá inmediatamente un email de confirmación de envío.",
-    "ordersConfirmShippedAction": "Marcar Enviado",
     "ordersConfirmDeliveredTitle": "¿Marcar el pedido #{id} como Entregado?",
     "ordersConfirmDeliveredDescription": "Se acreditarán puntos de fidelidad y se enviará un email de confirmación de entrega.",
     "ordersConfirmDeliveredAction": "Marcar Entregado",
@@ -1165,7 +1162,16 @@
     "refundReasonOTHER": "Otro",
     "productsDeleteBlockedByOrders": "«{title}» tiene pedidos. Archívalo en vez de eliminarlo para conservar el historial.",
     "productsArchiveInstead": "Archivar",
-    "productsBulkDeleteBlockedByOrders": "Algunos productos seleccionados tienen pedidos. Archívalos para conservar el historial."
+    "productsBulkDeleteBlockedByOrders": "Algunos productos seleccionados tienen pedidos. Archívalos para conservar el historial.",
+    "ordersShipDialogTitle": "Enviar pedido #{id}",
+    "ordersShipDialogTitleNoId": "Enviar pedido",
+    "ordersShipDialogDescription": "Introduce el transportista y el número de seguimiento. El cliente recibirá al instante el correo de envío con esta información.",
+    "ordersShipDialogCarrierLabel": "Transportista",
+    "ordersShipDialogTrackingLabel": "Número de seguimiento",
+    "ordersShipDialogTrackingPlaceholder": "p. ej. 9400110200883861123456",
+    "ordersShipDialogCancel": "Cancelar",
+    "ordersShipDialogSubmit": "Marcar enviado y notificar",
+    "ordersShipDialogSubmitting": "Enviando…"
   },
   "errors": {
     "somethingWentWrong": "Algo salió mal",

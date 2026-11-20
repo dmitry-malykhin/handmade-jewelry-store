@@ -973,9 +973,6 @@
     "reviewsRatingAriaLabel": "{rating} of 5 stars",
     "confirmDialogConfirm": "Confirm",
     "confirmDialogCancel": "Cancel",
-    "ordersConfirmShippedTitle": "Mark order #{id} as Shipped?",
-    "ordersConfirmShippedDescription": "The customer will receive a shipping confirmation email immediately.",
-    "ordersConfirmShippedAction": "Mark Shipped",
     "ordersConfirmDeliveredTitle": "Mark order #{id} as Delivered?",
     "ordersConfirmDeliveredDescription": "Loyalty points will be credited and a delivery confirmation email will be sent.",
     "ordersConfirmDeliveredAction": "Mark Delivered",
@@ -1165,7 +1162,16 @@
     "refundReasonOTHER": "Other",
     "productsDeleteBlockedByOrders": "\"{title}\" has orders. Archive it instead to keep order history intact.",
     "productsArchiveInstead": "Archive instead",
-    "productsBulkDeleteBlockedByOrders": "Some selected products have orders. Archive them instead to keep order history intact."
+    "productsBulkDeleteBlockedByOrders": "Some selected products have orders. Archive them instead to keep order history intact.",
+    "ordersShipDialogTitle": "Ship order #{id}",
+    "ordersShipDialogTitleNoId": "Ship order",
+    "ordersShipDialogDescription": "Enter carrier and tracking number — the customer will receive a shipping email with this information immediately.",
+    "ordersShipDialogCarrierLabel": "Carrier",
+    "ordersShipDialogTrackingLabel": "Tracking number",
+    "ordersShipDialogTrackingPlaceholder": "e.g. 9400110200883861123456",
+    "ordersShipDialogCancel": "Cancel",
+    "ordersShipDialogSubmit": "Mark shipped and notify",
+    "ordersShipDialogSubmitting": "Sending…"
   },
   "errors": {
     "somethingWentWrong": "Something went wrong",

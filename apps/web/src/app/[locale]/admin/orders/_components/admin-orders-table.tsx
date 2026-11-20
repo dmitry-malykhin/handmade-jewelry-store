@@ -44,6 +44,7 @@ import { ApiError } from '@/lib/api/client'
 import type { AdminOrdersQueryParams } from '@/lib/api/orders'
 import { captureAdminError } from '@/lib/sentry/capture-admin-error'
 import { getStatusConfirmCopy, requiresStatusConfirmation } from '../_lib/status-confirm'
+import { ShipWithTrackingDialog } from './ship-with-tracking-dialog'
 
 // Mirrors the backend state machine.
 const ALLOWED_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
@@ -99,6 +100,9 @@ export function AdminOrdersTable() {
     orderId: string
     newStatus: OrderStatus
   } | null>(null)
+  // #477: a SHIPPED PATCH must carry tracking info; the ship dialog owns its
+  // own state so the plain confirm dialog does not try to render for it.
+  const [pendingShipment, setPendingShipment] = useState<{ orderId: string } | null>(null)
 
   const { isExporting, isExportDisabled, handleExport } = useAdminCsvExport({
     download: (token) =>
@@ -118,12 +122,31 @@ export function AdminOrdersTable() {
   })
 
   const statusMutation = useMutation({
-    mutationFn: ({ orderId, newStatus }: { orderId: string; newStatus: OrderStatus }) =>
-      updateAdminOrderStatus(orderId, { status: newStatus }, accessToken ?? ''),
+    mutationFn: ({
+      orderId,
+      newStatus,
+      trackingNumber,
+      shippingCarrier,
+    }: {
+      orderId: string
+      newStatus: OrderStatus
+      trackingNumber?: string
+      shippingCarrier?: string
+    }) =>
+      updateAdminOrderStatus(
+        orderId,
+        {
+          status: newStatus,
+          ...(trackingNumber ? { trackingNumber } : {}),
+          ...(shippingCarrier ? { shippingCarrier } : {}),
+        },
+        accessToken ?? '',
+      ),
     onSuccess: (updatedOrder) => {
       void queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] })
       toast.success(t('ordersStatusUpdateSuccess', { id: updatedOrder.id.slice(-8) }))
       setPendingTransition(null)
+      setPendingShipment(null)
     },
     onError: (error, variables) => {
       captureAdminError(error, {
@@ -137,6 +160,10 @@ export function AdminOrdersTable() {
   })
 
   function handleStatusChange(orderId: string, newStatus: OrderStatus) {
+    if (newStatus === 'SHIPPED') {
+      setPendingShipment({ orderId })
+      return
+    }
     if (requiresStatusConfirmation(newStatus)) {
       setPendingTransition({ orderId, newStatus })
       return
@@ -313,6 +340,22 @@ export function AdminOrdersTable() {
         }
         description={pendingTransitionCopy ? t(pendingTransitionCopy.descriptionKey) : ''}
         confirmLabel={pendingTransitionCopy ? t(pendingTransitionCopy.actionKey) : undefined}
+      />
+
+      <ShipWithTrackingDialog
+        open={pendingShipment !== null}
+        orderIdShort={pendingShipment?.orderId.slice(-8) ?? null}
+        isPending={statusMutation.isPending}
+        onClose={() => setPendingShipment(null)}
+        onConfirm={({ trackingNumber, shippingCarrier }) => {
+          if (!pendingShipment) return
+          statusMutation.mutate({
+            orderId: pendingShipment.orderId,
+            newStatus: 'SHIPPED',
+            trackingNumber,
+            shippingCarrier,
+          })
+        }}
       />
     </section>
   )

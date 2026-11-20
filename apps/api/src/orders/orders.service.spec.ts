@@ -726,6 +726,60 @@ describe('OrdersService', () => {
       )
     })
 
+    // #477: the SHIPPED PATCH that fires the email must also persist the
+    // tracking info — otherwise the admin has to retype it afterwards.
+    it('persists trackingNumber, shippingCarrier and shippedAt on SHIPPED when provided', async () => {
+      const processingOrder = {
+        ...mockCreatedOrder,
+        status: OrderStatus.PROCESSING,
+        guestEmail: 'guest@example.com',
+      }
+      const shippedOrder = {
+        ...processingOrder,
+        status: OrderStatus.SHIPPED,
+        trackingNumber: 'TRK123456',
+        shippingCarrier: 'USPS',
+      }
+      mockPrismaService.order.findUnique.mockResolvedValue(processingOrder)
+      mockPrismaService.order.update.mockResolvedValue(shippedOrder)
+
+      await ordersService.updateStatus('order-1', {
+        status: OrderStatus.SHIPPED,
+        trackingNumber: 'TRK123456',
+        shippingCarrier: 'USPS',
+      })
+
+      const callArgs = mockPrismaService.order.update.mock.calls[0]?.[0] as {
+        data: {
+          trackingNumber?: string
+          shippingCarrier?: string | null
+          shippedAt?: Date
+        }
+      }
+      expect(callArgs.data.trackingNumber).toBe('TRK123456')
+      expect(callArgs.data.shippingCarrier).toBe('USPS')
+      expect(callArgs.data.shippedAt).toBeInstanceOf(Date)
+    })
+
+    it('does not persist tracking fields when SHIPPED PATCH omits trackingNumber', async () => {
+      const processingOrder = {
+        ...mockCreatedOrder,
+        status: OrderStatus.PROCESSING,
+        guestEmail: 'guest@example.com',
+      }
+      const shippedOrder = { ...processingOrder, status: OrderStatus.SHIPPED }
+      mockPrismaService.order.findUnique.mockResolvedValue(processingOrder)
+      mockPrismaService.order.update.mockResolvedValue(shippedOrder)
+
+      await ordersService.updateStatus('order-1', { status: OrderStatus.SHIPPED })
+
+      const callArgs = mockPrismaService.order.update.mock.calls[0]?.[0] as {
+        data: Record<string, unknown>
+      }
+      expect('trackingNumber' in callArgs.data).toBe(false)
+      expect('shippedAt' in callArgs.data).toBe(false)
+    })
+
     // ── production-started email (#524) ──────────────────────────────────────
 
     it('sends production-started email on PAID → PROCESSING when the order has MADE_TO_ORDER items', async () => {
