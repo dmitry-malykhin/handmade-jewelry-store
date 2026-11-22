@@ -360,6 +360,19 @@ model Payment {
   createdAt DateTime      @default(now())
 }
 
+// Append-only log of every Stripe webhook event we have already processed
+// (#540). The controller INSERTs the event id before dispatching; a unique
+// violation means Stripe is replaying the same evt_* and we must not run
+// the handler twice (otherwise a replayed charge.refunded would double-write
+// OrderStatusHistory, inflate refund counters, and re-send emails).
+model ProcessedStripeEvent {
+  id         String   @id // Stripe event id (evt_*)
+  type       String // event type for debugging / per-type analytics
+  receivedAt DateTime @default(now())
+
+  @@index([receivedAt])
+}
+
 // Moderation lifecycle: PENDING (new) → APPROVED (visible on product page)
 // or HIDDEN (spam/abusive — never shown). Only APPROVED reviews count in the
 // public list; aggregates on Product (avgRating, reviewCount) follow the same

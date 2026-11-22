@@ -4,13 +4,16 @@ import {
   Headers,
   HttpCode,
   HttpStatus,
+  Logger,
   Post,
   RawBodyRequest,
   Req,
 } from '@nestjs/common'
 import { SkipThrottle } from '@nestjs/throttler'
+import { Prisma } from '@prisma/client'
 import type { Request } from 'express'
 import type Stripe from 'stripe'
+import { PrismaService } from '../prisma/prisma.service'
 import { StripeService } from './stripe.service'
 import { StripeWebhooksService } from './stripe-webhooks.service'
 
@@ -19,9 +22,12 @@ import { StripeWebhooksService } from './stripe-webhooks.service'
 @SkipThrottle()
 @Controller('webhooks/stripe')
 export class StripeWebhooksController {
+  private readonly logger = new Logger(StripeWebhooksController.name)
+
   constructor(
     private readonly stripeService: StripeService,
     private readonly stripeWebhooksService: StripeWebhooksService,
+    private readonly prismaService: PrismaService,
   ) {}
 
   @Post()
@@ -36,6 +42,25 @@ export class StripeWebhooksController {
 
     // Throws StripeSignatureVerificationError if the signature is invalid
     const stripeEvent = this.stripeService.constructWebhookEvent(request.rawBody, stripeSignature)
+
+    // #540: INSERT-first dedup. Stripe retries after any non-200, so the same
+    // event id can arrive multiple times; status-based guards inside each
+    // handler catch some cases but not charge.refunded replays, which would
+    // double-write OrderStatusHistory. A unique PK on event.id makes the
+    // retry a cheap 200 that never reaches the handler.
+    try {
+      await this.prismaService.processedStripeEvent.create({
+        data: { id: stripeEvent.id, type: stripeEvent.type },
+      })
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+        this.logger.log(
+          `Stripe event ${stripeEvent.id} (${stripeEvent.type}) already processed — skipping dispatch`,
+        )
+        return { received: true }
+      }
+      throw error
+    }
 
     await this.dispatchStripeEvent(stripeEvent)
 
