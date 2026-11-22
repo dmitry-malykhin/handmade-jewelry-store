@@ -15,7 +15,7 @@
  */
 @theme inline {
   /* Fonts */
-  --font-display: 'Cormorant Garamond', Georgia, serif;
+  --font-display: var(--font-cormorant), 'Cormorant Garamond', Georgia, serif;
   --font-sans: var(--font-jost);
 
   /* Shadcn ↔ Senichka mapping */

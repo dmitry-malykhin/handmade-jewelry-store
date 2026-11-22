@@ -59,12 +59,13 @@ export const viewport: Viewport = {
   ],
 }
 
+// --font-cormorant (not --font-display) avoids self-reference in @theme.
 const cormorantGaramond = Cormorant_Garamond({
   subsets: ['latin', 'cyrillic'],
   weight: ['300', '400'],
   style: ['normal', 'italic'],
   display: 'swap',
-  variable: '--font-display',
+  variable: '--font-cormorant',
 })
 
 const jost = Jost({
