@@ -96,6 +96,29 @@ describe('CheckoutShippingMethodForm', () => {
     expect(selectedOption.id).toBe('express')
   })
 
+  // #521
+  it('forwards the trimmed gift note as the third onNext argument', async () => {
+    const handleNext = vi.fn()
+    render(<CheckoutShippingMethodForm onNext={handleNext} onBack={vi.fn()} />)
+
+    const noteField = screen.getByLabelText(/orderNoteLabel/i)
+    await userEvent.type(noteField, '  Happy birthday Mum!  ')
+    await userEvent.click(screen.getByText('continueToPayment'))
+
+    const [, , orderNote] = handleNext.mock.calls[0]!
+    expect(orderNote).toBe('Happy birthday Mum!')
+  })
+
+  it('sends an empty string as orderNote when the field is untouched', async () => {
+    const handleNext = vi.fn()
+    render(<CheckoutShippingMethodForm onNext={handleNext} onBack={vi.fn()} />)
+
+    await userEvent.click(screen.getByText('continueToPayment'))
+
+    const [, , orderNote] = handleNext.mock.calls[0]!
+    expect(orderNote).toBe('')
+  })
+
   it('calls onBack when back button is clicked', async () => {
     const handleBack = vi.fn()
     render(<CheckoutShippingMethodForm onNext={vi.fn()} onBack={handleBack} />)

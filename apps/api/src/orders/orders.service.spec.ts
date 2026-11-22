@@ -452,6 +452,50 @@ describe('OrdersService', () => {
       expect((callData.data.items.create[0]?.price as Decimal).toNumber()).toBe(50)
     })
 
+    // ── Gift note (#521) ─────────────────────────────────────────────────────
+
+    it('persists trimmed orderNote on the Order when provided', async () => {
+      mockPrismaService.order.create.mockResolvedValue(mockCreatedOrder)
+
+      await ordersService.create(
+        {
+          items: [mockOrderItem],
+          shippingAddress: mockShippingAddress,
+          subtotal: 100,
+          shippingCost: 5,
+          total: 105,
+          orderNote: '  Happy birthday Mum!  ',
+        },
+        null,
+      )
+
+      const callData = mockPrismaService.order.create.mock.calls[0]?.[0] as {
+        data: { orderNote: string | null }
+      }
+      expect(callData.data.orderNote).toBe('Happy birthday Mum!')
+    })
+
+    it('stores null when orderNote is empty or whitespace-only', async () => {
+      mockPrismaService.order.create.mockResolvedValue(mockCreatedOrder)
+
+      await ordersService.create(
+        {
+          items: [mockOrderItem],
+          shippingAddress: mockShippingAddress,
+          subtotal: 100,
+          shippingCost: 5,
+          total: 105,
+          orderNote: '   ',
+        },
+        null,
+      )
+
+      const callData = mockPrismaService.order.create.mock.calls[0]?.[0] as {
+        data: { orderNote: string | null }
+      }
+      expect(callData.data.orderNote).toBeNull()
+    })
+
     // ── Idempotency-Key (#543) ───────────────────────────────────────────────
 
     it('returns the existing order instead of creating when the key matches a prior row', async () => {

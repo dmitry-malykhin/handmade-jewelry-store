@@ -25,6 +25,7 @@ function buildOrder(overrides: Partial<AdminOrderDetail> = {}): AdminOrderDetail
       country: '',
     },
     items: [],
+    orderNote: null,
     createdAt: '',
     updatedAt: '',
     shippingCarrier: null,

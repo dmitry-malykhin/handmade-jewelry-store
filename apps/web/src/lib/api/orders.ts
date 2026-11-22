@@ -40,6 +40,8 @@ export interface CreateOrderPayload {
   // only used to display an expected total before submitting.
   discountCode?: string
   source?: string
+  // Gift / handwritten note the buyer leaves at checkout (#521). Max 500 chars.
+  orderNote?: string
 }
 
 export interface CreatedOrder {
@@ -89,6 +91,7 @@ export interface OrderDetails {
   total: number
   guestEmail: string | null
   shippingAddress: ShippingAddress
+  orderNote?: string | null
   items: OrderItem[]
   createdAt: string
   updatedAt: string

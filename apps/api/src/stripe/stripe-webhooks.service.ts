@@ -331,6 +331,7 @@ export class StripeWebhooksService {
       shippingAddress,
       orderAccessToken: issueOrderAccessToken(this.jwtService, order.id),
       estimatedDeliveryText,
+      orderNote: order.orderNote,
     })
   }
 }

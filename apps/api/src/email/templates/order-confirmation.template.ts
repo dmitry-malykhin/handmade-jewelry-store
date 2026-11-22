@@ -32,6 +32,9 @@ export interface OrderConfirmationData {
   // VAT handling lands (#561). Shown as a dedicated line regardless, because
   // CRD Art. 6(1)(e) requires the price breakdown to call out tax explicitly.
   vatAmount?: number
+  // Gift / handwritten note the buyer left at checkout (#521). Echoed back so
+  // the buyer sees it was received and we have a record in their inbox too.
+  orderNote?: string | null
 }
 
 function formatUsd(amount: number): string {
@@ -52,7 +55,20 @@ export function buildOrderConfirmationEmail(data: OrderConfirmationData): {
     orderAccessToken,
     estimatedDeliveryText,
     vatAmount = 0,
+    orderNote,
   } = data
+
+  const trimmedOrderNote = orderNote?.trim() ?? ''
+  const escapedOrderNote = trimmedOrderNote.replace(/[&<>"']/g, (char) => {
+    const map: Record<string, string> = {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;',
+    }
+    return map[char] ?? char
+  })
   const frontendUrl = getFrontendUrl()
   const viewOrderUrl = `${frontendUrl}/en/checkout/confirmation/${orderId}?token=${encodeURIComponent(orderAccessToken)}`
   const refundPolicyUrl = `${frontendUrl}/en/refund-policy`
@@ -163,6 +179,19 @@ export function buildOrderConfirmationEmail(data: OrderConfirmationData): {
              style="display: inline-block; background: #1a1a1a; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-weight: 600; font-size: 15px; margin-bottom: 32px;">
             View your order →
           </a>
+
+          ${
+            trimmedOrderNote
+              ? `
+          <!-- Buyer's gift / handwritten note (#521) -->
+          <div style="background: #f9f9f9; border-left: 3px solid #1a1a1a; border-radius: 4px; padding: 16px 20px; margin-bottom: 24px;">
+            <p style="margin: 0 0 6px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #888;">
+              Your note to us
+            </p>
+            <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #1a1a1a; white-space: pre-line;">${escapedOrderNote}</p>
+          </div>`
+              : ''
+          }
 
           <!-- Shipping address + estimated delivery (CRD Art. 6(1)(g)) -->
           <div style="background: #f9f9f9; border-radius: 6px; padding: 20px; margin-bottom: 32px;">

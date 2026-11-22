@@ -129,4 +129,18 @@ describe('buildOrderPayload()', () => {
     expect(payload.shippingAddress.state).toBe('NY')
     expect(payload.shippingAddress.phone).toBe('+1-555-000-1234')
   })
+
+  it('attaches trimmed orderNote when provided (#521)', () => {
+    const payload = buildOrderPayload(mockCartItems, mockFormValues, CHECKOUT_SHIPPING_COST, {
+      orderNote: '  Happy birthday Mum!  ',
+    })
+    expect(payload.orderNote).toBe('Happy birthday Mum!')
+  })
+
+  it('omits orderNote when empty/whitespace', () => {
+    const payload = buildOrderPayload(mockCartItems, mockFormValues, CHECKOUT_SHIPPING_COST, {
+      orderNote: '   ',
+    })
+    expect(payload.orderNote).toBeUndefined()
+  })
 })

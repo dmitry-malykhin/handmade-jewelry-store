@@ -28,6 +28,7 @@ const mockOrder: OrderDetails = {
     postalCode: '10001',
     country: 'US',
   },
+  orderNote: null,
 }
 
 function renderWithIntl(component: React.ReactNode) {

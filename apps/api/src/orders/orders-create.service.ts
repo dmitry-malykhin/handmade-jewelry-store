@@ -56,6 +56,7 @@ export class OrdersCreateService {
       loyaltyPointsToRedeem,
       discountCode,
       source,
+      orderNote,
     } = createOrderDto
     // Trust only the JWT. A client-supplied userId in the body used to be
     // accepted here (see #391) — anyone could attach a guest order to any
@@ -166,6 +167,7 @@ export class OrdersCreateService {
             discountAmountCents: appliedDiscount?.discountAmountCents ?? null,
             discountType: appliedDiscount?.type ?? null,
             shippingAddress: shippingAddress as unknown as InputJsonValue,
+            orderNote: orderNote?.trim() ? orderNote.trim() : null,
             source: source ?? 'web',
             status: OrderStatus.PENDING,
             items: {

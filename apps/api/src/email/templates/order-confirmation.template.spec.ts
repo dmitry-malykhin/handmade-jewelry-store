@@ -187,4 +187,31 @@ describe('buildOrderConfirmationEmail', () => {
       expect(html).toContain('/impressum')
     })
   })
+
+  describe('buyer gift note (#521)', () => {
+    it('renders the note block when orderNote is provided', () => {
+      const { html } = buildOrderConfirmationEmail({
+        ...baseData,
+        orderNote: 'Happy birthday Mum!',
+      })
+      expect(html).toContain('Your note to us')
+      expect(html).toContain('Happy birthday Mum!')
+    })
+
+    it('omits the note block entirely when orderNote is null/empty/whitespace', () => {
+      for (const value of [null, '', '   ']) {
+        const { html } = buildOrderConfirmationEmail({ ...baseData, orderNote: value })
+        expect(html).not.toContain('Your note to us')
+      }
+    })
+
+    it('escapes HTML in the note to prevent injection from the buyer field', () => {
+      const { html } = buildOrderConfirmationEmail({
+        ...baseData,
+        orderNote: '<script>alert(1)</script>',
+      })
+      expect(html).not.toContain('<script>alert(1)</script>')
+      expect(html).toContain('&lt;script&gt;')
+    })
+  })
 })

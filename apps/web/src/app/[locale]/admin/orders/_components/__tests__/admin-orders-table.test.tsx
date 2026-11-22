@@ -72,6 +72,7 @@ const sampleOrder: OrderDetails = {
   shippingCost: 500,
   total: 7300,
   shippingAddress: sampleShippingAddress,
+  orderNote: null,
   items: [
     {
       id: 'item-1',

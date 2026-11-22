@@ -19,9 +19,12 @@ import { CheckoutOrderSummary } from './checkout-order-summary'
 import { CheckoutSteps } from './checkout-steps'
 
 interface CheckoutShippingMethodFormProps {
-  onNext: (selectedOption: ShippingOption, shippingCost: number) => void
+  onNext: (selectedOption: ShippingOption, shippingCost: number, orderNote: string) => void
   onBack: () => void
+  initialOrderNote?: string
 }
+
+const ORDER_NOTE_MAX_LENGTH = 500
 
 interface ShippingOptionViewModel {
   option: ShippingOption
@@ -30,10 +33,15 @@ interface ShippingOptionViewModel {
   deliveryRange: string
 }
 
-export function CheckoutShippingMethodForm({ onNext, onBack }: CheckoutShippingMethodFormProps) {
+export function CheckoutShippingMethodForm({
+  onNext,
+  onBack,
+  initialOrderNote = '',
+}: CheckoutShippingMethodFormProps) {
   const t = useTranslations('checkoutPage')
   const cartSubtotal = useCheckoutTotalPrice()
   const [selectedOptionId, setSelectedOptionId] = useState<ShippingOptionId>('standard')
+  const [orderNote, setOrderNote] = useState<string>(initialOrderNote)
 
   // Precompute display data for each option — avoids redundant calls inside map
   const shippingOptionViewModels = useMemo<ShippingOptionViewModel[]>(
@@ -57,7 +65,7 @@ export function CheckoutShippingMethodForm({ onNext, onBack }: CheckoutShippingM
 
   function handleContinue() {
     if (resolvedViewModel) {
-      onNext(resolvedViewModel.option, resolvedViewModel.shippingCost)
+      onNext(resolvedViewModel.option, resolvedViewModel.shippingCost, orderNote.trim())
     }
   }
 
@@ -130,6 +138,25 @@ export function CheckoutShippingMethodForm({ onNext, onBack }: CheckoutShippingM
             })}
           </ul>
         </fieldset>
+
+        <div className="mt-8">
+          <label htmlFor="orderNote" className="mb-2 block text-sm font-medium text-foreground">
+            {t('orderNoteLabel')}
+          </label>
+          <textarea
+            id="orderNote"
+            name="orderNote"
+            rows={3}
+            maxLength={ORDER_NOTE_MAX_LENGTH}
+            value={orderNote}
+            onChange={(event) => setOrderNote(event.target.value)}
+            placeholder={t('orderNotePlaceholder')}
+            className="w-full resize-y rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+          />
+          <p className="mt-1 text-xs text-muted-foreground">
+            {t('orderNoteHelper', { count: ORDER_NOTE_MAX_LENGTH - orderNote.length })}
+          </p>
+        </div>
 
         <div className="mt-8 flex flex-col gap-3 sm:flex-row-reverse">
           <Button size="lg" className="w-full sm:w-auto sm:min-w-48" onClick={handleContinue}>

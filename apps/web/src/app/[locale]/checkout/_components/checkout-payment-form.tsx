@@ -22,6 +22,8 @@ interface CheckoutPaymentFormProps {
   selectedShippingOption?: ShippingOption
   /** Loyalty points the user opted to redeem on the previous step. */
   loyaltyPointsToRedeem?: number
+  /** Gift / handwritten note entered on the shipping step (#521). */
+  orderNote?: string
   onBack: () => void
 }
 
@@ -30,6 +32,7 @@ export function CheckoutPaymentForm({
   shippingCost,
   selectedShippingOption,
   loyaltyPointsToRedeem = 0,
+  orderNote,
   onBack,
 }: CheckoutPaymentFormProps) {
   const t = useTranslations('checkoutPage')
@@ -45,6 +48,7 @@ export function CheckoutPaymentForm({
     addressValues,
     shippingCost,
     loyaltyPointsToRedeem,
+    orderNote,
   )
 
   const [isSubmitting, setIsSubmitting] = useState(false)

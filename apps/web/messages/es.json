@@ -521,7 +521,10 @@
     "termsAcceptance": "Acepto los <terms>Términos del Servicio</terms>, la <privacy>Política de Privacidad</privacy> y la <refund>Política de Reembolsos</refund>. Entiendo que este pedido es vinculante y se paga al enviarlo.",
     "termsRequiredError": "Acepta los Términos, la Política de Privacidad y la Política de Reembolsos para realizar el pedido.",
     "termsRecordFailedError": "No se pudo registrar tu aceptación. Inténtalo de nuevo.",
-    "placeOrderCta": "Realizar pedido (paga {amount})"
+    "placeOrderCta": "Realizar pedido (paga {amount})",
+    "orderNoteLabel": "Mensaje de regalo o indicaciones (opcional)",
+    "orderNotePlaceholder": "Ej.: «¡Feliz cumpleaños, mamá!» o «Añadid una tarjeta de cuidado, por favor.»",
+    "orderNoteHelper": "Te quedan {count} caracteres. Incluimos una nota a mano en cada caja."
   },
   "confirmationPage": {
     "metaTitle": "Pedido confirmado",
@@ -1171,7 +1174,8 @@
     "ordersShipDialogTrackingPlaceholder": "p. ej. 9400110200883861123456",
     "ordersShipDialogCancel": "Cancelar",
     "ordersShipDialogSubmit": "Marcar enviado y notificar",
-    "ordersShipDialogSubmitting": "Enviando…"
+    "ordersShipDialogSubmitting": "Enviando…",
+    "orderDetailBuyerNote": "Mensaje del comprador"
   },
   "errors": {
     "somethingWentWrong": "Algo salió mal",
@@ -1489,7 +1493,7 @@
     "q_materials_question": "¿Qué materiales utilizan?",
     "q_materials_answer": "La mayoría son plata esterlina 925 o latón con baño de oro 14k. Las cuentas son vidrio checo o piedras naturales (piedra lunar, ónix, cuarzo rosa, etc.). Cada ficha de producto indica los materiales exactos. Si tienes alergia a algún metal, escríbenos — solemos poder cambiar los herrajes.",
     "q_giftWrap_question": "¿Tienen envoltorio para regalo o personalización?",
-    "q_giftWrap_answer": "Todos los pedidos llegan en una caja reciclada con una bolsita de tela — sin coste extra. Añade una nota a mano en el campo de comentarios al hacer el pedido. Para grabados en el reverso, escríbenos antes de comprar.",
+    "q_giftWrap_answer": "Cada pedido se envía en una caja de regalo reciclada con una bolsita de tela, sin coste añadido. Añade una nota en el campo «Mensaje de regalo» durante el envío al finalizar la compra. Para grabado personalizado en el reverso de una pieza, escríbenos antes de hacer el pedido.",
     "q_customsDuties_question": "¿Están incluidos los aranceles?",
     "q_customsDuties_answer": "No. Los compradores internacionales son responsables de los aranceles, impuestos y tasas aduaneras de su país. Los cobra tu servicio postal local o la aduana al entregar — no nosotros.",
     "q_lostPackage_question": "¿Y si el paquete se pierde o llega dañado?",

@@ -12,6 +12,8 @@ interface BuildOrderPayloadOptions {
   loyaltyPointsToRedeem?: number
   /** Discount code the buyer entered. Server re-validates and computes amount. */
   discountCode?: string
+  /** Gift / handwritten note (#521). Stored on the Order, shown to admin + echoed in confirmation email. */
+  orderNote?: string
 }
 
 export function buildOrderPayload(
@@ -48,6 +50,7 @@ export function buildOrderPayload(
       ? { loyaltyPointsToRedeem: options.loyaltyPointsToRedeem }
       : {}),
     ...(options.discountCode ? { discountCode: options.discountCode } : {}),
+    ...(options.orderNote?.trim() ? { orderNote: options.orderNote.trim() } : {}),
     source: 'web',
   }
 }

@@ -43,6 +43,8 @@ interface CheckoutFlowState {
   resolvedShippingCost: number
   /** Loyalty points the user applied on the shipping step. */
   loyaltyPointsToRedeem: number
+  /** Gift / handwritten note entered on the shipping step (#521). */
+  orderNote: string
 }
 
 export function CheckoutEntry() {
@@ -59,6 +61,7 @@ export function CheckoutEntry() {
     selectedShippingOption: null,
     resolvedShippingCost: 0,
     loyaltyPointsToRedeem: 0,
+    orderNote: '',
   })
 
   // Fire checkout_started once per checkout session — only after the cart is
@@ -104,8 +107,15 @@ export function CheckoutEntry() {
   function handleShippingMethodCompleted(
     selectedShippingOption: ShippingOption,
     resolvedShippingCost: number,
+    orderNote: string,
   ) {
-    setFlowState((prev) => ({ ...prev, selectedShippingOption, resolvedShippingCost, step: 3 }))
+    setFlowState((prev) => ({
+      ...prev,
+      selectedShippingOption,
+      resolvedShippingCost,
+      orderNote,
+      step: 3,
+    }))
   }
 
   function handleBackToAddressForm() {
@@ -142,6 +152,7 @@ export function CheckoutEntry() {
           <CheckoutShippingMethodForm
             onNext={handleShippingMethodCompleted}
             onBack={handleBackToAddressForm}
+            initialOrderNote={flowState.orderNote}
           />
         </div>
       )
@@ -154,6 +165,7 @@ export function CheckoutEntry() {
           shippingCost={flowState.resolvedShippingCost}
           selectedShippingOption={flowState.selectedShippingOption ?? undefined}
           loyaltyPointsToRedeem={flowState.loyaltyPointsToRedeem}
+          orderNote={flowState.orderNote}
           onBack={handleBackToShippingMethod}
         />
       )

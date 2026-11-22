@@ -247,6 +247,10 @@ model Order {
   // Shipping address — JSON snapshot at checkout time (not FK; address may change later)
   shippingAddress Json
 
+  // Gift / handwritten note the buyer leaves at checkout (#521). Shown to admin
+  // and echoed back in the confirmation email so the buyer sees it was received.
+  orderNote String? @db.VarChar(500)
+
   // Shipping tracking
   shippingCarrier     String?
   trackingNumber      String?

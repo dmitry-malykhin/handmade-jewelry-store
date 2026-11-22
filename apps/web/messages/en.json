@@ -521,7 +521,10 @@
     "termsAcceptance": "I accept the <terms>Terms of Service</terms>, the <privacy>Privacy Policy</privacy>, and the <refund>Refund Policy</refund>. I understand this order is binding and paid on submission.",
     "termsRequiredError": "Please accept the Terms, Privacy and Refund Policy to place your order.",
     "termsRecordFailedError": "Could not record your acceptance. Please try again.",
-    "placeOrderCta": "Place order (pays {amount})"
+    "placeOrderCta": "Place order (pays {amount})",
+    "orderNoteLabel": "Gift message or special requests (optional)",
+    "orderNotePlaceholder": "e.g. 'Happy birthday, Mum! Love from Sarah.' or 'Please include a care card.'",
+    "orderNoteHelper": "{count} characters remaining — we add handwritten notes to every box."
   },
   "confirmationPage": {
     "metaTitle": "Order Confirmed",
@@ -1171,7 +1174,8 @@
     "ordersShipDialogTrackingPlaceholder": "e.g. 9400110200883861123456",
     "ordersShipDialogCancel": "Cancel",
     "ordersShipDialogSubmit": "Mark shipped and notify",
-    "ordersShipDialogSubmitting": "Sending…"
+    "ordersShipDialogSubmitting": "Sending…",
+    "orderDetailBuyerNote": "Buyer's gift note"
   },
   "errors": {
     "somethingWentWrong": "Something went wrong",
@@ -1489,7 +1493,7 @@
     "q_materials_question": "What materials do you use?",
     "q_materials_answer": "Most pieces are sterling silver 925 or 14k gold-plated brass. Beads are Czech glass or natural gemstones (moonstone, onyx, rose quartz, etc.). Each product page lists the exact materials. If you have a metal allergy, message us — we can usually swap findings.",
     "q_giftWrap_question": "Do you offer gift wrap or personalization?",
-    "q_giftWrap_answer": "Every order ships in a recycled gift box with a fabric pouch — no extra charge. Add a handwritten note in the cart notes field at checkout. For custom engraving on the back of a piece, message us before ordering.",
+    "q_giftWrap_answer": "Every order ships in a recycled gift box with a fabric pouch — no extra charge. Add a handwritten note in the Gift message field at checkout (shipping step). For custom engraving on the back of a piece, message us before ordering.",
     "q_customsDuties_question": "Are customs duties included?",
     "q_customsDuties_answer": "No. International buyers are responsible for duties, taxes, and customs fees that may apply in your country. These are charged by your local postal service or customs office on delivery — not by us.",
     "q_lostPackage_question": "What if my package is lost or damaged?",

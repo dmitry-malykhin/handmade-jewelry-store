@@ -5,7 +5,7 @@ import type { AdminOrderDetail as AdminOrderDetailType } from '@/lib/api/orders'
 
 export function ShippingAddressCard({ order }: { order: AdminOrderDetailType }) {
   const t = useTranslations('admin')
-  const { shippingAddress } = order
+  const { shippingAddress, orderNote } = order
   return (
     <section
       aria-labelledby="shipping-address-heading"
@@ -30,6 +30,14 @@ export function ShippingAddressCard({ order }: { order: AdminOrderDetailType }) 
           <p className="pt-1 text-muted-foreground">{shippingAddress.phone}</p>
         )}
       </address>
+      {orderNote && (
+        <div className="mt-4 border-t border-border pt-3">
+          <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            {t('orderDetailBuyerNote')}
+          </p>
+          <p className="whitespace-pre-line text-sm text-foreground">{orderNote}</p>
+        </div>
+      )}
     </section>
   )
 }

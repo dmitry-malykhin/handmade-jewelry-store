@@ -11,6 +11,7 @@ import {
   IsString,
   Length,
   Max,
+  MaxLength,
   Min,
   registerDecorator,
   ValidateNested,
@@ -157,4 +158,10 @@ export class CreateOrderDto {
   @IsString()
   @IsOptional()
   source?: string
+
+  // Gift / handwritten note — 500-char cap matches the DB column (#521).
+  @IsString()
+  @MaxLength(500)
+  @IsOptional()
+  orderNote?: string
 }

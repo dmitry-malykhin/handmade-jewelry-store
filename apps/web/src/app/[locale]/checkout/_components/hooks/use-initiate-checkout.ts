@@ -24,6 +24,7 @@ export function useInitiateCheckout(
   addressValues: CheckoutAddressFormValues,
   shippingCost: number,
   loyaltyPointsToRedeem = 0,
+  orderNote?: string,
 ): InitiateCheckoutResult {
   const checkoutItems = useCheckoutItems()
   const accessToken = useAuthStore((state) => state.accessToken)
@@ -47,6 +48,7 @@ export function useInitiateCheckout(
       try {
         const orderPayload = buildOrderPayload(checkoutItems, addressValues, shippingCost, {
           loyaltyPointsToRedeem,
+          orderNote,
         })
         const createdOrder = await createOrder(
           orderPayload,
