@@ -973,9 +973,6 @@
     "reviewsRatingAriaLabel": "{rating} из 5 звёзд",
     "confirmDialogConfirm": "Подтвердить",
     "confirmDialogCancel": "Отмена",
-    "ordersConfirmShippedTitle": "Перевести заказ #{id} в «Отправлен»?",
-    "ordersConfirmShippedDescription": "Покупателю немедленно уйдёт email с подтверждением отправки.",
-    "ordersConfirmShippedAction": "Отправлен",
     "ordersConfirmDeliveredTitle": "Перевести заказ #{id} в «Доставлен»?",
     "ordersConfirmDeliveredDescription": "Будут начислены лояльные баллы и отправлен email о доставке.",
     "ordersConfirmDeliveredAction": "Доставлен",
@@ -1165,7 +1162,16 @@
     "refundReasonOTHER": "Другое",
     "productsDeleteBlockedByOrders": "На «{title}» есть заказы. Заархивируйте, чтобы сохранить историю.",
     "productsArchiveInstead": "Заархивировать",
-    "productsBulkDeleteBlockedByOrders": "На некоторые выбранные товары есть заказы. Заархивируйте их, чтобы сохранить историю."
+    "productsBulkDeleteBlockedByOrders": "На некоторые выбранные товары есть заказы. Заархивируйте их, чтобы сохранить историю.",
+    "ordersShipDialogTitle": "Отгрузить заказ #{id}",
+    "ordersShipDialogTitleNoId": "Отгрузить заказ",
+    "ordersShipDialogDescription": "Укажите перевозчика и трек-номер. Покупатель сразу получит письмо с этими данными.",
+    "ordersShipDialogCarrierLabel": "Перевозчик",
+    "ordersShipDialogTrackingLabel": "Трек-номер",
+    "ordersShipDialogTrackingPlaceholder": "например, 9400110200883861123456",
+    "ordersShipDialogCancel": "Отмена",
+    "ordersShipDialogSubmit": "Отгрузить и уведомить",
+    "ordersShipDialogSubmitting": "Отправляем…"
   },
   "errors": {
     "somethingWentWrong": "Что-то пошло не так",

@@ -157,7 +157,10 @@ export interface AdminOrdersResponse {
 export interface UpdateOrderStatusPayload {
   status: OrderStatus
   note?: string
+  // #477: sent alongside status=SHIPPED so the owner never needs the
+  // separate /tracking call before the customer's shipping email fires.
   trackingNumber?: string
+  shippingCarrier?: string
 }
 
 interface FetchOrderByIdOptions {

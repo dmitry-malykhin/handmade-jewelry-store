@@ -47,6 +47,19 @@ export class OrdersStatusService {
       )
     }
 
+    // #477: PATCH to SHIPPED carries the tracking info in one call so the
+    // owner never has to open the order detail to re-enter it. Persist here,
+    // then reuse the same values in the shipping-notification email below.
+    const isShippingWithTracking =
+      updateOrderStatusDto.status === OrderStatus.SHIPPED && !!updateOrderStatusDto.trackingNumber
+    const shipmentFields = isShippingWithTracking
+      ? {
+          trackingNumber: updateOrderStatusDto.trackingNumber,
+          shippingCarrier: updateOrderStatusDto.shippingCarrier ?? null,
+          shippedAt: new Date(),
+        }
+      : {}
+
     // Atomic with loyalty bookkeeping — a DELIVERED that didn't credit points
     // would show inconsistent state on the account page until fixed by hand.
     const updatedOrder = await this.prismaService.$transaction(async (tx) => {
@@ -54,6 +67,7 @@ export class OrdersStatusService {
         where: { id: orderId },
         data: {
           status: updateOrderStatusDto.status,
+          ...shipmentFields,
           statusHistory: {
             create: {
               fromStatus: order.status,

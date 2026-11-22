@@ -279,6 +279,70 @@ describe('AdminOrdersTable — status transitions', () => {
       )
     })
   })
+
+  // ── #477: SHIPPED requires tracking info in the same PATCH ──────────────
+
+  it('SHIPPED opens the tracking dialog (not the plain confirm) and blocks submit until tracking is filled', async () => {
+    const user = userEvent.setup()
+    const processingOrder: OrderDetails = { ...sampleOrder, status: 'PROCESSING' }
+    mockFetchAdminOrders.mockResolvedValue({
+      data: [processingOrder],
+      meta: { totalCount: 1, page: 1, limit: 20, totalPages: 1 },
+    })
+
+    render(<AdminOrdersTable />)
+
+    const statusButton = await screen.findByRole('button', {
+      name: /change status for order 00000001/i,
+    })
+    await user.click(statusButton)
+    await user.click(await screen.findByRole('menuitem', { name: /shipped/i }))
+
+    const dialog = await screen.findByRole('dialog')
+    const submit = within(dialog).getByRole('button', { name: /mark shipped and notify/i })
+    // Empty tracking must keep the submit disabled so no SHIPPED PATCH fires.
+    expect(submit).toBeDisabled()
+    expect(mockUpdateAdminOrderStatus).not.toHaveBeenCalled()
+  })
+
+  it('SHIPPED dialog submits status=SHIPPED with trackingNumber + shippingCarrier in one call', async () => {
+    const user = userEvent.setup()
+    const processingOrder: OrderDetails = { ...sampleOrder, status: 'PROCESSING' }
+    mockFetchAdminOrders.mockResolvedValue({
+      data: [processingOrder],
+      meta: { totalCount: 1, page: 1, limit: 20, totalPages: 1 },
+    })
+    mockUpdateAdminOrderStatus.mockResolvedValue({
+      ...processingOrder,
+      status: 'SHIPPED',
+    } as never)
+
+    render(<AdminOrdersTable />)
+
+    const statusButton = await screen.findByRole('button', {
+      name: /change status for order 00000001/i,
+    })
+    await user.click(statusButton)
+    await user.click(await screen.findByRole('menuitem', { name: /shipped/i }))
+
+    const dialog = await screen.findByRole('dialog')
+    const tracking = within(dialog).getByLabelText(/tracking number/i)
+    await user.type(tracking, 'TRK-ABC-123')
+
+    await user.click(within(dialog).getByRole('button', { name: /mark shipped and notify/i }))
+
+    await waitFor(() => {
+      expect(mockUpdateAdminOrderStatus).toHaveBeenCalledWith(
+        'order-00000001',
+        expect.objectContaining({
+          status: 'SHIPPED',
+          trackingNumber: 'TRK-ABC-123',
+          shippingCarrier: expect.any(String),
+        }),
+        'mock-token',
+      )
+    })
+  })
 })
 
 describe('AdminOrdersTable — status filter', () => {
