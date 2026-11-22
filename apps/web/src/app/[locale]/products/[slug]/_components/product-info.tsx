@@ -75,7 +75,9 @@ export async function ProductInfo({ product }: ProductInfoProps) {
       )}
 
       {/* Title — h1 for this page */}
-      <h1 className="text-2xl font-bold text-foreground lg:text-3xl">{product.title}</h1>
+      <h1 className="font-display text-3xl font-normal text-foreground lg:text-4xl">
+        {product.title}
+      </h1>
 
       {/* Rating */}
       {product.avgRating > 0 && (

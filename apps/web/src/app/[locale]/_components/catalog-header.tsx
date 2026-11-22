@@ -6,7 +6,7 @@ interface CatalogHeaderProps {
 export function CatalogHeader({ title, productsCount }: CatalogHeaderProps) {
   return (
     <header className="mb-8">
-      <h1 id="catalog-heading" className="text-3xl font-bold text-foreground">
+      <h1 id="catalog-heading" className="font-display text-4xl font-normal text-foreground">
         {title}
       </h1>
       <p className="mt-2 text-sm text-muted-foreground">{productsCount}</p>

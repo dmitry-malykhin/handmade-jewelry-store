@@ -36,7 +36,7 @@ export default async function AboutPage({ params }: AboutPageProps) {
       {/* Hero */}
       <section className="bg-accent/30 px-4 py-20 text-center sm:px-6">
         <div className="mx-auto max-w-2xl">
-          <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
+          <h1 className="font-display text-4xl font-normal tracking-tight text-foreground sm:text-5xl lg:text-6xl">
             {t('heroTitle')}
           </h1>
           <p className="mt-4 text-lg text-muted-foreground">{t('heroSubtitle')}</p>
@@ -46,7 +46,9 @@ export default async function AboutPage({ params }: AboutPageProps) {
       <div className="mx-auto max-w-4xl px-4 py-16 sm:px-6">
         {/* Brand Story */}
         <article id="story" className="mb-20 scroll-mt-24">
-          <h2 className="mb-6 text-2xl font-semibold text-foreground">{t('storyTitle')}</h2>
+          <h2 className="mb-6 font-display text-3xl font-normal text-foreground">
+            {t('storyTitle')}
+          </h2>
           <div className="space-y-4 text-muted-foreground">
             <p>{t('storyParagraph1')}</p>
             <p>{t('storyParagraph2')}</p>
@@ -55,7 +57,10 @@ export default async function AboutPage({ params }: AboutPageProps) {
 
         {/* Handmade Process */}
         <section className="mb-20" aria-labelledby="process-heading">
-          <h2 id="process-heading" className="mb-8 text-2xl font-semibold text-foreground">
+          <h2
+            id="process-heading"
+            className="mb-8 font-display text-3xl font-normal text-foreground"
+          >
             {t('processTitle')}
           </h2>
           <ol className="grid gap-6 sm:grid-cols-2" role="list">
@@ -80,7 +85,10 @@ export default async function AboutPage({ params }: AboutPageProps) {
 
         {/* Materials */}
         <section className="mb-20" aria-labelledby="materials-heading">
-          <h2 id="materials-heading" className="mb-8 text-2xl font-semibold text-foreground">
+          <h2
+            id="materials-heading"
+            className="mb-8 font-display text-3xl font-normal text-foreground"
+          >
             {t('materialsTitle')}
           </h2>
           <ul className="grid gap-6 sm:grid-cols-3" role="list">
@@ -101,7 +109,10 @@ export default async function AboutPage({ params }: AboutPageProps) {
 
         {/* Values */}
         <section className="mb-20" aria-labelledby="values-heading">
-          <h2 id="values-heading" className="mb-8 text-2xl font-semibold text-foreground">
+          <h2
+            id="values-heading"
+            className="mb-8 font-display text-3xl font-normal text-foreground"
+          >
             {t('valuesTitle')}
           </h2>
           <ul className="grid gap-6 sm:grid-cols-3" role="list">
@@ -125,7 +136,9 @@ export default async function AboutPage({ params }: AboutPageProps) {
 
         {/* CTA */}
         <section className="rounded-xl bg-accent/30 px-8 py-12 text-center">
-          <h2 className="mb-4 text-2xl font-semibold text-foreground">{t('ctaTitle')}</h2>
+          <h2 className="mb-4 font-display text-3xl font-normal text-foreground">
+            {t('ctaTitle')}
+          </h2>
           <Button asChild size="lg">
             <Link href="/">{t('ctaButton')}</Link>
           </Button>

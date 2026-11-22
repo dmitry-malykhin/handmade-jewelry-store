@@ -144,7 +144,7 @@ export default async function HomePage({ params, searchParams }: HomePageProps) 
           aria-labelledby="category-heading"
           className="mb-6 rounded-lg border border-border bg-accent/30 p-6"
         >
-          <h2 id="category-heading" className="text-xl font-semibold text-foreground">
+          <h2 id="category-heading" className="font-display text-2xl font-normal text-foreground">
             {activeCategory.name}
           </h2>
           <p className="mt-2 text-sm text-muted-foreground">{activeCategory.description}</p>
