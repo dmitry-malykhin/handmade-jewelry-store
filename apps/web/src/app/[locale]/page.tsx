@@ -1,14 +1,13 @@
 import { Suspense } from 'react'
 import type { Metadata } from 'next'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
-import { fetchProducts, fetchCategories } from '@/lib/api/products'
+import { fetchCategories } from '@/lib/api/products'
 import { buildLocaleAlternates } from '@/lib/seo/alternates'
-import { ProductGrid } from '@/components/features/catalog/product-grid'
 import { ProductGridSkeleton } from '@/components/features/catalog/product-grid-skeleton'
 import { CatalogHeader } from './_components/catalog-header'
 import { CatalogFilters } from './_components/catalog-filters'
 import { CatalogFiltersMobile } from './_components/catalog-filters-mobile'
-import { CatalogPagination } from './_components/catalog-pagination'
+import { ProductGridServer } from './_components/product-grid-server'
 
 // ISR — revalidate catalog every hour so new products appear without full redeploy
 export const revalidate = 3600
@@ -87,26 +86,12 @@ export default async function HomePage({ params, searchParams }: HomePageProps) 
     ? (resolvedSearchParams.sortOrder as 'asc' | 'desc')
     : undefined
 
-  let products: Awaited<ReturnType<typeof fetchProducts>>['data'] = []
-  let meta = { totalCount: 0, totalPages: 1, page: 1, limit: PRODUCTS_PER_PAGE }
+  // #501: products are fetched inside <ProductGridServer> so the header and
+  // filter column flush immediately while the grid streams. Categories stay
+  // awaited here because activeCategory + filter defaults need them in-shell.
   let categories: Awaited<ReturnType<typeof fetchCategories>> = []
-
   try {
-    const [productsResponse, categoriesResponse] = await Promise.all([
-      fetchProducts({
-        page: currentPage,
-        limit: PRODUCTS_PER_PAGE,
-        categorySlug,
-        minPrice: sanitizedMinPrice,
-        maxPrice: sanitizedMaxPrice,
-        sortBy,
-        sortOrder,
-      }),
-      fetchCategories(),
-    ])
-    products = productsResponse.data
-    meta = productsResponse.meta
-    categories = categoriesResponse
+    categories = await fetchCategories()
   } catch {
     // API unavailable — render empty state rather than crashing the page
   }
@@ -134,10 +119,7 @@ export default async function HomePage({ params, searchParams }: HomePageProps) 
 
   return (
     <section aria-labelledby="catalog-heading" className="container mx-auto px-4 py-8">
-      <CatalogHeader
-        title={t('title')}
-        productsCount={t('productsCount', { count: meta.totalCount })}
-      />
+      <CatalogHeader title={t('title')} />
 
       {activeCategory?.description && (
         <section
@@ -168,13 +150,17 @@ export default async function HomePage({ params, searchParams }: HomePageProps) 
 
         <div className="min-w-0 flex-1">
           <Suspense fallback={<ProductGridSkeleton cardCount={PRODUCTS_PER_PAGE} />}>
-            <ProductGrid products={products} />
+            <ProductGridServer
+              page={currentPage}
+              limit={PRODUCTS_PER_PAGE}
+              categorySlug={categorySlug}
+              minPrice={sanitizedMinPrice}
+              maxPrice={sanitizedMaxPrice}
+              sortBy={sortBy}
+              sortOrder={sortOrder}
+              activeSearchParams={activeSearchParams}
+            />
           </Suspense>
-          <CatalogPagination
-            currentPage={currentPage}
-            totalPages={meta.totalPages}
-            searchParams={activeSearchParams}
-          />
         </div>
       </div>
     </section>

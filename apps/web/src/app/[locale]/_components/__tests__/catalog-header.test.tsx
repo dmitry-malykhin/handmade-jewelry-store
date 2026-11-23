@@ -15,14 +15,13 @@ beforeEach(async () => {
 })
 
 describe('CatalogHeader', () => {
-  it('renders title and product count', () => {
-    render(<CatalogHeader title="Rings" productsCount="42 products" />)
+  it('renders the title as h1', () => {
+    render(<CatalogHeader title="Rings" />)
     expect(screen.getByRole('heading', { level: 1, name: 'Rings' })).toBeInTheDocument()
-    expect(screen.getByText('42 products')).toBeInTheDocument()
   })
 
   it('applies the font-display utility to the catalog h1', () => {
-    render(<CatalogHeader title="Rings" productsCount="42 products" />)
+    render(<CatalogHeader title="Rings" />)
     const heading = screen.getByRole('heading', { level: 1, name: 'Rings' })
     expect(heading.className).toContain('font-display')
   })
