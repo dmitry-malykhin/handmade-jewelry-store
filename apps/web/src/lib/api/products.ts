@@ -25,8 +25,18 @@ export interface AdminProductsQueryParams {
   sortOrder?: 'asc' | 'desc'
 }
 
+// Catalog ISR window. `export const revalidate` on the page only governs the
+// route shell; Next 15 marks any searchParams-reading route dynamic, which
+// bypasses it. The per-fetch option below is what actually caches the API
+// response so filter combinations hit the cache instead of round-tripping
+// NestJS on every visit (#502).
+const CATALOG_REVALIDATE_SECONDS = 3600
+
 export async function fetchProducts(params: FetchProductsParams = {}): Promise<ProductsResponse> {
-  return apiClient<ProductsResponse>(`/api/products${toQueryString(params)}`)
+  const categoryTag = params.categorySlug ? `products:${params.categorySlug}` : 'products:all'
+  return apiClient<ProductsResponse>(`/api/products${toQueryString(params)}`, {
+    next: { revalidate: CATALOG_REVALIDATE_SECONDS, tags: ['products', categoryTag] },
+  })
 }
 
 // Mirrors the @Max(100) guard on the public listing endpoint.
@@ -47,11 +57,18 @@ export async function fetchAllProducts(): Promise<Product[]> {
 }
 
 export async function fetchProductBySlug(productSlug: string): Promise<Product> {
-  return apiClient<Product>(`/api/products/${productSlug}`)
+  return apiClient<Product>(`/api/products/${productSlug}`, {
+    next: {
+      revalidate: CATALOG_REVALIDATE_SECONDS,
+      tags: ['products', `product:${productSlug}`],
+    },
+  })
 }
 
 export async function fetchCategories(): Promise<Category[]> {
-  return apiClient<Category[]>('/api/categories')
+  return apiClient<Category[]>('/api/categories', {
+    next: { revalidate: CATALOG_REVALIDATE_SECONDS, tags: ['categories'] },
+  })
 }
 
 export async function searchProducts(query: string): Promise<Product[]> {
