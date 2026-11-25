@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import { NextIntlClientProvider } from 'next-intl'
 import { getMessages, getTranslations, setRequestLocale } from 'next-intl/server'
 import { readCspNonce } from '@/lib/csp-nonce'
+import { pickPublicClientMessages } from '@/i18n/client-messages'
 import { routing, type Locale } from '@/i18n/routing'
 import { Header } from '@/components/shared/header'
 import { Footer } from '@/components/shared/footer'
@@ -39,7 +40,9 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
   // Required for static rendering with next-intl
   setRequestLocale(locale)
 
-  const messages = await getMessages()
+  // Drop the admin namespace from the client payload; /admin re-adds it via
+  // an inner provider so admin pages still work (#500).
+  const messages = pickPublicClientMessages(await getMessages())
   const nonce = await readCspNonce()
 
   const organizationJsonLd = generateOrganizationJsonLd()
