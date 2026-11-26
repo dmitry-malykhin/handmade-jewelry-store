@@ -666,7 +666,9 @@
     "makerLine": "Elaborado en nuestro estudio {studio}",
     "ringSizeGuideLink": "Ver guía de tallas de anillos",
     "installmentPreview": "O {count} pagos de ${amount} con Klarna o Afterpay.",
-    "loadingLabel": "Cargando el producto"
+    "loadingLabel": "Cargando el producto",
+    "relatedProductsCategoryHeading": "Más de {category}",
+    "relatedProductsFallbackHeading": "También te puede gustar"
   },
   "productNotFound": {
     "title": "Esta pieza ya no está",

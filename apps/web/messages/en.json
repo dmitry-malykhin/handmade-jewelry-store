@@ -666,7 +666,9 @@
     "makerLine": "Crafted in our {studio} studio",
     "ringSizeGuideLink": "View ring size guide",
     "installmentPreview": "Or {count} payments of ${amount} with Klarna or Afterpay.",
-    "loadingLabel": "Loading product details"
+    "loadingLabel": "Loading product details",
+    "relatedProductsCategoryHeading": "More from {category}",
+    "relatedProductsFallbackHeading": "You may also like"
   },
   "productNotFound": {
     "title": "This piece is gone",

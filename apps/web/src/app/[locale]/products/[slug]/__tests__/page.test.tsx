@@ -57,6 +57,9 @@ vi.mock('../_components/product-view-tracker', () => ({
 vi.mock('@/components/features/reviews/reviews-section', () => ({
   ReviewsSection: () => null,
 }))
+vi.mock('../_components/related-products', () => ({
+  RelatedProducts: () => null,
+}))
 
 beforeEach(async () => {
   if (!process.env.CI) return
