@@ -666,7 +666,9 @@
     "makerLine": "Изготовлено в нашей мастерской {studio}",
     "ringSizeGuideLink": "Открыть гид по размерам колец",
     "installmentPreview": "Или {count} платежа по ${amount} с Klarna или Afterpay.",
-    "loadingLabel": "Загрузка товара"
+    "loadingLabel": "Загрузка товара",
+    "relatedProductsCategoryHeading": "Ещё в категории «{category}»",
+    "relatedProductsFallbackHeading": "Вам может понравиться"
   },
   "productNotFound": {
     "title": "Это украшение больше недоступно",

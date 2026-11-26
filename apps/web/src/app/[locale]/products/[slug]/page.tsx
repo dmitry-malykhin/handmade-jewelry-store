@@ -7,6 +7,7 @@ import { generateBreadcrumbJsonLd, generateProductJsonLd } from '@/lib/seo/json-
 import { buildLocaleAlternates } from '@/lib/seo/alternates'
 import { ReviewsSection } from '@/components/features/reviews/reviews-section'
 import { ProductDetail } from './_components/product-detail'
+import { RelatedProducts } from './_components/related-products'
 import { ProductViewTracker } from './_components/product-view-tracker'
 
 // 1 h ISR — matches the catalog window.
@@ -125,6 +126,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
           productSlug={product.slug}
           initialAvgRating={product.avgRating}
           initialReviewCount={product.reviewCount}
+        />
+        <RelatedProducts
+          currentSlug={product.slug}
+          categorySlug={product.category?.slug}
+          categoryName={product.category?.name}
         />
       </div>
     </>
