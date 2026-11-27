@@ -429,7 +429,9 @@
     "quantityValue": "Qty {quantity}",
     "readyToShipToday": "Ready to ship today",
     "masterCraftsLine": "Master crafts in {days} business days",
-    "loadingLabel": "Loading cart"
+    "loadingLabel": "Loading cart",
+    "emptyCartPopularHeading": "Popular pieces",
+    "upsellRailHeading": "You might also like"
   },
   "home": {
     "badge": "Coming Soon",

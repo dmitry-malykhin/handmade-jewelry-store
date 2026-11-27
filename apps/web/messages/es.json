@@ -429,7 +429,9 @@
     "quantityValue": "Cant. {quantity}",
     "readyToShipToday": "Listo para enviar hoy",
     "masterCraftsLine": "El maestro lo elabora en {days} días hábiles",
-    "loadingLabel": "Cargando el carrito"
+    "loadingLabel": "Cargando el carrito",
+    "emptyCartPopularHeading": "Piezas populares",
+    "upsellRailHeading": "También te puede gustar"
   },
   "home": {
     "badge": "Próximamente",

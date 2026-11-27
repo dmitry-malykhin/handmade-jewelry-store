@@ -429,7 +429,9 @@
     "quantityValue": "Кол-во {quantity}",
     "readyToShipToday": "Готово к отправке сегодня",
     "masterCraftsLine": "Мастер изготовит за {days} рабочих дней",
-    "loadingLabel": "Загрузка корзины"
+    "loadingLabel": "Загрузка корзины",
+    "emptyCartPopularHeading": "Популярные украшения",
+    "upsellRailHeading": "Вам может понравиться"
   },
   "home": {
     "badge": "Скоро",
